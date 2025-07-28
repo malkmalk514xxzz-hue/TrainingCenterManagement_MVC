@@ -4,7 +4,7 @@ using TrainingCenterManagement_MVC.Models;
 
 namespace TrainingCenterManagement_MVC.Models
 {
-    public class ApplicationUser : IdentityUser<Guid>
+    public class ApplicationUser : IdentityUser
     {
         [Required, MaxLength(50)]
         public string FullName { get; set; }

@@ -2,7 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using TrainingCenterManagement_MVC.Models;
 
-namespace TrainingCenterManagement.Domain
+namespace TrainingCenterManagement_MVC.Models
 {
     public class Receptionist
     {
@@ -10,7 +10,7 @@ namespace TrainingCenterManagement.Domain
         public Guid ReceptionistId { get; set; } = Guid.NewGuid();
 
         [Required]
-        public Guid UserId { get; set; }
+        public string UserId { get; set; }
         public ApplicationUser User { get; set; }
     }
 }
