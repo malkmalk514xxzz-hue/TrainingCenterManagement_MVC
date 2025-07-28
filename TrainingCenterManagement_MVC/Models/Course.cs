@@ -40,8 +40,8 @@ namespace TrainingCenterManagement_MVC.Models
         public Guid AdminId { get; set; }
         public Admin Admin { get; set; }
 
-        public ICollection<Trainee> Trainees { get; set; } = new List<Trainee>();
-        public ICollection<Trainer> Trainers { get; set; } = new List<Trainer>();
+        public ICollection<CourseTrainee> CourseTrainees { get; set; } = new List<CourseTrainee>();
+        public ICollection<CourseTrainer> CourseTrainers { get; set; } = new List<CourseTrainer>();
         public ICollection<Lecture> Lectures { get; set; } = new List<Lecture>();
         public ICollection<Payment> Payments { get; set; } = new List<Payment>();
         public ICollection<Certificate> Certificates { get; set; } = new List<Certificate>();

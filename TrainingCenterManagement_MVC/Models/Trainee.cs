@@ -11,12 +11,12 @@ namespace TrainingCenterManagement_MVC.Models
         public Guid TraineeId { get; set; } = Guid.NewGuid();
 
         [Required]
-        public Guid UserId { get; set; }
+        public string UserId { get; set; }
         public ApplicationUser User { get; set; }
 
         public DateTime BirthDate { get; set; }
 
-        public ICollection<Course> Courses { get; set; } = new List<Course>();
+        public ICollection<CourseTrainee> CourseTrainees { get; set; } = new List<CourseTrainee>();
         public ICollection<Payment> Payments { get; set; } = new List<Payment>();
         public ICollection<Presence> Presences { get; set; } = new List<Presence>();
         public ICollection<Certificate> Certificates { get; set; } = new List<Certificate>();

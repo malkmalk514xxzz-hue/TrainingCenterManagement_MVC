@@ -1,0 +1,29 @@
+﻿@model TrainingCenterManagement_MVC.ViewModels.RegisterUserViewModel
+
+<h2>Register New User</h2>
+
+<form asp-action="Register">
+    <div>
+        <label asp-for="FullName"></label>
+        <input asp-for="FullName" />
+        <span asp-validation-for="FullName"></span>
+    </div>
+    <div>
+        <label asp-for="Email"></label>
+        <input asp-for="Email" />
+        <span asp-validation-for="Email"></span>
+    </div>
+    <div>
+        <label asp-for="Password"></label>
+        <input asp-for="Password" type="password" />
+        <span asp-validation-for="Password"></span>
+    </div>
+    <div>
+        <label asp-for="Role"></label>
+        <select asp-for="Role" asp-items="@(new SelectList(new[] { "Admin", "Trainer", "Trainee", "Receptionist" }))">
+            <option value="">-- Select Role --</option>
+        </select>
+        <span asp-validation-for="Role"></span>
+    </div>
+    <button type="submit">Register</button>
+</form>

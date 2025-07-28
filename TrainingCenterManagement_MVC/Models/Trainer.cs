@@ -11,7 +11,7 @@ namespace TrainingCenterManagement_MVC.Models
         public Guid TrainerId { get; set; } = Guid.NewGuid();
 
         [Required]
-        public Guid UserId { get; set; }
+        public string UserId { get; set; }
         public ApplicationUser User { get; set; }
 
         [Required, MaxLength(100)]
@@ -23,7 +23,7 @@ namespace TrainingCenterManagement_MVC.Models
         [Url]
         public string BusinessLink { get; set; }
 
-        public ICollection<Course> Courses { get; set; } = new List<Course>();
+        public ICollection<CourseTrainer> CourseTrainers { get; set; } = new List<CourseTrainer>();
         public ICollection<Certificate> Certificates { get; set; } = new List<Certificate>();
     }
 }

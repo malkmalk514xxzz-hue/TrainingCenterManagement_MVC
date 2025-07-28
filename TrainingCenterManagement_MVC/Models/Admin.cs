@@ -10,7 +10,7 @@ namespace TrainingCenterManagement_MVC.Models
         public Guid AdminId { get; set; } = Guid.NewGuid();
 
         [Required]
-        public Guid UserId { get; set; }
+        public string UserId { get; set; }
         public ApplicationUser User { get; set; }
     }
 }
