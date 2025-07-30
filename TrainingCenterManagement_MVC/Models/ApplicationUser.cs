@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Identity;
-using TrainingCenterManagement.Domain;
+
 using TrainingCenterManagement_MVC.Models;
 
 namespace TrainingCenterManagement_MVC.Models

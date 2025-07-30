@@ -1,0 +1,702 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Hero_Subtitle" xml:space="preserve">
+    <value>A sleek digital solution for present your menu online in an eco-friendly and efficient way</value>
+  </data>
+  <data name="Hero_Title" xml:space="preserve">
+    <value>Digitize your establishment menu now with TableTap</value>
+  </data>
+  <data name="Nav_Contact" xml:space="preserve">
+    <value>Contact</value>
+  </data>
+  <data name="Nav_FAQ" xml:space="preserve">
+    <value>FAQ</value>
+  </data>
+  <data name="Nav_Features" xml:space="preserve">
+    <value>Features</value>
+  </data>
+  <data name="viewPricing" xml:space="preserve">
+    <value>View Pricing</value>
+  </data>
+  <data name="Nav_HowItWorks" xml:space="preserve">
+    <value>How It Works</value>
+  </data>
+  <data name="Nav_Stats" xml:space="preserve">
+    <value>Stats</value>
+  </data>
+  <data name="Feature_EasyAccess_Title" xml:space="preserve">
+    <value>Easy Access</value>
+  </data>
+  <data name="Feature_EasyAccess_Desc" xml:space="preserve">
+    <value>Customers can access the menu via QR code easily without downloading an app.</value>
+  </data>
+  <data name="Feature_EcoFriendly_Title" xml:space="preserve">
+    <value>Eco-Friendly</value>
+  </data>
+  <data name="Feature_EcoFriendly_Desc" xml:space="preserve">
+    <value>Reduce paper use and contribute to your restaurant’s environmental sustainability.</value>
+  </data>
+  <data name="Feature_CostSaving_Title" xml:space="preserve">
+    <value>Cost Saving</value>
+  </data>
+  <data name="Feature_CostSaving_Desc" xml:space="preserve">
+    <value>Say goodbye to repeated printing — save ongoing menu costs for your restaurant.</value>
+  </data>
+  <data name="customize" xml:space="preserve">
+    <value>Customize</value>
+  </data>
+  <data name="resetToDefault" xml:space="preserve">
+    <value>Reset to Default</value>
+  </data>
+  <data name="themeCustomizer" xml:space="preserve">
+    <value>Theme Customizer</value>
+  </data>
+  <data name="light" xml:space="preserve">
+    <value>Light</value>
+  </data>
+  <data name="language" xml:space="preserve">
+    <value>Language</value>
+  </data>
+  <data name="exploreStyles" xml:space="preserve">
+    <value>Explore Styles</value>
+  </data>
+  <data name="dark" xml:space="preserve">
+    <value>Dark</value>
+  </data>
+  <data name="colorScheme" xml:space="preserve">
+    <value>Color Scheme</value>
+  </data>
+  <data name="whyChoose" xml:space="preserve">
+    <value> Why Choose TableTap? </value>
+  </data>
+  <data name="establishmentDigitalFuture" xml:space="preserve">
+    <value>🌍 Jump into your establishment's digital future.</value>
+  </data>
+  <data name="easyFast" xml:space="preserve">
+    <value>🚀 Easy, fast, and sustainable.</value>
+  </data>
+  <data name="secureWithoutApp" xml:space="preserve">
+    <value>🔒 Secure and without the need for any app.</value>
+  </data>
+  <data name="TableTapFeatures" xml:space="preserve">
+    <value>Features of TableTap</value>
+  </data>
+  <data name="EaseAccess" xml:space="preserve">
+    <value>Ease of access</value>
+  </data>
+  <data name="customersAccessQR" xml:space="preserve">
+    <value>Customers can access the menu via QR code easily without downloading an app.</value>
+  </data>
+  <data name="environmentalProtection" xml:space="preserve">
+    <value>Environmental protection</value>
+  </data>
+  <data name="reducePaperUsage" xml:space="preserve">
+    <value>Reduce paper usage and contribute to the environmental sustainability of your establishment.</value>
+  </data>
+  <data name="costSavings" xml:space="preserve">
+    <value>Cost savings</value>
+  </data>
+  <data name="sayGoodbye" xml:space="preserve">
+    <value>Say goodbye to repetitive printing and save your establishment the periodic costs of lists.</value>
+  </data>
+  <data name="howTableTapWork" xml:space="preserve">
+    <value>How does TableTap work?</value>
+  </data>
+  <data name="registration" xml:space="preserve">
+    <value>Registration</value>
+  </data>
+  <data name="registerYourEstablishment" xml:space="preserve">
+    <value>Register your establishment on the platform and start adding your listing easily.</value>
+  </data>
+  <data name="createQR" xml:space="preserve">
+    <value>Create a QR Code</value>
+  </data>
+  <data name="getQR" xml:space="preserve">
+    <value>Get a QR code for your establishment that you can print and place on tables or display on screens.</value>
+  </data>
+  <data name="accessToMenu" xml:space="preserve">
+    <value>Access to the menu</value>
+  </data>
+  <data name="customersUsePhones" xml:space="preserve">
+    <value>Customers use their phones to scan the code and access the digital menu instantly.</value>
+  </data>
+  <data name="tableTapNumbers" xml:space="preserve">
+    <value>TableTap numbers</value>
+  </data>
+  <data name="registeredEstablishment" xml:space="preserve">
+    <value>Registered establishment</value>
+  </data>
+  <data name="monthlyVisit" xml:space="preserve">
+    <value>Monthly visit to the lists</value>
+  </data>
+  <data name="customerSatisfaction" xml:space="preserve">
+    <value>Customer satisfaction</value>
+  </data>
+  <data name="tableTapFree" xml:space="preserve">
+    <value>Is TableTap free?</value>
+  </data>
+  <data name="basicServiceAtSmallPrice" xml:space="preserve">
+    <value>Basic service at a small price with more expensive options for more customizations.</value>
+  </data>
+  <data name="homePage" xml:space="preserve">
+    <value>Home page</value>
+  </data>
+  <data name="specialApp" xml:space="preserve">
+    <value>Do I need a special app?</value>
+  </data>
+  <data name="clientUseBrowser" xml:space="preserve">
+    <value>No, the client can only use the browser to access the menu.</value>
+  </data>
+  <data name="easilyCustomized" xml:space="preserve">
+    <value>Can the menu be easily customized?</value>
+  </data>
+  <data name="youCanEdit" xml:space="preserve">
+    <value>Yes, you can edit and add items whenever you want via the Dashboard.</value>
+  </data>
+  <data name="contactUs" xml:space="preserve">
+    <value>Contact us</value>
+  </data>
+  <data name="emailUs" xml:space="preserve">
+    <value>Email us:</value>
+  </data>
+  <data name="heroDescription" xml:space="preserve">
+    <value>Create beautiful digital menus, share them via QR codes, and give your customers a seamless experience.</value>
+  </data>
+  <data name="EmailLabel" xml:space="preserve">
+    <value>Email</value>
+  </data>
+  <data name="PasswordLabel" xml:space="preserve">
+    <value>Password</value>
+  </data>
+  <data name="RememberMe" xml:space="preserve">
+    <value>Remember Me</value>
+  </data>
+  <data name="getStarted" xml:space="preserve">
+    <value>Get Started</value>
+  </data>
+  <data name="ForgotPassword" xml:space="preserve">
+    <value>Forgot Password</value>
+  </data>
+  <data name="login" xml:space="preserve">
+    <value>Log in</value>
+  </data>
+  <data name="InvalidLoginCredentials" xml:space="preserve">
+    <value>Invalid Login Credentials</value>
+  </data>
+  <data name="AdminDashboard_Title" xml:space="preserve">
+    <value>Admin Dashboard</value>
+  </data>
+  <data name="AdminDashboard_Subtitle" xml:space="preserve">
+    <value>Admin Dashboard</value>
+  </data>
+  <data name="AddNewMenu_Title" xml:space="preserve">
+    <value>Add New Menu Title</value>
+  </data>
+  <data name="MenuName" xml:space="preserve">
+    <value>Menu Name</value>
+  </data>
+  <data name="MenuType" xml:space="preserve">
+    <value>Menu Type</value>
+  </data>
+  <data name="SelectOption" xml:space="preserve">
+    <value>Select Option</value>
+  </data>
+  <data name="Food" xml:space="preserve">
+    <value>Food</value>
+  </data>
+  <data name="Drinks" xml:space="preserve">
+    <value>Drinks</value>
+  </data>
+  <data name="Description" xml:space="preserve">
+    <value>Description</value>
+  </data>
+  <data name="AddMenu_Button" xml:space="preserve">
+    <value>Add Menu</value>
+  </data>
+  <data name="Pending" xml:space="preserve">
+    <value>Pending</value>
+  </data>
+  <data name="ViewDetails" xml:space="preserve">
+    <value>View Details</value>
+  </data>
+  <data name="Actions" xml:space="preserve">
+    <value>Actions</value>
+  </data>
+  <data name="Status" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="RequestedPlan" xml:space="preserve">
+    <value>Requested Plan</value>
+  </data>
+  <data name="EstablishmentName" xml:space="preserve">
+    <value>Establishment Name</value>
+  </data>
+  <data name="RequestingEstablishments_Title" xml:space="preserve">
+    <value>Requesting Establishments Title</value>
+  </data>
+  <data name="AdminDashboard_Description" xml:space="preserve">
+    <value>Manage system data, monitor requests and update menus.</value>
+  </data>
+  <data name="SharedEstablishments" xml:space="preserve">
+    <value>Shared Establishments </value>
+  </data>
+  <data name="MostActivePlan" xml:space="preserve">
+    <value>Most Active Plan </value>
+  </data>
+  <data name="TotalRequests" xml:space="preserve">
+    <value>Total Requests </value>
+  </data>
+  <data name="AdminNavigation" xml:space="preserve">
+    <value>Admin Navigation </value>
+  </data>
+  <data name="Facilities" xml:space="preserve">
+    <value>Facilities</value>
+  </data>
+  <data name="Cities" xml:space="preserve">
+    <value>Cities</value>
+  </data>
+  <data name="Plans" xml:space="preserve">
+    <value>Plans</value>
+  </data>
+  <data name="PlanRequests" xml:space="preserve">
+    <value>Plan Requests </value>
+  </data>
+  <data name="digitalMenuPlatform" xml:space="preserve">
+    <value>Digital menu platform for establishments. Create and share menus via QR codes.</value>
+  </data>
+  <data name="product" xml:space="preserve">
+    <value>Product</value>
+  </data>
+  <data name="pricing" xml:space="preserve">
+    <value>Pricing</value>
+  </data>
+  <data name="faq" xml:space="preserve">
+    <value>FAQ</value>
+  </data>
+  <data name="company" xml:space="preserve">
+    <value>Company</value>
+  </data>
+  <data name="about" xml:space="preserve">
+    <value>About</value>
+  </data>
+  <data name="contact" xml:space="preserve">
+    <value>Contact</value>
+  </data>
+  <data name="careers" xml:space="preserve">
+    <value>Careers</value>
+  </data>
+  <data name="legal" xml:space="preserve">
+    <value>Legal</value>
+  </data>
+  <data name="terms" xml:space="preserve">
+    <value>Terms</value>
+  </data>
+  <data name="privacy" xml:space="preserve">
+    <value>Privacy</value>
+  </data>
+  <data name="cookies" xml:space="preserve">
+    <value>Cookies</value>
+  </data>
+  <data name="allRightsReserved" xml:space="preserve">
+    <value>All rights reserved.</value>
+  </data>
+  <data name="adminDashboard" xml:space="preserve">
+    <value>Admin Dashboard</value>
+  </data>
+  <data name="userDashboard" xml:space="preserve">
+    <value>User Dashboard</value>
+  </data>
+  <data name="signup" xml:space="preserve">
+    <value>Sign up</value>
+  </data>
+  <data name="heroHeading" xml:space="preserve">
+    <value>Digital Menus for Modern Establishments</value>
+  </data>
+  <data name="featuresSectionHeading" xml:space="preserve">
+    <value>Features Designed for Establishments</value>
+  </data>
+  <data name="featuresSectionDescription" xml:space="preserve">
+    <value>Everything you need to create and manage digital menus for your establishment.</value>
+  </data>
+  <data name="featureQrCodeHeading" xml:space="preserve">
+    <value>QR Code Menus</value>
+  </data>
+  <data name="featureQrCodeDescription" xml:space="preserve">
+    <value>Generate unique QR codes for each table that link directly to your digital menu.</value>
+  </data>
+  <data name="featureMenuManagementHeading" xml:space="preserve">
+    <value>Menu Management</value>
+  </data>
+  <data name="featureMenuManagementDescription" xml:space="preserve">
+    <value>Create and update your menu items, categories, and prices with ease.</value>
+  </data>
+  <data name="featureMobileOptimizedHeading" xml:space="preserve">
+    <value>Mobile Optimized</value>
+  </data>
+  <data name="featureMobileOptimizedDescription" xml:space="preserve">
+    <value>Beautiful menus that look great on any device, especially smartphones.</value>
+  </data>
+  <data name="pricingSectionHeading" xml:space="preserve">
+    <value>Simple, Transparent Pricing</value>
+  </data>
+  <data name="pricingSectionDescription" xml:space="preserve">
+    <value>Choose the plan that works best for your establishment.</value>
+  </data>
+  <data name="ctaSectionHeading" xml:space="preserve">
+    <value>Ready to Transform Your Establishment?</value>
+  </data>
+  <data name="ctaSectionDescription" xml:space="preserve">
+    <value>Join many of establishments already using TableTap to enhance their dining experience.</value>
+  </data>
+  <data name="featureQRCodeItem1" xml:space="preserve">
+    <value>Unlimited QR code generation</value>
+  </data>
+  <data name="featureQRCodeItem2" xml:space="preserve">
+    <value>Category-specific codes</value>
+  </data>
+  <data name="featureQRCodeItem3" xml:space="preserve">
+    <value>Printable high-resolution files</value>
+  </data>
+  <data name="featureMenuItem1" xml:space="preserve">
+    <value>Photo uploads for each dish</value>
+  </data>
+  <data name="featureMenuItem2" xml:space="preserve">
+    <value>Recipe or ingredient details for each item</value>
+  </data>
+  <data name="featureMobileItem1" xml:space="preserve">
+    <value>Responsive design</value>
+  </data>
+  <data name="featureMobileItem2" xml:space="preserve">
+    <value>Fast loading times</value>
+  </data>
+  <data name="featureMobileItem3" xml:space="preserve">
+    <value>No app download required</value>
+  </data>
+  <data name="AdminAuth_Title" xml:space="preserve">
+    <value>Admin login</value>
+  </data>
+  <data name="Admin_Login" xml:space="preserve">
+    <value>Admin Login</value>
+  </data>
+  <data name="authorized" xml:space="preserve">
+    <value>Only authorized administrators can access this panel.</value>
+  </data>
+  <data name="Admin_Email" xml:space="preserve">
+    <value>Admin Email</value>
+  </data>
+  <data name="Enter_admin_email" xml:space="preserve">
+    <value>Enter admin email</value>
+  </data>
+  <data name="Password" xml:space="preserve">
+    <value>Password</value>
+  </data>
+  <data name="Forgot_password" xml:space="preserve">
+    <value>Forgot password?</value>
+  </data>
+  <data name="Admin" xml:space="preserve">
+    <value>Admin</value>
+  </data>
+  <data name="Dashboard" xml:space="preserve">
+    <value>Dashboard</value>
+  </data>
+  <data name="Establishment" xml:space="preserve">
+    <value>Establishment</value>
+  </data>
+  <data name="Users" xml:space="preserve">
+    <value>Users</value>
+  </data>
+  <data name="Subscriptions" xml:space="preserve">
+    <value>Subscriptions</value>
+  </data>
+  <data name="PaymentRequests" xml:space="preserve">
+    <value>Payment Requests</value>
+  </data>
+  <data name="Analytics" xml:space="preserve">
+    <value>Analytics</value>
+  </data>
+  <data name="PaymentMethods" xml:space="preserve">
+    <value>Payment Methods </value>
+  </data>
+  <data name="Settings" xml:space="preserve">
+    <value>Settings</value>
+  </data>
+  <data name="Security" xml:space="preserve">
+    <value>Security</value>
+  </data>
+  <data name="AdminUser" xml:space="preserve">
+    <value>Admin User </value>
+  </data>
+  <data name="AdminEmail" xml:space="preserve">
+    <value>admin@tabletap.com</value>
+  </data>
+  <data name="AdminDashboard_Header" xml:space="preserve">
+    <value>Admin Dashboard </value>
+  </data>
+  <data name="Stat_TotalRestaurants" xml:space="preserve">
+    <value>Total Restaurants </value>
+  </data>
+  <data name="StatChange_ThisMonth" xml:space="preserve">
+    <value>+{0} this month</value>
+  </data>
+  <data name="ChartPlaceholder_GenericText" xml:space="preserve">
+    <value>[Category] analytics will appear here </value>
+  </data>
+  <data name="Analytics_RevenueDescription" xml:space="preserve">
+    <value>Detailed analytics about subscription revenue and growth. </value>
+  </data>
+  <data name="Analytics_RevenueTitle" xml:space="preserve">
+    <value>Revenue Analytics </value>
+  </data>
+  <data name="Analytics_UserDescription" xml:space="preserve">
+    <value>Detailed analytics about user registration and engagement. </value>
+  </data>
+  <data name="Analytics_UserTitle" xml:space="preserve">
+    <value>User Analytics </value>
+  </data>
+  <data name="Restaurants" xml:space="preserve">
+    <value>Restaurants</value>
+  </data>
+  <data name="Analytics_RestaurantDescription" xml:space="preserve">
+    <value>Detailed analytics about restaurant onboarding and activity. </value>
+  </data>
+  <data name="Analytics_RestaurantTitle" xml:space="preserve">
+    <value>Restaurant Analytics </value>
+  </data>
+  <data name="ChartPlaceholder_Text" xml:space="preserve">
+    <value>Analytics chart will appear here </value>
+  </data>
+  <data name="Growth_PlatformDescription" xml:space="preserve">
+    <value>Monthly growth of restaurants, users, and revenue. </value>
+  </data>
+  <data name="Growth_PlatformTitle" xml:space="preserve">
+    <value>Platform Growth </value>
+  </data>
+  <data name="Tab_Revenue" xml:space="preserve">
+    <value>Revenue</value>
+  </data>
+  <data name="Tab_Users" xml:space="preserve">
+    <value>Users</value>
+  </data>
+  <data name="Tab_Restaurants" xml:space="preserve">
+    <value>Restaurants</value>
+  </data>
+  <data name="Tab_Overview" xml:space="preserve">
+    <value>Overview</value>
+  </data>
+  <data name="Stat_ActiveCities" xml:space="preserve">
+    <value>Active Cities </value>
+  </data>
+  <data name="StatChange_LastMonth" xml:space="preserve">
+    <value>+{0}% from last month </value>
+  </data>
+  <data name="Stat_MonthlyRevenue" xml:space="preserve">
+    <value>Monthly Revenue </value>
+  </data>
+  <data name="Stat_ActiveUsers" xml:space="preserve">
+    <value>Active Users </value>
+  </data>
+  <data name="manage_payment_methods" xml:space="preserve">
+    <value>Manage Payment Methods</value>
+  </data>
+  <data name="configure_available_methods" xml:space="preserve">
+    <value>Configure available payment methods for the platform.</value>
+  </data>
+  <data name="search_payment_methods" xml:space="preserve">
+    <value>Search payment methods...</value>
+  </data>
+  <data name="all_types_option" xml:space="preserve">
+    <value>All Types</value>
+  </data>
+  <data name="add_payment_method_button" xml:space="preserve">
+    <value>Add Payment Method</value>
+  </data>
+  <data name="method_name_label" xml:space="preserve">
+    <value>Method Name</value>
+  </data>
+  <data name="enter_method_name_placeholder" xml:space="preserve">
+    <value>Enter payment method name</value>
+  </data>
+  <data name="type" xml:space="preserve">
+    <value>Type</value>
+  </data>
+  <data name="active_status" xml:space="preserve">
+    <value>Active</value>
+  </data>
+  <data name="inactive_status" xml:space="preserve">
+    <value>Inactive</value>
+  </data>
+  <data name="enter_method_description_placeholder" xml:space="preserve">
+    <value>Enter payment method description</value>
+  </data>
+  <data name="cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="save_method" xml:space="preserve">
+    <value>Save Payment Method</value>
+  </data>
+  <data name="select_type" xml:space="preserve">
+    <value>Select a type</value>
+  </data>
+  <data name="cash" xml:space="preserve">
+    <value>Cash</value>
+  </data>
+  <data name="BankTransfer" xml:space="preserve">
+    <value>Bank Transfer</value>
+  </data>
+  <data name="CreditCard" xml:space="preserve">
+    <value>Credit Card</value>
+  </data>
+  <data name="DebitCard" xml:space="preserve">
+    <value>Debit Card</value>
+  </data>
+  <data name="MobileWallet" xml:space="preserve">
+    <value>Mobile Wallet</value>
+  </data>
+  <data name="PayPal" xml:space="preserve">
+    <value>PayPal</value>
+  </data>
+  <data name="Stripe" xml:space="preserve">
+    <value>Stripe</value>
+  </data>
+  <data name="Cryptocurrency" xml:space="preserve">
+    <value>Cryptocurrency</value>
+  </data>
+  <data name="Payeer" xml:space="preserve">
+    <value>Payeer</value>
+  </data>
+  <data name="Other" xml:space="preserve">
+    <value>Other</value>
+  </data>
+  <data name="edit" xml:space="preserve">
+    <value>Edit</value>
+  </data>
+  <data name="Disable" xml:space="preserve">
+    <value>Disable</value>
+  </data>
+  <data name="Enable" xml:space="preserve">
+    <value>Enable</value>
+  </data>
+  <data name="edit_payment_method_button" xml:space="preserve">
+    <value>Edit Payment Method</value>
+  </data>
+  <data name="loading" xml:space="preserve">
+    <value>Loading</value>
+  </data>
+</root>

@@ -1,0 +1,117 @@
+﻿@using TrainingCenterManagement_MVC.Resources
+
+@{
+    ViewData["Title"] = SharedResource.AdminDashboard_Title + " || TableTap";
+}
+
+<body>
+    <div class="dashboard-wrapper">
+        @await Html.PartialAsync("_AdminSidebar")
+
+        <main class="dashboard-main">
+            <div class="dashboard-header">
+                <h1>@SharedResource.AdminDashboard_Header</h1>
+                <p>@SharedResource.AdminDashboard_Description</p>
+            </div>
+
+            <div class="dashboard-stats">
+                <div class="card stat-card">
+                    <div class="stat-header">
+                        <h3>@SharedResource.Stat_TotalRestaurants</h3>
+                        <i class="fas fa-building"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-value">2,856</div>
+                        <p class="stat-change">@string.Format(SharedResource.StatChange_ThisMonth, "124")</p>
+                    </div>
+                </div>
+                <div class="card stat-card">
+                    <div class="stat-header">
+                        <h3>@SharedResource.Stat_ActiveUsers</h3>
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-value">3,427</div>
+                        <p class="stat-change">@string.Format(SharedResource.StatChange_ThisMonth, "258")</p>
+                    </div>
+                </div>
+                <div class="card stat-card">
+                    <div class="stat-header">
+                        <h3>@SharedResource.Stat_MonthlyRevenue</h3>
+                        <i class="fas fa-credit-card"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-value">$128,540</div>
+                        <p class="stat-change">@string.Format(SharedResource.StatChange_LastMonth, "12.5")</p>
+                    </div>
+                </div>
+                <div class="card stat-card">
+                    <div class="stat-header">
+                        <h3>@SharedResource.Stat_ActiveCities</h3>
+                        <i class="fas fa-globe"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-value">42</div>
+                        <p class="stat-change">@string.Format(SharedResource.StatChange_ThisMonth, "3")</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dashboard-tabs">
+                <div class="tabs">
+                    <button class="tab-btn active" data-tab="overview">@SharedResource.Tab_Overview</button>
+                    <button class="tab-btn" data-tab="restaurants">@SharedResource.Tab_Restaurants</button>
+                    <button class="tab-btn" data-tab="users">@SharedResource.Tab_Users</button>
+                    <button class="tab-btn" data-tab="revenue">@SharedResource.Tab_Revenue</button>
+                </div>
+                <div class="tab-content active" id="overview">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>@SharedResource.Growth_PlatformTitle</h3>
+                            <p>@SharedResource.Growth_PlatformDescription</p>
+                        </div>
+                        <div class="card-content chart-placeholder">
+                            <i class="fas fa-chart-bar"></i>
+                            <span>@SharedResource.ChartPlaceholder_Text</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="tab-content" id="restaurants">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>@SharedResource.Analytics_RestaurantTitle</h3>
+                            <p>@SharedResource.Analytics_RestaurantDescription</p>
+                        </div>
+                        <div class="card-content chart-placeholder">
+                            <span>@SharedResource.ChartPlaceholder_GenericText.Replace("[Category]", SharedResource.Restaurants)</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="tab-content" id="users">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>@SharedResource.Analytics_UserTitle</h3>
+                            <p>@SharedResource.Analytics_UserDescription</p>
+                        </div>
+                        <div class="card-content chart-placeholder">
+                            <span>@SharedResource.ChartPlaceholder_GenericText.Replace("[Category]", SharedResource.Users)</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="tab-content" id="revenue">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>@SharedResource.Analytics_RevenueTitle</h3>
+                            <p>@SharedResource.Analytics_RevenueDescription</p>
+                        </div>
+                        <div class="card-content chart-placeholder">
+                            <span>@SharedResource.ChartPlaceholder_GenericText.Replace("[Category]", SharedResource.Subscriptions)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+
+</body>

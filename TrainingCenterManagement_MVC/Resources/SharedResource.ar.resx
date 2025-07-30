@@ -1,0 +1,702 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Hero_Subtitle" xml:space="preserve">
+    <value>حل رقمي أنيق لعرض قائمة الطعام أونلاين بطريقة صديقة للبيئة وفعالة</value>
+  </data>
+  <data name="Hero_Title" xml:space="preserve">
+    <value>قم برقمنة قوائم منشأتك الآن مع TableTap</value>
+  </data>
+  <data name="Nav_Contact" xml:space="preserve">
+    <value>تواصل معنا</value>
+  </data>
+  <data name="Nav_FAQ" xml:space="preserve">
+    <value>الأسئلة الشائعة</value>
+  </data>
+  <data name="Nav_Features" xml:space="preserve">
+    <value>المميزات</value>
+  </data>
+  <data name="viewPricing" xml:space="preserve">
+    <value>عرض الأسعار</value>
+  </data>
+  <data name="Nav_HowItWorks" xml:space="preserve">
+    <value>كيف يعمل</value>
+  </data>
+  <data name="Nav_Stats" xml:space="preserve">
+    <value>الأرقام</value>
+  </data>
+  <data name="Feature_EasyAccess_Title" xml:space="preserve">
+    <value>سهولة الوصول</value>
+  </data>
+  <data name="Feature_EasyAccess_Desc" xml:space="preserve">
+    <value>يمكن للعملاء الوصول إلى القائمة عبر رمز QR بكل سهولة دون تنزيل تطبيق.</value>
+  </data>
+  <data name="Feature_EcoFriendly_Title" xml:space="preserve">
+    <value>حماية البيئة</value>
+  </data>
+  <data name="Feature_EcoFriendly_Desc" xml:space="preserve">
+    <value>تقليل استخدام الورق والمساهمة في الاستدامة البيئية لمطعمك.</value>
+  </data>
+  <data name="Feature_CostSaving_Title" xml:space="preserve">
+    <value>توفير التكاليف</value>
+  </data>
+  <data name="Feature_CostSaving_Desc" xml:space="preserve">
+    <value>وداعًا للطباعة المتكررة، وفر على مطعمك التكاليف الدورية لقوائم الطعام.</value>
+  </data>
+  <data name="customize" xml:space="preserve">
+    <value>تخصيص</value>
+  </data>
+  <data name="resetToDefault" xml:space="preserve">
+    <value>إعادة الضبط إلى الوضع الافتراضي</value>
+  </data>
+  <data name="themeCustomizer" xml:space="preserve">
+    <value>تخصيص الثيم</value>
+  </data>
+  <data name="light" xml:space="preserve">
+    <value>الضوء</value>
+  </data>
+  <data name="language" xml:space="preserve">
+    <value>اللغة</value>
+  </data>
+  <data name="exploreStyles" xml:space="preserve">
+    <value>استكشاف الأنماط</value>
+  </data>
+  <data name="dark" xml:space="preserve">
+    <value>داكن</value>
+  </data>
+  <data name="colorScheme" xml:space="preserve">
+    <value>سمة اللون</value>
+  </data>
+  <data name="whyChoose" xml:space="preserve">
+    <value> لماذا تختار TableTap؟ </value>
+  </data>
+  <data name="establishmentDigitalFuture" xml:space="preserve">
+    <value>🌍 انطلق نحو المستقبل الرقمي لمنشأتك.</value>
+  </data>
+  <data name="easyFast" xml:space="preserve">
+    <value>🚀 سهولة، سرعة، واستدامة.</value>
+  </data>
+  <data name="secureWithoutApp" xml:space="preserve">
+    <value>🔒 آمن وبدون الحاجة لأي تطبيق.</value>
+  </data>
+  <data name="TableTapFeatures" xml:space="preserve">
+    <value>مميزات TableTap</value>
+  </data>
+  <data name="EaseAccess" xml:space="preserve">
+    <value>سهولة الوصول</value>
+  </data>
+  <data name="customersAccessQR" xml:space="preserve">
+    <value>يمكن للعملاء الوصول إلى القائمة عبر رمز QR بكل سهولة دون تنزيل تطبيق.</value>
+  </data>
+  <data name="environmentalProtection" xml:space="preserve">
+    <value>حماية البيئة</value>
+  </data>
+  <data name="reducePaperUsage" xml:space="preserve">
+    <value>تقليل استخدام الورق والمساهمة في الاستدامة البيئية لمنشأتك.</value>
+  </data>
+  <data name="costSavings" xml:space="preserve">
+    <value>توفير التكاليف</value>
+  </data>
+  <data name="sayGoodbye" xml:space="preserve">
+    <value>وداعًا للطباعة المتكررة، وفر على منشأتك التكاليف الدورية للقوائم.</value>
+  </data>
+  <data name="howTableTapWork" xml:space="preserve">
+    <value>كيف يعمل TableTap؟</value>
+  </data>
+  <data name="registration" xml:space="preserve">
+    <value>التسجيل</value>
+  </data>
+  <data name="registerYourEstablishment" xml:space="preserve">
+    <value>سجل منشأتك على المنصة وابدأ بإضافة قائمتك بسهولة.</value>
+  </data>
+  <data name="createQR" xml:space="preserve">
+    <value>إنشاء رمز QR</value>
+  </data>
+  <data name="getQR" xml:space="preserve">
+    <value>احصل على رمز QR خاص بمنشأتك يمكنك طباعته ووضعه على الطاولات او عرضه على الشاشات.</value>
+  </data>
+  <data name="accessToMenu" xml:space="preserve">
+    <value>الوصول للقائمة</value>
+  </data>
+  <data name="customersUsePhones" xml:space="preserve">
+    <value>يستخدم العملاء هواتفهم لمسح الرمز والوصول إلى القائمة الرقمية فورًا.</value>
+  </data>
+  <data name="tableTapNumbers" xml:space="preserve">
+    <value>أرقام TableTap</value>
+  </data>
+  <data name="registeredEstablishment" xml:space="preserve">
+    <value>منشأة مسجلة</value>
+  </data>
+  <data name="monthlyVisit" xml:space="preserve">
+    <value>زيارة شهرية للقوائم</value>
+  </data>
+  <data name="customerSatisfaction" xml:space="preserve">
+    <value>رضا العملاء</value>
+  </data>
+  <data name="tableTapFree" xml:space="preserve">
+    <value>هل TableTap مجاني؟</value>
+  </data>
+  <data name="basicServiceAtSmallPrice" xml:space="preserve">
+    <value>الخدمة الأساسية بسعر رمزي مع خيارات أغلى للمزيد من التخصيصات.</value>
+  </data>
+  <data name="homePage" xml:space="preserve">
+    <value>الصفحة الرئيسية</value>
+  </data>
+  <data name="specialApp" xml:space="preserve">
+    <value>هل أحتاج لتطبيق خاص؟</value>
+  </data>
+  <data name="clientUseBrowser" xml:space="preserve">
+    <value>لا، يمكن للعميل استخدام المتصفح فقط للوصول إلى القائمة.</value>
+  </data>
+  <data name="easilyCustomized" xml:space="preserve">
+    <value>هل يمكن تعديل القائمة بسهولة؟</value>
+  </data>
+  <data name="youCanEdit" xml:space="preserve">
+    <value>نعم، يمكنك تعديل وإضافة الأصناف متى شئت عبر لوحة التحكم.</value>
+  </data>
+  <data name="contactUs" xml:space="preserve">
+    <value>تواصل معنا</value>
+  </data>
+  <data name="emailUs" xml:space="preserve">
+    <value>راسلنا عبر البريد الإلكتروني:</value>
+  </data>
+  <data name="heroDescription" xml:space="preserve">
+    <value>أنشئ قوائم رقمية جميلة، وشاركها عبر رموز QR، وقدم لعملائك تجربة سلسة.</value>
+  </data>
+  <data name="EmailLabel" xml:space="preserve">
+    <value>الإيميل</value>
+  </data>
+  <data name="PasswordLabel" xml:space="preserve">
+    <value>كلمة المرور</value>
+  </data>
+  <data name="RememberMe" xml:space="preserve">
+    <value>تذكرني</value>
+  </data>
+  <data name="getStarted" xml:space="preserve">
+    <value>ابدأ الآن</value>
+  </data>
+  <data name="ForgotPassword" xml:space="preserve">
+    <value>نسيت كلمة المرور</value>
+  </data>
+  <data name="login" xml:space="preserve">
+    <value>تسجيل الدخول</value>
+  </data>
+  <data name="InvalidLoginCredentials" xml:space="preserve">
+    <value>بيانات الدخول غير صحيحة</value>
+  </data>
+  <data name="AdminDashboard_Title" xml:space="preserve">
+    <value>صفحة الادمن</value>
+  </data>
+  <data name="AdminDashboard_Subtitle" xml:space="preserve">
+    <value>صفحة الادمن</value>
+  </data>
+  <data name="AddNewMenu_Title" xml:space="preserve">
+    <value>أضف قائمة جديدة</value>
+  </data>
+  <data name="MenuName" xml:space="preserve">
+    <value>اسم القائمة</value>
+  </data>
+  <data name="MenuType" xml:space="preserve">
+    <value>نوع القائمة</value>
+  </data>
+  <data name="SelectOption" xml:space="preserve">
+    <value>اختر خيار</value>
+  </data>
+  <data name="Food" xml:space="preserve">
+    <value>طعام</value>
+  </data>
+  <data name="Drinks" xml:space="preserve">
+    <value>مشاريب</value>
+  </data>
+  <data name="Description" xml:space="preserve">
+    <value>الوصف</value>
+  </data>
+  <data name="AddMenu_Button" xml:space="preserve">
+    <value>أضف قائمة</value>
+  </data>
+  <data name="Pending" xml:space="preserve">
+    <value>في الانتظار</value>
+  </data>
+  <data name="ViewDetails" xml:space="preserve">
+    <value>عرض التفاصيل</value>
+  </data>
+  <data name="Actions" xml:space="preserve">
+    <value>الإجراءات</value>
+  </data>
+  <data name="Status" xml:space="preserve">
+    <value>الحالة</value>
+  </data>
+  <data name="RequestedPlan" xml:space="preserve">
+    <value>نوع الباقة </value>
+  </data>
+  <data name="EstablishmentName" xml:space="preserve">
+    <value>اسم المحل</value>
+  </data>
+  <data name="RequestingEstablishments_Title" xml:space="preserve">
+    <value>طلبات المحلات</value>
+  </data>
+  <data name="AdminDashboard_Description" xml:space="preserve">
+    <value>إدارة بيانات النظام، مراقبة الطلبات وتحديث القوائم.</value>
+  </data>
+  <data name="SharedEstablishments" xml:space="preserve">
+    <value>المنشآت المشتركة</value>
+  </data>
+  <data name="MostActivePlan" xml:space="preserve">
+    <value>الخطة الأكثر نشاطًا</value>
+  </data>
+  <data name="TotalRequests" xml:space="preserve">
+    <value>إجمالي الطلبات</value>
+  </data>
+  <data name="AdminNavigation" xml:space="preserve">
+    <value>تنقل المسؤول</value>
+  </data>
+  <data name="Facilities" xml:space="preserve">
+    <value>المرافق</value>
+  </data>
+  <data name="Cities" xml:space="preserve">
+    <value>المدن</value>
+  </data>
+  <data name="Plans" xml:space="preserve">
+    <value>الخطط</value>
+  </data>
+  <data name="PlanRequests" xml:space="preserve">
+    <value>طلبات الخطط</value>
+  </data>
+  <data name="digitalMenuPlatform" xml:space="preserve">
+    <value>منصة القائمة الرقمية للمؤسسات. قم بإنشاء ومشاركة القوائم عبر رموز QR.</value>
+  </data>
+  <data name="product" xml:space="preserve">
+    <value>المنتج</value>
+  </data>
+  <data name="pricing" xml:space="preserve">
+    <value>التسعير</value>
+  </data>
+  <data name="faq" xml:space="preserve">
+    <value>الأسئلة الشائعة</value>
+  </data>
+  <data name="company" xml:space="preserve">
+    <value>الشركة</value>
+  </data>
+  <data name="about" xml:space="preserve">
+    <value>عن الشركة</value>
+  </data>
+  <data name="contact" xml:space="preserve">
+    <value>الاتصال</value>
+  </data>
+  <data name="careers" xml:space="preserve">
+    <value>الوظائف</value>
+  </data>
+  <data name="legal" xml:space="preserve">
+    <value>قانوني</value>
+  </data>
+  <data name="terms" xml:space="preserve">
+    <value>الشروط</value>
+  </data>
+  <data name="privacy" xml:space="preserve">
+    <value>الخصوصية</value>
+  </data>
+  <data name="cookies" xml:space="preserve">
+    <value>الكوكيز</value>
+  </data>
+  <data name="allRightsReserved" xml:space="preserve">
+    <value>جميع الحقوق محفوظة.</value>
+  </data>
+  <data name="adminDashboard" xml:space="preserve">
+    <value>لوحة تحكم الإدارة</value>
+  </data>
+  <data name="userDashboard" xml:space="preserve">
+    <value>لوحة تحكم المستخدم</value>
+  </data>
+  <data name="signup" xml:space="preserve">
+    <value>إنشاء حساب</value>
+  </data>
+  <data name="heroHeading" xml:space="preserve">
+    <value>قوائم رقمية للمؤسسات الحديثة</value>
+  </data>
+  <data name="featuresSectionHeading" xml:space="preserve">
+    <value>ميزات مصممة للمؤسسات</value>
+  </data>
+  <data name="featuresSectionDescription" xml:space="preserve">
+    <value>كل ما تحتاجه لإنشاء وإدارة القوائم الرقمية لمؤسستك.</value>
+  </data>
+  <data name="featureQrCodeHeading" xml:space="preserve">
+    <value>قوائم QR</value>
+  </data>
+  <data name="featureQrCodeDescription" xml:space="preserve">
+    <value>أنشئ رموز QR فريدة لكل طاولة ترتبط مباشرةً بقائمتك الرقمية.</value>
+  </data>
+  <data name="featureMenuManagementHeading" xml:space="preserve">
+    <value>إدارة القوائم</value>
+  </data>
+  <data name="featureMenuManagementDescription" xml:space="preserve">
+    <value>أنشئ وقم بتحديث بنود القائمة والفئات والأسعار بسهولة.</value>
+  </data>
+  <data name="featureMobileOptimizedHeading" xml:space="preserve">
+    <value>تحسين للجوال</value>
+  </data>
+  <data name="featureMobileOptimizedDescription" xml:space="preserve">
+    <value>قوائم جميلة تبدو رائعة على أي جهاز، وخاصة الهواتف الذكية.</value>
+  </data>
+  <data name="pricingSectionHeading" xml:space="preserve">
+    <value>أسعار بسيطة وشفافة</value>
+  </data>
+  <data name="pricingSectionDescription" xml:space="preserve">
+    <value>اختر الخطة التي تناسب مؤسستك.</value>
+  </data>
+  <data name="ctaSectionHeading" xml:space="preserve">
+    <value>هل أنتم جاهزون لتحويل مؤسستكم؟</value>
+  </data>
+  <data name="ctaSectionDescription" xml:space="preserve">
+    <value>انضم إلى العديد المؤسسات التي تستخدم TableTap لتحسين تجربة الطعام.</value>
+  </data>
+  <data name="featureQRCodeItem1" xml:space="preserve">
+    <value>إنشاء رموز QR غير محدودة</value>
+  </data>
+  <data name="featureQRCodeItem2" xml:space="preserve">
+    <value>رموز مخصصة لكل نوع</value>
+  </data>
+  <data name="featureQRCodeItem3" xml:space="preserve">
+    <value>ملفات قابلة للطباعة بدقة عالية</value>
+  </data>
+  <data name="featureMenuItem1" xml:space="preserve">
+    <value>تحميل صور لكل طبق</value>
+  </data>
+  <data name="featureMenuItem2" xml:space="preserve">
+    <value>معلومات الوصفة أو المحتويات لكل طلب</value>
+  </data>
+  <data name="featureMobileItem1" xml:space="preserve">
+    <value>تصميم متجاوب</value>
+  </data>
+  <data name="featureMobileItem2" xml:space="preserve">
+    <value>سرعة تحميل عالية</value>
+  </data>
+  <data name="featureMobileItem3" xml:space="preserve">
+    <value>لا حاجة لتحميل تطبيق</value>
+  </data>
+  <data name="AdminAuth_Title" xml:space="preserve">
+    <value>تسجيل دخول الادمن</value>
+  </data>
+  <data name="Admin_Login" xml:space="preserve">
+    <value>تسجيل دخول الادمن</value>
+  </data>
+  <data name="authorized" xml:space="preserve">
+    <value>يمكن للمسؤولين المخولين فقط الوصول إلى هذه اللوحة.</value>
+  </data>
+  <data name="Admin_Email" xml:space="preserve">
+    <value>ايميل الادمن</value>
+  </data>
+  <data name="Enter_admin_email" xml:space="preserve">
+    <value>ادخل ايميل ادمن</value>
+  </data>
+  <data name="Password" xml:space="preserve">
+    <value>كلمة المرور</value>
+  </data>
+  <data name="Forgot_password" xml:space="preserve">
+    <value>نسيت كلمة المرور؟</value>
+  </data>
+  <data name="Admin" xml:space="preserve">
+    <value>المسؤول</value>
+  </data>
+  <data name="Dashboard" xml:space="preserve">
+    <value>لوحة القيادة</value>
+  </data>
+  <data name="Establishment" xml:space="preserve">
+    <value>مؤسسات</value>
+  </data>
+  <data name="Users" xml:space="preserve">
+    <value>المستخدمون</value>
+  </data>
+  <data name="Subscriptions" xml:space="preserve">
+    <value>الاشتراكات</value>
+  </data>
+  <data name="PaymentRequests" xml:space="preserve">
+    <value>طلبات الدفع</value>
+  </data>
+  <data name="Analytics" xml:space="preserve">
+    <value>التحليلات</value>
+  </data>
+  <data name="PaymentMethods" xml:space="preserve">
+    <value>طرق الدفع</value>
+  </data>
+  <data name="Settings" xml:space="preserve">
+    <value>الإعدادات</value>
+  </data>
+  <data name="Security" xml:space="preserve">
+    <value>الأمان</value>
+  </data>
+  <data name="AdminUser" xml:space="preserve">
+    <value>مستخدم المسؤول</value>
+  </data>
+  <data name="AdminEmail" xml:space="preserve">
+    <value>admin@tabletap.com</value>
+  </data>
+  <data name="AdminDashboard_Header" xml:space="preserve">
+    <value>لوحة تحكم المسؤول</value>
+  </data>
+  <data name="Stat_TotalRestaurants" xml:space="preserve">
+    <value>إجمالي المطاعم</value>
+  </data>
+  <data name="StatChange_ThisMonth" xml:space="preserve">
+    <value>+{0} هذا الشهر</value>
+  </data>
+  <data name="ChartPlaceholder_GenericText" xml:space="preserve">
+    <value>سيتم عرض تحليلات [Category] هنا</value>
+  </data>
+  <data name="Analytics_RevenueDescription" xml:space="preserve">
+    <value>تحليلات تفصيلية حول إيرادات ونمو الاشتراكات</value>
+  </data>
+  <data name="Analytics_RevenueTitle" xml:space="preserve">
+    <value>تحليلات الإيرادات</value>
+  </data>
+  <data name="Analytics_UserDescription" xml:space="preserve">
+    <value>تحليلات تفصيلية حول تسجيل وتفاعل المستخدمين</value>
+  </data>
+  <data name="Analytics_UserTitle" xml:space="preserve">
+    <value>تحليلات المستخدمين</value>
+  </data>
+  <data name="Restaurants" xml:space="preserve">
+    <value>المطاعم</value>
+  </data>
+  <data name="Analytics_RestaurantDescription" xml:space="preserve">
+    <value>تحليلات تفصيلية حول انضمام ونشاط المطاعم</value>
+  </data>
+  <data name="Analytics_RestaurantTitle" xml:space="preserve">
+    <value>تحليلات المطاعم</value>
+  </data>
+  <data name="ChartPlaceholder_Text" xml:space="preserve">
+    <value>سيتم عرض مخطط التحليلات هنا</value>
+  </data>
+  <data name="Growth_PlatformDescription" xml:space="preserve">
+    <value>النمو الشهري للمطاعم والمستخدمين والإيرادات</value>
+  </data>
+  <data name="Growth_PlatformTitle" xml:space="preserve">
+    <value>نمو المنصة</value>
+  </data>
+  <data name="Tab_Revenue" xml:space="preserve">
+    <value>الإيرادات</value>
+  </data>
+  <data name="Tab_Users" xml:space="preserve">
+    <value>المستخدمون</value>
+  </data>
+  <data name="Tab_Restaurants" xml:space="preserve">
+    <value>المطاعم</value>
+  </data>
+  <data name="Tab_Overview" xml:space="preserve">
+    <value>نظرة عامة</value>
+  </data>
+  <data name="Stat_ActiveCities" xml:space="preserve">
+    <value>المدن النشطة</value>
+  </data>
+  <data name="StatChange_LastMonth" xml:space="preserve">
+    <value>+{0}% عن الشهر الماضي</value>
+  </data>
+  <data name="Stat_MonthlyRevenue" xml:space="preserve">
+    <value>الإيرادات الشهرية</value>
+  </data>
+  <data name="Stat_ActiveUsers" xml:space="preserve">
+    <value>المستخدمون النشطون</value>
+  </data>
+  <data name="manage_payment_methods" xml:space="preserve">
+    <value>إدارة طرق الدفع</value>
+  </data>
+  <data name="configure_available_methods" xml:space="preserve">
+    <value>قم بتكوين طرق الدفع المتاحة للمنصة.</value>
+  </data>
+  <data name="search_payment_methods" xml:space="preserve">
+    <value>ابحث عن طرق الدفع...</value>
+  </data>
+  <data name="all_types_option" xml:space="preserve">
+    <value>جميع الأنواع</value>
+  </data>
+  <data name="add_payment_method_button" xml:space="preserve">
+    <value>إضافة طريقة دفع</value>
+  </data>
+  <data name="method_name_label" xml:space="preserve">
+    <value>اسم الطريقة</value>
+  </data>
+  <data name="enter_method_name_placeholder" xml:space="preserve">
+    <value>أدخل اسم طريقة الدفع</value>
+  </data>
+  <data name="type" xml:space="preserve">
+    <value>النوع</value>
+  </data>
+  <data name="active_status" xml:space="preserve">
+    <value>فعال</value>
+  </data>
+  <data name="inactive_status" xml:space="preserve">
+    <value>غير فعال</value>
+  </data>
+  <data name="enter_method_description_placeholder" xml:space="preserve">
+    <value>أدخل وصف طريقة الدفع</value>
+  </data>
+  <data name="cancel" xml:space="preserve">
+    <value>إلغاء</value>
+  </data>
+  <data name="save_method" xml:space="preserve">
+    <value>حفظ طريقة الدفع</value>
+  </data>
+  <data name="select_type" xml:space="preserve">
+    <value>اختر النوع</value>
+  </data>
+  <data name="cash" xml:space="preserve">
+    <value>نقدًا</value>
+  </data>
+  <data name="BankTransfer" xml:space="preserve">
+    <value>تحويل بنكي</value>
+  </data>
+  <data name="CreditCard" xml:space="preserve">
+    <value>بطاقة ائتمان</value>
+  </data>
+  <data name="DebitCard" xml:space="preserve">
+    <value>بطاقة خصم مباشر</value>
+  </data>
+  <data name="MobileWallet" xml:space="preserve">
+    <value>محفظة إلكترونية</value>
+  </data>
+  <data name="PayPal" xml:space="preserve">
+    <value>باي بال</value>
+  </data>
+  <data name="Stripe" xml:space="preserve">
+    <value>سترايب</value>
+  </data>
+  <data name="Cryptocurrency" xml:space="preserve">
+    <value>عملة رقمية</value>
+  </data>
+  <data name="Payeer" xml:space="preserve">
+    <value>بايير</value>
+  </data>
+  <data name="Other" xml:space="preserve">
+    <value>أخرى</value>
+  </data>
+  <data name="edit" xml:space="preserve">
+    <value>تعديل</value>
+  </data>
+  <data name="Disable" xml:space="preserve">
+    <value>الغاء التفعيل</value>
+  </data>
+  <data name="Enable" xml:space="preserve">
+    <value>تفعيل</value>
+  </data>
+  <data name="edit_payment_method_button" xml:space="preserve">
+    <value>تعديل طريقة دفع</value>
+  </data>
+  <data name="loading" xml:space="preserve">
+    <value>يتم التحميل الآن</value>
+  </data>
+</root>

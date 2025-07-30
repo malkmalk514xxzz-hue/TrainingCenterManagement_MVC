@@ -1,0 +1,128 @@
+﻿@using System.Globalization
+@using TrainingCenterManagement_MVC.Resources
+
+@{
+    ViewData["Title"] = SharedResource.AdminAuth_Title+" || TableTap";
+}
+<style>
+    .top-utility-bar {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        display: flex;
+        gap: 1rem;
+        z-index: 1000;
+    }
+
+    .language-dropdown {
+        position: relative;
+        display: inline-block;
+    }
+
+        .language-dropdown .dropdown-list {
+            display: none;
+            position: absolute;
+            right: 0;
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            min-width: 120px;
+            z-index: 100;
+        }
+
+            .language-dropdown .dropdown-list li a {
+                display: block;
+                padding: 10px 15px;
+                text-decoration: none;
+                color: #333;
+                transition: background 0.2s;
+            }
+
+                .language-dropdown .dropdown-list li a:hover {
+                    background-color: #f5f5f5;
+                }
+
+        .language-dropdown.active .dropdown-list {
+            display: block;
+        }
+</style>
+<div class="top-utility-bar">
+    <div class="language-dropdown" id="languageDropdownWrapper">
+        <button class="btn btn-outline" id="languageToggle">
+            @(CultureInfo.CurrentUICulture.Name.StartsWith("ar") ? "العربية" : "English")
+        </button>
+        <ul class="dropdown-list" id="languageList">
+            <li>
+                <a asp-controller="Language" asp-action="ChangeLanguage" asp-route-lang="en">
+                    English
+                </a>
+            </li>
+            <li>
+                <a asp-controller="Language" asp-action="ChangeLanguage" asp-route-lang="ar">
+                    العربية
+                </a>
+            </li>
+        </ul>
+    </div>
+
+
+    <button class="theme-toggle" aria-label="Toggle theme">
+        <i class="fas fa-sun light-icon"></i>
+        <i class="fas fa-moon dark-icon"></i>
+    </button>
+
+</div>
+<body>
+    <div class="site-wrapper">
+        <main>
+            <div class="auth-container">
+                <div class="card auth-card">
+                    <div class="card-header">
+                        <h1>@SharedResource.Admin_Login</h1>
+                        <p>@SharedResource.authorized</p>
+                    </div>
+                    <div class="card-content">
+                        <form class="auth-form">
+                            <div class="form-group">
+                                <label for="email">@SharedResource.Admin_Email</label>
+                                <input type="email" id="email" placeholder="@SharedResource.Enter_admin_email" required />
+                            </div>
+                            <div class="form-group">
+                                <label for="password">@SharedResource.Password</label>
+                                <input type="password" id="password" placeholder="@SharedResource.Password" required />
+                            </div>
+                            <div class="form-group text-right">
+                                <a href="admin-forgot-password.html" class="link">@SharedResource.Forgot_password</a>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-full">@SharedResource.login</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    
+    <script>
+        const langToggle = document.getElementById("languageToggle");
+        const langWrapper = document.getElementById("languageDropdownWrapper");
+
+        langToggle?.addEventListener("click", function (e) {
+            e.stopPropagation();
+            langWrapper.classList.toggle("active");
+        });
+
+        document.addEventListener("click", function (e) {
+            if (!langWrapper.contains(e.target)) {
+                langWrapper.classList.remove("active");
+            }
+        });
+    </script>
+
+
+</body>
+
