@@ -17,7 +17,7 @@ namespace TrainingCenterManagement_MVC.Models
         public bool IsDeleted { get; set; } = false;
 
         [Required]
-        public Guid TraineeId { get; set; }
+        public string TraineeId { get; set; }
         public Trainee Trainee { get; set; }
 
         [Required]

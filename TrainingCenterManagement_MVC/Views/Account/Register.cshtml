@@ -1,29 +1,140 @@
-﻿@model TrainingCenterManagement_MVC.ViewModels.RegisterUserViewModel
+﻿@{
+    Layout = "_LayoutAccount";
+}
 
-<h2>Register New User</h2>
+@model TrainingCenterManagement_MVC.ViewModels.RegisterNewUserViewModel
+@{
+    ViewData["Title"] = "Register";
+}
 
-<form asp-action="Register">
-    <div>
-        <label asp-for="FullName"></label>
-        <input asp-for="FullName" />
-        <span asp-validation-for="FullName"></span>
+<div class="container mt-5" data-aos="fade-up" data-aos-duration="1000">
+    <h2 class="form-account-title text-center mb-4">
+        <i class="fas fa-user-plus me-2"></i>Register
+    </h2>
+
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="alert alert-danger text-center" data-aos="fade-up" data-aos-delay="100">
+            <ul class="mb-0">
+                @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                {
+                    <li>@error.ErrorMessage</li>
+                }
+            </ul>
+        </div>
+    }
+
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-4">
+            <div class="card p-4 shadow rounded">
+                <form method="post" class="form-account-bg-form">
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                    <div class="form-group form-account-group mb-3">
+                        <label asp-for="FullName" class="form-label">
+                            <i class="fas fa-user me-2"></i>Full Name
+                        </label>
+                        <input asp-for="FullName" class="form-control" placeholder="Enter your full name" />
+                        <span asp-validation-for="FullName" class="text-warning"></span>
+                    </div>
+
+                    <div class="form-group form-account-group mb-3">
+                        <label asp-for="Username" class="form-label">
+                            <i class="fas fa-at me-2"></i>Username
+                        </label>
+                        <input asp-for="Username" class="form-control" placeholder="Enter your username" />
+                        <span asp-validation-for="Username" class="text-warning"></span>
+                    </div>
+
+                    <div class="form-group form-account-group mb-3">
+                        <label asp-for="Address" class="form-label">
+                            <i class="fas fa-map-marker-alt me-2"></i>Address
+                        </label>
+                        <input asp-for="Address" class="form-control" placeholder="Enter your address" />
+                        <span asp-validation-for="Address" class="text-warning"></span>
+                    </div>
+
+                    <div class="form-group form-account-group mb-3">
+                        <label asp-for="PhoneNumber" class="form-label">
+                            <i class="fas fa-phone me-2"></i>Phone Number
+                        </label>
+                        <input asp-for="PhoneNumber" class="form-control" placeholder="Enter your phone number" />
+                        <span asp-validation-for="PhoneNumber" class="text-warning"></span>
+                    </div>
+
+                    <div class="form-group form-account-group mb-3">
+                        <label asp-for="Password" class="form-label">
+                            <i class="fas fa-lock me-2"></i>Password
+                        </label>
+                        <div class="input-group">
+                            <input asp-for="Password" type="password" class="form-control" placeholder="Enter your password" id="passwordInput" value="@Model.TemporaryPassword" />
+                            <button type="button" class="btn btn-outline-secondary" onclick="togglePassword('passwordInput', 'toggleIconPassword')">
+                                <i class="fas fa-eye" id="toggleIconPassword"></i>
+                            </button>
+                        </div>
+                        <span asp-validation-for="Password" class="text-warning"></span>
+                    </div>
+
+                    <div class="form-group form-account-group mb-3">
+                        <label asp-for="Confirm" class="form-label">
+                            <i class="fas fa-lock me-2"></i>Confirm Password
+                        </label>
+                        <div class="input-group">
+                            <input asp-for="Confirm" type="password" class="form-control" placeholder="Confirm your password" id="confirmPasswordInput" value="@Model.TemporaryPassword" />
+                            <button type="button" class="btn btn-outline-secondary" onclick="togglePassword('confirmPasswordInput', 'toggleIconConfirm')">
+                                <i class="fas fa-eye" id="toggleIconConfirm"></i>
+                            </button>
+                        </div>
+                        <span asp-validation-for="Confirm" class="text-warning"></span>
+                    </div>
+
+                    <div class="form-group form-account-group d-flex justify-content-center mb-3">
+                        <input type="submit" value="Register New User" class="btn btn-primary px-4" />
+                    </div>
+
+                    @if (ViewBag.Message != null)
+                    {
+                        <div class="alert alert-success mt-3 text-center" data-aos="fade-up" data-aos-delay="200">
+                            <p>@ViewBag.Message</p>
+                        </div>
+                    }
+
+                    @if (ViewBag.Links != null)
+                    {
+                        <div class="mt-3 text-center" data-aos="fade-up" data-aos-delay="300">
+                            <h5>Create Related Entities:</h5>
+                            @foreach (var link in ViewBag.Links)
+                            {
+                                <a href="@link.Value" class="btn btn-secondary mt-2 mx-1">@link.Key</a>
+                            }
+                        </div>
+                    }
+                </form>
+            </div>
+        </div>
     </div>
-    <div>
-        <label asp-for="Email"></label>
-        <input asp-for="Email" />
-        <span asp-validation-for="Email"></span>
-    </div>
-    <div>
-        <label asp-for="Password"></label>
-        <input asp-for="Password" type="password" />
-        <span asp-validation-for="Password"></span>
-    </div>
-    <div>
-        <label asp-for="Role"></label>
-        <select asp-for="Role" asp-items="@(new SelectList(new[] { "Admin", "Trainer", "Trainee", "Receptionist" }))">
-            <option value="">-- Select Role --</option>
-        </select>
-        <span asp-validation-for="Role"></span>
-    </div>
-    <button type="submit">Register</button>
-</form>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        AOS.init();
+
+        function togglePassword(inputId, iconId) {
+            const passwordInput = document.getElementById(inputId);
+            const toggleIcon = document.getElementById(iconId);
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleIcon.classList.remove('fa-eye');
+                toggleIcon.classList.add('fa-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                toggleIcon.classList.remove('fa-eye-slash');
+                toggleIcon.classList.add('fa-eye');
+            }
+        }
+    </script>
+}

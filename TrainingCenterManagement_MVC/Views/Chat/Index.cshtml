@@ -1,0 +1,85 @@
+﻿@model TrainingCenterManagement_MVC.ViewModels.ChatIndexViewModel
+@{
+    ViewData["Title"] = "Chat";
+}
+
+
+
+    <div class="container">
+        <div class="sidebar">
+            <h2 style="padding: 15px; color: #00897b;">Chats</h2>
+            <div class="chat-list">
+                <h3>Course Groups</h3>
+                @foreach (var course in Model.Courses)
+                {
+                    <div class="chat-item" onclick="location.href='@Url.Action("GroupChat", "Chat", new { courseId = course.CourseId })'">
+                        <div class="chat-info">
+                            <div class="chat-name">@course.CourseName</div>
+                            <div class="chat-preview">Group chat for course</div>
+                        </div>
+                    </div>
+                }
+                <h3>Recent Contacts</h3>
+                @foreach (var contact in Model.RecentContacts)
+                {
+                    <div class="chat-item" onclick="location.href='@Url.Action("PrivateChat", "Chat", new { receiverId = contact.UserId })'">
+                        <div class="status offline" data-userid="@contact.UserId"></div>
+                        <div class="chat-info">
+                            <div class="chat-name">@contact.Username</div>
+                            <div class="chat-preview">@contact.LastMessage</div>
+                        </div>
+                        <div class="chat-time">@contact.LastMessageTime.ToString("hh:mm tt")</div>
+                    </div>
+                }
+                <h3>All Users</h3>
+            @foreach (var user in Model.AllUsers)
+            {
+                <div class="chat-item" onclick="location.href='@Url.Action("PrivateChat", "Chat", new { receiverId = user.Id })'">
+                    <div class="status offline" data-userid="@user.UserName"></div>
+                    <div class="chat-info">
+                        <div class="chat-name">@user.UserName</div>
+                        <div class="chat-preview">@user.UserName</div>
+                    </div>
+                    <div class="chat-time">@DateTime.Now.ToString("hh:mm tt")</div>
+                </div>
+            }
+            </div>
+        </div>
+    </div>
+
+    @section Scripts {
+     
+        </script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <script>
+            const connection = new signalR.HubConnectionBuilder()
+                .withUrl("/Hubs/ChatHub")
+                .withAutomaticReconnect()
+                .build();
+
+            connection.on("UserStatusChanged", (userId, isOnline) => {
+                const statusElements = document.querySelectorAll(`.status[data-userid='${userId}']`);
+                statusElements.forEach(el => {
+                    el.classList.remove("online", "offline");
+                    el.classList.add(isOnline ? "online" : "offline");
+                });
+            });
+
+            connection.start()
+                .then(() => console.log("SignalR connected successfully"))
+                .catch(err => console.error("SignalR connection failed: ", err));
+
+            connection.onreconnecting(err => {
+                console.warn("SignalR reconnecting: ", err);
+            });
+
+            connection.onreconnected(() => {
+                console.log("SignalR reconnected successfully");
+            });
+
+            connection.onclose(err => {
+                console.error("SignalR connection closed: ", err);
+            });
+        </script>
+    }

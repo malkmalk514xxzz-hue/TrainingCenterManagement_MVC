@@ -1,0 +1,202 @@
+﻿/* Please see documentation at https://docs.microsoft.com/aspnet/core/client-side/bundling-and-minification
+for details on configuring this project to bundle and minify static web assets. */
+/* Hides user id from update page */
+
+/******  Created by D. Perry | dd.perry@hotmail.com ******/
+
+.navbar-nav .nav-item.active .nav-link,
+.navbar-nav .nav-item:hover .nav-link {
+    color: white;
+}
+
+nav ul li a {
+    font-size: 12px;
+    text-transform: uppercase;
+}
+
+nav ul li a:hover,
+nav ul li a:visited:hover {
+    background: #2ab1ce;
+    color: #ffffff;
+}
+
+.dropdown:hover > .dropdown-menu {
+    display: block;
+}
+
+.dropdown > .dropdown-toggle:active {
+    /*Without this, clicking will make it sticky*/
+    pointer-events: none;
+}
+
+/* Hover effect for tbl-list record details */
+#tbl-list tr {
+    font-size: 14px;
+}
+
+thead {
+    background: #48BCD1;
+    color: white;
+    font-size: 12px;
+    text-transform: uppercase;
+}
+
+.error {
+    color: red;
+    font-size: 12px;
+}
+
+    #tbl-list tr:not(:first-child):hover {
+        background-color: #DFF0D8;
+        font-size: 12px;
+        /*font-weight: bold;*/
+    }
+
+#update-logs {
+    font-size: 12px;
+}
+
+    #update-logs a:hover {
+        background: #2ab1ce;
+    }
+
+#delete-logs {
+    font-size: 12px;
+    background: #2ab1ce;
+}
+
+    #delete-logs a:hover {
+        font-size: 12px;
+        background: #2ab1ce;
+    }
+
+
+.container-fluid, .container-sm, .container-md, .container-lg, .container-xl {
+    width: 100%;
+    padding-right: 7.5px;
+    padding-left: 7.5px;
+    margin-right: auto;
+    margin-left: auto;
+}
+
+.small-box {
+    border-radius: 0.25rem;
+    box-shadow: 0 0 1px rgba(0, 0, 0, 0.125), 0 1px 3px rgba(0, 0, 0, 0.2);
+    display: block;
+    margin-bottom: 20px;
+    position: relative;
+}
+
+    .small-box > .inner {
+        padding: 10px;
+    }
+
+    .small-box > .small-box-footer {
+        background: rgba(0, 0, 0, 0.1);
+        color: rgba(255, 255, 255, 0.8);
+        display: block;
+        padding: 3px 0;
+        position: relative;
+        text-align: center;
+        text-decoration: none;
+        z-index: 10;
+    }
+
+        .small-box > .small-box-footer:hover {
+            background: rgba(0, 0, 0, 0.15);
+            color: #ffffff;
+        }
+
+    .small-box h3 {
+        font-size: 2.2rem;
+        font-weight: bold;
+        margin: 0 0 10px 0;
+        padding: 0;
+        white-space: nowrap;
+    }
+
+
+.jumbotron {
+    background: url('/img/home.jpg') no-repeat center center fixed;
+    background-size: cover;
+    opacity: 0.6;
+    height: 250px;
+    margin-top: 20px;
+}
+
+/*==================
+FEATURES SECTION
+====================*/
+#mu-features {
+    display: inline;
+    float: left;
+    padding: 20px 0;
+    width: 100%;
+    margin-top: 30px;
+    margin-bottom: 80px;
+}
+
+
+#mu-features .mu-features-area {
+    display: inline;
+    float: left;
+    width: 100%;
+}
+
+#mu-features .mu-features-area .mu-features-content {
+    display: inline;
+    float: left;
+    width: 100%;
+}
+
+#mu-features .mu-features-area .mu-features-content .mu-single-feature {
+    display: inline;
+    float: left;
+    margin-bottom: 10px;
+    margin-top: 20px;
+    padding: 0 10px;
+    width: 100%;
+}
+
+#mu-features .mu-features-area .mu-features-content .mu-single-feature span {
+    font-size: 25px;
+    padding: 10px 15px;
+}
+
+#mu-features .mu-features-area .mu-features-content .mu-single-feature h4 {
+    margin-bottom: 15px;
+    margin-top: 15px;
+    padding-bottom: 10px;
+    position: relative;
+}
+
+#mu-features .mu-features-area .mu-features-content .mu-single-feature h4:after {
+    background-color: #333;
+    content: '';
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 2px;
+    width: 70px;
+    position: absolute;
+}
+
+#mu-features .mu-features-area .mu-features-content .mu-single-feature p {
+    font-size: 15px;
+    letter-spacing: 0.3px;
+    line-height: 1.7;
+}
+
+#mu-features .mu-features-area .mu-features-content .mu-single-feature a {
+    border: 1px solid #888;
+    display: inline-block;
+    font-size: 14px;
+    margin-top: 10px;
+    padding: 5px 10px;
+    text-transform: uppercase;
+    -webkit-transition: all 0.5s;
+    -moz-transition: all 0.5s;
+    /* -ms-transition: all 0.5s; */
+    -o-transition: all 0.5s;
+    transition: all 0.5s;
+}

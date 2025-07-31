@@ -1,7 +1,9 @@
+using Messaging_Chat_Application_MahmoudHakim.Hubs;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System.Globalization;
 using TrainingCenterManagement_MVC.Data;
+using TrainingCenterManagement_MVC.Helpers;
 using TrainingCenterManagement_MVC.Models;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -40,10 +42,21 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.LoginPath = "/Account/Login";
     options.AccessDeniedPath = "/Account/AccessDenied";
 });
-
+// Add CORS ( needed for SignalR)
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", builder =>
+    {
+        builder.AllowAnyOrigin()
+               .AllowAnyMethod()
+               .AllowAnyHeader();
+    });
+});
+// Inject UserHelper 
+builder.Services.AddScoped<IUserHelper, UserHelper>();
 // Add Role Initializer
 builder.Services.AddScoped<RoleInitializer>();
-
+builder.Services.AddSignalR();
 var app = builder.Build();
 
 // Seed roles
@@ -76,6 +89,7 @@ app.UseStatusCodePages(context =>
 });
 
 app.UseRouting();
+app.UseCors("AllowAll");
 app.Use(async (context, next) =>
 {
     string cookie = string.Empty;
@@ -98,5 +112,5 @@ app.UseAuthorization();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
-
+app.MapHub<ChatHub>("/ChatHub");
 app.Run();

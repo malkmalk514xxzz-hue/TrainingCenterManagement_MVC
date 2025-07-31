@@ -1,39 +1,30 @@
-﻿<!DOCTYPE html>
-@using System.Globalization
-
-<html lang="@CultureInfo.CurrentUICulture.TwoLetterISOLanguageName"
-      dir="@(CultureInfo.CurrentUICulture.TextInfo.IsRightToLeft ? "rtl" : "ltr")"
-      x-data="{ mobileMenuOpen: false }"
-      x-init="AOS.init()"
-      class="scroll-smooth">
+﻿@using System.Globalization
+<!DOCTYPE html>
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] -  TrainingCenterManagement_MVC</title>
 
-    <title>@ViewBag.Title</title>
-    
-   @* STYLE CSS *@
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    @* STYLE CSS *@
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-    <link href="../../../css/styles.css" type="text/css" rel="stylesheet" id="style-default">
-    <link href="../../../css/styles.css" type="text/css" rel="stylesheet">
-    <link href="../../../css/styles-menu.css" type="text/css" rel="stylesheet">
+    <link href="~/css/styles.css" type="text/css" rel="stylesheet" id="style-default">
+    <link href="~/css/styles-menu.css" type="text/css" rel="stylesheet">
+    <link href="~/css/chat.css" type="text/css" rel="stylesheet">
     <link href="~/css/chat.css" rel="stylesheet" />
-
-
 </head>
-<body>
+<body class="form-account-background">
+    <!-- Navbar -->
+    @Html.Partial("_LandingHeader")
 
-    <div>
+    <!-- Main Content -->
+    <main class="form-account-padding">
         @RenderBody()
+    </main>
 
-    </div>
-
-
-    <div class="main" id="top">
-    </div>
+    <!-- Footer -->
+    @Html.Partial("_LandingFooter")
 
     @*  JS  *@
     <script>
@@ -75,7 +66,6 @@
           localStorage.setItem('theme', theme);
         });
     </script>
-
     @RenderSection("Scripts", required: false)
 </body>
 </html>

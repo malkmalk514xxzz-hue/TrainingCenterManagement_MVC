@@ -1,21 +1,104 @@
-﻿@model TrainingCenterManagement_MVC.ViewModels.LoginViewModel
+﻿@{
+    Layout = "_LayoutAccount";
+}
 
-<h2>Login</h2>
+@model TrainingCenterManagement_MVC.ViewModels.LoginViewModel
+@{
+    ViewData["Title"] = "Login";
+}
 
-<form asp-action="Login">
-    <div>
-        <label asp-for="Email"></label>
-        <input asp-for="Email" />
-        <span asp-validation-for="Email"></span>
+<div class="container mt-5" data-aos="fade-up" data-aos-duration="1000">
+    <h2 class="form-account-title text-center mb-4">
+        <i class="fas fa-sign-in-alt me-2"></i>Login
+    </h2>
+
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="alert alert-danger text-center" data-aos="fade-up" data-aos-delay="100">
+            <ul class="mb-0">
+                @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                {
+                    <li>@error.ErrorMessage</li>
+                }
+            </ul>
+        </div>
+    }
+
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-4">
+            <div class="card p-4 shadow rounded">
+                <form method="post" class="form-account-bg-form">
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                    <div class="form-group form-account-group mb-3">
+                        <label asp-for="Email" class="form-label">
+                            <i class="fas fa-envelope me-2"></i>Email
+                        </label>
+                        <input asp-for="Email" class="form-control" placeholder="Enter your email" />
+                        <span asp-validation-for="Email" class="text-warning"></span>
+                    </div>
+
+                    <div class="form-group form-account-group mb-3">
+                        <label asp-for="Password" class="form-label">
+                            <i class="fas fa-lock me-2"></i>Password
+                        </label>
+                        <div class="input-group">
+                            <input asp-for="Password" type="password" class="form-control" placeholder="Enter your password" id="passwordInput" />
+                            <button type="button" class="btn btn-outline-secondary" onclick="togglePassword('passwordInput', 'toggleIcon')">
+                                <i class="fas fa-eye" id="toggleIcon"></i>
+                            </button>
+                        </div>
+                        <span asp-validation-for="Password" class="text-warning"></span>
+                    </div>
+
+                    <div class="form-group form-account-group mb-3">
+                        <div class="form-check">
+                            <input asp-for="RememberMe" type="checkbox" class="form-check-input" id="rememberMe" />
+                            <label asp-for="RememberMe" class="form-check-label">Remember Me?</label>
+                        </div>
+                        <span asp-validation-for="RememberMe" class="text-warning"></span>
+                    </div>
+
+                    <div class="form-group form-account-group d-flex justify-content-center align-items-center mb-3">
+                        <input type="submit" value="Login" class="btn btn-success px-4" />
+                    </div>
+
+                    <div class="text-center">
+                        <a href="@Url.Action("ForgotPassword", "Account")" class="text-muted">Forgot Password?</a>
+                    </div>
+
+                    @if (ViewBag.Message != null)
+                    {
+                        <div class="alert alert-success mt-3 text-center" data-aos="fade-up" data-aos-delay="200">
+                            <p>@ViewBag.Message</p>
+                        </div>
+                    }
+                </form>
+            </div>
+        </div>
     </div>
-    <div>
-        <label asp-for="Password"></label>
-        <input asp-for="Password" type="password" />
-        <span asp-validation-for="Password"></span>
-    </div>
-    <div>
-        <label asp-for="RememberMe"></label>
-        <input asp-for="RememberMe" type="checkbox" />
-    </div>
-    <button type="submit">Login</button>
-</form>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        AOS.init();
+
+        function togglePassword(inputId, iconId) {
+            const passwordInput = document.getElementById(inputId);
+            const toggleIcon = document.getElementById(iconId);
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleIcon.classList.remove('fa-eye');
+                toggleIcon.classList.add('fa-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                toggleIcon.classList.remove('fa-eye-slash');
+                toggleIcon.classList.add('fa-eye');
+            }
+        }
+    </script>
+}

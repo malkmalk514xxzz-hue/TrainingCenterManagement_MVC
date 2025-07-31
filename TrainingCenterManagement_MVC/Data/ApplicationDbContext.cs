@@ -21,7 +21,9 @@ namespace TrainingCenterManagement_MVC.Data
         public DbSet<Certificate> Certificates { get; set; }
         public DbSet<CourseTrainee> CourseTrainees { get; set; }
         public DbSet<CourseTrainer> CourseTrainers { get; set; }
-
+        public DbSet<GroupMessage> GroupMessages { get; set; }
+        public DbSet<Message> Messages { get; set; }
+        public DbSet<UserConnection> UserConnections { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -139,6 +141,28 @@ namespace TrainingCenterManagement_MVC.Data
                 .WithMany(t => t.Presences)
                 .HasForeignKey(p => p.TraineeId)
                 .OnDelete(DeleteBehavior.Restrict); // بدل Cascade
+
+            // Configure Message-to-User relationships (Sender and Receiver)
+            builder.Entity<Message>()
+                .HasOne(m => m.Sender)
+                .WithMany(u => u.Messages)
+                .HasForeignKey(m => m.SenderId)
+                .OnDelete(DeleteBehavior.Restrict); // Prevent cascade delete
+
+            builder.Entity<Message>()
+                .HasOne(m => m.Receiver)
+                .WithMany() // No inverse collection for Receiver
+                .HasForeignKey(m => m.ReceiverId)
+                .OnDelete(DeleteBehavior.Restrict); // Prevent cascade delete
+
+
+
+            // Configure GroupMessage-to-Course relationship
+            builder.Entity<GroupMessage>()
+                .HasOne(gm => gm.Course)
+                .WithMany(c => c.GroupMessages)
+                .HasForeignKey(gm => gm.CourseId);
+
         }
     }
 }

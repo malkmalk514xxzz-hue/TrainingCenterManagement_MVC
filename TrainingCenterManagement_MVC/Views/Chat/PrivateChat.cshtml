@@ -1,0 +1,117 @@
+﻿@model List<TrainingCenterManagement_MVC.Models.Message>
+@{
+    ViewData["Title"] = "Private Chat";
+    var receiverId = ViewBag.ReceiverId;
+    string receiverUsername = ViewBag.ReceiverUsername;
+    string senderUsername = User.Identity.Name;
+}
+
+<div class="chat-container">
+    <div class="chat-header">Chat with @receiverUsername</div>
+    <div class="chat-box" id="chatBox">
+        @foreach (var message in Model)
+        {
+            <div class="message @(message.Sender.UserName == senderUsername ? "sent" : "received")">
+                <div class="message-sender">@message.Sender.UserName</div>
+                <div>@message.Content</div>
+                <div class="message-time">@message.Timestamp.ToString("hh:mm tt")</div>
+            </div>
+        }
+    </div>
+    <div class="chat-input">
+        <input type="text" id="messageInput" placeholder="Type a message..." />
+        <button onclick="sendPrivateMessage()">Send</button>
+       @*  <button onclick="reloadMessages()">Reload Messages</button> *@
+    </div>
+    <div id="status"></div>
+</div>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("/chatHub")
+            .build();
+
+        connection.on("ReceivePrivateMessage", (sender, message, timestamp) => {
+            console.log(`Received message from ${sender}: ${message} at ${timestamp}`);
+            const chatBox = document.getElementById("chatBox");
+            const msg = document.createElement("div");
+            const isSent = sender === '@senderUsername';
+            msg.className = `message ${isSent ? 'sent' : 'received'}`;
+            msg.innerHTML = `
+                <div class="message-sender">${sender}</div>
+                <div>${message}</div>
+                <div class="message-time">${new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+            `;
+            chatBox.appendChild(msg);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        });
+
+        connection.start()
+            .then(() => console.log("SignalR Connected"))
+            .catch(err => {
+                console.error("SignalR Connection Error:", err);
+                $("#status").text("Failed to connect to chat server");
+            });
+
+        function sendPrivateMessage() {
+            const message = $("#messageInput").val();
+            if (!message) {
+                $("#status").text("Message cannot be empty");
+                return;
+            }
+
+            $.ajax({
+                url: '/Chat/SendPrivateMessage',
+                type: 'POST',
+                data: { receiverId: '@receiverId', content: message },
+                success: function (response) {
+                    if (response.success) {
+                        $("#messageInput").val("");
+                        $("#status").text("");
+                        const chatBox = document.getElementById("chatBox");
+                        const msg = document.createElement("div");
+                        msg.className = "message sent";
+                        msg.innerHTML = `
+                            <div class="message-sender">@senderUsername</div>
+                            <div>${message}</div>
+                            <div class="message-time">${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                        `;
+                        chatBox.appendChild(msg);
+                        chatBox.scrollTop = chatBox.scrollHeight;
+                        connection.invoke("SendPrivateMessage", "@receiverUsername", "@senderUsername", message)
+                            .catch(err => {
+                                console.error("SignalR Invoke Error:", err);
+                                $("#status").text("Error notifying recipient");
+                            });
+                    } else {
+                        $("#status").text(response.message);
+                    }
+                },
+                error: function () {
+                    console.error("AJAX Error: Failed to send message");
+                    $("#status").text("Error sending message");
+                }
+            });
+        }
+
+        function reloadMessages() {
+            $.ajax({
+                url: '/Chat/PrivateChat',
+                data: { receiverId: '@receiverId' },
+                success: function (data) {
+                    const chatBox = document.getElementById("chatBox");
+                    chatBox.innerHTML = $(data).find("#chatBox").html();
+                    chatBox.scrollTop = chatBox.scrollHeight;
+                    console.log("Messages reloaded successfully");
+                },
+                error: function () {
+                    console.error("Error reloading messages");
+                    $("#status").text("Error reloading messages");
+                }
+            });
+        }
+    </script>
+}

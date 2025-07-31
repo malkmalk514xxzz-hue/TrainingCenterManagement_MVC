@@ -1,0 +1,19 @@
+﻿@{
+    Layout = "_LayoutAccount";
+}
+
+@{
+    ViewData["Title"] = "Not Authorized";
+}
+
+<h2 class="form-account-title" style="text-align: center;">@ViewData["Title"]</h2> <!-- Título centralizado -->
+
+<div class="row">
+    <div class="col-md-4 offset-md-4">
+        <div class="alert alert-danger text-center">
+            <p>
+                You are not authorized to view this page. Please contact the administrator if you believe this is an error.
+            </p>
+        </div>
+    </div>
+</div>

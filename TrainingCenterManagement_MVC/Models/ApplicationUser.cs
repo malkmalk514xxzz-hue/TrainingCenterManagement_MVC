@@ -1,7 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
-using Microsoft.AspNetCore.Identity;
-
-using TrainingCenterManagement_MVC.Models;
+﻿using Microsoft.AspNetCore.Identity;
+using System.ComponentModel.DataAnnotations;
 
 namespace TrainingCenterManagement_MVC.Models
 {
@@ -17,6 +15,7 @@ namespace TrainingCenterManagement_MVC.Models
         public Trainee Trainee { get; set; }
         public Admin Admin { get; set; }
         public Receptionist Receptionist { get; set; }
+        public ICollection<Message> Messages { get; set; } = new List<Message>();
     }
 
     public enum RoleType

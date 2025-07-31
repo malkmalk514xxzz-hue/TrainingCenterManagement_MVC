@@ -7,7 +7,7 @@ namespace TrainingCenterManagement_MVC.Models
         public Guid CourseId { get; set; }
         public Course Course { get; set; }
 
-        public Guid TraineeId { get; set; }
+        public string TraineeId { get; set; }
         public Trainee Trainee { get; set; }
     }
 }

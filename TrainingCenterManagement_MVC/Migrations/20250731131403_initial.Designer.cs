@@ -12,8 +12,8 @@ using TrainingCenterManagement_MVC.Data;
 namespace TrainingCenterManagement_MVC.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250728125304_Initial")]
-    partial class Initial
+    [Migration("20250731131403_initial")]
+    partial class initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -267,11 +267,13 @@ namespace TrainingCenterManagement_MVC.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
-                    b.Property<Guid>("TraineeId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<string>("TraineeId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
 
-                    b.Property<Guid>("TrainerId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<string>("TrainerId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Url")
                         .IsRequired()
@@ -346,8 +348,8 @@ namespace TrainingCenterManagement_MVC.Migrations
                     b.Property<Guid>("CourseId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("TraineeId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<string>("TraineeId")
+                        .HasColumnType("nvarchar(450)");
 
                     b.HasKey("CourseId", "TraineeId");
 
@@ -361,8 +363,8 @@ namespace TrainingCenterManagement_MVC.Migrations
                     b.Property<Guid>("CourseId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("TrainerId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<string>("TrainerId")
+                        .HasColumnType("nvarchar(450)");
 
                     b.HasKey("CourseId", "TrainerId");
 
@@ -396,6 +398,37 @@ namespace TrainingCenterManagement_MVC.Migrations
                         .IsUnique();
 
                     b.ToTable("Exams");
+                });
+
+            modelBuilder.Entity("TrainingCenterManagement_MVC.Models.GroupMessage", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("CourseId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("SenderId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("Timestamp")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CourseId");
+
+                    b.HasIndex("SenderId");
+
+                    b.ToTable("GroupMessages");
                 });
 
             modelBuilder.Entity("TrainingCenterManagement_MVC.Models.Lecture", b =>
@@ -436,6 +469,41 @@ namespace TrainingCenterManagement_MVC.Migrations
                     b.ToTable("Lectures");
                 });
 
+            modelBuilder.Entity("TrainingCenterManagement_MVC.Models.Message", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("ReceiverId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("SenderId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("Timestamp")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ReceiverId");
+
+                    b.HasIndex("SenderId");
+
+                    b.ToTable("Messages");
+                });
+
             modelBuilder.Entity("TrainingCenterManagement_MVC.Models.Payment", b =>
                 {
                     b.Property<Guid>("PaymentId")
@@ -454,8 +522,9 @@ namespace TrainingCenterManagement_MVC.Migrations
                     b.Property<decimal>("TotalAmount")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<Guid>("TraineeId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<string>("TraineeId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
 
                     b.HasKey("PaymentId");
 
@@ -481,8 +550,9 @@ namespace TrainingCenterManagement_MVC.Migrations
                     b.Property<Guid>("LectureId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("TraineeId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<string>("TraineeId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
 
                     b.HasKey("PresenceId");
 
@@ -513,9 +583,8 @@ namespace TrainingCenterManagement_MVC.Migrations
 
             modelBuilder.Entity("TrainingCenterManagement_MVC.Models.Trainee", b =>
                 {
-                    b.Property<Guid>("TraineeId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<string>("TraineeId")
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<DateTime>("BirthDate")
                         .HasColumnType("datetime2");
@@ -534,9 +603,8 @@ namespace TrainingCenterManagement_MVC.Migrations
 
             modelBuilder.Entity("TrainingCenterManagement_MVC.Models.Trainer", b =>
                 {
-                    b.Property<Guid>("TrainerId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<string>("TrainerId")
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("BusinessLink")
                         .IsRequired()
@@ -560,6 +628,35 @@ namespace TrainingCenterManagement_MVC.Migrations
                         .IsUnique();
 
                     b.ToTable("Trainers");
+                });
+
+            modelBuilder.Entity("TrainingCenterManagement_MVC.Models.UserConnection", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("ConnectedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ConnectionId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsConnected")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("UserConnections");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -719,6 +816,25 @@ namespace TrainingCenterManagement_MVC.Migrations
                     b.Navigation("Course");
                 });
 
+            modelBuilder.Entity("TrainingCenterManagement_MVC.Models.GroupMessage", b =>
+                {
+                    b.HasOne("TrainingCenterManagement_MVC.Models.Course", "Course")
+                        .WithMany("GroupMessages")
+                        .HasForeignKey("CourseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("TrainingCenterManagement_MVC.Models.ApplicationUser", "Sender")
+                        .WithMany()
+                        .HasForeignKey("SenderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Course");
+
+                    b.Navigation("Sender");
+                });
+
             modelBuilder.Entity("TrainingCenterManagement_MVC.Models.Lecture", b =>
                 {
                     b.HasOne("TrainingCenterManagement_MVC.Models.Course", "Course")
@@ -728,6 +844,25 @@ namespace TrainingCenterManagement_MVC.Migrations
                         .IsRequired();
 
                     b.Navigation("Course");
+                });
+
+            modelBuilder.Entity("TrainingCenterManagement_MVC.Models.Message", b =>
+                {
+                    b.HasOne("TrainingCenterManagement_MVC.Models.ApplicationUser", "Receiver")
+                        .WithMany()
+                        .HasForeignKey("ReceiverId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("TrainingCenterManagement_MVC.Models.ApplicationUser", "Sender")
+                        .WithMany("Messages")
+                        .HasForeignKey("SenderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Receiver");
+
+                    b.Navigation("Sender");
                 });
 
             modelBuilder.Entity("TrainingCenterManagement_MVC.Models.Payment", b =>
@@ -801,10 +936,23 @@ namespace TrainingCenterManagement_MVC.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("TrainingCenterManagement_MVC.Models.UserConnection", b =>
+                {
+                    b.HasOne("TrainingCenterManagement_MVC.Models.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("TrainingCenterManagement_MVC.Models.ApplicationUser", b =>
                 {
                     b.Navigation("Admin")
                         .IsRequired();
+
+                    b.Navigation("Messages");
 
                     b.Navigation("Receptionist")
                         .IsRequired();
@@ -826,6 +974,8 @@ namespace TrainingCenterManagement_MVC.Migrations
 
                     b.Navigation("Exam")
                         .IsRequired();
+
+                    b.Navigation("GroupMessages");
 
                     b.Navigation("Lectures");
 
