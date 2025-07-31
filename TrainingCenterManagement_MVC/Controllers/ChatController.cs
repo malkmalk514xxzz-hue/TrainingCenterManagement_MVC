@@ -26,30 +26,51 @@ namespace TrainingCenterManagement_MVC.Controllers
         {
             var query = _context.Courses as IQueryable<Course>;
             var userId = await GetUserIdAsync();
-            var user = await _context.Users.
-                FirstOrDefaultAsync(u => u.Id == userId);
+            var user = await _context.Users
+                .FirstOrDefaultAsync(u => u.Id == userId);
 
             List<Course> myCourses = new List<Course>();
-            if (user.Role == RoleType.Trainee) {
-                myCourses = await query.SelectMany(c => c.CourseTrainees)
-                    .Where(ct => ct.TraineeId == userId)
-                    .Select(u => u.Course).ToListAsync();
-            }
-           else if (user.Role == RoleType.Trainer)
+            if (user.Role == RoleType.Trainee)
             {
-                myCourses = await query.SelectMany(c => c.CourseTrainers)
-                    .Where(ct => ct.TrainerId == userId)
-                    .Select(u => u.Course).ToListAsync();
+                var trainee = await _context.Trainees
+                    .FirstOrDefaultAsync(t => t.UserId == userId);
+                if (trainee != null)
+                {
+                    myCourses = await query
+                        .Include(c => c.CourseTrainees)
+                        .SelectMany(c => c.CourseTrainees)
+                        .Where(ct => ct.TraineeId == trainee.TraineeId)
+                        .Select(ct => ct.Course)
+                        .ToListAsync();
+                }
             }
+            else if (user.Role == RoleType.Trainer)
+            {
+                var trainer = await _context.Trainers
+                    .FirstOrDefaultAsync(t => t.UserId == userId);
+                if (trainer != null)
+                {
+                    myCourses = await query
+                        .Include(c => c.CourseTrainers)
+                        .SelectMany(c => c.CourseTrainers)
+                        .Where(ct => ct.TrainerId == trainer.TrainerId)
+                        .Select(ct => ct.Course)
+                        .ToListAsync();
+                }
+            }
+            else if (user.Role == RoleType.Admin)
+            {
+                myCourses = await query.ToListAsync();
+            }
+            else
+            {
+                // إذا كان الدور غير محدد، يمكن إرجاع قائمة فارغة أو التعامل معه
+                myCourses = new List<Course>();
+            }
+
             var model = new ChatIndexViewModel
             {
-
                 Courses = myCourses,
-    //            Courses = await _context.Users
-    //.Where(u => u.Id == userId)
-    //.Include(u => u.Courses) // تحميل العلاقة
-    //.SelectMany(u => u.Courses)
-    //.ToListAsync(),
                 RecentContacts = await _context.Messages
                     .Where(m => m.SenderId == userId || m.ReceiverId == userId)
                     .Include(m => m.Sender)
@@ -104,16 +125,16 @@ namespace TrainingCenterManagement_MVC.Controllers
             if (string.IsNullOrEmpty(content))
                 return Json(new { success = false, message = "Message cannot be empty" });
 
-            var userId = await GetUserIdAsync();
-            var user = await _context.Users.FindAsync(userId);
-            var groupMessage = new GroupMessage
-            {
-                CourseId = courseId,
-                SenderId = userId,
-                Content = content,
-                Timestamp = DateTime.Now
-            };
-            _context.GroupMessages.Add(groupMessage);
+            //var userId = await GetUserIdAsync();
+            //var user = await _context.Users.FindAsync(userId);
+            //var groupMessage = new GroupMessage
+            //{
+            //    CourseId = courseId,
+            //    SenderId = userId,
+            //    Content = content,
+            //    Timestamp = DateTime.Now
+            //};
+            //_context.GroupMessages.Add(groupMessage);
             //await _context.SaveChangesAsync();
             //await _hubContext.Clients.Group($"Course_{courseId}").SendAsync("ReceiveGroupMessage", user.UserName, content, DateTime.Now);
             return Json(new { success = true });

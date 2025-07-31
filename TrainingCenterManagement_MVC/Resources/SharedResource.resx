@@ -699,4 +699,7 @@
   <data name="loading" xml:space="preserve">
     <value>Loading</value>
   </data>
+  <data name="Chat" xml:space="preserve">
+    <value>Chat</value>
+  </data>
 </root>

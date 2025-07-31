@@ -264,13 +264,11 @@ namespace TrainingCenterManagement_MVC.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
-                    b.Property<string>("TraineeId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<Guid>("TraineeId")
+                        .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("TrainerId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<Guid>("TrainerId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Url")
                         .IsRequired()
@@ -345,8 +343,8 @@ namespace TrainingCenterManagement_MVC.Migrations
                     b.Property<Guid>("CourseId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("TraineeId")
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<Guid>("TraineeId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.HasKey("CourseId", "TraineeId");
 
@@ -360,8 +358,8 @@ namespace TrainingCenterManagement_MVC.Migrations
                     b.Property<Guid>("CourseId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("TrainerId")
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<Guid>("TrainerId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.HasKey("CourseId", "TrainerId");
 
@@ -519,9 +517,8 @@ namespace TrainingCenterManagement_MVC.Migrations
                     b.Property<decimal>("TotalAmount")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<string>("TraineeId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<Guid>("TraineeId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.HasKey("PaymentId");
 
@@ -547,9 +544,8 @@ namespace TrainingCenterManagement_MVC.Migrations
                     b.Property<Guid>("LectureId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("TraineeId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<Guid>("TraineeId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.HasKey("PresenceId");
 
@@ -580,8 +576,9 @@ namespace TrainingCenterManagement_MVC.Migrations
 
             modelBuilder.Entity("TrainingCenterManagement_MVC.Models.Trainee", b =>
                 {
-                    b.Property<string>("TraineeId")
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<Guid>("TraineeId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("BirthDate")
                         .HasColumnType("datetime2");
@@ -600,11 +597,11 @@ namespace TrainingCenterManagement_MVC.Migrations
 
             modelBuilder.Entity("TrainingCenterManagement_MVC.Models.Trainer", b =>
                 {
-                    b.Property<string>("TrainerId")
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<Guid>("TrainerId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("BusinessLink")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Specialty")
@@ -818,7 +815,7 @@ namespace TrainingCenterManagement_MVC.Migrations
                     b.HasOne("TrainingCenterManagement_MVC.Models.Course", "Course")
                         .WithMany("GroupMessages")
                         .HasForeignKey("CourseId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("TrainingCenterManagement_MVC.Models.ApplicationUser", "Sender")
@@ -938,7 +935,7 @@ namespace TrainingCenterManagement_MVC.Migrations
                     b.HasOne("TrainingCenterManagement_MVC.Models.ApplicationUser", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("User");

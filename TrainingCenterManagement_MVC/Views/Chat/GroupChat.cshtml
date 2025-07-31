@@ -1,7 +1,7 @@
 ﻿@model List<TrainingCenterManagement_MVC.Models.GroupMessage>
 @{
     ViewData["Title"] = "Group Chat";
-    int courseId = ViewBag.CourseId;
+    Guid courseId = ViewBag.CourseId;
     
 }
 
@@ -36,6 +36,7 @@
         .build();
 
         connection.on("ReceiveGroupMessage", (user, message, timestamp) => {
+           console.log(`Received message from ${user}: ${message} at ${timestamp}`);
         const chatBox = document.getElementById("chatBox");
         const msg = document.createElement("div");
         msg.className = user === currentUser ? "sent" : "received";
@@ -49,7 +50,7 @@
             });
 
             connection.start().then(() => {
-                connection.invoke("JoinCourseGroup", @courseId);
+                connection.invoke("JoinCourseGroup", "@courseId");
             }).catch(err => console.error(err));
 
             function sendGroupMessage() {
@@ -62,12 +63,12 @@
                 $.ajax({
                     url: '/Chat/SendGroupMessage',
                     type: 'POST',
-                    data: { courseId: @courseId, content: message },
+                    data: { courseId: "@courseId", content: message },
                     success: function (response) {
                         if (response.success) {
                             $("#messageInput").val("");
                             $("#status").text("");
-                            connection.invoke("SendGroupMessage", @courseId, "@User.Identity.Name", message)
+                            connection.invoke("SendGroupMessage", "@courseId", "@User.Identity.Name", message)
                                 .catch(err => console.error(err));
                         } else {
                             $("#status").text(response.message);

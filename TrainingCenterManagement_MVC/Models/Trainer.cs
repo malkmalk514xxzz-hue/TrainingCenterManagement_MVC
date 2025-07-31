@@ -8,7 +8,7 @@ namespace TrainingCenterManagement_MVC.Models
     public class Trainer
     {
         [Key]
-        public string TrainerId { get; set; } = string.Empty;
+        public Guid TrainerId { get; set; } = Guid.NewGuid();
 
         [Required]
         public string UserId { get; set; }
@@ -21,7 +21,7 @@ namespace TrainingCenterManagement_MVC.Models
         public int YearsOfExperience { get; set; }
 
         [Url]
-        public string BusinessLink { get; set; }
+        public string? BusinessLink { get; set; }
 
         public ICollection<CourseTrainer> CourseTrainers { get; set; } = new List<CourseTrainer>();
         public ICollection<Certificate> Certificates { get; set; } = new List<Certificate>();

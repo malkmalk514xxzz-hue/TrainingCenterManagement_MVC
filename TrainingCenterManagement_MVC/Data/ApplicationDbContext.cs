@@ -159,9 +159,16 @@ namespace TrainingCenterManagement_MVC.Data
 
             // Configure GroupMessage-to-Course relationship
             builder.Entity<GroupMessage>()
-                .HasOne(gm => gm.Course)
-                .WithMany(c => c.GroupMessages)
-                .HasForeignKey(gm => gm.CourseId);
+      .HasOne(gm => gm.Course)
+      .WithMany(c => c.GroupMessages)
+      .HasForeignKey(gm => gm.CourseId)
+      .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<UserConnection>()
+        .HasOne(uc => uc.User)
+         .WithMany()
+         .HasForeignKey(uc => uc.UserId)
+         .OnDelete(DeleteBehavior.Restrict);
 
         }
     }

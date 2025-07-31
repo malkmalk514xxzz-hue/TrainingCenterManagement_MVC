@@ -18,11 +18,11 @@ namespace TrainingCenterManagement_MVC.Models
         public bool IsDeleted { get; set; } = false;
 
         [Required]
-        public string TraineeId { get; set; }
+        public Guid TraineeId { get; set; }
         public Trainee Trainee { get; set; }
 
         [Required]
-        public string TrainerId { get; set; }
+        public Guid TrainerId { get; set; }
         public Trainer Trainer { get; set; }
 
         [Required]

@@ -8,7 +8,7 @@ namespace TrainingCenterManagement_MVC.Models
     public class Trainee
     {
         [Key]
-        public string TraineeId { get; set; } = string.Empty;
+        public Guid TraineeId { get; set; } =Guid.NewGuid();
 
         [Required]
         public string UserId { get; set; }

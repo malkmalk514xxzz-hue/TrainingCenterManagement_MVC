@@ -19,7 +19,7 @@ namespace TrainingCenterManagement_MVC.Models
         public Lecture Lecture { get; set; }
 
         [Required]
-        public string TraineeId { get; set; }
+        public Guid TraineeId { get; set; }
         public Trainee Trainee { get; set; }
     }
 }

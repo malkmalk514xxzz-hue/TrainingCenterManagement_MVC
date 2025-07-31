@@ -90,12 +90,12 @@ namespace Messaging_Chat_Application_MahmoudHakim.Hubs
             }
         }
 
-        public async Task JoinCourseGroup(int courseId)
+        public async Task JoinCourseGroup(Guid courseId)
         {
             await Groups.AddToGroupAsync(Context.ConnectionId, $"Course_{courseId}");
         }
 
-        public async Task LeaveCourseGroup(int courseId)
+        public async Task LeaveCourseGroup(Guid courseId)
         {
             await Groups.RemoveFromGroupAsync(Context.ConnectionId, $"Course_{courseId}");
         }

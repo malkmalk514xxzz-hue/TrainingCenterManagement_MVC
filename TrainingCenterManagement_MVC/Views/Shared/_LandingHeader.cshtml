@@ -172,6 +172,7 @@
                 <div class="header-actions desktop-nav d-flex align-items-center gap-3">
                     @if (User.Identity.IsAuthenticated)
                     {
+                        <a asp-controller="Chat" asp-action="Index" class="btn btn-outline">@SharedResource.Chat</a>
                         @if (User.IsInRole("Admin"))
                         {
                             <a href="/Admin/Dashboard" class="btn btn-primary">@SharedResource.adminDashboard</a>
