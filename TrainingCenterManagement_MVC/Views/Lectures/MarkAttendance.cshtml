@@ -1,0 +1,35 @@
+﻿@model List<TrainingCenterManagement_MVC.ViewModels.AttendanceViewModel>
+
+@{
+    ViewData["Title"] = "Mark Attendance";
+}
+
+<h2>Mark Attendance - @ViewBag.LectureTitle</h2>
+
+<form asp-action="MarkAttendance" method="post">
+    <input type="hidden" name="lectureId" value="@ViewBag.LectureId" />
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Full Name</th>
+                <th>Is Present?</th>
+            </tr>
+        </thead>
+        <tbody>
+            @for (int i = 0; i < Model.Count; i++)
+            {
+                <tr>
+                    <td>@Model[i].FullName</td>
+                    <td>
+                        <input asp-for="@Model[i].IsPresent" class="form-check-input" />
+                        <input type="hidden" asp-for="@Model[i].TraineeId" />
+                        <input type="hidden" asp-for="@Model[i].FullName" />
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <button type="submit" class="btn btn-primary">Save Attendance</button>
+</form>

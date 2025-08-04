@@ -1,0 +1,32 @@
+﻿@model IEnumerable<TrainingCenterManagement_MVC.Models.Lecture>
+@{
+    ViewData["Title"] = "Lectures";
+    var course = ViewBag.Course as TrainingCenterManagement_MVC.Models.Course;
+}
+<h2>Lectures for @course?.CourseName</h2>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Title</th>
+            <th>Date</th>
+            <th>Description</th>
+            <th>Video</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var lecture in Model)
+        {
+            <tr>
+                <td>@lecture.Title</td>
+                <td>@lecture.LectureDate.ToShortDateString()</td>
+                <td>@lecture.Description</td>
+                <td>
+                    @if (!string.IsNullOrEmpty(lecture.VideoUrl))
+                    {
+                        <a href="@lecture.VideoUrl" class="btn btn-sm btn-primary" target="_blank">Watch</a>
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

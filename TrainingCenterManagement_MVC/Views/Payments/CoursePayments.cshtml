@@ -1,0 +1,30 @@
+﻿@model IEnumerable<TrainingCenterManagement_MVC.Models.Payment>
+
+@{
+    ViewData["Title"] = "Course Payments";
+}
+
+<h2>مدفوعات دورة: @ViewBag.CourseName</h2>
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>المتدرب</th>
+            <th>المبلغ</th>
+            <th>تاريخ الدفع</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.Trainee.User.FullName</td>
+                <td>@item.TotalAmount.ToString("C")</td>
+                <td>@item.CreatedDate.ToString("yyyy-MM-dd")</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<a asp-action="ExportPaymentsToExcel" asp-route-courseId="@ViewBag.CourseId" class="btn btn-success">Export Excel</a>
+<a asp-action="ExportPaymentsToPdf" asp-route-courseId="@ViewBag.CourseId" class="btn btn-danger">Export PDF</a>

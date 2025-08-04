@@ -1,0 +1,23 @@
+﻿@model IEnumerable<TrainingCenterManagement_MVC.Models.Course>
+<h3>الدورات المسجّل بها</h3>
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>الدورة</th>
+            <th>المدرب</th>
+            <th>تفاصيل</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var course in Model)
+        {
+            <tr>
+                <td>@course.CourseName</td>
+                <td>@course.Admin?.UserId</td>
+                <td>
+                    <a asp-controller="Courses" asp-action="Details" asp-route-id="@course.CourseId" class="btn btn-info btn-sm">تفاصيل</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

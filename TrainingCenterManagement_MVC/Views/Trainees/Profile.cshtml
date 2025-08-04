@@ -1,0 +1,23 @@
+﻿@model TrainingCenterManagement_MVC.Models.Trainee
+
+@{
+    ViewData["Title"] = "الملف الشخصي";
+}
+
+<h2>الملف الشخصي</h2>
+
+<div class="card mt-3">
+    <div class="card-body">
+        <h5 class="card-title">بيانات المتدرّب</h5>
+        <dl class="row">
+            <dt class="col-sm-3">اسم المستخدم</dt>
+            <dd class="col-sm-9">@Model.User?.UserName</dd>
+
+            <dt class="col-sm-3">البريد الإلكتروني</dt>
+            <dd class="col-sm-9">@Model.User?.Email</dd>
+
+            <dt class="col-sm-3">تاريخ الميلاد</dt>
+            <dd class="col-sm-9">@Model.BirthDate.ToShortDateString()</dd>
+        </dl>
+    </div>
+</div>

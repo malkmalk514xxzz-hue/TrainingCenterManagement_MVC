@@ -1,0 +1,16 @@
+﻿@model TrainingCenterManagement_MVC.ViewModels.TraineeAttendanceViewModel
+@{
+    ViewData["Title"] = "Attendance";
+}
+<h2>Attendance in @Model.CourseName</h2>
+
+<div class="card p-4">
+    <p><strong>Total Lectures:</strong> @Model.TotalLectures</p>
+    <p><strong>Attended Lectures:</strong> @Model.AttendedLectures</p>
+    <p>
+        <strong>Attendance Percentage:</strong>
+        <span class="@(Model.AttendancePercentage < 75 ? "text-danger" : "text-success")">
+            @Model.AttendancePercentage %
+        </span>
+    </p>
+</div>

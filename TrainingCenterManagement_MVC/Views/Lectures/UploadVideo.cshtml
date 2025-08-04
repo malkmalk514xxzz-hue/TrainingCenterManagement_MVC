@@ -1,0 +1,23 @@
+﻿@model TrainingCenterManagement_MVC.Models.Lecture
+
+@{
+    ViewData["Title"] = "Upload Video";
+}
+
+<h2>Upload Video for Lecture: @Model.Title</h2>
+
+<form asp-action="UploadVideo" method="post">
+    <input type="hidden" name="id" value="@Model.LectureId" />
+
+    <div class="form-group">
+        <label>Video URL</label>
+        <input type="url" name="videoUrl" class="form-control" value="@Model.VideoUrl" required />
+    </div>
+
+    <div class="form-group">
+        <label>Thumbnail URL</label>
+        <input type="url" name="thumbnailUrl" class="form-control" value="@Model.ThumbnailUrl" />
+    </div>
+
+    <button type="submit" class="btn btn-success mt-2">Upload</button>
+</form>

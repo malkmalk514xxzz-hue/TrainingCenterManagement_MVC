@@ -1,0 +1,15 @@
+﻿@{
+    ViewData["Title"] = "Attendance Summary";
+}
+
+<h3>Attendance Summary</h3>
+<p><strong>Trainee:</strong> @ViewBag.Trainee.User.FullName</p>
+<p><strong>Course:</strong> @ViewBag.Course.CourseName</p>
+<p><strong>Attendance:</strong> @ViewBag.Attended / @ViewBag.TotalLectures lectures</p>
+
+<div class="progress mt-3">
+    @{
+        var percent = ViewBag.TotalLectures == 0 ? 0 : (int)((ViewBag.Attended * 100.0) / ViewBag.TotalLectures);
+    }
+    <div class="progress-bar bg-success" style="width: @percent%">@percent%</div>
+</div>

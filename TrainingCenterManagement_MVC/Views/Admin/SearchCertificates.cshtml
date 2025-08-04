@@ -1,0 +1,57 @@
+﻿@model IEnumerable<TrainingCenterManagement_MVC.Models.Certificate>
+
+<a asp-action="ExportCertificatesToPdf" class="btn btn-danger mb-3">
+    <i class="bi bi-file-earmark-pdf"></i> تصدير PDF
+</a>
+
+<form method="get" class="mb-3 row">
+    <div class="col-md-5">
+        <select name="courseId" asp-items="ViewBag.Courses" class="form-select">
+            <option value="">-- Select Course --</option>
+        </select>
+    </div>
+    <div class="col-md-5">
+        <select name="traineeId" asp-items="ViewBag.Trainees" class="form-select">
+            <option value="">-- Select Trainee --</option>
+        </select>
+    </div>
+    <div class="col-md-2">
+        <button type="submit" class="btn btn-primary w-100">Search</button>
+    </div>
+</form>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-warning">No certificates found.</div>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Course</th>
+                <th>Trainee</th>
+                <th>Trainer</th>
+                <th>Average</th>
+                <th>تحميل الشهادة</th> <!-- أضفنا عمود التحميل -->
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var cert in Model)
+            {
+                <tr>
+                    <td>@cert.Course.CourseName</td>
+                    <td>@cert.Trainee.User.FullName</td>
+                    <td>@cert.Trainer?.User?.FullName</td>
+                    <td>@cert.Average</td>
+                    <td>
+                        <a asp-action="GenerateCertificatePdf" asp-route-certificateId="@cert.CertificateId"
+                           class="btn btn-sm btn-danger">
+                            تحميل الشهادة PDF
+                        </a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

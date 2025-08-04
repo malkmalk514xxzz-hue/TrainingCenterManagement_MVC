@@ -1,7 +1,8 @@
+using System.Globalization;
 using Messaging_Chat_Application_MahmoudHakim.Hubs;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using System.Globalization;
+using Rotativa.AspNetCore;
 using TrainingCenterManagement_MVC.Data;
 using TrainingCenterManagement_MVC.Helpers;
 using TrainingCenterManagement_MVC.Models;
@@ -75,6 +76,7 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
+app.UseRotativa(); // ÈÚÏ UseStaticFiles
 app.UseStatusCodePages(context =>
 {
     if (context.HttpContext.Response.StatusCode == 403)

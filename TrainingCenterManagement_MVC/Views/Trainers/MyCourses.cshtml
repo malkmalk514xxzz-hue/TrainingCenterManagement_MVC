@@ -1,0 +1,31 @@
+﻿@model IEnumerable<TrainingCenterManagement_MVC.Models.Course>
+@{
+    ViewData["Title"] = "My Courses";
+}
+
+<h2>My Courses</h2>
+
+<table class="table table-bordered">
+    <thead class="table-light">
+        <tr>
+            <th>Course Name</th>
+            <th>Batch</th>
+            <th>Start Date</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var course in Model)
+        {
+            <tr>
+                <td>@course.CourseName</td>
+                <td>@course.BatchNumber</td>
+                <td>@course.ReleaseDate.ToShortDateString()</td>
+                <td>
+                    <a asp-action="ViewTrainees" asp-route-courseId="@course.CourseId" class="btn btn-info btn-sm">View Trainees</a>
+                    <a asp-controller="Course" asp-action="Details" asp-route-id="@course.CourseId" class="btn btn-secondary btn-sm">Details</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

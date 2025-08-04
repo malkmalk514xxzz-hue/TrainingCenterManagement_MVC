@@ -1,0 +1,57 @@
+﻿@model TrainingCenterManagement_MVC.Models.Lecture
+
+@{
+    ViewData["Title"] = "View Lecture";
+}
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["SuccessMessage"]
+    </div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">
+        @TempData["ErrorMessage"]
+    </div>
+}
+<h2>@Model.Title</h2>
+
+<p><strong>Description:</strong> @Model.Description</p>
+<p><strong>Date:</strong> @Model.LectureDate.ToString("yyyy-MM-dd")</p>
+
+@if (!string.IsNullOrEmpty(Model.VideoUrl))
+{
+    <div class="mt-3">
+        <video width="640" height="360" controls>
+            <source src="@Model.VideoUrl" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+    </div>
+}
+else
+{
+    <p class="text-danger">No video uploaded for this lecture yet.</p>
+}
+
+<hr />
+<h4>Attendance</h4>
+@if (Model.Presences != null && Model.Presences.Any())
+{
+    <ul>
+        @foreach (var presence in Model.Presences)
+        {
+            <li>
+                @presence.Trainee.User.FullName -
+                @(presence.IsPresent ? "Present" : "Absent")
+            </li>
+        }
+    </ul>
+}
+else
+{
+    <p>No attendance records available.</p>
+}
+
+<a asp-action="MarkAttendance" asp-route-id="@Model.LectureId" class="btn btn-warning mt-3">Mark Attendance</a>

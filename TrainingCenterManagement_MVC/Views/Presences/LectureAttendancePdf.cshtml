@@ -1,0 +1,68 @@
+﻿@model IEnumerable<TrainingCenterManagement_MVC.ViewModels.LectureAttendanceViewModel>
+
+@{
+    Layout = null; // لأنه تقرير PDF
+}
+
+<html>
+<head>
+    <style>
+        body {
+            font-family: Arial;
+        }
+
+        h2 {
+            text-align: center;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            border: 1px solid #999;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #eee;
+        }
+    </style>
+</head>
+<body>
+    <h2>Lecture Attendance Report</h2>
+
+    @if (Model.Any())
+    {
+        <p><strong>Lecture:</strong> @Model.First().LectureTitle</p>
+        <p><strong>Date:</strong> @Model.First().LectureDate.ToString("yyyy-MM-dd")</p>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Trainee</th>
+                    <th>Present</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.Select((x, i) => new { x, i }))
+                {
+                    <tr>
+                        <td>@(item.i + 1)</td>
+                        <td>@item.x.TraineeName</td>
+                        <td>@(item.x.IsPresent ? "Yes" : "No")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <p>No attendance records found.</p>
+    }
+</body>
+</html>

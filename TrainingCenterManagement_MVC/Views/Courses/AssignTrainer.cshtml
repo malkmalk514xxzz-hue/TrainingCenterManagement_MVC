@@ -1,0 +1,20 @@
+﻿@model Guid
+
+@{
+    ViewData["Title"] = "Assign Trainer";
+}
+
+<h2>Assign Trainer to Course</h2>
+
+<form asp-action="AssignTrainer" method="post">
+    <input type="hidden" name="courseId" value="@ViewBag.CourseId" />
+
+    <div class="form-group">
+        <label for="trainerId">Select Trainer</label>
+        <select name="trainerId" class="form-control" asp-items="ViewBag.Trainers">
+            <option value="">-- Select Trainer --</option>
+        </select>
+    </div>
+
+    <button type="submit" class="btn btn-primary mt-2">Assign</button>
+</form>

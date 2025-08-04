@@ -1,0 +1,27 @@
+﻿@model List<TrainingCenterManagement_MVC.Models.Payment>
+@{
+    Layout = null;
+}
+<h2>Payments Report for @ViewBag.CourseName</h2>
+<hr />
+<table border="1" cellpadding="5" cellspacing="0" width="100%">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Trainee</th>
+            <th>Amount</th>
+            <th>Date</th>
+        </tr>
+    </thead>
+    <tbody>
+        @for (int i = 0; i < Model.Count; i++)
+        {
+            <tr>
+                <td>@(i + 1)</td>
+                <td>@Model[i].Trainee.User.FullName</td>
+                <td>@Model[i].TotalAmount.ToString("C")</td>
+                <td>@Model[i].CreatedDate.ToShortDateString()</td>
+            </tr>
+        }
+    </tbody>
+</table>
