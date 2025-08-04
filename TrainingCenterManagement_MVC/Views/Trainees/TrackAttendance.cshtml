@@ -1,0 +1,34 @@
+﻿@model List<TrainingCenterManagement_MVC.ViewModels.TraineeAttendanceViewModel>
+
+@{
+    ViewData["Title"] = "Track Attendance";
+}
+
+<h2>My Attendance</h2>
+
+<table class="table table-bordered table-striped">
+    <thead class="table-dark">
+        <tr>
+            <th>Course</th>
+            <th>Attended</th>
+            <th>Total</th>
+            <th>Attendance %</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            var alertClass = item.IsLowAttendance ? "text-danger fw-bold" : "text-success";
+            <tr>
+                <td>@item.CourseName</td>
+                <td>@item.AttendedLectures</td>
+                <td>@item.TotalLectures</td>
+                <td>@item.AttendancePercentage.ToString("F2")%</td>
+                <td class="@alertClass">
+                    @(item.IsLowAttendance ? "Low Attendance" : "OK")
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

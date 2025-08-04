@@ -1,0 +1,17 @@
+﻿@model TrainingCenterManagement_MVC.Models.Certificate
+@{
+    ViewData["Title"] = "Verify Certificate";
+}
+
+<div class="container mt-4">
+    <div class="card border-success">
+        <div class="card-header bg-success text-white">Certificate Verification</div>
+        <div class="card-body">
+            <h4>@Model.Trainee.User.FullName</h4>
+            <p>Successfully completed the course: <strong>@Model.Course.CourseName</strong></p>
+            <p>Issued By: @Model.Trainer?.User?.FullName</p>
+            <p>Average: <strong>@Model.Average%</strong></p>
+            <p><small>Certificate ID: @Model.CertificateId</small></p>
+        </div>
+    </div>
+</div>

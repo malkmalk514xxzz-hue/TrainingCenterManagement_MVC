@@ -1,0 +1,25 @@
+﻿@model IEnumerable<TrainingCenterManagement_MVC.Models.Certificate>
+
+<h2>Certificates Report</h2>
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Course</th>
+            <th>Trainee</th>
+            <th>Trainer</th>
+            <th>Average</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var cert in Model)
+        {
+            <tr>
+                <td>@cert.Course.CourseName</td>
+                <td>@cert.Trainee.User.FullName</td>
+                <td>@cert.Trainer?.User?.FullName</td>
+                <td>@cert.Average</td>
+            </tr>
+        }
+    </tbody>
+</table>

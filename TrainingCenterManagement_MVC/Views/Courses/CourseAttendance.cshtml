@@ -1,0 +1,86 @@
+﻿@model List<TrainingCenterManagement_MVC.ViewModels.TraineeAttendanceViewModel>
+
+@{
+    ViewData["Title"] = "Course Attendance";
+}
+
+<h2>Attendance for Course: @ViewBag.CourseName</h2>
+
+<form method="get" class="mb-3">
+    <label>Min Attendance %:</label>
+    <input type="number" name="min" value="@Context.Request.Query["min"]" class="form-control d-inline w-auto mx-2" />
+
+    <label>Max Attendance %:</label>
+    <input type="number" name="max" value="@Context.Request.Query["max"]" class="form-control d-inline w-auto mx-2" />
+
+    <button type="submit" class="btn btn-outline-primary">Filter</button>
+</form>
+
+<table class="table table-hover">
+    <thead class="table-light">
+        <tr>
+            <th>Student</th>
+            <th>Attended</th>
+            <th>Total</th>
+            <th>Attendance %</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            var alertClass = item.IsLowAttendance ? "text-danger fw-bold" : "text-success";
+            <tr>
+                <td>@item.FullName</td>
+                <td>@item.AttendedLectures</td>
+                <td>@item.TotalLectures</td>
+                <td>@item.AttendancePercentage.ToString("F2")%</td>
+                <td class="@alertClass">
+                    @(item.IsLowAttendance ? "Low" : "Good")
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+
+<canvas id="attendanceChart" width="400" height="200"></canvas>
+<div class="mb-3">
+    <a asp-action="ExportExcel" asp-route-courseId="@ViewContext.RouteData.Values["courseId"]" class="btn btn-success">
+        Export to Excel
+    </a>
+
+    <a asp-action="ExportPdf" asp-route-courseId="@ViewContext.RouteData.Values["courseId"]" class="btn btn-danger">
+        Export to PDF
+    </a>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const labels = @Html.Raw(Json.Serialize(Model.Select(m => m.FullName)));
+        const data = @Html.Raw(Json.Serialize(Model.Select(m => m.AttendancePercentage)));
+
+        const ctx = document.getElementById('attendanceChart').getContext('2d');
+        const chart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Attendance %',
+                    data: data,
+                    backgroundColor: data.map(p => p >= 75 ? 'rgba(75, 192, 192, 0.7)' : 'rgba(255, 99, 132, 0.7)')
+                        }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100
+                    }
+                }
+            }
+        });
+    </script>
+}
+

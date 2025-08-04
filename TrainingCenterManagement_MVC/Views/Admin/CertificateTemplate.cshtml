@@ -1,0 +1,117 @@
+﻿@using QRCoder
+@using System.Drawing
+@inject Microsoft.AspNetCore.Hosting.IWebHostEnvironment Env
+@model TrainingCenterManagement_MVC.Models.Certificate
+
+@{
+    Layout = null;
+    var centerName = "Training Center Academy";
+   // يعدل حسب الموقع عند الرفع على الدومين var certUrl = $"https://your-domain.com/Certificate/Verify/{Model.CertificateId}";
+    var certUrl = $"https://localhost:44323/Certificate/Verify/{Model.CertificateId}";
+
+    using var qrGenerator = new QRCodeGenerator();
+    using var qrCodeData = qrGenerator.CreateQrCode(certUrl, QRCodeGenerator.ECCLevel.Q);
+    using var qrCode = new PngByteQRCode(qrCodeData);
+    var qrCodeBytes = qrCode.GetGraphic(10);
+    var qrCodeBase64 = Convert.ToBase64String(qrCodeBytes);
+
+    var issueDate = DateTime.Now.ToString("yyyy/MM/dd");
+}
+
+<style>
+    body {
+        font-family: 'Arial';
+        background-color: #fdfdfd;
+        padding: 50px;
+        border: 5px solid #444;
+        position: relative;
+    }
+
+    .certificate-container {
+        text-align: center;
+        padding: 40px;
+        border: 3px dashed #666;
+        position: relative;
+    }
+
+    h1 {
+        font-size: 36px;
+        margin-bottom: 10px;
+        color: #2c3e50;
+    }
+
+    .subtitle {
+        font-size: 20px;
+        color: #7f8c8d;
+    }
+
+    .trainee-name {
+        font-size: 28px;
+        font-weight: bold;
+        margin: 30px 0;
+        color: #34495e;
+    }
+
+    .course-name {
+        font-size: 22px;
+        color: #2980b9;
+    }
+
+    .footer {
+        margin-top: 50px;
+        display: flex;
+        justify-content: space-between;
+        font-size: 14px;
+    }
+
+    .signature {
+        text-align: right;
+        margin-top: 20px;
+        font-family: cursive;
+        font-size: 18px;
+    }
+
+    .qr-code {
+        margin-top: 30px;
+        text-align: center;
+    }
+
+    .logo {
+        position: absolute;
+        top: 30px;
+        left: 30px;
+    }
+</style>
+
+<div class="certificate-container">
+    <h1>Certificate of Completion</h1>
+    <p class="subtitle">This is to certify that</p>
+
+    <div class="trainee-name">@Model.Trainee.User.FullName</div>
+
+    <p class="subtitle">has successfully completed the course</p>
+    <div class="course-name">"@Model.Course.CourseName"</div>
+
+    <p class="subtitle">with an average score of <strong>@Model.Average%</strong></p>
+
+    <div class="footer">
+        <div>
+            Issue Date: @issueDate<br />
+            Issued by: @Model.Trainer.User.FullName
+        </div>
+
+        <div class="signature">
+            <hr />
+            Director Signature
+        </div>
+    </div>
+    <div style="text-align:right; margin-top: 30px;">
+        <img src="data:image/png;base64,@qrCodeBase64" width="100" alt="QR Code" />
+        <p style="font-size:10px;">Scan to verify</p>
+    </div>
+
+    <div class="qr-code">
+        <img src="data:image/png;base64,@qrCodeBase64" alt="QR Code" width="120" height="120" />
+        <p style="font-size: 12px;">Scan to verify certificate</p>
+    </div>
+</div>

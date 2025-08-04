@@ -1,0 +1,14 @@
+﻿@model IEnumerable<TrainingCenterManagement_MVC.Models.Certificate>
+@{
+    Layout = null;
+}
+
+@foreach (var cert in Model)
+{
+    <div style="page-break-after:always; padding: 40px; border: 2px solid #000;">
+        <h2>Certificate of Completion</h2>
+        <p>This certifies that <strong>@cert.Trainee.User.FullName</strong> has successfully completed the course <strong>@cert.Course.CourseName</strong>.</p>
+        <p>Average Score: @cert.Average%</p>
+        <p>Issued By: @cert.Trainer.User.FullName</p>
+    </div>
+}

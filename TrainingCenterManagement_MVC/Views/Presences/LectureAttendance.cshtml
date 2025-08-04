@@ -1,0 +1,32 @@
+﻿@model TrainingCenterManagement_MVC.Models.Lecture
+
+<h2>Attendance for: @Model.Title (@Model.LectureDate.ToShortDateString())</h2>
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Trainee</th>
+            <th>Present?</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var p in Model.Presences)
+        {
+            <tr>
+                <td>@p.Trainee.User.FullName</td>
+                <td>
+                    @if (p.IsPresent)
+                    {
+                        <span class="text-success">Yes</span>
+                    }
+                    else
+                    {
+                        <span class="text-danger">No</span>
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+<a asp-controller="Presences" asp-action="ExportLectureAttendancePdf"
+   asp-route-lectureId="@Model.LectureId"
+   class="btn btn-outline-danger mt-3">📄 تصدير إلى PDF</a>
