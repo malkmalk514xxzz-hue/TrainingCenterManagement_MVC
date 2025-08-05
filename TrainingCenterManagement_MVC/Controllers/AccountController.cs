@@ -156,8 +156,64 @@ namespace TrainingCenterManagement_MVC.Controllers
             return View(model);
         }
 
-        
+        // Displays the change user details page
+        public async Task<IActionResult> ChangeUser()
+        {
+            var user = await _userHelper.GetUserByEmailAsync(User.Identity.Name);
 
+            if (user == null)
+            {
+                return RedirectToAction("NotAuthorized");
+            }
+
+            var model = new ChangeUserViewModel
+            {
+                FullName = user.FullName,
+                
+               
+                PhoneNumber = user.PhoneNumber
+            };
+
+            return View(model);
+        }
+
+        // Processes the change user details request
+        [HttpPost]
+        public async Task<IActionResult> ChangeUser(ChangeUserViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                var user = await _userHelper.GetUserByEmailAsync(User.Identity.Name);
+
+                if (user != null)
+                {
+                    // Update the User entity
+                    user.FullName = model.FullName;
+                   
+                    
+                    user.PhoneNumber = model.PhoneNumber;
+
+                    // Save changes to the user
+                    var result = await _userHelper.UpdateUserAsync(user);
+
+                    if (result.Succeeded)
+                    {
+                        // Call the method to update associated entities (Employee, Student, Teacher)
+                        await _userHelper.UpdateUserAsync(user);
+
+                        return RedirectToAction("Index", "Home");
+                    }
+
+                    ModelState.AddModelError(string.Empty, "Failed to update user details.");
+                }
+                else
+                {
+                    return RedirectToAction("NotAuthorized");
+                }
+            }
+
+            return View(model);
+        }
 
         // Displays the not authorized page
         public IActionResult NotAuthorized()
@@ -165,21 +221,13 @@ namespace TrainingCenterManagement_MVC.Controllers
             return View();
         }
 
-        
-
-        
 
 
-
-        private string GenerateRandomPassword(int length = 8)
+        // Displays the password reset page
+        public IActionResult ResetPassword(string token)
         {
-            const string validChars = "ABCDEFGHJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()?_-";
-            Random random = new Random();
-            return new string(Enumerable.Repeat(validChars, length)
-                .Select(s => s[random.Next(s.Length)]).ToArray());
+            return View();
         }
-
-     
 
         // Processes the password reset request
         [HttpPost]
@@ -188,7 +236,7 @@ namespace TrainingCenterManagement_MVC.Controllers
             var user = await _userHelper.GetUserByEmailAsync(model.Email);
             if (user != null)
             {
-                var result = await _userHelper.ResetPasswordAsync(user, model.Token, model.Password);
+                var result = await _userHelper.ResetPasswordWithoutTokenAsync(user, model.Password);
                 if (result.Succeeded)
                 {
                     ViewBag.Message = "Password reset successfully.";
@@ -207,6 +255,51 @@ namespace TrainingCenterManagement_MVC.Controllers
         {
             return View();
         }
+
+
+
+        private string GenerateRandomPassword(int length = 8)
+        {
+            const string validChars = "ABCDEFGHJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()?_-";
+            Random random = new Random();
+            return new string(Enumerable.Repeat(validChars, length)
+                .Select(s => s[random.Next(s.Length)]).ToArray());
+        }
+
+
+
+        public IActionResult ChangePassword()
+        {
+            return View();
+        }
+
+        // Processes the change password request
+        [HttpPost]
+        public async Task<IActionResult> ChangePassword(ChangePasswordViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                var user = await _userHelper.GetUserByEmailAsync(this.User.Identity.Name);
+                if (user != null)
+                {
+                    var result = await _userHelper.ChangePasswordAsync(user, model.OldPassword, model.NewPassword);
+                    if (result.Succeeded)
+                    {
+                        return RedirectToAction("ChangeUser");
+                    }
+                    ModelState.AddModelError(string.Empty, result.Errors.FirstOrDefault().Description);
+                }
+                else
+                {
+                    ModelState.AddModelError(string.Empty, "User not found.");
+                }
+            }
+
+            return View(model);
+        }
+
+
+      
 
     }
 }

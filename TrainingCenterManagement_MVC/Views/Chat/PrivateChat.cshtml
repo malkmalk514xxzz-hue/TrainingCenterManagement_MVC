@@ -21,7 +21,6 @@
     <div class="chat-input">
         <input type="text" id="messageInput" placeholder="Type a message..." />
         <button onclick="sendPrivateMessage()">Send</button>
-       @*  <button onclick="reloadMessages()">Reload Messages</button> *@
     </div>
     <div id="status"></div>
 </div>
@@ -48,7 +47,11 @@
             chatBox.appendChild(msg);
             chatBox.scrollTop = chatBox.scrollHeight;
         });
-
+         // التمرير إلى آخر رسالة عند تحميل الصفحة
+        document.addEventListener("DOMContentLoaded", () => {
+            const chatBox = document.getElementById("chatBox");
+            chatBox.scrollTop = chatBox.scrollHeight;
+        });
         connection.start()
             .then(() => console.log("SignalR Connected"))
             .catch(err => {
@@ -81,7 +84,7 @@
                         `;
                         chatBox.appendChild(msg);
                         chatBox.scrollTop = chatBox.scrollHeight;
-                        connection.invoke("SendPrivateMessage", "@receiverUsername", "@senderUsername", message)
+                        connection.invoke("SendPrivateMessage", "@receiverId", "@senderUsername", message)
                             .catch(err => {
                                 console.error("SignalR Invoke Error:", err);
                                 $("#status").text("Error notifying recipient");
@@ -93,23 +96,6 @@
                 error: function () {
                     console.error("AJAX Error: Failed to send message");
                     $("#status").text("Error sending message");
-                }
-            });
-        }
-
-        function reloadMessages() {
-            $.ajax({
-                url: '/Chat/PrivateChat',
-                data: { receiverId: '@receiverId' },
-                success: function (data) {
-                    const chatBox = document.getElementById("chatBox");
-                    chatBox.innerHTML = $(data).find("#chatBox").html();
-                    chatBox.scrollTop = chatBox.scrollHeight;
-                    console.log("Messages reloaded successfully");
-                },
-                error: function () {
-                    console.error("Error reloading messages");
-                    $("#status").text("Error reloading messages");
                 }
             });
         }

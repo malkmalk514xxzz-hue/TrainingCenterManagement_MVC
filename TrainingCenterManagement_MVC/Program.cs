@@ -56,7 +56,10 @@ builder.Services.AddCors(options =>
 builder.Services.AddScoped<IUserHelper, UserHelper>();
 // Add Role Initializer
 builder.Services.AddScoped<RoleInitializer>();
-builder.Services.AddSignalR();
+builder.Services.AddSignalR().AddJsonProtocol(options =>
+{
+    options.PayloadSerializerOptions.PropertyNamingPolicy = null; // íÍÇİÙ Úáì ÃÓãÇÁ ÇáÎÕÇÆÕ ßãÇ åí (ãËá Id ÈÏáÇğ ãä id)
+});
 var app = builder.Build();
 
 // Seed roles
