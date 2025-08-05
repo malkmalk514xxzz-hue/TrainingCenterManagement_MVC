@@ -12,7 +12,7 @@ using TrainingCenterManagement_MVC.Data;
 namespace TrainingCenterManagement_MVC.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250731225557_initial")]
+    [Migration("20250804221511_initial")]
     partial class initial
     {
         /// <inheritdoc />

@@ -173,14 +173,15 @@
                     @if (User.Identity.IsAuthenticated)
                     {
                         <a asp-controller="Chat" asp-action="Index" class="btn btn-outline">@SharedResource.Chat</a>
-                        @if (User.IsInRole("Admin"))
-                        {
-                            <a href="/Admin/Dashboard" class="btn btn-primary">@SharedResource.adminDashboard</a>
-                        }
-                        else
-                        {
-                            <a href="/User/Dashboard" class="btn btn-primary">@SharedResource.userDashboard</a>
-                        }
+                        
+                                    <a asp-controller="Account" asp-action="Logout" >
+                                        Logout
+                                    </a>
+                               
+                                    <a asp-controller="Account" asp-action="ResetPassword" >
+                                        ResetPassword
+                                    </a>
+                               
                     }
                     else
                     {

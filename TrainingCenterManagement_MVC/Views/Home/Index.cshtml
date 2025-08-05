@@ -205,6 +205,35 @@
           localStorage.setItem('theme', theme);
         });
     </script>
+    @section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("/chatHub")
+            .build();
+
+      
+
+        connection.start()
+            .then(() => console.log("SignalR Connected"))
+            .catch(err => {
+                console.error("SignalR Connection Error:", err);
+                $("#status").text("Failed to connect to chat server");
+            });
+                            // معالج استقبال الإشعارات للرسائل الخاصة
+            connection.on("ReceiveNotification", (sender, message) => {
+                if (Notification.permission === "granted") {
+                    new Notification(`رسالة جديدة من ${sender}`, {
+                        body: message,
+                            icon: 'success' // استبدل بمسار أيقونة فعلي
+                    });
+                }
+            });
+                  
+    </script>
+    }
+    </script>
 </body>
 
 
