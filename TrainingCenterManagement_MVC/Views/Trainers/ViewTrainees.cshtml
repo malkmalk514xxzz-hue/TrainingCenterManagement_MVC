@@ -2,6 +2,7 @@
 @{
     ViewData["Title"] = "Trainees";
     var courseName = ViewBag.CourseName as string;
+    var courseId = ViewBag.CourseId;
 }
 
 <h2>Trainees in Course: @courseName</h2>
@@ -23,13 +24,19 @@
                     <td>@trainee.User.FullName</td>
                     <td>@trainee.BirthDate.ToShortDateString()</td>
                     <td>
-                        <span class="text-muted">Only Admin can issue certificates</span>
                         @if (User.IsInRole("Admin"))
                         {
-                            <a asp-controller="Admin" asp-action="IssueCertificate" asp-route-traineeId="@trainee.TraineeId" asp-route-courseId="@ViewBag.CourseId"
-                               class="btn btn-success btn-sm">Issue Certificate</a>
+                            <a asp-controller="Admin" asp-action="IssueCertificate"
+                               asp-route-traineeId="@trainee.TraineeId"
+                               asp-route-courseId="@courseId"
+                               class="btn btn-success btn-sm">
+                                Issue Certificate
+                            </a>
                         }
-
+                        else
+                        {
+                            <span class="text-muted">Only Admin can issue certificates</span>
+                        }
                     </td>
                 </tr>
             }

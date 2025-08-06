@@ -23,7 +23,7 @@
                 <td>@course.ReleaseDate.ToShortDateString()</td>
                 <td>
                     <a asp-action="ViewTrainees" asp-route-courseId="@course.CourseId" class="btn btn-info btn-sm">View Trainees</a>
-                    <a asp-controller="Course" asp-action="Details" asp-route-id="@course.CourseId" class="btn btn-secondary btn-sm">Details</a>
+                    <a asp-controller="Courses" asp-action="Details" asp-route-id="@course.CourseId" class="btn btn-secondary btn-sm">Details</a>
                 </td>
             </tr>
         }

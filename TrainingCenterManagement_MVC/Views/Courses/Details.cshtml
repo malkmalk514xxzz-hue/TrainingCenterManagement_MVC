@@ -1,134 +1,139 @@
 ﻿@model TrainingCenterManagement_MVC.Models.Course
 
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = "Course Details";
 }
 
-<h1>Details</h1>
+<div class="container py-5">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Course Details</h4>
+                </div>
+                <div class="card-body">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-3">Course Name</dt>
+                        <dd class="col-sm-9">@Model.CourseName</dd>
 
-<div>
-    <h4>Course</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.CourseName)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.CourseName)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.BatchNumber)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.BatchNumber)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.NumberOfLectures)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.NumberOfLectures)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Price)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Price)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Description)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Description)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.VideoUrl)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.VideoUrl)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.ThumbnailUrl)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.ThumbnailUrl)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.CreatedDate)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.CreatedDate)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.ReleaseDate)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.ReleaseDate)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.IsDeleted)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.IsDeleted)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Admin)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Admin.UserId)
-        </dd>
-    </dl>
-</div>
-<hr />
-<h4>Assigned Trainers</h4>
-<ul>
-    @if (Model.CourseTrainers != null && Model.CourseTrainers.Any())
-    {
-        foreach (var ct in Model.CourseTrainers)
-        {
-            <li>@ct.Trainer.User.FullName (@ct.Trainer.Specialty)</li>
-        }
-    }
-    else
-    {
-        <li>No trainers assigned.</li>
-    }
-</ul>
+                        <dt class="col-sm-3">Batch Number</dt>
+                        <dd class="col-sm-9">@Model.BatchNumber</dd>
 
-<h4>Assigned Trainees</h4>
-<ul>
-    @if (Model.CourseTrainees != null && Model.CourseTrainees.Any())
-    {
-        foreach (var ct in Model.CourseTrainees)
-        {
-            <li>@ct.Trainee.User.FullName (Birthdate: @ct.Trainee.BirthDate.ToShortDateString())</li>
-        }
-    }
-    else
-    {
-        <li>No trainees assigned.</li>
-    }
-</ul>
+                        <dt class="col-sm-3">Number of Lectures</dt>
+                        <dd class="col-sm-9">@Model.NumberOfLectures</dd>
 
-<div>
-    <a asp-action="Edit" asp-route-id="@Model?.CourseId">Edit</a> |
-    <a asp-action="Index">Back to List</a>|
-    <a asp-action="AssignTrainer" asp-route-id="@Model.CourseId" class="btn btn-link">Assign Trainer</a> |
-    <a asp-action="AssignTrainees" asp-route-id="@Model.CourseId" class="btn btn-link">Assign Trainees</a>|
-    <a asp-action="CourseAttendance" asp-controller="Courses" asp-route-courseId="@Model.CourseId" class="btn btn-info mt-3">
-        View Attendance Statistics
-    </a>
-</div>
+                        <dt class="col-sm-3">Price</dt>
+                        <dd class="col-sm-9">@Model.Price.ToString("C")</dd>
 
-<hr />
+                        <dt class="col-sm-3">Description</dt>
+                        <dd class="col-sm-9">@Model.Description</dd>
 
-<div class="mt-3">
-    <a asp-action="ViewLectures" asp-controller="Trainees" asp-route-courseId="@Model.CourseId" class="btn btn-outline-primary">📚 View Lectures</a>
-    <a asp-action="TrackAttendance" asp-controller="Trainees" asp-route-courseId="@Model.CourseId" class="btn btn-outline-success">📊 Track Attendance</a>
-    <a asp-action="ViewPayments" asp-controller="Trainees" asp-route-courseId="@Model.CourseId" class="btn btn-outline-warning">💳 View Payments</a>
-    <a asp-controller="Payments" asp-action="ViewCoursePayments" asp-route-courseId="@Model.CourseId" class="btn btn-outline-primary">
-        View Course Payments
-    </a>
-    <a asp-controller="Payments" asp-action="ExportPaymentsPdf" asp-route-courseId="@Model.CourseId"
-       class="btn btn-outline-danger mt-3">🧾 تصدير مدفوعات الدورة PDF</a>
+                        <dt class="col-sm-3">Video URL</dt>
+                        <dd class="col-sm-9">@Model.VideoUrl</dd>
 
+                        <dt class="col-sm-3">Thumbnail URL</dt>
+                        <dd class="col-sm-9">@Model.ThumbnailUrl</dd>
+
+                        <dt class="col-sm-3">Created Date</dt>
+                        <dd class="col-sm-9">@Model.CreatedDate.ToShortDateString()</dd>
+
+                        <dt class="col-sm-3">Release Date</dt>
+                        <dd class="col-sm-9">@Model.ReleaseDate.ToShortDateString()</dd>
+
+                        <dt class="col-sm-3">Is Deleted</dt>
+                        <dd class="col-sm-9">
+                            <span class="badge @(Model.IsDeleted ? "bg-danger" : "bg-success")">
+                                @(Model.IsDeleted ? "Yes" : "No")
+                            </span>
+                        </dd>
+
+                        <dt class="col-sm-3">Admin</dt>
+                        <dd class="col-sm-9">@Model.Admin?.User?.FullName</dd>
+                    </dl>
+                </div>
+            </div>
+
+            <!-- Trainers Section -->
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">Assigned Trainers</h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.CourseTrainers != null && Model.CourseTrainers.Any())
+                    {
+                        <ul class="list-group list-group-flush">
+                            @foreach (var ct in Model.CourseTrainers)
+                            {
+                                <li class="list-group-item">
+                                    👨‍🏫 <strong>@ct.Trainer.User.FullName</strong> - <em>@ct.Trainer.Specialty</em>
+                                </li>
+                            }
+                        </ul>
+                    }
+                    else
+                    {
+                        <div class="text-muted">No trainers assigned.</div>
+                    }
+                </div>
+            </div>
+
+            <!-- Trainees Section -->
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0">Assigned Trainees</h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.CourseTrainees != null && Model.CourseTrainees.Any())
+                    {
+                        <ul class="list-group list-group-flush">
+                            @foreach (var ct in Model.CourseTrainees)
+                            {
+                                <li class="list-group-item">
+                                    🧑‍🎓 <strong>@ct.Trainee.User.FullName</strong>
+                                    <small class="text-muted">(Birthdate: @ct.Trainee.BirthDate.ToShortDateString())</small>
+                                </li>
+                            }
+                        </ul>
+                    }
+                    else
+                    {
+                        <div class="text-muted">No trainees assigned.</div>
+                    }
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="d-flex flex-wrap gap-2 justify-content-start mt-4">
+                <a asp-action="Edit" asp-route-id="@Model.CourseId" class="btn btn-primary">✏️ Edit</a>
+                <a asp-action="Index" class="btn btn-outline-secondary">🔙 Back to List</a>
+                <a asp-action="AssignTrainer" asp-route-id="@Model.CourseId" class="btn btn-outline-info">➕ Assign Trainer</a>
+                <a asp-action="AssignTrainees" asp-route-id="@Model.CourseId" class="btn btn-outline-info">➕ Assign Trainees</a>
+            </div>
+
+            <!-- Course Analytics -->
+            <div class="mt-5">
+                <h5 class="mb-3">📊 Course Tools & Reports</h5>
+                <div class="d-flex flex-wrap gap-3">
+                    <a asp-action="CourseAttendance" asp-controller="Courses" asp-route-courseId="@Model.CourseId" class="btn btn-info">
+                        View Attendance Statistics
+                    </a>
+                    <a asp-action="ViewLectures" asp-controller="Trainees" asp-route-courseId="@Model.CourseId" class="btn btn-outline-primary">
+                        📚 View Lectures
+                    </a>
+                    <a asp-action="TrackAttendance" asp-controller="Trainees" asp-route-courseId="@Model.CourseId" class="btn btn-outline-success">
+                        📊 Track Attendance
+                    </a>
+                    <a asp-action="ViewPayments" asp-controller="Trainees" asp-route-courseId="@Model.CourseId" class="btn btn-outline-warning">
+                        💳 View Payments
+                    </a>
+                    <a asp-controller="Payments" asp-action="ViewCoursePayments" asp-route-courseId="@Model.CourseId" class="btn btn-outline-primary">
+                        💰 View Course Payments
+                    </a>
+                    <a asp-controller="Payments" asp-action="ExportPaymentsPdf" asp-route-courseId="@Model.CourseId" class="btn btn-outline-danger">
+                        🧾 Export Payments to PDF
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>

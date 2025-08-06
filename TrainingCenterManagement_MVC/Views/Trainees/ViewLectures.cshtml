@@ -3,9 +3,11 @@
     ViewData["Title"] = "Lectures";
     var course = ViewBag.Course as TrainingCenterManagement_MVC.Models.Course;
 }
-<h2>Lectures for @course?.CourseName</h2>
-<table class="table table-striped">
-    <thead>
+
+<h2 class="mb-4">Lectures for @course?.CourseName</h2>
+
+<table class="table table-striped table-hover align-middle">
+    <thead class="table-dark">
         <tr>
             <th>Title</th>
             <th>Date</th>
@@ -18,12 +20,18 @@
         {
             <tr>
                 <td>@lecture.Title</td>
-                <td>@lecture.LectureDate.ToShortDateString()</td>
+                <td>@lecture.LectureDate.ToString("dd MMM yyyy")</td>
                 <td>@lecture.Description</td>
                 <td>
                     @if (!string.IsNullOrEmpty(lecture.VideoUrl))
                     {
-                        <a href="@lecture.VideoUrl" class="btn btn-sm btn-primary" target="_blank">Watch</a>
+                        <a href="@lecture.VideoUrl" class="btn btn-sm btn-primary" target="_blank" rel="noopener noreferrer">
+                            ▶️ Watch
+                        </a>
+                    }
+                    else
+                    {
+                        <span class="text-muted">No video</span>
                     }
                 </td>
             </tr>

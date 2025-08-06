@@ -1,64 +1,69 @@
 ﻿@model TrainingCenterManagement_MVC.Models.Certificate
 
 @{
-    ViewData["Title"] = "Edit";
+    ViewData["Title"] = "Edit Certificate";
 }
 
-<h1>Edit</h1>
+<div class="container mt-4">
+    <div class="card shadow">
+        <div class="card-header bg-success text-white">
+            <h4><i class="bi bi-pencil-square"></i> Edit Certificate</h4>
+        </div>
+        <div class="card-body">
+            <form asp-action="Edit">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                <input type="hidden" asp-for="CertificateId" />
 
-<h4>Certificate</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Edit">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <input type="hidden" asp-for="CertificateId" />
-            <div class="form-group">
-                <label asp-for="Average" class="control-label"></label>
-                <input asp-for="Average" class="form-control" />
-                <span asp-validation-for="Average" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Url" class="control-label"></label>
-                <input asp-for="Url" class="form-control" />
-                <span asp-validation-for="Url" class="text-danger"></span>
-            </div>
-            <div class="form-group form-check">
-                <label class="form-check-label">
-                    <input class="form-check-input" asp-for="IsDeleted" /> @Html.DisplayNameFor(model => model.IsDeleted)
-                </label>
-            </div>
-            <div class="form-group">
-                <label asp-for="TraineeId" class="control-label"></label>
-                <select asp-for="TraineeId" class="form-control" asp-items="ViewBag.TraineeId"></select>
-                <span asp-validation-for="TraineeId" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="TrainerId" class="control-label"></label>
-                <select asp-for="TrainerId" class="form-control" asp-items="ViewBag.TrainerId"></select>
-                <span asp-validation-for="TrainerId" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="CourseId" class="control-label"></label>
-                <select asp-for="CourseId" class="form-control" asp-items="ViewBag.CourseId"></select>
-                <span asp-validation-for="CourseId" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="ExamId" class="control-label"></label>
-                <select asp-for="ExamId" class="form-control" asp-items="ViewBag.ExamId"></select>
-                <span asp-validation-for="ExamId" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-primary" />
-            </div>
-        </form>
+                <div class="mb-3">
+                    <label asp-for="Average" class="form-label"></label>
+                    <input asp-for="Average" class="form-control" />
+                    <span asp-validation-for="Average" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Url" class="form-label"></label>
+                    <input asp-for="Url" class="form-control" />
+                    <span asp-validation-for="Url" class="text-danger"></span>
+                </div>
+
+                <div class="form-check mb-3">
+                    <input class="form-check-input" asp-for="IsDeleted" />
+                    <label class="form-check-label" asp-for="IsDeleted"></label>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="TraineeId" class="form-label"></label>
+                    <select asp-for="TraineeId" class="form-select" asp-items="ViewBag.TraineeId"></select>
+                    <span asp-validation-for="TraineeId" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="TrainerId" class="form-label"></label>
+                    <select asp-for="TrainerId" class="form-select" asp-items="ViewBag.TrainerId"></select>
+                    <span asp-validation-for="TrainerId" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="CourseId" class="form-label"></label>
+                    <select asp-for="CourseId" class="form-select" asp-items="ViewBag.CourseId"></select>
+                    <span asp-validation-for="CourseId" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="ExamId" class="form-label"></label>
+                    <select asp-for="ExamId" class="form-select" asp-items="ViewBag.ExamId"></select>
+                    <span asp-validation-for="ExamId" class="text-danger"></span>
+                </div>
+
+                <button type="submit" class="btn btn-success"><i class="bi bi-save"></i> Save</button>
+                <a asp-action="Index" class="btn btn-secondary ms-2"><i class="bi bi-arrow-left"></i> Cancel</a>
+            </form>
+        </div>
     </div>
 </div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
-
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 }

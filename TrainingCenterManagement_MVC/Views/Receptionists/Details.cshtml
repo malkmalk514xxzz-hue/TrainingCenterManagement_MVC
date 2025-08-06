@@ -1,24 +1,48 @@
 ﻿@model TrainingCenterManagement_MVC.Models.Receptionist
 
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = "Receptionist Details";
 }
 
-<h1>Details</h1>
+<div class="container mt-5">
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white text-center">
+            <h3>Receptionist Details</h3>
+        </div>
+        <div class="card-body">
+            <dl class="row">
+                <dt class="col-sm-3">User Name</dt>
+                <dd class="col-sm-9">@Model.User?.FullName</dd>
 
-<div>
-    <h4>Receptionist</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.User)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.User.Id)
-        </dd>
-    </dl>
-</div>
-<div>
-    <a asp-action="Edit" asp-route-id="@Model?.ReceptionistId">Edit</a> |
-    <a asp-action="Index">Back to List</a>
+                <dt class="col-sm-3">Email</dt>
+                <dd class="col-sm-9">@Model.User?.Email</dd>
+
+                <dt class="col-sm-3">Phone</dt>
+                <dd class="col-sm-9">@Model.User?.PhoneNumber</dd>
+            </dl>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-4">
+            <a asp-action="AttendanceReports" class="btn btn-outline-primary w-100 mb-2">
+                📊 Attendance Reports
+            </a>
+        </div>
+        <div class="col-md-4">
+            <a asp-action="PaymentReports" class="btn btn-outline-success w-100 mb-2">
+                💵 Payment Follow-up
+            </a>
+        </div>
+        <div class="col-md-4">
+            <a asp-action="ContactTrainees" class="btn btn-outline-info w-100 mb-2">
+                📞 Contact Trainees
+            </a>
+        </div>
+    </div>
+
+    <div class="mt-4 text-center">
+        <a asp-action="Edit" asp-route-id="@Model?.ReceptionistId" class="btn btn-warning me-2">✏️ Edit</a>
+        <a asp-action="Index" class="btn btn-secondary">← Back to List</a>
+    </div>
 </div>

@@ -2,14 +2,32 @@
     ViewData["Title"] = "Attendance Summary";
 }
 
-<h3>Attendance Summary</h3>
-<p><strong>Trainee:</strong> @ViewBag.Trainee.User.FullName</p>
-<p><strong>Course:</strong> @ViewBag.Course.CourseName</p>
-<p><strong>Attendance:</strong> @ViewBag.Attended / @ViewBag.TotalLectures lectures</p>
+<div class="container mt-5">
+    <div class="card shadow-sm">
+        <div class="card-header bg-info text-white">
+            <h4 class="mb-0"><i class="bi bi-clipboard-check-fill"></i> Attendance Summary</h4>
+        </div>
+        <div class="card-body">
+            <p class="mb-2">
+                <strong>Trainee:</strong> @ViewBag.Trainee.User.FullName
+            </p>
+            <p class="mb-2">
+                <strong>Course:</strong> @ViewBag.Course.CourseName
+            </p>
+            <p class="mb-2">
+                <strong>Attendance:</strong> @ViewBag.Attended / @ViewBag.TotalLectures lectures
+            </p>
 
-<div class="progress mt-3">
-    @{
-        var percent = ViewBag.TotalLectures == 0 ? 0 : (int)((ViewBag.Attended * 100.0) / ViewBag.TotalLectures);
-    }
-    <div class="progress-bar bg-success" style="width: @percent%">@percent%</div>
+            @{
+                var percent = ViewBag.TotalLectures == 0 ? 0 : (int)((ViewBag.Attended * 100.0) / ViewBag.TotalLectures);
+                var barColor = percent >= 75 ? "bg-success" : (percent >= 50 ? "bg-warning" : "bg-danger");
+            }
+
+            <div class="progress mt-4" style="height: 25px;">
+                <div class="progress-bar @barColor" role="progressbar" style="width: @percent%" aria-valuenow="@percent" aria-valuemin="0" aria-valuemax="100">
+                    @percent%
+                </div>
+            </div>
+        </div>
+    </div>
 </div>

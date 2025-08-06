@@ -2,15 +2,16 @@
 @{
     ViewData["Title"] = "Attendance";
 }
-<h2>Attendance in @Model.CourseName</h2>
 
-<div class="card p-4">
+<h2 class="mb-4">Attendance in @Model.CourseName</h2>
+
+<div class="card p-4 shadow-sm" style="max-width: 400px;">
     <p><strong>Total Lectures:</strong> @Model.TotalLectures</p>
     <p><strong>Attended Lectures:</strong> @Model.AttendedLectures</p>
     <p>
         <strong>Attendance Percentage:</strong>
-        <span class="@(Model.AttendancePercentage < 75 ? "text-danger" : "text-success")">
-            @Model.AttendancePercentage %
+        <span class="fw-bold @(Model.AttendancePercentage < 75 ? "text-danger" : "text-success")">
+            @Model.AttendancePercentage.ToString("F2") %
         </span>
     </p>
 </div>

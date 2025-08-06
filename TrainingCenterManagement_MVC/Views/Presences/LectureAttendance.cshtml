@@ -1,32 +1,47 @@
 ﻿@model TrainingCenterManagement_MVC.Models.Lecture
 
-<h2>Attendance for: @Model.Title (@Model.LectureDate.ToShortDateString())</h2>
-<table class="table table-bordered">
-    <thead>
-        <tr>
-            <th>Trainee</th>
-            <th>Present?</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var p in Model.Presences)
-        {
+@{
+    ViewData["Title"] = "Lecture Attendance";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="mb-0">
+            Attendance for: <span class="text-primary">@Model.Title</span>
+            <small class="text-muted">(@Model.LectureDate.ToShortDateString())</small>
+        </h2>
+        <a asp-controller="Presences"
+           asp-action="ExportLectureAttendancePdf"
+           asp-route-lectureId="@Model.LectureId"
+           class="btn btn-outline-danger">
+            📄 Export to PDF
+        </a>
+    </div>
+
+    <table class="table table-hover table-bordered">
+        <thead class="table-dark">
             <tr>
-                <td>@p.Trainee.User.FullName</td>
-                <td>
-                    @if (p.IsPresent)
-                    {
-                        <span class="text-success">Yes</span>
-                    }
-                    else
-                    {
-                        <span class="text-danger">No</span>
-                    }
-                </td>
+                <th>Trainee</th>
+                <th>Status</th>
             </tr>
-        }
-    </tbody>
-</table>
-<a asp-controller="Presences" asp-action="ExportLectureAttendancePdf"
-   asp-route-lectureId="@Model.LectureId"
-   class="btn btn-outline-danger mt-3">📄 تصدير إلى PDF</a>
+        </thead>
+        <tbody>
+            @foreach (var p in Model.Presences)
+            {
+                <tr>
+                    <td>@p.Trainee.User.FullName</td>
+                    <td>
+                        @if (p.IsPresent)
+                        {
+                            <span class="badge bg-success px-3 py-2">Present</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-danger px-3 py-2">Absent</span>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

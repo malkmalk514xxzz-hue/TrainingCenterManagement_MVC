@@ -4,42 +4,62 @@
     ViewData["Title"] = "Mark Attendance";
 }
 
-<h2>Mark Attendance for: @Model.LectureTitle</h2>
+<div class="container mt-4">
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">Mark Attendance for: <strong>@Model.LectureTitle</strong></h4>
+        </div>
+        <div class="card-body">
 
-<form asp-action="MarkAttendance" method="post">
-    @Html.AntiForgeryToken()
-    <input type="hidden" asp-for="LectureId" />
+            <form asp-action="MarkAttendance" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="LectureId" />
 
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Trainee</th>
-                <th>Present?</th>
-            </tr>
-        </thead>
-        <tbody>
-            @for (int i = 0; i < Model.Trainees.Count; i++)
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width: 70%;">Trainee</th>
+                                <th style="width: 30%;">Present?</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @for (int i = 0; i < Model.Trainees.Count; i++)
+                            {
+                                <tr>
+                                    <td>@Model.Trainees[i].FullName</td>
+                                    <td>
+                                        <div class="form-check">
+                                            <input asp-for="Trainees[@i].IsPresent" class="form-check-input" id="present_@i" />
+                                            <label class="form-check-label" for="present_@i">Yes</label>
+                                        </div>
+                                        <input type="hidden" asp-for="Trainees[@i].TraineeId" />
+                                        <input type="hidden" asp-for="Trainees[@i].FullName" />
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="mt-4 text-end">
+                    <button type="submit" class="btn btn-success px-4">✔ Save Attendance</button>
+                </div>
+            </form>
+
+            @if (TempData["Success"] != null)
             {
-                <tr>
-                    <td>@Model.Trainees[i].FullName</td>
-                    <td>
-                        <input asp-for="Trainees[@i].IsPresent" class="form-check-input" />
-                        <input type="hidden" asp-for="Trainees[@i].TraineeId" />
-                        <input type="hidden" asp-for="Trainees[@i].FullName" />
-                    </td>
-                </tr>
+                <div class="alert alert-success mt-4">
+                    @TempData["Success"]
+                </div>
             }
-        </tbody>
-    </table>
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger mt-4">
+                    @TempData["Error"]
+                </div>
+            }
 
-    <button type="submit" class="btn btn-success">Save Attendance</button>
-</form>
-
-@if (TempData["Success"] != null)
-{
-    <div class="alert alert-success mt-3">@TempData["Success"]</div>
-}
-@if (TempData["Error"] != null)
-{
-    <div class="alert alert-danger mt-3">@TempData["Error"]</div>
-}
+        </div>
+    </div>
+</div>

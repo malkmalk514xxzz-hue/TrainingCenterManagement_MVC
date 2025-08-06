@@ -1,0 +1,41 @@
+﻿@model IEnumerable<TrainingCenterManagement_MVC.Models.Payment>
+
+@{
+    ViewData["Title"] = "Payment Reports";
+}
+
+<h2 class="mb-4 text-primary">Payment Reports</h2>
+
+<table class="table table-hover table-bordered table-striped">
+    <thead class="thead-dark">
+        <tr>
+            <th scope="col">Trainee</th>
+            <th scope="col">Course</th>
+            <th scope="col" class="text-end">Amount</th>
+            <th scope="col">Date</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var payment in Model)
+        {
+            <tr>
+                <td>@payment.Trainee?.User?.FullName</td>
+                <td>@payment.Course?.CourseName</td>
+                <td class="text-end">@payment.TotalAmount.ToString("C")</td>
+                <td>@payment.CreatedDate.ToString("yyyy-MM-dd")</td>
+            </tr>
+        }
+    </tbody>
+    @if (Model.Any())
+    {
+        <tfoot>
+            <tr class="fw-bold">
+                <td colspan="2" class="text-end">Total</td>
+                <td class="text-end">
+                    @Model.Sum(p => p.TotalAmount).ToString("C")
+                </td>
+                <td></td>
+            </tr>
+        </tfoot>
+    }
+</table>

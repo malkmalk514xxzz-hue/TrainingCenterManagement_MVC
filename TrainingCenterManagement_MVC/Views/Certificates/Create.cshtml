@@ -1,59 +1,101 @@
 ﻿@model TrainingCenterManagement_MVC.Models.Certificate
 
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "📝Create Certificate";
 }
 
-<h1>Create</h1>
+<div class="container-xl mt-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10 col-xl-9">
+            <div class="card shadow-sm border-0 rounded-4">
+                <div class="card-header bg-white border-bottom-0">
+                    <h2 class="text-center text-dark fw-bold mb-0">
+                        <i class="bi bi-patch-check-fill text-success me-2"></i>
+                        Create New Certificate
+                    </h2>
+                </div>
+                <div class="card-body p-5">
+                    <form asp-action="Create" class="row g-4">
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger d-none" id="validationSummary"></div>
 
-<h4>Certificate</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Create">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="Average" class="control-label"></label>
-                <input asp-for="Average" class="form-control" />
-                <span asp-validation-for="Average" class="text-danger"></span>
+                        <div class="col-md-6">
+                            <label asp-for="Average" class="form-label fw-semibold">Average (%)</label>
+                            <input asp-for="Average" class="form-control form-control-lg" placeholder="Ex: 85.5" />
+                            <span asp-validation-for="Average" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="Url" class="form-label fw-semibold">Certificate URL</label>
+                            <input asp-for="Url" class="form-control form-control-lg" placeholder="https://..." />
+                            <span asp-validation-for="Url" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-12">
+                            <div class="form-check form-switch ps-0">
+                                <label class="form-check-label fw-semibold d-flex align-items-center gap-2">
+                                    <input class="form-check-input ms-0" asp-for="IsDeleted" role="switch" />
+                                    <span>Mark as Deleted</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="TraineeId" class="form-label fw-semibold">Trainee</label>
+                            <select asp-for="TraineeId" class="form-select form-select-lg" asp-items="ViewBag.TraineeId">
+                                <option disabled selected>Select a trainee...</option>
+                            </select>
+                            <span asp-validation-for="TraineeId" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="TrainerId" class="form-label fw-semibold">Trainer</label>
+                            <select asp-for="TrainerId" class="form-select form-select-lg" asp-items="ViewBag.TrainerId">
+                                <option disabled selected>Select a trainer...</option>
+                            </select>
+                            <span asp-validation-for="TrainerId" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="CourseId" class="form-label fw-semibold">Course</label>
+                            <select asp-for="CourseId" class="form-select form-select-lg" asp-items="ViewBag.CourseId">
+                                <option disabled selected>Select a course...</option>
+                            </select>
+                            <span asp-validation-for="CourseId" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="ExamId" class="form-label fw-semibold">Exam</label>
+                            <select asp-for="ExamId" class="form-select form-select-lg" asp-items="ViewBag.ExamId">
+                                <option disabled selected>Select an exam...</option>
+                            </select>
+                            <span asp-validation-for="ExamId" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-12 d-flex justify-content-between mt-4">
+                            <a asp-action="Index" class="btn btn-light border text-dark btn-lg">
+                                <i class="bi bi-arrow-left-circle me-1"></i> Back
+                            </a>
+                            <button type="submit" class="btn btn-success btn-lg px-4 shadow-sm">
+                                <i class="bi bi-save2-fill me-1"></i> Save Certificate
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
-            <div class="form-group">
-                <label asp-for="Url" class="control-label"></label>
-                <input asp-for="Url" class="form-control" />
-                <span asp-validation-for="Url" class="text-danger"></span>
-            </div>
-            <div class="form-group form-check">
-                <label class="form-check-label">
-                    <input class="form-check-input" asp-for="IsDeleted" /> @Html.DisplayNameFor(model => model.IsDeleted)
-                </label>
-            </div>
-            <div class="form-group">
-                <label asp-for="TraineeId" class="control-label"></label>
-                <select asp-for="TraineeId" class ="form-control" asp-items="ViewBag.TraineeId"></select>
-            </div>
-            <div class="form-group">
-                <label asp-for="TrainerId" class="control-label"></label>
-                <select asp-for="TrainerId" class ="form-control" asp-items="ViewBag.TrainerId"></select>
-            </div>
-            <div class="form-group">
-                <label asp-for="CourseId" class="control-label"></label>
-                <select asp-for="CourseId" class ="form-control" asp-items="ViewBag.CourseId"></select>
-            </div>
-            <div class="form-group">
-                <label asp-for="ExamId" class="control-label"></label>
-                <select asp-for="ExamId" class ="form-control" asp-items="ViewBag.ExamId"></select>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
-            </div>
-        </form>
+        </div>
     </div>
 </div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
-
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        (function () {
+            const summary = document.getElementById('validationSummary');
+            if (summary && summary.innerText.trim().length > 0) {
+                summary.classList.remove('d-none');
+            }
+        })();
+    </script>
 }

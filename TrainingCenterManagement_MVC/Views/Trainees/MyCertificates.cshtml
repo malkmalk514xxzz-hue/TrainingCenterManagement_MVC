@@ -1,21 +1,23 @@
 ﻿@model IEnumerable<TrainingCenterManagement_MVC.Models.Certificate>
 
-<h2>My Certificates</h2>
+<h2 class="mb-4">My Certificates</h2>
 
 @if (!Model.Any())
 {
-    <div class="alert alert-warning">You have no certificates yet.</div>
+    <div class="alert alert-warning" role="alert">
+        You have no certificates yet.
+    </div>
 }
 else
 {
-    <table class="table table-bordered">
-        <thead>
+    <table class="table table-bordered table-hover">
+        <thead class="table-primary">
             <tr>
                 <th>Course</th>
                 <th>Trainer</th>
                 <th>Average</th>
                 <th>Issued</th>
-                <th>Actions</th> <!-- عمود جديد -->
+                <th style="width: 140px;">Actions</th> <!-- عمود جديد -->
             </tr>
         </thead>
         <tbody>
@@ -23,12 +25,14 @@ else
             {
                 <tr>
                     <td>@cert.Course.CourseName</td>
-                    <td>@cert.Trainer?.User?.FullName</td>
-                    <td>@cert.Average</td>
-                    <td>✔️</td>
+                    <td>@cert.Trainer?.User?.FullName ?? "N/A"</td>
+                    <td>@cert.Average.ToString("F2")</td>
+                    <td class="text-center text-success" title="Certificate Issued">✔️</td>
                     <td>
-                        <a asp-action="GenerateCertificatePdf" asp-route-certificateId="@cert.CertificateId" class="btn btn-danger btn-sm">
-                            Download PDF
+                        <a asp-action="GenerateCertificatePdf" asp-route-certificateId="@cert.CertificateId"
+                           class="btn btn-danger btn-sm"
+                           title="Download Certificate PDF">
+                            <i class="bi bi-file-earmark-pdf"></i> Download PDF
                         </a>
                     </td>
                 </tr>

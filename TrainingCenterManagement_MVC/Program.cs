@@ -69,6 +69,11 @@ using (var scope = app.Services.CreateScope())
     var services = scope.ServiceProvider;
     var roleInitializer = services.GetRequiredService<RoleInitializer>();
     await roleInitializer.SeedRolesAsync();
+    var context = services.GetRequiredService<ApplicationDbContext>();
+    var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
+    var seeder = new SeedDataInitializer(context, userManager);
+    await seeder.SeedAllAsync();
+
 }
 
 if (!app.Environment.IsDevelopment())

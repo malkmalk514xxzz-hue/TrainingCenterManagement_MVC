@@ -6,18 +6,26 @@
 
 <h2>Upload Video for Lecture: @Model.Title</h2>
 
-<form asp-action="UploadVideo" method="post">
-    <input type="hidden" name="id" value="@Model.LectureId" />
+<form asp-action="UploadVideo" method="post" novalidate>
+    <input type="hidden" asp-for="LectureId" />
 
-    <div class="form-group">
-        <label>Video URL</label>
-        <input type="url" name="videoUrl" class="form-control" value="@Model.VideoUrl" required />
+    <div class="form-group mb-3">
+        <label asp-for="VideoUrl" class="form-label">Video URL <span class="text-danger">*</span></label>
+        <input asp-for="VideoUrl" type="url" class="form-control" placeholder="Enter video URL" required />
+        <span asp-validation-for="VideoUrl" class="text-danger"></span>
     </div>
 
-    <div class="form-group">
-        <label>Thumbnail URL</label>
-        <input type="url" name="thumbnailUrl" class="form-control" value="@Model.ThumbnailUrl" />
+    <div class="form-group mb-3">
+        <label asp-for="ThumbnailUrl" class="form-label">Thumbnail URL</label>
+        <input asp-for="ThumbnailUrl" type="url" class="form-control" placeholder="Enter thumbnail URL (optional)" />
+        <span asp-validation-for="ThumbnailUrl" class="text-danger"></span>
     </div>
 
-    <button type="submit" class="btn btn-success mt-2">Upload</button>
+    <button type="submit" class="btn btn-success">Upload</button>
 </form>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

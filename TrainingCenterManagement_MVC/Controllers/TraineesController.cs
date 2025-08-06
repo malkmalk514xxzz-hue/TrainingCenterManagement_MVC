@@ -23,6 +23,8 @@ namespace TrainingCenterManagement_MVC.Controllers
         }
 
         // GET: Trainees
+        [Authorize(Roles = "Admin")]
+
         public async Task<IActionResult> Index()
         {
             var applicationDbContext = _context.Trainees.Include(t => t.User);
@@ -30,6 +32,8 @@ namespace TrainingCenterManagement_MVC.Controllers
         }
 
         // GET: Trainees/Details/5
+        [Authorize(Roles = "Admin")]
+
         public async Task<IActionResult> Details(Guid? id)
         {
             if (id == null)
@@ -49,6 +53,8 @@ namespace TrainingCenterManagement_MVC.Controllers
         }
 
         // GET: Trainees/Create
+        [Authorize(Roles = "Admin")]
+
         public IActionResult Create()
         {
             ViewData["UserId"] = new SelectList(_context.Users, "Id", "Id");
@@ -60,6 +66,8 @@ namespace TrainingCenterManagement_MVC.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
+
         public async Task<IActionResult> Create([Bind("TraineeId,UserId,BirthDate")] Trainee trainee)
         {
             if (ModelState.IsValid)
@@ -74,6 +82,8 @@ namespace TrainingCenterManagement_MVC.Controllers
         }
 
         // GET: Trainees/Edit/5
+        [Authorize(Roles = "Admin")]
+
         public async Task<IActionResult> Edit(Guid? id)
         {
             if (id == null)
@@ -95,6 +105,8 @@ namespace TrainingCenterManagement_MVC.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
+
         public async Task<IActionResult> Edit(Guid id, [Bind("TraineeId,UserId,BirthDate")] Trainee trainee)
         {
             if (id != trainee.TraineeId)
@@ -127,6 +139,8 @@ namespace TrainingCenterManagement_MVC.Controllers
         }
 
         // GET: Trainees/Delete/5
+        [Authorize(Roles = "Admin")]
+
         public async Task<IActionResult> Delete(Guid? id)
         {
             if (id == null)
@@ -148,6 +162,8 @@ namespace TrainingCenterManagement_MVC.Controllers
         // POST: Trainees/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
+
         public async Task<IActionResult> DeleteConfirmed(Guid id)
         {
             var trainee = await _context.Trainees.FindAsync(id);

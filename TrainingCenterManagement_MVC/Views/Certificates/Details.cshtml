@@ -1,60 +1,53 @@
 ﻿@model TrainingCenterManagement_MVC.Models.Certificate
 
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = "Certificate Details";
 }
 
-<h1>Details</h1>
+<div class="container-xl mt-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10 col-xl-9">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-header bg-primary text-white rounded-top text-center">
+                    <h2 class="mb-0">
+                        <i class="bi bi-file-earmark-text-fill me-2"></i>Certificate Details
+                    </h2>
+                </div>
 
-<div>
-    <h4>Certificate</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Average)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Average)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Url)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Url)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.IsDeleted)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.IsDeleted)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Trainee)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Trainee.UserId)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Trainer)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Trainer.Specialty)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Course)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Course.CourseName)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Exam)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Exam.ExamName)
-        </dd>
-    </dl>
-</div>
-<div>
-    <a asp-action="Edit" asp-route-id="@Model?.CertificateId">Edit</a> |
-    <a asp-action="Index">Back to List</a>
+                <div class="card-body px-5 py-4">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-3 text-end fw-semibold text-secondary">Average</dt>
+                        <dd class="col-sm-9">@Html.DisplayFor(model => model.Average)</dd>
+
+                        <dt class="col-sm-3 text-end fw-semibold text-secondary">Certificate URL</dt>
+                        <dd class="col-sm-9">@Html.DisplayFor(model => model.Url)</dd>
+
+                        <dt class="col-sm-3 text-end fw-semibold text-secondary">Is Deleted</dt>
+                        <dd class="col-sm-9">@Html.DisplayFor(model => model.IsDeleted)</dd>
+
+                        <dt class="col-sm-3 text-end fw-semibold text-secondary">Trainee ID</dt>
+                        <dd class="col-sm-9">@Html.DisplayFor(model => model.Trainee.UserId)</dd>
+
+                        <dt class="col-sm-3 text-end fw-semibold text-secondary">Trainer Specialty</dt>
+                        <dd class="col-sm-9">@Html.DisplayFor(model => model.Trainer.Specialty)</dd>
+
+                        <dt class="col-sm-3 text-end fw-semibold text-secondary">Course Name</dt>
+                        <dd class="col-sm-9">@Html.DisplayFor(model => model.Course.CourseName)</dd>
+
+                        <dt class="col-sm-3 text-end fw-semibold text-secondary">Exam Name</dt>
+                        <dd class="col-sm-9">@Html.DisplayFor(model => model.Exam.ExamName)</dd>
+                    </dl>
+                </div>
+
+                <div class="card-footer bg-light d-flex justify-content-between px-5 py-3">
+                    <a asp-action="Index" class="btn btn-outline-secondary btn-lg">
+                        <i class="bi bi-arrow-left-circle me-1"></i> Back to List
+                    </a>
+                    <a asp-action="Edit" asp-route-id="@Model?.CertificateId" class="btn btn-primary btn-lg shadow-sm">
+                        <i class="bi bi-pencil-square me-1"></i> Edit Certificate
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>

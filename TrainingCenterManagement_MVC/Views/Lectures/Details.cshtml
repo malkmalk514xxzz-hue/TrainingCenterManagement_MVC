@@ -1,68 +1,61 @@
 ﻿@model TrainingCenterManagement_MVC.Models.Lecture
 
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = "Lecture Details";
 }
 
-<h1>Details</h1>
+<h1>Lecture Details</h1>
 
 <div>
-    <h4>Lecture</h4>
+    <h4>Lecture Information</h4>
     <hr />
     <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Title)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Title)
+        <dt class="col-sm-3">@Html.DisplayNameFor(m => m.Title)</dt>
+        <dd class="col-sm-9">@Html.DisplayFor(m => m.Title)</dd>
+
+        <dt class="col-sm-3">@Html.DisplayNameFor(m => m.Description)</dt>
+        <dd class="col-sm-9">@Html.DisplayFor(m => m.Description)</dd>
+
+        <dt class="col-sm-3">@Html.DisplayNameFor(m => m.VideoUrl)</dt>
+        <dd class="col-sm-9">
+            @if (!string.IsNullOrEmpty(Model.VideoUrl))
+            {
+                <a href="@Model.VideoUrl" target="_blank" rel="noopener noreferrer">@Model.VideoUrl</a>
+            }
+            else
+            {
+                <span class="text-muted">No video URL provided</span>
+            }
         </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Description)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Description)
+
+        <dt class="col-sm-3">@Html.DisplayNameFor(m => m.ThumbnailUrl)</dt>
+        <dd class="col-sm-9">
+            @if (!string.IsNullOrEmpty(Model.ThumbnailUrl))
+            {
+                <img src="@Model.ThumbnailUrl" alt="Thumbnail" class="img-thumbnail" style="max-width: 150px;" />
+            }
+            else
+            {
+                <span class="text-muted">No thumbnail available</span>
+            }
         </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.VideoUrl)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.VideoUrl)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.ThumbnailUrl)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.ThumbnailUrl)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.LectureDate)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.LectureDate)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.IsDeleted)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.IsDeleted)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Course)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Course.CourseName)
-        </dd>
+
+        <dt class="col-sm-3">@Html.DisplayNameFor(m => m.LectureDate)</dt>
+        <dd class="col-sm-9">@Model.LectureDate.ToString("yyyy-MM-dd")</dd>
+
+        <dt class="col-sm-3">@Html.DisplayNameFor(m => m.IsDeleted)</dt>
+        <dd class="col-sm-9">@Html.DisplayFor(m => m.IsDeleted)</dd>
+
+        <dt class="col-sm-3">@Html.DisplayNameFor(m => m.Course)</dt>
+        <dd class="col-sm-9">@Html.DisplayFor(m => m.Course.CourseName)</dd>
     </dl>
 </div>
-<div>
-    <a asp-action="Edit" asp-route-id="@Model?.LectureId">Edit</a> |
-    <a asp-action="UploadVideo" asp-route-id="@Model?.LectureId">Upload Video</a> |
-    <a asp-action="ViewLecture" asp-route-id="@Model?.LectureId">View Lecture</a> |
-    <a asp-controller="Presences" asp-action="MarkAttendance" asp-route-lectureId="@Model.LectureId" class="btn btn-primary">
-        Mark Attendance
-    </a>|
-    <a asp-controller="Presences" asp-action="LectureAttendance" asp-route-lectureId="@Model.LectureId"
-       class="btn btn-primary mt-3">عرض سجل الحضور</a>
 
-    <a asp-action="Index">Back to List</a>
+<div class="mt-3">
+    <a asp-action="Edit" asp-route-id="@Model.LectureId" class="btn btn-outline-primary">Edit</a>
+    <a asp-action="UploadVideo" asp-route-id="@Model.LectureId" class="btn btn-outline-secondary">Upload Video</a>
+    <a asp-action="ViewLecture" asp-route-id="@Model.LectureId" class="btn btn-outline-info">View Lecture</a>
+    <a asp-controller="Presences" asp-action="MarkAttendance" asp-route-lectureId="@Model.LectureId" class="btn btn-primary">Mark Attendance</a>
+    <a asp-controller="Presences" asp-action="LectureAttendance" asp-route-lectureId="@Model.LectureId" class="btn btn-primary ms-2">عرض سجل الحضور</a>
+    <a asp-action="Index" class="btn btn-link ms-2">Back to List</a>
 </div>

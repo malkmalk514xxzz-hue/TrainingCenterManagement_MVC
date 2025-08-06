@@ -3,27 +3,36 @@
     ViewData["Title"] = "Certificates By Course";
 }
 
-<h2>Certificates for Course</h2>
-
-<table class="table table-bordered">
-    <thead>
-        <tr>
-            <th>Trainee</th>
-            <th>Average</th>
-            <th>Download</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var cert in Model)
-        {
-            <tr>
-                <td>@cert.Trainee.User.FullName</td>
-                <td>@cert.Average%</td>
-                <td>
-                    <a asp-controller="Admin" asp-action="GenerateCertificatePdf" asp-route-certificateId="@cert.CertificateId"
-                       class="btn btn-sm btn-danger">PDF</a>
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
+<div class="container mt-4">
+    <div class="card shadow rounded-3">
+        <div class="card-header bg-primary text-white">
+            <h3 class="mb-0">📄 Certificates for Course</h3>
+        </div>
+        <div class="card-body">
+            <table class="table table-hover align-middle table-bordered">
+                <thead class="table-light">
+                    <tr>
+                        <th scope="col">👤 Trainee</th>
+                        <th scope="col">📊 Average</th>
+                        <th scope="col">⬇️ Download</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var cert in Model)
+                    {
+                        <tr>
+                            <td>@cert.Trainee.User.FullName</td>
+                            <td><span class="badge bg-info text-dark fs-6">@cert.Average%</span></td>
+                            <td>
+                                <a asp-controller="Admin" asp-action="GenerateCertificatePdf" asp-route-certificateId="@cert.CertificateId"
+                                   class="btn btn-outline-danger btn-sm">
+                                    <i class="bi bi-file-earmark-pdf-fill"></i> PDF
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

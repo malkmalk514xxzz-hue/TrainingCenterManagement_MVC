@@ -4,50 +4,36 @@
     ViewData["Title"] = "Index";
 }
 
-<h1>Index</h1>
+<h1 class="mb-4">Presence List</h1>
 
 <p>
-    <a asp-action="Create">Create New</a>
+    <a asp-action="Create" class="btn btn-success mb-3">Create New</a>
 </p>
-<table class="table">
-    <thead>
+
+<table class="table table-striped table-bordered table-hover">
+    <thead class="table-dark">
         <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.IsPresent)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.IsDeleted)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Lecture)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Trainee)
-            </th>
-            <th></th>
+            <th>@Html.DisplayNameFor(model => model.IsPresent)</th>
+            <th>@Html.DisplayNameFor(model => model.IsDeleted)</th>
+            <th>@Html.DisplayNameFor(model => model.Lecture)</th>
+            <th>@Html.DisplayNameFor(model => model.Trainee)</th>
+            <th style="width: 180px;">Actions</th>
         </tr>
     </thead>
     <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.IsPresent)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.IsDeleted)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Lecture.Title)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Trainee.UserId)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.PresenceId">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.PresenceId">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.PresenceId">Delete</a>
-            </td>
-        </tr>
-}
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@Html.DisplayFor(modelItem => item.IsPresent)</td>
+                <td>@Html.DisplayFor(modelItem => item.IsDeleted)</td>
+                <td>@Html.DisplayFor(modelItem => item.Lecture.Title)</td>
+                <td>@Html.DisplayFor(modelItem => item.Trainee.UserId)</td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@item.PresenceId" class="btn btn-sm btn-primary me-1">Edit</a>
+                    <a asp-action="Details" asp-route-id="@item.PresenceId" class="btn btn-sm btn-info me-1">Details</a>
+                    <a asp-action="Delete" asp-route-id="@item.PresenceId" class="btn btn-sm btn-danger">Delete</a>
+                </td>
+            </tr>
+        }
     </tbody>
 </table>

@@ -6,47 +6,53 @@
 
 <h2>My Courses - Attendance Summary</h2>
 
-<a asp-action="ExportAllCoursesToPdf" class="btn btn-danger mb-3">
-    Export All Attendance to PDF
-</a>
-
-@foreach (var course in Model)
+@if (!Model.Any())
 {
-    <div class="card mb-4 shadow">
-        <div class="card-header bg-primary text-white fw-bold">
-            @course.CourseName
-        </div>
-        <div class="card-body p-0">
-            <table class="table table-sm table-bordered m-0">
-                <thead class="table-light">
-                    <tr>
-                        <th>Student</th>
-                        <th>Attended</th>
-                        <th>Total</th>
-                        <th>Attendance %</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var student in course.TraineeAttendances)
-                    {
-                        var color = student.IsLowAttendance ? "text-danger fw-bold" : "text-success";
-                        <tr>
-                            <td>@student.FullName</td>
-                            <td>@student.AttendedLectures</td>
-                            <td>@student.TotalLectures</td>
-                            <td>@student.AttendancePercentage.ToString("F2")%</td>
-                            <td class="@color">
-                                @(student.IsLowAttendance ? "Low" : "Good")
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
-    </div>
+    <div class="alert alert-warning">لا توجد بيانات حضور حالياً.</div>
 }
-<br />
-<a asp-action="ExportAllCoursesToExcel" class="btn btn-success mb-3">
-    Export All Attendance to Excel
-</a>
+else
+{
+    <a asp-action="ExportAllCoursesToPdf" target="_blank" class="btn btn-danger mb-3">
+        Export All Attendance to PDF
+    </a>
+
+    @foreach (var course in Model)
+    {
+        <div class="card mb-4 shadow">
+            <div class="card-header bg-primary text-white fw-bold">
+                @course.CourseName
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-sm table-bordered m-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Student</th>
+                            <th>Attended</th>
+                            <th>Total</th>
+                            <th>Attendance %</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var student in course.TraineeAttendances)
+                        {
+                            <tr>
+                                <td>@student.FullName</td>
+                                <td>@student.AttendedLectures</td>
+                                <td>@student.TotalLectures</td>
+                                <td>@student.AttendancePercentage.ToString("F2")%</td>
+                                <td class="@(student.IsLowAttendance ? "text-danger fw-bold" : "text-success")">
+                                    @(student.IsLowAttendance ? "Low" : "Good")
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+
+    <a asp-action="ExportAllCoursesToExcel" target="_blank" class="btn btn-success mb-3">
+        Export All Attendance to Excel
+    </a>
+}

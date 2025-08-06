@@ -4,18 +4,31 @@
     ViewData["Title"] = "Assign Trainees";
 }
 
-<h2>Assign Trainees to Course</h2>
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow border-0">
+                <div class="card-header bg-primary text-white text-center">
+                    <h4 class="mb-0">Assign Trainees to Course</h4>
+                </div>
+                <div class="card-body">
+                    <form asp-action="AssignTrainees" method="post">
+                        <input type="hidden" name="courseId" value="@ViewBag.CourseId" />
 
-<form asp-action="AssignTrainees" method="post">
-    <input type="hidden" name="courseId" value="@ViewBag.CourseId" />
+                        <div class="mb-4">
+                            <label for="traineeIds" class="form-label fw-bold">Select Trainees</label>
+                            <select name="traineeIds" id="traineeIds" class="form-select" multiple asp-items="ViewBag.Trainees">
+                                <option value="">-- Select Trainees --</option>
+                            </select>
+                            <div class="form-text">Use Ctrl / Cmd لتحديد أكثر من متدرب.</div>
+                        </div>
 
-    <div class="form-group">
-        <label for="traineeIds">Select Trainees</label>
-        <select name="traineeIds" class="form-control" multiple asp-items="ViewBag.Trainees">
-            <option value="">-- Select Trainees --</option>
-        </select>
-        <small class="form-text text-muted">Use Ctrl / Cmd لتحديد أكثر من متدرب.</small>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-success">Assign Trainees</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
-
-    <button type="submit" class="btn btn-primary mt-3">Assign</button>
-</form>
+</div>

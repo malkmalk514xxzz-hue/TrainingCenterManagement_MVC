@@ -1,28 +1,15 @@
-﻿@* @model IEnumerable<TrainingCenterManagement_MVC.Models.Payment>
-@{
-    ViewData["Title"] = "My Payments";
-    var course = ViewBag.Course as TrainingCenterManagement_MVC.Models.Course;
-}
-<h2>Payments for @course?.CourseName</h2>
-
-<table class="table table-bordered">
-    <thead>
+﻿<thead class="table-dark">
+    <tr>
+        <th>Total Amount</th>
+        <th>Created Date</th>
+    </tr>
+</thead>
+<tbody>
+    @foreach (var p in Model)
+    {
         <tr>
-            <th>Amount</th>
-            <th>Paid At</th>
-            <th>Method</th>
-            <th>Note</th>
+            <td>@p.TotalAmount.ToString("C")</td>
+            <td>@p.CreatedDate.ToString("dd MMM yyyy")</td>
         </tr>
-    </thead>
-    <tbody>
-        @foreach (var p in Model)
-        {
-            <tr>
-                <td>@p.Amount</td>
-                <td>@p.PaidAt.ToShortDateString()</td>
-                <td>@p.Method</td>
-                <td>@p.Note</td>
-            </tr>
-        }
-    </tbody>
-</table> *@
+    }
+</tbody>

@@ -23,6 +23,8 @@ namespace TrainingCenterManagement_MVC.Controllers
         }
 
         // GET: Trainers
+        [Authorize(Roles = "Admin")]
+
         public async Task<IActionResult> Index()
         {
             var applicationDbContext = _context.Trainers.Include(t => t.User);
@@ -30,6 +32,8 @@ namespace TrainingCenterManagement_MVC.Controllers
         }
 
         // GET: Trainers/Details/5
+        [Authorize(Roles = "Admin")]
+
         public async Task<IActionResult> Details(Guid? id)
         {
             if (id == null)
@@ -49,6 +53,8 @@ namespace TrainingCenterManagement_MVC.Controllers
         }
 
         // GET: Trainers/Create
+        [Authorize(Roles = "Admin")]
+
         public IActionResult Create()
         {
             ViewData["UserId"] = new SelectList(_context.Users, "Id", "Id");
@@ -60,6 +66,8 @@ namespace TrainingCenterManagement_MVC.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
+
         public async Task<IActionResult> Create([Bind("TrainerId,UserId,Specialty,YearsOfExperience,BusinessLink")] Trainer trainer)
         {
             if (ModelState.IsValid)
@@ -74,6 +82,8 @@ namespace TrainingCenterManagement_MVC.Controllers
         }
 
         // GET: Trainers/Edit/5
+        [Authorize(Roles = "Admin")]
+
         public async Task<IActionResult> Edit(Guid? id)
         {
             if (id == null)
@@ -95,6 +105,8 @@ namespace TrainingCenterManagement_MVC.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
+
         public async Task<IActionResult> Edit(Guid id, [Bind("TrainerId,UserId,Specialty,YearsOfExperience,BusinessLink")] Trainer trainer)
         {
             if (id != trainer.TrainerId)
@@ -127,6 +139,8 @@ namespace TrainingCenterManagement_MVC.Controllers
         }
 
         // GET: Trainers/Delete/5
+        [Authorize(Roles = "Admin")]
+
         public async Task<IActionResult> Delete(Guid? id)
         {
             if (id == null)
@@ -148,6 +162,8 @@ namespace TrainingCenterManagement_MVC.Controllers
         // POST: Trainers/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
+
         public async Task<IActionResult> DeleteConfirmed(Guid id)
         {
             var trainer = await _context.Trainers.FindAsync(id);
@@ -327,6 +343,8 @@ namespace TrainingCenterManagement_MVC.Controllers
         }
 
         // ✅ عرض المتدربين في كورس معين
+        [Authorize(Roles = "Trainer")]
+
         public async Task<IActionResult> ViewTrainees(Guid courseId)
         {
             var course = await _context.Courses

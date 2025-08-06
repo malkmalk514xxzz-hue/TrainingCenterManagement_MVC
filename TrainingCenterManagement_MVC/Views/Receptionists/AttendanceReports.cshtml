@@ -1,0 +1,40 @@
+﻿@model IEnumerable<TrainingCenterManagement_MVC.Models.Presence>
+
+@{
+    ViewData["Title"] = "Attendance Reports";
+}
+
+<div class="container mt-4">
+    <h2 class="text-center text-primary mb-4">📊 Attendance Reports</h2>
+
+    <table class="table table-bordered table-hover shadow-sm">
+        <thead class="thead-dark bg-dark text-white">
+            <tr>
+                <th>Lecture</th>
+                <th>Course</th>
+                <th>Trainee</th>
+                <th class="text-center">Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@item.Lecture?.Title</td>
+                    <td>@item.Lecture?.Course?.CourseName</td>
+                    <td>@item.Trainee?.User?.FullName</td>
+                    <td class="text-center">
+                        @if (item.IsPresent)
+                        {
+                            <span class="badge bg-success">✔️ Present</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-danger">❌ Absent</span>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

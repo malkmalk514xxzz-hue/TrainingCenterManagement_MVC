@@ -1,41 +1,56 @@
 ﻿@model IEnumerable<TrainingCenterManagement_MVC.Models.Certificate>
+
 @{
     ViewData["Title"] = "Certificate Search";
 }
 
-<h2>Search for Certificates</h2>
+<div class="container mt-4">
+    <h2 class="mb-4">Search for Certificates</h2>
 
-<form method="get" asp-action="Search" class="form-inline mb-3">
-    <input type="text" name="traineeName" class="form-control mr-2" placeholder="Trainee Name" />
-    <input type="text" name="courseName" class="form-control mr-2" placeholder="Course Name" />
-    <button type="submit" class="btn btn-primary">Search</button>
-</form>
+    <form method="get" asp-action="Search" class="row g-3 mb-4">
+        <div class="col-md-5">
+            <input type="text" name="traineeName" class="form-control" placeholder="Trainee Name" />
+        </div>
+        <div class="col-md-5">
+            <input type="text" name="courseName" class="form-control" placeholder="Course Name" />
+        </div>
+        <div class="col-md-2 d-grid">
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-search"></i> Search
+            </button>
+        </div>
+    </form>
 
-@if (!Model.Any())
-{
-    <p>No certificates found.</p>
-}
-else
-{
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>Trainee</th>
-                <th>Course</th>
-                <th>Average</th>
-                <th>Trainer</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var cert in Model)
-            {
-                <tr>
-                    <td>@cert.Trainee.User.FullName</td>
-                    <td>@cert.Course.CourseName</td>
-                    <td>@cert.Average %</td>
-                    <td>@cert.Trainer?.User?.FullName</td>
-                </tr>
-            }
-        </tbody>
-    </table>
-}
+    @if (!Model.Any())
+    {
+        <div class="alert alert-warning text-center">
+            <i class="bi bi-exclamation-circle"></i> No certificates found.
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive shadow-sm border rounded">
+            <table class="table table-hover table-striped mb-0">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Trainee</th>
+                        <th>Course</th>
+                        <th>Average</th>
+                        <th>Trainer</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var cert in Model)
+                    {
+                        <tr>
+                            <td>@cert.Trainee?.User?.FullName</td>
+                            <td>@cert.Course?.CourseName</td>
+                            <td>@cert.Average %</td>
+                            <td>@cert.Trainer?.User?.FullName</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

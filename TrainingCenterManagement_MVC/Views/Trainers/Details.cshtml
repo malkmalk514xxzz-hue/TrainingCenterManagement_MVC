@@ -4,39 +4,36 @@
     ViewData["Title"] = "Details";
 }
 
-<h1>Details</h1>
+<h1>Trainer Details</h1>
 
-<div>
-    <h4>Trainer</h4>
+<div class="card p-4 mb-3">
+    <h4>Trainer Information</h4>
     <hr />
     <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.User)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.User.Id)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Specialty)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Specialty)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.YearsOfExperience)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.YearsOfExperience)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.BusinessLink)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.BusinessLink)
+        <dt class="col-sm-3">@Html.DisplayNameFor(model => model.User)</dt>
+        <dd class="col-sm-9">@Html.DisplayFor(model => model.User.Id)</dd>
+
+        <dt class="col-sm-3">@Html.DisplayNameFor(model => model.Specialty)</dt>
+        <dd class="col-sm-9">@Html.DisplayFor(model => model.Specialty)</dd>
+
+        <dt class="col-sm-3">@Html.DisplayNameFor(model => model.YearsOfExperience)</dt>
+        <dd class="col-sm-9">@Html.DisplayFor(model => model.YearsOfExperience)</dd>
+
+        <dt class="col-sm-3">@Html.DisplayNameFor(model => model.BusinessLink)</dt>
+        <dd class="col-sm-9">
+            @if (!string.IsNullOrEmpty(Model.BusinessLink))
+            {
+                <a href="@Model.BusinessLink" target="_blank">@Model.BusinessLink</a>
+            }
+            else
+            {
+                <span>—</span>
+            }
         </dd>
     </dl>
 </div>
+
 <div>
-    <a asp-action="Edit" asp-route-id="@Model?.TrainerId">Edit</a> |
-    <a asp-action="Index">Back to List</a>
+    <a asp-action="Edit" asp-route-id="@Model.TrainerId" class="btn btn-primary me-2">Edit</a>
+    <a asp-action="Index" class="btn btn-secondary">Back to List</a>
 </div>

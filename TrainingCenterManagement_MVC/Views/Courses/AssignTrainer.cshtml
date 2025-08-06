@@ -4,17 +4,30 @@
     ViewData["Title"] = "Assign Trainer";
 }
 
-<h2>Assign Trainer to Course</h2>
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow border-0">
+                <div class="card-header bg-info text-white text-center">
+                    <h4 class="mb-0">Assign Trainer to Course</h4>
+                </div>
+                <div class="card-body">
+                    <form asp-action="AssignTrainer" method="post">
+                        <input type="hidden" name="courseId" value="@ViewBag.CourseId" />
 
-<form asp-action="AssignTrainer" method="post">
-    <input type="hidden" name="courseId" value="@ViewBag.CourseId" />
+                        <div class="mb-4">
+                            <label for="trainerId" class="form-label fw-bold">Select Trainer</label>
+                            <select name="trainerId" id="trainerId" class="form-select" asp-items="ViewBag.Trainers">
+                                <option value="">-- Select Trainer --</option>
+                            </select>
+                        </div>
 
-    <div class="form-group">
-        <label for="trainerId">Select Trainer</label>
-        <select name="trainerId" class="form-control" asp-items="ViewBag.Trainers">
-            <option value="">-- Select Trainer --</option>
-        </select>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-success">Assign Trainer</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
-
-    <button type="submit" class="btn btn-primary mt-2">Assign</button>
-</form>
+</div>

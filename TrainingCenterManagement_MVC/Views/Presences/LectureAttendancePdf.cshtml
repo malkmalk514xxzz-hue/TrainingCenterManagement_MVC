@@ -6,29 +6,66 @@
 
 <html>
 <head>
+    <meta charset="utf-8" />
     <style>
         body {
-            font-family: Arial;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-size: 14px;
+            color: #333;
+            margin: 40px;
         }
 
         h2 {
             text-align: center;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        p {
+            margin: 5px 0;
+            font-size: 14px;
+        }
+
+        .meta {
+            margin-top: 20px;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 20px;
+            margin-top: 25px;
         }
 
         th, td {
-            border: 1px solid #999;
-            padding: 8px;
-            text-align: left;
+            border: 1px solid #bbb;
+            padding: 10px;
+            text-align: center;
         }
 
         th {
-            background-color: #eee;
+            background-color: #f4f6f7;
+            color: #2c3e50;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        .yes {
+            color: green;
+            font-weight: bold;
+        }
+
+        .no {
+            color: red;
+            font-weight: bold;
+        }
+
+        .footer {
+            margin-top: 50px;
+            text-align: center;
+            font-size: 12px;
+            color: #aaa;
         }
     </style>
 </head>
@@ -37,15 +74,17 @@
 
     @if (Model.Any())
     {
-        <p><strong>Lecture:</strong> @Model.First().LectureTitle</p>
-        <p><strong>Date:</strong> @Model.First().LectureDate.ToString("yyyy-MM-dd")</p>
+        <div class="meta">
+            <p><strong>Lecture:</strong> @Model.First().LectureTitle</p>
+            <p><strong>Date:</strong> @Model.First().LectureDate.ToString("yyyy-MM-dd")</p>
+        </div>
 
         <table>
             <thead>
                 <tr>
                     <th>#</th>
                     <th>Trainee</th>
-                    <th>Present</th>
+                    <th>Status</th>
                 </tr>
             </thead>
             <tbody>
@@ -54,7 +93,9 @@
                     <tr>
                         <td>@(item.i + 1)</td>
                         <td>@item.x.TraineeName</td>
-                        <td>@(item.x.IsPresent ? "Yes" : "No")</td>
+                        <td class="@(item.x.IsPresent ? "yes" : "no")">
+                            @(item.x.IsPresent ? "Present" : "Absent")
+                        </td>
                     </tr>
                 }
             </tbody>
@@ -64,5 +105,9 @@
     {
         <p>No attendance records found.</p>
     }
+
+    <div class="footer">
+        Generated on @DateTime.Now.ToString("yyyy-MM-dd HH:mm")
+    </div>
 </body>
 </html>

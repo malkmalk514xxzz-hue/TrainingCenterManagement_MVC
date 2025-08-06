@@ -9,54 +9,59 @@
 <h4>Lecture</h4>
 <hr />
 <div class="row">
-    <div class="col-md-4">
-        <form asp-action="Create">
+    <div class="col-md-6">
+        <form asp-action="Create" method="post">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="Title" class="control-label"></label>
-                <input asp-for="Title" class="form-control" />
+
+            <div class="form-group mb-3">
+                <label asp-for="Title" class="form-label"></label>
+                <input asp-for="Title" class="form-control" placeholder="Enter lecture title" />
                 <span asp-validation-for="Title" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="Description" class="control-label"></label>
-                <input asp-for="Description" class="form-control" />
+
+            <div class="form-group mb-3">
+                <label asp-for="Description" class="form-label"></label>
+                <textarea asp-for="Description" class="form-control" rows="4" placeholder="Enter lecture description"></textarea>
                 <span asp-validation-for="Description" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="VideoUrl" class="control-label"></label>
-                <input asp-for="VideoUrl" class="form-control" />
+
+            <div class="form-group mb-3">
+                <label asp-for="VideoUrl" class="form-label"></label>
+                <input asp-for="VideoUrl" class="form-control" placeholder="Enter video URL" />
                 <span asp-validation-for="VideoUrl" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="ThumbnailUrl" class="control-label"></label>
-                <input asp-for="ThumbnailUrl" class="form-control" />
+
+            <div class="form-group mb-3">
+                <label asp-for="ThumbnailUrl" class="form-label"></label>
+                <input asp-for="ThumbnailUrl" class="form-control" placeholder="Enter thumbnail URL" />
                 <span asp-validation-for="ThumbnailUrl" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="LectureDate" class="control-label"></label>
-                <input asp-for="LectureDate" class="form-control" />
+
+            <div class="form-group mb-3">
+                <label asp-for="LectureDate" class="form-label"></label>
+                <input asp-for="LectureDate" type="date" class="form-control" />
                 <span asp-validation-for="LectureDate" class="text-danger"></span>
             </div>
-            <div class="form-group form-check">
-                <label class="form-check-label">
-                    <input class="form-check-input" asp-for="IsDeleted" /> @Html.DisplayNameFor(model => model.IsDeleted)
-                </label>
+
+            <div class="form-check mb-3">
+                <input asp-for="IsDeleted" class="form-check-input" />
+                <label asp-for="IsDeleted" class="form-check-label"></label>
             </div>
-            <div class="form-group">
-                <label asp-for="CourseId" class="control-label"></label>
-                <select asp-for="CourseId" class ="form-control" asp-items="ViewBag.CourseId"></select>
+
+            <div class="form-group mb-3">
+                <label asp-for="CourseId" class="form-label"></label>
+                <select asp-for="CourseId" class="form-select" asp-items="ViewBag.CourseId"></select>
+                <span asp-validation-for="CourseId" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
-            </div>
+
+            <button type="submit" class="btn btn-primary">Create</button>
+            <a asp-action="Index" class="btn btn-secondary ms-2">Back to List</a>
         </form>
     </div>
 </div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
-
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 }

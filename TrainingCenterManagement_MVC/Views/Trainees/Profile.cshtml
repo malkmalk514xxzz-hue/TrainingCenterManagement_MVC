@@ -4,20 +4,20 @@
     ViewData["Title"] = "الملف الشخصي";
 }
 
-<h2>الملف الشخصي</h2>
+<h2 class="mb-4">الملف الشخصي</h2>
 
-<div class="card mt-3">
+<div class="card shadow-sm mt-3" style="max-width: 600px;">
     <div class="card-body">
-        <h5 class="card-title">بيانات المتدرّب</h5>
+        <h5 class="card-title mb-4">بيانات المتدرّب</h5>
         <dl class="row">
-            <dt class="col-sm-3">اسم المستخدم</dt>
-            <dd class="col-sm-9">@Model.User?.UserName</dd>
+            <dt class="col-sm-4 fw-bold">اسم المستخدم</dt>
+            <dd class="col-sm-8">@Model.User?.UserName ?? "غير متوفر"</dd>
 
-            <dt class="col-sm-3">البريد الإلكتروني</dt>
-            <dd class="col-sm-9">@Model.User?.Email</dd>
+            <dt class="col-sm-4 fw-bold">البريد الإلكتروني</dt>
+            <dd class="col-sm-8">@Model.User?.Email ?? "غير متوفر"</dd>
 
-            <dt class="col-sm-3">تاريخ الميلاد</dt>
-            <dd class="col-sm-9">@Model.BirthDate.ToShortDateString()</dd>
+            <dt class="col-sm-4 fw-bold">تاريخ الميلاد</dt>
+            <dd class="col-sm-8">@Model.BirthDate.ToShortDateString()</dd>
         </dl>
     </div>
 </div>

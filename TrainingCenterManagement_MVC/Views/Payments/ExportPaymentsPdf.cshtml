@@ -1,26 +1,29 @@
 ﻿@model List<TrainingCenterManagement_MVC.Models.Payment>
+
 @{
-    Layout = null;
+    Layout = "_Layout";  // تأكد من اسم ملف الـ Layout في مشروعك
+    ViewData["Title"] = "تقرير المدفوعات";
 }
-<h2>Payments Report for @ViewBag.CourseName</h2>
-<hr />
-<table border="1" cellpadding="5" cellspacing="0" width="100%">
-    <thead>
+
+<h2 class="text-center my-4">تقرير المدفوعات لدورة: @ViewBag.CourseName</h2>
+
+<table class="table table-bordered table-striped">
+    <thead class="thead-dark">
         <tr>
-            <th>#</th>
-            <th>Trainee</th>
-            <th>Amount</th>
-            <th>Date</th>
+            <th scope="col">#</th>
+            <th scope="col">المتدرب</th>
+            <th scope="col">المبلغ</th>
+            <th scope="col">التاريخ</th>
         </tr>
     </thead>
     <tbody>
         @for (int i = 0; i < Model.Count; i++)
         {
             <tr>
-                <td>@(i + 1)</td>
+                <th scope="row">@((i + 1))</th>
                 <td>@Model[i].Trainee.User.FullName</td>
                 <td>@Model[i].TotalAmount.ToString("C")</td>
-                <td>@Model[i].CreatedDate.ToShortDateString()</td>
+                <td>@Model[i].CreatedDate.ToString("yyyy-MM-dd")</td>
             </tr>
         }
     </tbody>

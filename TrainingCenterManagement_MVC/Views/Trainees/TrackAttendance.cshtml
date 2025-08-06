@@ -4,9 +4,9 @@
     ViewData["Title"] = "Track Attendance";
 }
 
-<h2>My Attendance</h2>
+<h2 class="mb-4">My Attendance</h2>
 
-<table class="table table-bordered table-striped">
+<table class="table table-bordered table-striped table-hover align-middle">
     <thead class="table-dark">
         <tr>
             <th>Course</th>
@@ -19,15 +19,14 @@
     <tbody>
         @foreach (var item in Model)
         {
-            var alertClass = item.IsLowAttendance ? "text-danger fw-bold" : "text-success";
+            var alertClass = item.IsLowAttendance ? "text-danger fw-bold" : "text-success fw-semibold";
+            var statusText = item.IsLowAttendance ? "Low Attendance" : "OK";
             <tr>
                 <td>@item.CourseName</td>
                 <td>@item.AttendedLectures</td>
                 <td>@item.TotalLectures</td>
                 <td>@item.AttendancePercentage.ToString("F2")%</td>
-                <td class="@alertClass">
-                    @(item.IsLowAttendance ? "Low Attendance" : "OK")
-                </td>
+                <td class="@alertClass">@statusText</td>
             </tr>
         }
     </tbody>

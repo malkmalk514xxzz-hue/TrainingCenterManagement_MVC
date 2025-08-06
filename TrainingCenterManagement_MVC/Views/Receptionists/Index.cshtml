@@ -1,35 +1,44 @@
 ﻿@model IEnumerable<TrainingCenterManagement_MVC.Models.Receptionist>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Receptionists List";
 }
 
-<h1>Index</h1>
+<div class="container mt-4">
+    <h1 class="mb-4">Receptionists</h1>
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.User)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.User.Id)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.ReceptionistId">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.ReceptionistId">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.ReceptionistId">Delete</a>
-            </td>
-        </tr>
-}
-    </tbody>
-</table>
+    <p>
+        <a asp-action="Create" class="btn btn-success">+ Create New Receptionist</a>
+    </p>
+
+    <table class="table table-bordered table-striped table-hover align-middle">
+        <thead class="table-light">
+            <tr>
+                <th>User ID</th>
+                <th style="width: 25%;">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (!Model.Any())
+            {
+                <tr>
+                    <td colspan="2" class="text-center">No receptionists found.</td>
+                </tr>
+            }
+            else
+            {
+                foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@item.User.Id</td>
+                        <td>
+                            <a asp-action="Edit" asp-route-id="@item.ReceptionistId" class="btn btn-sm btn-primary me-1">Edit</a>
+                            <a asp-action="Details" asp-route-id="@item.ReceptionistId" class="btn btn-sm btn-info me-1">Details</a>
+                            <a asp-action="Delete" asp-route-id="@item.ReceptionistId" class="btn btn-sm btn-danger">Delete</a>
+                        </td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+</div>

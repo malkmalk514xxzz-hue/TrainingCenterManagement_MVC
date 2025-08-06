@@ -1,59 +1,41 @@
 ﻿@model IEnumerable<TrainingCenterManagement_MVC.Models.Payment>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "المدفوعات";
 }
 
-<h1>Index</h1>
+<h1 class="mb-4">قائمة المدفوعات</h1>
 
 <p>
-    <a asp-action="Create">Create New</a>
+    <a asp-action="Create" class="btn btn-primary">إضافة مدفوعات جديدة</a>
 </p>
-<table class="table">
-    <thead>
+
+<table class="table table-bordered table-hover table-striped">
+    <thead class="thead-dark">
         <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.TotalAmount)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.CreatedDate)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.IsDeleted)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Trainee)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Course)
-            </th>
-            <th></th>
+            <th>@Html.DisplayNameFor(model => model.TotalAmount)</th>
+            <th>@Html.DisplayNameFor(model => model.CreatedDate)</th>
+            <th>@Html.DisplayNameFor(model => model.IsDeleted)</th>
+            <th>المتدرب</th>
+            <th>الدورة</th>
+            <th>الإجراءات</th>
         </tr>
     </thead>
     <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.TotalAmount)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.CreatedDate)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.IsDeleted)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Trainee.UserId)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Course.CourseName)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.PaymentId">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.PaymentId">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.PaymentId">Delete</a>
-            </td>
-        </tr>
-}
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@Html.DisplayFor(modelItem => item.TotalAmount)</td>
+                <td>@Html.DisplayFor(modelItem => item.CreatedDate.ToString("yyyy-MM-dd"))</td>
+                <td>@Html.DisplayFor(modelItem => item.IsDeleted)</td>
+                <td>@Html.DisplayFor(modelItem => item.Trainee.User.FullName)</td>
+                <td>@Html.DisplayFor(modelItem => item.Course.CourseName)</td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@item.PaymentId" class="btn btn-sm btn-warning">تعديل</a>
+                    <a asp-action="Details" asp-route-id="@item.PaymentId" class="btn btn-sm btn-info mx-1">تفاصيل</a>
+                    <a asp-action="Delete" asp-route-id="@item.PaymentId" class="btn btn-sm btn-danger">حذف</a>
+                </td>
+            </tr>
+        }
     </tbody>
 </table>
