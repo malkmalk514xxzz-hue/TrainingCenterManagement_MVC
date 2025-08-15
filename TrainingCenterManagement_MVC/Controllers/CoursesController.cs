@@ -1,14 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using TrainingCenterManagement_MVC.Data;
 using TrainingCenterManagement_MVC.Models;
 using TrainingCenterManagement_MVC.ViewModels;
+using ClosedXML.Excel;
+
 
 namespace TrainingCenterManagement_MVC.Controllers
 {
@@ -286,6 +288,7 @@ namespace TrainingCenterManagement_MVC.Controllers
             if (max.HasValue)
                 attendanceList = attendanceList.Where(x => x.AttendancePercentage <= max.Value);
 
+            ViewBag.CourseId = course.CourseId; // Pass the course ID to the view
             ViewBag.CourseName = course.CourseName;
             return View(attendanceList.ToList());
         }
@@ -300,13 +303,15 @@ namespace TrainingCenterManagement_MVC.Controllers
                         .ThenInclude(t => t.User)
                 .FirstOrDefaultAsync(c => c.CourseId == courseId);
 
-            if (course == null) return NotFound();
+            if (course == null)
+                return NotFound();
 
             var totalLectures = course.Lectures.Count;
             var data = course.CourseTrainees.Select(ct =>
             {
                 var attended = course.Lectures.Count(l =>
                     l.Presences.Any(p => p.TraineeId == ct.TraineeId && p.IsPresent));
+
                 return new
                 {
                     Name = ct.Trainee.User.FullName,
@@ -316,25 +321,42 @@ namespace TrainingCenterManagement_MVC.Controllers
                 };
             }).ToList();
 
-            using var package = new OfficeOpenXml.ExcelPackage();
-            var worksheet = package.Workbook.Worksheets.Add("Attendance");
+            var stream = new MemoryStream();
 
-            worksheet.Cells[1, 1].Value = "Student";
-            worksheet.Cells[1, 2].Value = "Attended";
-            worksheet.Cells[1, 3].Value = "Total";
-            worksheet.Cells[1, 4].Value = "Percentage";
-
-            for (int i = 0; i < data.Count; i++)
+            using (var workbook = new ClosedXML.Excel.XLWorkbook())
             {
-                worksheet.Cells[i + 2, 1].Value = data[i].Name;
-                worksheet.Cells[i + 2, 2].Value = data[i].Attended;
-                worksheet.Cells[i + 2, 3].Value = data[i].Total;
-                worksheet.Cells[i + 2, 4].Value = data[i].Percentage;
+                var ws = workbook.Worksheets.Add("Attendance");
+
+                // رأس الجدول
+                ws.Cell(1, 1).Value = "Student";
+                ws.Cell(1, 2).Value = "Attended";
+                ws.Cell(1, 3).Value = "Total";
+                ws.Cell(1, 4).Value = "Percentage";
+
+                // بيانات الطلاب
+                for (int i = 0; i < data.Count; i++)
+                {
+                    ws.Cell(i + 2, 1).Value = data[i].Name;
+                    ws.Cell(i + 2, 2).Value = data[i].Attended;
+                    ws.Cell(i + 2, 3).Value = data[i].Total;
+                    ws.Cell(i + 2, 4).Value = data[i].Percentage;
+                }
+
+                workbook.SaveAs(stream);
             }
 
-            var stream = new MemoryStream(package.GetAsByteArray());
+            stream.Position = 0; // مهم جدًا قبل الإرجاع
+
             return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "CourseAttendance.xlsx");
         }
+
+
+
+
+
+
+
+
         [Authorize(Roles = "Trainer")]
         public async Task<IActionResult> ExportPdf(Guid courseId)
         {
@@ -343,7 +365,8 @@ namespace TrainingCenterManagement_MVC.Controllers
 
             if (viewResult == null)
             {
-                return NotFound(); // أو أي معالجة أخرى مناسبة
+                // هنا يمكن أن ترجع رسالة واضحة أو PDF فارغ أو Redirect
+                return NotFound($"Course with ID {courseId} was not found.");
             }
 
             return new Rotativa.AspNetCore.ViewAsPdf("CourseAttendance", viewResult.Model)

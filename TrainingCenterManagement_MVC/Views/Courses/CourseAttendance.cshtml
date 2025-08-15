@@ -67,12 +67,19 @@
 
     <!-- Export Buttons -->
     <div class="d-flex justify-content-center gap-3 mb-5">
-        <a asp-action="ExportExcel" asp-route-courseId="@ViewContext.RouteData.Values["courseId"]" class="btn btn-success">
+        @* <a asp-action="ExportExcel" asp-route-courseId="@ViewContext.RouteData.Values["courseId"]" class="btn btn-success">
             <i class="bi bi-file-earmark-excel"></i> Export to Excel
         </a>
         <a asp-action="ExportPdf" asp-route-courseId="@ViewContext.RouteData.Values["courseId"]" class="btn btn-danger">
             <i class="bi bi-file-earmark-pdf"></i> Export to PDF
-        </a>
+        </a> *@
+        <a asp-action="ExportExcel" asp-route-courseId="@ViewBag.CourseId" class="btn btn-success">
+    <i class="bi bi-file-earmark-excel"></i> Export to Excel
+</a>
+<a asp-action="ExportPdf" asp-route-courseId="@ViewBag.CourseId" class="btn btn-danger">
+    <i class="bi bi-file-earmark-pdf"></i> Export to PDF
+</a>
+
     </div>
 </div>
 
