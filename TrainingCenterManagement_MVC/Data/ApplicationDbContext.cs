@@ -23,6 +23,8 @@ namespace TrainingCenterManagement_MVC.Data
         public DbSet<CourseTrainer> CourseTrainers { get; set; }
         public DbSet<GroupMessage> GroupMessages { get; set; }
         public DbSet<Message> Messages { get; set; }
+        public DbSet<GusetMessage> GusetMessages { get; set; }
+        public DbSet<ContactUs> ContactUs { get; set; }
         public DbSet<UserConnection> UserConnections { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
@@ -164,11 +166,11 @@ namespace TrainingCenterManagement_MVC.Data
       .HasForeignKey(gm => gm.CourseId)
       .OnDelete(DeleteBehavior.Restrict);
 
-            builder.Entity<UserConnection>()
-        .HasOne(uc => uc.User)
-         .WithMany()
-         .HasForeignKey(uc => uc.UserId)
-         .OnDelete(DeleteBehavior.Restrict);
+        //    builder.Entity<UserConnection>()
+        //.HasOne(uc => uc.User)
+        // .WithMany()
+        // .HasForeignKey(uc => uc.UserId)
+        // .OnDelete(DeleteBehavior.Restrict);
 
         }
     }

@@ -1,0 +1,30 @@
+﻿
+@model List<TrainingCenterManagement_MVC.Models.RecentContact>
+@{
+    ViewData["Title"] = "دردشات دعم العملاء";
+}
+
+<div class="chat-container">
+    <div class="chat-header">دردشات دعم العملاء</div>
+    <div class="chat-list">
+        @if (Model.Count == 0)
+        {
+            <p>لا توجد دردشات عملاء متاحة.</p>
+        }
+        else
+        {
+            @foreach (var contact in Model)
+            {
+                <div class="chat-item">
+                    <a href="@Url.Action("AdminCustomerSupportChat", "Chat", new { guestId = contact.UserId })">
+                        <div class="chat-info">
+                            <span class="chat-name">@contact.Username</span>
+                            <p class="chat-preview">@contact.LastMessage</p>
+                            <span class="chat-time">@contact.LastMessageTime.ToString("g")</span>
+                        </div>
+                    </a>
+                </div>
+            }
+        }
+    </div>
+</div>

@@ -6,5 +6,6 @@
         public string Username { get; set; }
         public string LastMessage { get; set; }
         public DateTime LastMessageTime { get; set; }
+        public bool IsGroup { get; set; } = false;
     }
 }

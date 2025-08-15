@@ -27,62 +27,62 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
-        const currentUser = "@User.Identity.Name";
-        const connection = new signalR.HubConnectionBuilder()
-            .withUrl("/chatHub")
-            .build();
+         const currentUser = "@User.Identity.Name";
+         const connection = new signalR.HubConnectionBuilder()
+             .withUrl("/chatHub")
+             .build();
 
-        connection.on("ReceiveGroupMessage", (user, message, timestamp) => {
-            console.log(`Received message from ${user}: ${message} at ${timestamp}`);
-            const chatBox = document.getElementById("chatBox");
-            const msg = document.createElement("div");
-            msg.className = user === currentUser ? "sent" : "received";
-            msg.innerHTML = `
-                <div class="message-sender">${user}</div>
-                <div>${message}</div>
-                <div class="message-time">${new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
-            `;
-            chatBox.appendChild(msg);
-            chatBox.scrollTop = chatBox.scrollHeight;
-        });
-         // الانضمام إلى المجموعة عند تحميل الصفحة
-       // document.addEventListener("DOMContentLoaded", () => {
-           // connection.invoke("JoinCourseGroup", "@courseId")
-               // .catch(err => console.error(err));
-           // const chatBox = document.getElementById("chatBox");
-           // chatBox.scrollTop = chatBox.scrollHeight;
-       // });
-        connection.start().then(() => {
-            connection.invoke("JoinCourseGroup", "@courseId");
+         connection.on("ReceiveGroupMessage", (user, message, timestamp) => {
+             console.log(`Received message from ${user}: ${message} at ${timestamp}`);
              const chatBox = document.getElementById("chatBox");
-            chatBox.scrollTop = chatBox.scrollHeight;
-        }).catch(err => console.error(err));
+             const msg = document.createElement("div");
+             msg.className = user === currentUser ? "sent" : "received";
+             msg.innerHTML = `
+                 <div class="message-sender">${user}</div>
+                 <div>${message}</div>
+                 <div class="message-time">${new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+             `;
+             chatBox.appendChild(msg);
+             chatBox.scrollTop = chatBox.scrollHeight;
+         });
+          // الانضمام إلى المجموعة عند تحميل الصفحة
+        // document.addEventListener("DOMContentLoaded", () => {
+            // connection.invoke("JoinCourseGroup", "@courseId")
+                // .catch(err => console.error(err));
+            // const chatBox = document.getElementById("chatBox");
+            // chatBox.scrollTop = chatBox.scrollHeight;
+        // });
+         connection.start().then(() => {
+             connection.invoke("JoinCourseGroup", "@courseId");
+              const chatBox = document.getElementById("chatBox");
+             chatBox.scrollTop = chatBox.scrollHeight;
+         }).catch(err => console.error(err));
 
-        function sendGroupMessage() {
-            const message = $("#messageInput").val();
-            if (!message) {
-                $("#status").text("Message cannot be empty");
-                return;
-            }
+         function sendGroupMessage() {
+             const message = $("#messageInput").val();
+             if (!message) {
+                 $("#status").text("Message cannot be empty");
+                 return;
+             }
 
-            $.ajax({
-                url: '/Chat/SendGroupMessage',
-                type: 'POST',
-                data: { courseId: "@courseId", content: message },
-                success: function (response) {
-                    if (response.success) {
-                        $("#messageInput").val("");
-                        $("#status").text("");
-                        connection.invoke("SendGroupMessage", "@courseId", "@User.Identity.Name", message)
-                            .catch(err => console.error(err));
-                    } else {
-                        $("#status").text(response.message);
-                    }
-                },
-                error: function () {
-                    $("#status").text("Error sending message");
-                }
-            });
-        }
+             $.ajax({
+                 url: '/Chat/SendGroupMessage',
+                 type: 'POST',
+                 data: { courseId: "@courseId", content: message },
+                 success: function (response) {
+                     if (response.success) {
+                         $("#messageInput").val("");
+                         $("#status").text("");
+                         connection.invoke("SendGroupMessage", "@courseId", "@User.Identity.Name", message)
+                             .catch(err => console.error(err));
+                     } else {
+                         $("#status").text(response.message);
+                     }
+                 },
+                 error: function () {
+                     $("#status").text("Error sending message");
+                 }
+             });
+         }
     </script>
 }

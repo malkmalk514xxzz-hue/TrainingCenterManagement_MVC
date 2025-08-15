@@ -83,9 +83,10 @@
                 </a>
             </li>
             <li class="@(currentPage == "restaurants" ? "active" : "")">
-                <a asp-action="ManageEstablishment" asp-controller="ManageEstablishment">
+            <li>
+                <a asp-controller="Chat" asp-action="AdminCustomerSupportChats">
                     <i class="fas fa-building"></i>
-                    <span>@SharedResource.Establishment</span>
+            <span>AdminContactUsChats</span>
                 </a>
             </li>
             <li class="@(currentPage == "users" ? "active" : "")">

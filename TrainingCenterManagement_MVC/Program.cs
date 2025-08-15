@@ -43,24 +43,36 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.LoginPath = "/Account/Login";
     options.AccessDeniedPath = "/Account/AccessDenied";
 });
-// Add CORS ( needed for SignalR)
+// ÅÚÏÇÏ CORS áÜ SignalR
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", builder =>
     {
         builder.AllowAnyOrigin()
                .AllowAnyMethod()
-               .AllowAnyHeader();
+               .AllowAnyHeader()
+               .WithExposedHeaders("Content-Disposition");
     });
+});
+
+// ÅÚÏÇÏ SignalR ãÚ ÎíÇÑÇÊ ÇáãåáÉ
+builder.Services.AddSignalR(options =>
+{
+    options.KeepAliveInterval = TimeSpan.FromSeconds(15);
+    options.ClientTimeoutInterval = TimeSpan.FromSeconds(30);
+    options.HandshakeTimeout = TimeSpan.FromSeconds(15);
+}).AddJsonProtocol(options =>
+{
+    options.PayloadSerializerOptions.PropertyNamingPolicy = null;
 });
 // Inject UserHelper 
 builder.Services.AddScoped<IUserHelper, UserHelper>();
 // Add Role Initializer
 builder.Services.AddScoped<RoleInitializer>();
-builder.Services.AddSignalR().AddJsonProtocol(options =>
-{
-    options.PayloadSerializerOptions.PropertyNamingPolicy = null; // íÍÇÝÙ Úáì ÃÓãÇÁ ÇáÎÕÇÆÕ ßãÇ åí (ãËá Id ÈÏáÇð ãä id)
-});
+//builder.Services.AddSignalR().AddJsonProtocol(options =>
+//{
+//    options.PayloadSerializerOptions.PropertyNamingPolicy = null; // íÍÇÝÙ Úáì ÃÓãÇÁ ÇáÎÕÇÆÕ ßãÇ åí (ãËá Id ÈÏáÇð ãä id)
+//});
 var app = builder.Build();
 
 // Seed roles
@@ -100,6 +112,7 @@ app.UseStatusCodePages(context =>
 
 app.UseRouting();
 app.UseCors("AllowAll");
+app.UseWebSockets();
 app.Use(async (context, next) =>
 {
     string cookie = string.Empty;

@@ -11,8 +11,11 @@
             <div id="recentContacts">
                 @foreach (var contact in Model.RecentContacts)
                 {
-                    <div class="chat-item" data-id="@contact.UserId" onclick="location.href='@Url.Action("PrivateChat", "Chat", new { receiverId = contact.UserId })'">
-                        <div class="status offline" data-id="@contact.UserId"></div>
+                    <div class="chat-item" data-id="@contact.UserId" onclick="location.href='@Url.Action(contact.IsGroup ? "GroupChat" : "PrivateChat", "Chat", contact.IsGroup ? new { courseId = contact.UserId } : new { receiverId = contact.UserId })'">
+                        @if (!contact.IsGroup)
+                        {
+                            <div class="status offline" data-id="@contact.UserId"></div>
+                        }
                         <div class="chat-info">
                             <div class="chat-name">@contact.Username</div>
                             <div class="chat-preview">@contact.LastMessage</div>
@@ -20,6 +23,7 @@
                         <div class="chat-time">@contact.LastMessageTime.ToString("hh:mm tt")</div>
                     </div>
                 }
+
             </div>
             <h3>Course Groups</h3>
             @foreach (var course in Model.Courses)
@@ -52,6 +56,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
+         // قائمة معرفات الدورات من النموذج
+        const courseIds = @Html.Raw(Json.Serialize(Model.Courses?.Select(c => c.CourseId.ToString()) ?? new List<string>()));
+
+
         const connection = new signalR.HubConnectionBuilder()
             .withUrl("/chatHub")
             .withAutomaticReconnect()
@@ -74,14 +82,17 @@
 
             // إعادة بناء قائمة المحادثات
             contacts.forEach(contact => {
+               // console.log(contact);
                 if (!contact.Id) { // تعديل من contact.id إلى contact.Id
                     console.error("Error: contact.Id is undefined or empty", contact);
                     return;
                 }
 
                 const dataId = contact.Id.trim();
+               // console.log(contact);
+              //  console.log(dataId);
                 const contactHtml = contact.IsGroup ?
-                    `<div class="chat-item" data-id="${CSS.escape(dataId)}" onclick="location.href='/Chat/GroupChat?courseId=${CSS.escape(dataId)}'">
+                    `<div class="chat-item" data-id="${dataId}" onclick="location.href='/Chat/GroupChat?courseId=${dataId}'">
                         <div class="chat-info">
                             <div class="chat-name">${contact.DisplayName}</div>
                             <div class="chat-preview">${contact.LastMessage}</div>
@@ -102,8 +113,24 @@
         });
 
         connection.start()
-            .then(() => console.log("SignalR connected successfully"))
-            .catch(err => console.error("SignalR connection failed: ", err));
+            .then(() => {
+                console.log("تم الاتصال بـ SignalR بنجاح");
+                console.log("courseIds:", courseIds);
+                // التأكد من أن courseIds يحتوي على $values وهي مصفوفة
+                const ids = courseIds.$values && Array.isArray(courseIds.$values) ? courseIds.$values : [];
+                if (ids.length > 0) {
+                    ids.forEach(courseId => {
+                        console.log(`الانضمام إلى المجموعة Course_${courseId}`);
+                        connection.invoke("JoinCourseGroup", courseId)
+                            .then(() => console.log(`تم الانضمام إلى المجموعة Course_${courseId} بنجاح`))
+                            .catch(err => console.error(`خطأ في الانضمام إلى المجموعة Course_${courseId}:`, err));
+                    });
+                } else {
+                    console.warn("لا توجد دورات للانضمام إليها:", courseIds);
+                }
+            })
+            .catch(err => console.error("فشل الاتصال بـ SignalR: ", err));
+
 
         connection.onreconnecting(err => {
             console.warn("SignalR reconnecting: ", err);

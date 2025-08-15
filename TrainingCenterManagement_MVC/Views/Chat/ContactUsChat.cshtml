@@ -1,29 +1,34 @@
-﻿@model List<TrainingCenterManagement_MVC.Models.Message>
+﻿
+@model List<TrainingCenterManagement_MVC.Models.GusetMessage>
 @{
-    ViewData["Title"] = "Private Chat";
-    var receiverId = ViewBag.ReceiverId;
-    string receiverUsername = ViewBag.ReceiverUsername;
-    string senderUsername = User.Identity.Name;
+    ViewData["Title"] = ViewBag.IsGuestChat ? "دردشة التواصل معنا" : "الدردشة الخاصة";
+    string receiverId = ViewBag.ReceiverId;
+    string receiverUsername = ViewBag.ReceiverUsername ?? "دعم الإدارة";
+    string senderId = ViewBag.SenderId;
+    string senderUsername = ViewBag.SenderUsername ?? "ضيف";
+   
+    
 }
 
 <div class="chat-container">
-    <div class="chat-header">Chat with @receiverUsername</div>
+    <div class="chat-header">الدردشة مع @receiverUsername</div>
     <div class="chat-box" id="chatBox">
         @foreach (var message in Model)
         {
-            <div class="message @(message.Sender.UserName == senderUsername ? "sent" : "received")">
-                <div class="message-sender">@message.Sender.UserName</div>
+            <div class="message @(message.SenderId == senderId ? "sent" : "received")">
+                <div class="message-sender">@(message.SenderId == senderId ? senderUsername : (receiverUsername ?? "دعم الإدارة"))</div>
                 <div>@message.Content</div>
                 <div class="message-time">@message.Timestamp.ToString("hh:mm tt")</div>
             </div>
         }
     </div>
     <div class="chat-input">
-        <input type="text" id="messageInput" placeholder="Type a message..." />
-        <button onclick="sendPrivateMessage()">Send</button>
+        <input type="text" id="messageInput" placeholder="اكتب رسالة..." />
+        <button onclick="sendPrivateMessage()">إرسال</button>
     </div>
     <div id="status"></div>
 </div>
+
 
 
 @section Scripts {
@@ -31,8 +36,24 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         const connection = new signalR.HubConnectionBuilder()
-            .withUrl("/chatHub")
+            .withUrl("/chatHub?guestId=@senderId", { transport: signalR.HttpTransportType.LongPolling }) // استخدام Long Polling
+            .withAutomaticReconnect([0, 2000, 10000, 30000]) // فترات إعادة الاتصال
             .build();
+
+        connection.onreconnecting((error) => {
+            console.warn("جاري إعادة الاتصال بـ SignalR:", error);
+            $("#status").text("جاري إعادة الاتصال بخادم الدردشة...");
+        });
+
+        connection.onreconnected((connectionId) => {
+            console.log("تم إعادة الاتصال بـ SignalR مع connectionId:", connectionId);
+            $("#status").text("تم إعادة الاتصال بخادم الدردشة");
+        });
+
+        connection.onclose((error) => {
+            console.error("تم إغلاق اتصال SignalR:", error);
+            $("#status").text("تم إغلاق الاتصال: " + (error ? error.message : "غير معروف"));
+        });
 
         connection.on("ReceivePrivateMessage", (sender, message, timestamp) => {
             console.log(`استلام رسالة من ${sender}: ${message} في ${timestamp}`);
@@ -51,6 +72,12 @@
 
         connection.on("ReceiveNotification", (sender, message) => {
             console.log(`إشعار: ${sender}: ${message}`);
+            $("#status").text(`إشعار من ${sender}: ${message}`);
+        });
+
+        connection.on("ReceiveError", (errorMessage) => {
+            console.error(`خطأ من الخادم: ${errorMessage}`);
+            $("#status").text(errorMessage);
         });
 
         document.addEventListener("DOMContentLoaded", () => {
@@ -73,7 +100,7 @@
             }
 
             $.ajax({
-                url: '/Chat/SendPrivateMessage',
+                url: '/Chat/SendCustomerSupportMessage',
                 type: 'POST',
                 data: { receiverId: '@receiverId', content: message },
                 success: function (response) {
@@ -90,11 +117,6 @@
                         `;
                         chatBox.appendChild(msg);
                         chatBox.scrollTop = chatBox.scrollHeight;
-                        connection.invoke("SendPrivateMessage", "@receiverId", "@senderUsername", message)
-                            .catch(err => {
-                                console.error("خطأ في استدعاء SignalR:", err);
-                                $("#status").text("خطأ في إشعار المستقبل");
-                            });
                     } else {
                         $("#status").text(response.message);
                     }
