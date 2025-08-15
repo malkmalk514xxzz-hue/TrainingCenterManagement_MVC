@@ -10,14 +10,15 @@
     <input type="hidden" asp-for="LectureId" />
 
     <div class="form-group mb-3">
-        <label asp-for="VideoUrl" class="form-label">Video URL <span class="text-danger">*</span></label>
-        <input asp-for="VideoUrl" type="url" class="form-control" placeholder="Enter video URL" required />
+        <label asp-for="VideoUrl" class="form-label">YouTube Video URL <span class="text-danger">*</span></label>
+        <input asp-for="VideoUrl" type="url" class="form-control" placeholder="e.g. https://www.youtube.com/watch?v=abc123xyz" required />
+        <small class="form-text text-muted">Paste a full YouTube video link</small>
         <span asp-validation-for="VideoUrl" class="text-danger"></span>
     </div>
 
     <div class="form-group mb-3">
         <label asp-for="ThumbnailUrl" class="form-label">Thumbnail URL</label>
-        <input asp-for="ThumbnailUrl" type="url" class="form-control" placeholder="Enter thumbnail URL (optional)" />
+        <input asp-for="ThumbnailUrl" type="url" class="form-control" placeholder="Optional thumbnail image URL" />
         <span asp-validation-for="ThumbnailUrl" class="text-danger"></span>
     </div>
 

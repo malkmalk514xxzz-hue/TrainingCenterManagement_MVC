@@ -68,18 +68,15 @@ namespace TrainingCenterManagement_MVC.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("CertificateId,Average,Url,IsDeleted,TraineeId,TrainerId,CourseId,ExamId")] Certificate certificate)
         {
-            if (ModelState.IsValid)
-            {
+            
                 certificate.CertificateId = Guid.NewGuid();
                 _context.Add(certificate);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
-            }
+                await _context.SaveChangesAsync();  
             ViewData["CourseId"] = new SelectList(_context.Courses, "CourseId", "CourseName", certificate.CourseId);
             ViewData["ExamId"] = new SelectList(_context.Exams, "ExamId", "ExamName", certificate.ExamId);
             ViewData["TraineeId"] = new SelectList(_context.Trainees, "TraineeId", "UserId", certificate.TraineeId);
             ViewData["TrainerId"] = new SelectList(_context.Trainers, "TrainerId", "Specialty", certificate.TrainerId);
-            return View(certificate);
+            return RedirectToAction(nameof(Index));
         }
 
         // GET: Certificates/Edit/5
@@ -116,8 +113,7 @@ namespace TrainingCenterManagement_MVC.Controllers
                 return NotFound();
             }
 
-            if (ModelState.IsValid)
-            {
+           
                 try
                 {
                     _context.Update(certificate);
@@ -134,13 +130,12 @@ namespace TrainingCenterManagement_MVC.Controllers
                         throw;
                     }
                 }
-                return RedirectToAction(nameof(Index));
-            }
+           
             ViewData["CourseId"] = new SelectList(_context.Courses, "CourseId", "CourseName", certificate.CourseId);
             ViewData["ExamId"] = new SelectList(_context.Exams, "ExamId", "ExamName", certificate.ExamId);
             ViewData["TraineeId"] = new SelectList(_context.Trainees, "TraineeId", "UserId", certificate.TraineeId);
             ViewData["TrainerId"] = new SelectList(_context.Trainers, "TrainerId", "Specialty", certificate.TrainerId);
-            return View(certificate);
+            return RedirectToAction(nameof(Index));
         }
 
         // GET: Certificates/Delete/5

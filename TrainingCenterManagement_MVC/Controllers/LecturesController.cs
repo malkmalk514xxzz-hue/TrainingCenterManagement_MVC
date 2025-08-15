@@ -9,6 +9,8 @@ using Microsoft.EntityFrameworkCore;
 using TrainingCenterManagement_MVC.Data;
 using TrainingCenterManagement_MVC.Models;
 using TrainingCenterManagement_MVC.ViewModels;
+using System.Web;
+
 
 namespace TrainingCenterManagement_MVC.Controllers
 {
@@ -24,7 +26,7 @@ namespace TrainingCenterManagement_MVC.Controllers
         // GET: Lectures
         public async Task<IActionResult> Index()
         {
-            var applicationDbContext = _context.Lectures.Include(l => l.Course);
+            var applicationDbContext = _context.Lectures.Include(l => l.Course).OrderByDescending(p=>p.LectureDate);
             return View(await applicationDbContext.ToListAsync());
         }
 
@@ -61,15 +63,13 @@ namespace TrainingCenterManagement_MVC.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("LectureId,Title,Description,VideoUrl,ThumbnailUrl,LectureDate,IsDeleted,CourseId")] Lecture lecture)
         {
-            if (ModelState.IsValid)
-            {
+           
                 lecture.LectureId = Guid.NewGuid();
                 _context.Add(lecture);
                 await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
-            }
+            
             ViewData["CourseId"] = new SelectList(_context.Courses, "CourseId", "CourseName", lecture.CourseId);
-            return View(lecture);
+            return RedirectToAction(nameof(Index));
         }
 
         // GET: Lectures/Edit/5
@@ -101,8 +101,7 @@ namespace TrainingCenterManagement_MVC.Controllers
                 return NotFound();
             }
 
-            if (ModelState.IsValid)
-            {
+          
                 try
                 {
                     _context.Update(lecture);
@@ -119,10 +118,10 @@ namespace TrainingCenterManagement_MVC.Controllers
                         throw;
                     }
                 }
-                return RedirectToAction(nameof(Index));
-            }
             ViewData["CourseId"] = new SelectList(_context.Courses, "CourseId", "CourseName", lecture.CourseId);
-            return View(lecture);
+
+            return RedirectToAction(nameof(Index));
+            
         }
 
         // GET: Lectures/Delete/5
@@ -177,17 +176,55 @@ namespace TrainingCenterManagement_MVC.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [HttpPost]
         public async Task<IActionResult> UploadVideo(Guid id, string videoUrl, string thumbnailUrl)
         {
             var lecture = await _context.Lectures.FindAsync(id);
             if (lecture == null) return NotFound();
 
-            lecture.VideoUrl = videoUrl;
+            var videoId = ExtractYouTubeVideoId(videoUrl);
+            if (string.IsNullOrEmpty(videoId))
+            {
+                ModelState.AddModelError("", "Invalid YouTube URL");
+                return View(lecture); // تأكد أنك تعرض رسالة الخطأ في الـView
+            }
+
+            lecture.VideoUrl = videoId; // تخزين فقط ID للفيديو
             lecture.ThumbnailUrl = thumbnailUrl;
+
             await _context.SaveChangesAsync();
 
             return RedirectToAction(nameof(Details), new { id });
         }
+
+        private string ExtractYouTubeVideoId(string url)
+        {
+            if (string.IsNullOrWhiteSpace(url))
+                return null;
+
+            try
+            {
+                var uri = new Uri(url);
+
+                if (uri.Host.Contains("youtu.be"))
+                {
+                    return uri.AbsolutePath.Trim('/');
+                }
+
+                if (uri.Host.Contains("youtube.com"))
+                {
+                    var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
+                    return query["v"];
+                }
+            }
+            catch
+            {
+                // تجاهل أي استثناء وارجع null
+            }
+
+            return null;
+        }
+
         // GET: Lectures/ViewLecture/5
         public async Task<IActionResult> ViewLecture(Guid? id)
         {

@@ -67,15 +67,13 @@ namespace TrainingCenterManagement_MVC.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("CourseId,CourseName,BatchNumber,NumberOfLectures,Price,Description,VideoUrl,ThumbnailUrl,CreatedDate,ReleaseDate,IsDeleted,AdminId")] Course course)
         {
-            if (ModelState.IsValid)
-            {
-                course.CourseId = Guid.NewGuid();
-                _context.Add(course);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
-            }
+           
+            
+            course.CourseId = Guid.NewGuid();
+            _context.Add(course);
+            await _context.SaveChangesAsync();
             ViewData["AdminId"] = new SelectList(_context.Admins, "AdminId", "UserId", course.AdminId);
-            return View(course);
+            return RedirectToAction(nameof(Index));
         }
 
         // GET: Courses/Edit/5
@@ -107,8 +105,7 @@ namespace TrainingCenterManagement_MVC.Controllers
                 return NotFound();
             }
 
-            if (ModelState.IsValid)
-            {
+           
                 try
                 {
                     _context.Update(course);
@@ -125,10 +122,9 @@ namespace TrainingCenterManagement_MVC.Controllers
                         throw;
                     }
                 }
-                return RedirectToAction(nameof(Index));
-            }
             ViewData["AdminId"] = new SelectList(_context.Admins, "AdminId", "UserId", course.AdminId);
-            return View(course);
+            return RedirectToAction(nameof(Index));
+
         }
 
         // GET: Courses/Delete/5

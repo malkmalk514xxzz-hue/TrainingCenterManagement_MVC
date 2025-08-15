@@ -65,16 +65,14 @@ namespace TrainingCenterManagement_MVC.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("PresenceId,IsPresent,IsDeleted,LectureId,TraineeId")] Presence presence)
         {
-            if (ModelState.IsValid)
-            {
+           
                 presence.PresenceId = Guid.NewGuid();
                 _context.Add(presence);
                 await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
-            }
+          
             ViewData["LectureId"] = new SelectList(_context.Lectures, "LectureId", "Title", presence.LectureId);
             ViewData["TraineeId"] = new SelectList(_context.Trainees, "TraineeId", "UserId", presence.TraineeId);
-            return View(presence);
+            return RedirectToAction(nameof(Index));
         }
 
         // GET: Presences/Edit/5
@@ -107,8 +105,7 @@ namespace TrainingCenterManagement_MVC.Controllers
                 return NotFound();
             }
 
-            if (ModelState.IsValid)
-            {
+           
                 try
                 {
                     _context.Update(presence);
@@ -125,11 +122,10 @@ namespace TrainingCenterManagement_MVC.Controllers
                         throw;
                     }
                 }
-                return RedirectToAction(nameof(Index));
-            }
+         
             ViewData["LectureId"] = new SelectList(_context.Lectures, "LectureId", "Title", presence.LectureId);
             ViewData["TraineeId"] = new SelectList(_context.Trainees, "TraineeId", "UserId", presence.TraineeId);
-            return View(presence);
+            return RedirectToAction(nameof(Index));
         }
 
         // GET: Presences/Delete/5
@@ -279,20 +275,29 @@ namespace TrainingCenterManagement_MVC.Controllers
             var lecture = await _context.Lectures
                 .Include(l => l.Course)
                 .Include(l => l.Presences)
-                .ThenInclude(p => p.Trainee)
-                .ThenInclude(t => t.User)
+                    .ThenInclude(p => p.Trainee)
+                        .ThenInclude(t => t.User)
                 .FirstOrDefaultAsync(l => l.LectureId == lectureId);
 
             if (lecture == null)
                 return NotFound();
 
-            return new ViewAsPdf("LectureAttendancePdf", lecture)
+            var viewModel = lecture.Presences.Select(p => new LectureAttendanceViewModel
+            {
+                LectureTitle = lecture.Title,
+                LectureDate = lecture.LectureDate,
+                TraineeName = p.Trainee.User.FullName,
+                IsPresent = p.IsPresent
+            }).ToList();
+
+            return new ViewAsPdf("LectureAttendancePdf", viewModel)
             {
                 FileName = $"Lecture_Attendance_{lecture.Title}.pdf",
                 PageSize = Rotativa.AspNetCore.Options.Size.A4,
                 PageOrientation = Rotativa.AspNetCore.Options.Orientation.Portrait
             };
         }
+
         public ActionResult LectureAttendanceReport(Guid lectureId)
         {
             var lecture = _context.Lectures

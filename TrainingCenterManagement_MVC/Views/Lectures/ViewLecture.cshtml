@@ -2,6 +2,32 @@
 
 @{
     ViewData["Title"] = "View Lecture";
+
+    string GetYoutubeVideoId(string url)
+    {
+        if (string.IsNullOrEmpty(url)) return "";
+
+        try
+        {
+            var uri = new Uri(url);
+            var query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query);
+            if (query.TryGetValue("v", out var videoId))
+            {
+                return videoId;
+            }
+
+            // دعم روابط youtu.be
+            if (uri.Host.Contains("youtu.be"))
+            {
+                return uri.AbsolutePath.Trim('/');
+            }
+        }
+        catch { }
+
+        return "";
+    }
+
+    var videoId = GetYoutubeVideoId(Model.VideoUrl);
 }
 
 @if (TempData["SuccessMessage"] != null)
@@ -22,7 +48,24 @@
 <p><strong>Description:</strong> @Model.Description</p>
 <p><strong>Date:</strong> @Model.LectureDate.ToString("yyyy-MM-dd")</p>
 
-@if (!string.IsNullOrEmpty(Model.VideoUrl))
+@if (!string.IsNullOrEmpty(videoId))
+{
+    <div class="mt-3">
+        <div class="d-flex justify-content-center mt-3">
+            <div style="width: 100%; max-width: 960px;">
+                <div class="ratio ratio-16x9">
+                    <iframe src="https://www.youtube.com/embed/@videoId"
+                            title="YouTube video"
+                            allowfullscreen
+                            style="border: none;">
+                    </iframe>
+                </div>
+            </div>
+        </div>
+
+    </div>
+}
+else if (!string.IsNullOrEmpty(Model.VideoUrl))
 {
     <div class="mt-3">
         <video width="640" height="360" controls>

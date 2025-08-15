@@ -2,18 +2,18 @@
 
 @{
     Layout = ViewBag.IsPdf == true ? null : "_Layout";
-    ViewData["Title"] = "تقرير المدفوعات";
+    ViewData["Title"] = "Payments Report";
 }
 
-<h2 class="text-center my-4">تقرير المدفوعات لدورة: @ViewBag.CourseName</h2>
+<h2 class="text-center my-4">Payments Report for Course: @ViewBag.CourseName</h2>
 
 <table class="table table-bordered table-striped">
     <thead class="thead-dark">
         <tr>
             <th scope="col">#</th>
-            <th scope="col">المتدرب</th>
-            <th scope="col">المبلغ</th>
-            <th scope="col">التاريخ</th>
+            <th scope="col">Trainee</th>
+            <th scope="col">Amount</th>
+            <th scope="col">Date</th>
         </tr>
     </thead>
     <tbody>
