@@ -180,26 +180,7 @@ namespace TrainingCenterManagement_MVC.Controllers
         {
             return _context.Trainees.Any(e => e.TraineeId == id);
         }
-        [Authorize(Roles = "Trainee")]
-        public async Task<IActionResult> TrackAttendance()
-        {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var trainee = await _context.Trainees.FirstOrDefaultAsync(t => t.UserId == userId);
-            if (trainee == null) return NotFound();
 
-            var attendanceData = await _context.CourseTrainees
-                .Where(ct => ct.TraineeId == trainee.TraineeId)
-                .Select(ct => new TraineeAttendanceViewModel
-                {
-                    CourseName = ct.Course.CourseName,
-                    TotalLectures = ct.Course.NumberOfLectures,
-                    AttendedLectures = ct.Course.Lectures
-                        .Count(l => l.Presences.Any(p => p.TraineeId == trainee.TraineeId && p.IsPresent))
-                })
-                .ToListAsync();
-
-            return View(attendanceData);
-        }
         [Authorize(Roles = "Trainee")]
         public async Task<IActionResult> MyCertificates()
         {
@@ -254,6 +235,28 @@ namespace TrainingCenterManagement_MVC.Controllers
             ViewBag.Course = await _context.Courses.FindAsync(courseId);
             return View(lectures);
         }
+        [HttpGet("TrackAttendance")]
+        [Authorize(Roles = "Trainee")]
+        public async Task<IActionResult> TrackAttendance()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var trainee = await _context.Trainees.FirstOrDefaultAsync(t => t.UserId == userId);
+            if (trainee == null) return NotFound();
+
+            var attendanceData = await _context.CourseTrainees
+                .Where(ct => ct.TraineeId == trainee.TraineeId)
+                .Select(ct => new TraineeAttendanceViewModel
+                {
+                    CourseName = ct.Course.CourseName,
+                    TotalLectures = ct.Course.NumberOfLectures,
+                    AttendedLectures = ct.Course.Lectures
+                        .Count(l => l.Presences.Any(p => p.TraineeId == trainee.TraineeId && p.IsPresent))
+                })
+                .ToListAsync();
+
+            return View(attendanceData);
+        }
+        [HttpGet("TrackAttendance/{courseId}")]
         [Authorize(Roles = "Trainee")]
         public async Task<IActionResult> TrackAttendance(Guid courseId)
         {

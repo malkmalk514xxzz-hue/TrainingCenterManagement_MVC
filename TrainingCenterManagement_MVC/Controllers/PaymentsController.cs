@@ -76,7 +76,7 @@ namespace TrainingCenterManagement_MVC.Controllers
                     return RedirectToAction(nameof(Index));
                 }
 
-                if (totalPaid + payment.TotalAmount > (decimal) course.Price)
+                if (totalPaid + payment.TotalAmount > (decimal)course.Price)
                 {
                     TempData["ErrorMessage"] = "لا يمكن أن يتجاوز مجموع المدفوعات سعر الدورة.";
                     return RedirectToAction(nameof(Index));
@@ -218,7 +218,7 @@ namespace TrainingCenterManagement_MVC.Controllers
                 .ToListAsync();
 
             ViewBag.CourseName = course.CourseName;
-
+            ViewBag.IsPdf = true;
             return new ViewAsPdf("ExportPaymentsPdf", payments)
             {
                 PageSize = Rotativa.AspNetCore.Options.Size.A4,

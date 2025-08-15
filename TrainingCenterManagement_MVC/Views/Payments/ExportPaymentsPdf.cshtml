@@ -1,7 +1,7 @@
 ﻿@model List<TrainingCenterManagement_MVC.Models.Payment>
 
 @{
-    Layout = "_Layout";  // تأكد من اسم ملف الـ Layout في مشروعك
+    Layout = ViewBag.IsPdf == true ? null : "_Layout";
     ViewData["Title"] = "تقرير المدفوعات";
 }
 
