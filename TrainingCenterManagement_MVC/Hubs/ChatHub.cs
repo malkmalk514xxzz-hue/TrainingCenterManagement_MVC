@@ -1,10 +1,11 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
-using System.Reflection;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
 using TrainingCenterManagement_MVC.Data;
 using TrainingCenterManagement_MVC.Models;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace Messaging_Chat_Application_MahmoudHakim.Hubs
 {
@@ -21,33 +22,52 @@ namespace Messaging_Chat_Application_MahmoudHakim.Hubs
 
         public override async Task OnConnectedAsync()
         {
-            var userId = await GetCurrentUserId();
-            var connection = new UserConnection
+            try
             {
-                UserId = userId,
-                ConnectionId = Context.ConnectionId,
-                ConnectedAt = DateTime.Now,
-                IsConnected = true
-            };
-            _context.UserConnections.Add(connection);
-            await _context.SaveChangesAsync();
-            await Clients.All.SendAsync("UserStatusChanged", userId, true);
+                var userId = await GetCurrentUserId();
+                if (!string.IsNullOrEmpty(userId))
+                {
+                    var connection = new UserConnection
+                    {
+                        UserId = userId,
+                        ConnectionId = Context.ConnectionId,
+                        ConnectedAt = DateTime.Now,
+                        IsConnected = true
+                    };
+                    _context.UserConnections.Add(connection);
+                    await _context.SaveChangesAsync();
+                    await Clients.All.SendAsync("UserStatusChanged", userId, true);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"خطأ في OnConnectedAsync: {ex.Message}");
+                await Clients.Caller.SendAsync("ReceiveError", "فشل الاتصال");
+            }
             await base.OnConnectedAsync();
         }
 
         public override async Task OnDisconnectedAsync(Exception exception)
         {
-            var connection = await _context.UserConnections
-                .FirstOrDefaultAsync(c => c.ConnectionId == Context.ConnectionId && c.IsConnected);
-            if (connection != null)
+            try
             {
-                _context.UserConnections.Remove(connection);
-                await _context.SaveChangesAsync();
-                await Clients.All.SendAsync("UserStatusChanged", connection.UserId, false);
+                var connection = await _context.UserConnections
+                    .FirstOrDefaultAsync(c => c.ConnectionId == Context.ConnectionId && c.IsConnected);
+                if (connection != null)
+                {
+                    _context.UserConnections.Remove(connection);
+                    await _context.SaveChangesAsync();
+                    await Clients.All.SendAsync("UserStatusChanged", connection.UserId, false);
+                }
+                if (exception != null)
+                    Console.WriteLine($"خطأ في OnDisconnectedAsync: {exception.Message}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"خطأ في OnDisconnectedAsync: {ex.Message}");
             }
             await base.OnDisconnectedAsync(exception);
         }
-
         public async Task SendGroupMessage(Guid courseId, string user, string message)
         {
             var userId = await GetCurrentUserId();
@@ -74,15 +94,15 @@ namespace Messaging_Chat_Application_MahmoudHakim.Hubs
             if (receiver == null) return;
 
             var userId = await GetCurrentUserId();
-            var privateMessage = new Message
-            {
-                SenderId = userId,
-                ReceiverId = receiver.Id,
-                Content = message,
-                Timestamp = DateTime.Now
-            };
-            _context.Messages.Add(privateMessage);
-            await _context.SaveChangesAsync();
+            //var privateMessage = new Message
+            //{
+            //    SenderId = userId,
+            //    ReceiverId = receiver.Id,
+            //    Content = message,
+            //    Timestamp = DateTime.Now
+            //};
+            //_context.Messages.Add(privateMessage);
+            //await _context.SaveChangesAsync();
 
             // إرسال الرسالة إلى المستلم
             var receiverConnections = await _context.UserConnections
@@ -123,11 +143,67 @@ namespace Messaging_Chat_Application_MahmoudHakim.Hubs
         {
             await Groups.RemoveFromGroupAsync(Context.ConnectionId, $"Course_{courseId}");
         }
+        //public async Task SendGroupMessage(Guid courseId, string user, string message)
+        //{
+        //    await Clients.Group($"Course_{courseId}").SendAsync("ReceiveGroupMessage", user, message, DateTime.Now);
+        //    var recentContacts = await GetRecentContacts(await GetCurrentUserId());
+        //    await Clients.Group($"Course_{courseId}").SendAsync("UpdateRecentContacts", recentContacts);
+        //    await Clients.Group($"Course_{courseId}").SendAsync("ReceiveNotification", user, message);
+        //}
+
+        public async Task SendCustomerSupportMessage(string receiverId, string sender, string message)
+        {
+            var userId = await GetCurrentUserId();
+            var isGuest = await IsGuestAsync();
+            var senderName = isGuest ? $"ضيف_{userId.Substring(0, 8)}" : sender;
+
+            await Clients.User(receiverId).SendAsync("ReceivePrivateMessage", senderName, message, DateTime.Now);
+            await Clients.User(userId).SendAsync("ReceivePrivateMessage", senderName, message, DateTime.Now);
+
+            var senderRecentContacts = await GetRecentContacts(userId);
+            var receiverRecentContacts = await GetRecentContacts(receiverId);
+            await Clients.User(userId).SendAsync("UpdateRecentContacts", senderRecentContacts);
+            await Clients.User(receiverId).SendAsync("UpdateRecentContacts", receiverRecentContacts);
+        }
 
         private async Task<string> GetCurrentUserId()
         {
             var user = await _userManager.GetUserAsync(Context.User);
-            return user?.Id ?? "";
+            if (user != null)
+            {
+                return user.Id;
+            }
+
+            var queryGuestId = Context.GetHttpContext()?.Request.Query["guestId"].FirstOrDefault();
+            if (!string.IsNullOrEmpty(queryGuestId))
+            {
+                return queryGuestId;
+            }
+
+            var httpContext = Context.GetHttpContext();
+            if (httpContext != null)
+            {
+                string guestId = httpContext.Request.Cookies["guestId"];
+                if (string.IsNullOrEmpty(guestId))
+                {
+                    guestId = Guid.NewGuid().ToString();
+                    httpContext.Response.Cookies.Append("guestId", guestId, new CookieOptions
+                    {
+                        Expires = DateTime.UtcNow.AddYears(2),
+                        HttpOnly = true,
+                        Secure = true
+                    });
+                }
+                return guestId;
+            }
+
+            return Guid.NewGuid().ToString();
+        }
+
+        private async Task<bool> IsGuestAsync()
+        {
+            var user = await _userManager.GetUserAsync(Context.User);
+            return user == null || false;
         }
 
         private async Task<List<object>> GetRecentContacts(string userId)

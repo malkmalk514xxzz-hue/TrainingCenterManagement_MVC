@@ -53,6 +53,36 @@ namespace TrainingCenterManagement_MVC.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "ContactUs",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    GuestId = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ContactUs", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "UserConnections",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    UserId = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ConnectionId = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ConnectedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    IsConnected = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_UserConnections", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "AspNetRoleClaims",
                 columns: table => new
                 {
@@ -264,25 +294,26 @@ namespace TrainingCenterManagement_MVC.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "UserConnections",
+                name: "GusetMessages",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    ConnectionId = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    ConnectedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    IsConnected = table.Column<bool>(type: "bit", nullable: false)
+                    SenderId = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ReceiverId = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Content = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    IsRead = table.Column<bool>(type: "bit", nullable: false),
+                    Timestamp = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    ContactUsId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_UserConnections", x => x.Id);
+                    table.PrimaryKey("PK_GusetMessages", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_UserConnections_AspNetUsers_UserId",
-                        column: x => x.UserId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        name: "FK_GusetMessages_ContactUs_ContactUsId",
+                        column: x => x.ContactUsId,
+                        principalTable: "ContactUs",
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -628,6 +659,11 @@ namespace TrainingCenterManagement_MVC.Migrations
                 column: "SenderId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_GusetMessages_ContactUsId",
+                table: "GusetMessages",
+                column: "ContactUsId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Lectures_CourseId",
                 table: "Lectures",
                 column: "CourseId");
@@ -679,11 +715,6 @@ namespace TrainingCenterManagement_MVC.Migrations
                 table: "Trainers",
                 column: "UserId",
                 unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_UserConnections_UserId",
-                table: "UserConnections",
-                column: "UserId");
         }
 
         /// <inheritdoc />
@@ -717,6 +748,9 @@ namespace TrainingCenterManagement_MVC.Migrations
                 name: "GroupMessages");
 
             migrationBuilder.DropTable(
+                name: "GusetMessages");
+
+            migrationBuilder.DropTable(
                 name: "Messages");
 
             migrationBuilder.DropTable(
@@ -739,6 +773,9 @@ namespace TrainingCenterManagement_MVC.Migrations
 
             migrationBuilder.DropTable(
                 name: "Trainers");
+
+            migrationBuilder.DropTable(
+                name: "ContactUs");
 
             migrationBuilder.DropTable(
                 name: "Lectures");

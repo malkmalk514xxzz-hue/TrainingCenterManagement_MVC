@@ -10,7 +10,7 @@ namespace TrainingCenterManagement_MVC.Models
     {
         public int Id { get; set; }
         public string UserId { get; set; }
-        public ApplicationUser User { get; set; }
+       // public ApplicationUser User { get; set; }
         public string ConnectionId { get; set; }
         public DateTime ConnectedAt { get; set; }
         public bool IsConnected { get; set; }
