@@ -1,180 +1,543 @@
-﻿@using TrainingCenterManagement_MVC.Resources
+﻿
+<head>
+ 
+    
+  
 
-
-@{
-    ViewData["Title"] = "TableTap - Digital Menu Platform for Establishments";
-}
-
-<style>
-    .feature-list li i {
-        margin-inline-end: 0.4rem;
-    }
-
-</style>
-
-<body>
-    <div class="site-wrapper">
-
-        @Html.Partial("_LandingHeader")
-
-        <main>  
-            <section class="hero">
-                <div class="container">
-                    <div class="hero-content">
-                        <div class="hero-text">
-                            <h1>@SharedResource.heroHeading</h1>
-                            <p>@SharedResource.heroDescription</p>
-                            <div class="hero-buttons">
-                                <a href="signup.html" class="btn btn-primary btn-lg">@SharedResource.getStarted</a>
-                                <a href="pricing.html" class="btn btn-outline btn-lg">@SharedResource.viewPricing</a>
+    <link id="u-page-google-font" rel="stylesheet" href="https://fonts.googleapis.com/css2?display=swap&amp;family=Roboto:ital,wght@0,100..900;1,100..900&amp;family=Open+Sans:ital,wght@0,300..800;1,300..800&amp;family=Montserrat:ital,wght@0,100..900;1,100..900">
+   
+  
+</head>
+<body data-path-to-root="./" data-include-products="true" class="u-body u-clearfix u-xl-mode" data-lang="en">
+    @Html.Partial("_LandingHeader")
+    <section class="u-clearfix u-valign-middle-sm u-valign-middle-xs u-section-1" id="sec-7f46">
+        <div class="data-layout-selected u-clearfix u-expanded-width u-gutter-30 u-layout-wrap u-layout-wrap-1">
+            <div class="u-layout">
+                <div class="u-layout-col">
+                    <div class="u-size-30">
+                        <div class="u-layout-row">
+                            <div class="u-container-style u-layout-cell u-size-40 u-layout-cell-1">
+                                <div class="u-container-layout u-container-layout-1">
+                                    <h5 class="u-align-left u-text u-text-default u-text-1">Discover Our Premier Learning Center</h5>
+                                    <h1 class="u-align-left u-text u-text-default u-text-2">Empower Your Future with Education</h1>
+                                    <p class="u-align-left u-text u-text-default u-text-3"> Embark on a transformative journey of knowledge and skill-building at our innovative learning hub..</p><span class="u-file-icon u-icon u-icon-1"><img src="~/images/20959.png" alt=""></span>
+                                </div>
                             </div>
-                        </div>
-                        <div class="hero-image">
-                            <img src="~/images/bg/index-1.png" alt="TableTap dashboard preview">
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <section class="features">
-                <div class="container">
-                    <div class="section-header">
-                        <h2>@SharedResource.featuresSectionHeading</h2>
-                        <p>@SharedResource.featuresSectionDescription</p>
-                    </div>
-                    <div class="features-grid">
-                        <div class="card">
-                            <div class="card-header">
-                                <i class="fas fa-qrcode feature-icon"></i>
-                                <h3>@SharedResource.featureQrCodeHeading</h3>
-                                <p>@SharedResource.featureQrCodeDescription</p>
-                            </div>
-                            <div class="card-content">
-                                <ul class="feature-list">
-                                    <li><i class="fas fa-check "></i>@SharedResource.featureQRCodeItem1</li>
-                                    <li><i class="fas fa-check"></i>@SharedResource.featureQRCodeItem2</li>
-                                    <li><i class="fas fa-check"></i>@SharedResource.featureQRCodeItem3</li>
-                                </ul>
-                            </div>
-                        </div>
-                        <div class="card">
-                            <div class="card-header">
-                                <i class="fas fa-utensils feature-icon"></i>
-                                <h3>@SharedResource.featureMenuManagementHeading</h3>
-                                <p>@SharedResource.featureMenuManagementDescription</p>
-                            </div>
-                            <div class="card-content">
-                                <ul class="feature-list">
-                                    <li><i class="fas fa-check"></i> @SharedResource.featureMenuItem1</li>
-                                    <li><i class="fas fa-check"></i> @SharedResource.featureMenuItem2</li>
-                                </ul>
-                            </div>
-                        </div>
-                        <div class="card">
-                            <div class="card-header">
-                                <i class="fas fa-mobile-alt feature-icon"></i>
-                                <h3>@SharedResource.featureMobileOptimizedHeading</h3>
-                                <p>@SharedResource.featureMobileOptimizedDescription</p>
-                            </div>
-                            <div class="card-content">
-                                <ul class="feature-list">
-                                    <li><i class="fas fa-check"></i> @SharedResource.featureMobileItem1</li>
-                                    <li><i class="fas fa-check"></i> @SharedResource.featureMobileItem2</li>
-                                    <li><i class="fas fa-check"></i> @SharedResource.featureMobileItem3+
-                                    </li>
-                                </ul>
+                            <div class="u-container-style u-grey-5 u-layout-cell u-radius u-shape-round u-size-20 u-layout-cell-2" data-animation-name="flipIn" data-animation-duration="2000" data-animation-delay="0" data-animation-direction="X">
+                                <div class="u-container-layout u-valign-bottom u-container-layout-2">
+                                    <p class="u-text u-text-default u-text-4">Our cutting-edge programs ignite curiosity and foster academic excellence for learners of all ages.</p>
+                                    <div class="u-social-icons u-social-icons-1">
+                                        <a class="u-social-url" title="facebook" target="_blank" href="https://facebook.com/name">
+                                            <span class="u-icon u-social-facebook u-social-icon u-text-black u-icon-2">
+                                                <svg class="u-svg-link" preserveAspectRatio="xMidYMin slice" viewBox="0 0 112 112" style=""><use xlink:href="#svg-765c"></use></svg>
+                                                <svg class="u-svg-content" viewBox="0 0 112 112" x="0" y="0" id="svg-765c">
+                                                    <circle fill="currentColor" cx="56.1" cy="56.1" r="55"></circle>
+                                                    <path fill="#FFFFFF" d="M73.5,31.6h-9.1c-1.4,0-3.6,0.8-3.6,3.9v8.5h12.6L72,58.3H60.8v40.8H43.9V58.3h-8V43.9h8v-9.2
+c0-6.7,3.1-17,17-17h12.5v13.9H73.5z"></path>
+                                                </svg>
+                                            </span>
+                                        </a>
+                                        <a class="u-social-url" title="twitter" target="_blank" href="https://twitter.com/name">
+                                            <span class="u-icon u-social-icon u-social-twitter u-text-black u-icon-3">
+                                                <svg class="u-svg-link" preserveAspectRatio="xMidYMin slice" viewBox="0 0 112.2 112.2" style=""><use xlink:href="#svg-fbc8"></use></svg>
+                                                <svg class="u-svg-content" viewBox="0 0 112.2 112.2" x="0px" y="0px" id="svg-fbc8">
+                                                    <circle fill="currentColor" cx="56" cy="56" r="55"></circle>
+                                                    <path fill="#FFFFFF" d="M63.9,51l22.4-24h-8.6L60.3,45.9L46.9,27H24l23.3,32.8L24,85h8.2L51,64.9L65.3,85H88L63.9,51z M55.3,60.2
+l-3.7-5.1L35.7,33.1h8.1l12.3,17.2l3.7,5.1l16.6,23.4h-7.8L55.3,60.2z"></path>
+                                                </svg>
+                                            </span>
+                                        </a>
+                                        <a class="u-social-url" title="instagram" target="_blank" href="https://instagram.com/name">
+                                            <span class="u-icon u-social-icon u-social-instagram u-text-black u-icon-4">
+                                                <svg class="u-svg-link" preserveAspectRatio="xMidYMin slice" viewBox="0 0 112 112" style=""><use xlink:href="#svg-b115"></use></svg>
+                                                <svg class="u-svg-content" viewBox="0 0 112 112" x="0" y="0" id="svg-b115">
+                                                    <circle fill="currentColor" cx="56.1" cy="56.1" r="55"></circle>
+                                                    <path fill="#FFFFFF" d="M55.9,38.2c-9.9,0-17.9,8-17.9,17.9C38,66,46,74,55.9,74c9.9,0,17.9-8,17.9-17.9C73.8,46.2,65.8,38.2,55.9,38.2
+z M55.9,66.4c-5.7,0-10.3-4.6-10.3-10.3c-0.1-5.7,4.6-10.3,10.3-10.3c5.7,0,10.3,4.6,10.3,10.3C66.2,61.8,61.6,66.4,55.9,66.4z"></path>
+                                                    <path fill="#FFFFFF" d="M74.3,33.5c-2.3,0-4.2,1.9-4.2,4.2s1.9,4.2,4.2,4.2s4.2-1.9,4.2-4.2S76.6,33.5,74.3,33.5z"></path>
+                                                    <path fill="#FFFFFF" d="M73.1,21.3H38.6c-9.7,0-17.5,7.9-17.5,17.5v34.5c0,9.7,7.9,17.6,17.5,17.6h34.5c9.7,0,17.5-7.9,17.5-17.5V38.8
+C90.6,29.1,82.7,21.3,73.1,21.3z M83,73.3c0,5.5-4.5,9.9-9.9,9.9H38.6c-5.5,0-9.9-4.5-9.9-9.9V38.8c0-5.5,4.5-9.9,9.9-9.9h34.5
+c5.5,0,9.9,4.5,9.9,9.9V73.3z"></path>
+                                                </svg>
+                                            </span>
+                                        </a>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            </section>
-
-            <section class="pricing">
-                <div class="container">
-                    <div class="section-header">
-                        <h2>@SharedResource.pricingSectionHeading</h2>
-                        <p>@SharedResource.pricingSectionDescription</p>
-                    </div>
-                    <div class="pricing-grid">
-                        <div class="card pricing-card">
-                            <div class="card-header">
-                                <h3>Starter</h3>
-                                <div class="price">$29</div>
-                                <p>per month</p>
+                    <div class="u-size-30">
+                        <div class="u-layout-row">
+                            <div class="u-container-style u-grey-5 u-layout-cell u-radius u-shape-round u-size-20 u-layout-cell-3" data-animation-name="flipIn" 
+                            data-animation-duration="2000" data-animation-delay="0" data-animation-direction="X">
+                                <div class="u-container-layout u-valign-middle u-container-layout-3">
+                                    <h4 class="u-text u-text-5">Why Choose Our Learning Center?</h4>
+                                    <a href="#" class="u-black u-border-none u-btn u-button-style u-btn-1">Get Started </a>
+                                </div>
                             </div>
-                            <div class="card-content">
-                                <ul class="feature-list">
-                                    <li><i class="fas fa-check"></i> 1 establishment location</li>
-                                    <li><i class="fas fa-check"></i> Up to 50 menu items</li>
-                                    <li><i class="fas fa-check"></i> Basic analytics</li>
-                                    <li><i class="fas fa-check"></i> Email support</li>
-                                </ul>
-                            </div>
-                            <div class="card-footer">
-                                <a href="signup.html" class="btn btn-primary btn-full">Get Started</a>
-                            </div>
-                        </div>
-                        <div class="card pricing-card popular">
-                            <div class="popular-tag">Popular</div>
-                            <div class="card-header">
-                                <h3>Professional</h3>
-                                <div class="price">$79</div>
-                                <p>per month</p>
-                            </div>
-                            <div class="card-content">
-                                <ul class="feature-list">
-                                    <li><i class="fas fa-check"></i> Up to 3 establishment locations</li>
-                                    <li><i class="fas fa-check"></i> Unlimited menu items</li>
-                                    <li><i class="fas fa-check"></i> Advanced analytics</li>
-                                    <li><i class="fas fa-check"></i> Priority email support</li>
-                                    <li><i class="fas fa-check"></i> Custom branding</li>
-                                </ul>
-                            </div>
-                            <div class="card-footer">
-                                <a href="signup.html" class="btn btn-primary btn-full">Get Started</a>
-                            </div>
-                        </div>
-                        <div class="card pricing-card">
-                            <div class="card-header">
-                                <h3>Enterprise</h3>
-                                <div class="price">$199</div>
-                                <p>per month</p>
-                            </div>
-                            <div class="card-content">
-                                <ul class="feature-list">
-                                    <li><i class="fas fa-check"></i> Unlimited establishment locations</li>
-                                    <li><i class="fas fa-check"></i> Unlimited menu items</li>
-                                    <li><i class="fas fa-check"></i> Advanced analytics & reporting</li>
-                                    <li><i class="fas fa-check"></i> 24/7 phone & email support</li>
-                                    <li><i class="fas fa-check"></i> Custom development</li>
-                                </ul>
-                            </div>
-                            <div class="card-footer">
-                                <a href="contact.html" class="btn btn-primary btn-full">Contact Sales</a>
+   
+                            <div class="u-container-align-center u-container-style u-image u-image-round u-layout-cell u-radius u-size-40 u-image-1"
+                                 data-image-width="425" data-image-height="283" data-animation-name="customAnimationIn" 
+                                 data-animation-duration="2000" data-animation-delay="0" style="will-change: transform, opacity; animation-duration: 2000ms;">
+                                <div class="u-container-layout u-container-layout-4"></div>
+                                   
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </section>
-
-            <section class="cta">
-                <div class="container">
-                    <div class="cta-content">
-                        <h2>@SharedResource.ctaSectionHeading</h2>
-                        <p>@SharedResource.ctaSectionDescription</p>
-                        <div class="cta-buttons">
-                            <a href="signup.html" class="btn btn-primary btn-lg">@SharedResource.getStarted</a>
-                            <a href="contact.html" class="btn btn-outline btn-lg">@SharedResource.contactUs</a>
+            </div>
+        </div>
+    </section>
+    <section class="u-clearfix u-container-align-center u-section-2" id="sec-008c">
+        <div class="u-clearfix u-sheet u-valign-middle u-sheet-1">
+            <h2 class="u-align-center u-text u-text-default u-text-1">Unlock Your Potential with Our Courses</h2>
+            <p class="u-align-center u-text u-text-2">Our expertly designed curriculum offers dynamic learning experiences to inspire growth and success..</p>
+            <a href="#" class="u-black u-border-none u-btn u-button-style u-btn-1">Contact Us  </a>
+        </div>
+    </section>
+    <section class="skrollable u-clearfix u-image u-parallax u-section-3" id="sec-3c99" data-image-width="425"
+    data-image-height="283">
+        
+        <div class="u-clearfix u-sheet u-sheet-1">
+            
+            <div class="u-container-style u-group u-radius u-shape-round u-white u-group-1" data-animation-name="customAnimationIn" data-animation-duration="2000" data-animation-delay="0">
+                
+                <div class="u-container-layout u-valign-top u-container-layout-1">
+                    <h3 class="u-text u-text-default u-text-1">Hands-On Workshops</h3>
+                    <p class="u-text u-text-default u-text-2"> Dive into engaging, practical sessions led by passionate educators to enhance your skills..</p><span class="u-file-icon u-icon u-icon-1" data-href="#">
+                        <img src="~/images/20959.png" alt=""></span>
+                </div>
+            </div>
+        </div>
+    </section>
+    <section class="skrollable u-clearfix u-container-align-center u-image u-parallax u-section-4" id="sec-94b6" data-image-width="425" data-image-height="283">
+        <div class="u-clearfix u-sheet u-sheet-1"></div>
+    </section>
+    <section class="u-clearfix u-valign-middle u-section-5" id="sec-2daa">
+        <div class="data-layout-selected u-clearfix u-expanded-width u-gutter-30 u-layout-wrap u-layout-wrap-1">
+            <div class="u-layout">
+                <div class="u-layout-row">
+                    <div class="u-container-align-center u-container-style u-image u-image-round u-layout-cell u-radius u-size-40 u-image-1" data-image-width="425" data-image-height="239" data-animation-name="customAnimationIn" data-animation-duration="2000" data-animation-delay="0">
+                        <div class="u-container-layout u-container-layout-1"></div>
+                    </div>
+                    <div class="u-container-align-left u-container-style u-grey-5 u-layout-cell u-radius u-shape-round u-size-20 u-layout-cell-2" data-animation-name="flipIn" data-animation-duration="2000" data-animation-delay="0" data-animation-direction="X">
+                        <div class="u-container-layout u-valign-middle u-container-layout-2">
+                            <ul class="u-align-left u-custom-font u-custom-list u-file-icon u-font-montserrat u-spacing-10 u-text u-text-default u-text-1">
+                                <li style="padding-left: 10px;">
+                                    <div class="u-list-icon">
+                                        <img src="~/images/35243881.png" alt="">
+                                    </div> Mathematics Excellence
+                                </li>
+                                <li style="padding-left: 10px;">
+                                    <div class="u-list-icon">
+                                        <img src="~/images/35243881.png" alt="">
+                                    </div>Science Discovery
+                                </li>
+                                <li style="padding-left: 10px;">
+                                    <div class="u-list-icon">
+                                        <img src="~/images/35243881.png" alt="">
+                                    </div>Language Mastery
+                                </li>
+                                <li style="padding-left: 10px;">
+                                    <div class="u-list-icon">
+                                        <img src="~/images/35243881.png" alt="">
+                                    </div>Coding Academy
+                                </li>
+                                <li style="padding-left: 10px;">
+                                    <div class="u-list-icon">
+                                        <img src="~/images/35243881.png" alt="">
+                                    </div>Critical Thinking
+                                </li>
+                                <li style="padding-left: 10px;">
+                                    <div class="u-list-icon">
+                                        <img src="~/images/35243881.png" alt="">
+                                    </div>Creative Arts
+                                </li>
+                            </ul>
+                            <p class="u-align-left u-text u-text-2"></p>
                         </div>
                     </div>
                 </div>
-            </section>
-        </main>
+            </div>
+        </div>
+    </section>
+    <section class="u-clearfix u-container-align-left u-section-6" id="sec-b8a6">
+        <div class="u-clearfix u-sheet u-sheet-1">
+            <div class="data-layout-selected u-clearfix u-expanded-width u-gutter-30 u-layout-wrap u-layout-wrap-1">
+                <div class="u-layout">
+                    <div class="u-layout-row">
+                        <div class="u-container-style u-layout-cell u-size-20 u-layout-cell-1">
+                            <div class="u-container-layout u-valign-top u-container-layout-1">
+                                <div class="u-container-align-left u-container-style u-expanded-width u-grey-5 u-group u-radius u-shape-round u-group-1" data-animation-name="flipIn" data-animation-duration="2000" data-animation-delay="0" data-animation-direction="X">
+                                    <div class="u-container-layout u-valign-middle u-container-layout-2">
+                                        <h5 class="u-align-left u-text u-text-default u-text-1"> Inspire Your Mind </h5>
+                                        <p class="u-align-left u-text u-text-default u-text-2">Begin a journey of academic discovery with our vibrant learning community..</p>
+                                    </div>
+                                </div>
+                                <img class="u-image u-image-circle u-image-1" src="~/images/portrait-robot-scifi.jpg" alt="" data-image-width="2000" data-image-height="2926" data-animation-name="customAnimationIn" data-animation-duration="2000" data-animation-delay="0">
+                                <p class="u-text u-text-3">Experience the thrill of learning through captivating lessons and resources.</p><span class="u-file-icon u-icon u-icon-1" data-href="#"><img src="~/images/20959.png" alt=""></span>
+                            </div>
+                        </div>
+                        <div class="u-container-align-center u-container-style u-layout-cell u-size-20 u-layout-cell-2">
+                            <div class="u-container-layout u-valign-middle u-container-layout-3">
+                                <div class="u-container-align-left u-container-style u-expanded-width u-grey-5 u-group u-radius u-shape-round u-group-2" data-animation-name="flipIn" data-animation-duration="2000" data-animation-delay="0" data-animation-direction="X">
+                                    <div class="u-container-layout u-valign-middle u-container-layout-4">
+                                        <h5 class="u-align-left u-text u-text-default u-text-4">Innovative Teaching</h5>
+                                        <p class="u-align-left u-text u-text-default u-text-5">Embrace modern educational methods that make learning both fun and effective.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="u-container-style u-layout-cell u-size-20 u-layout-cell-3">
+                            <div class="u-container-layout u-container-layout-5">
+                                <p class="u-text u-text-default u-text-6">Explore our diverse courses crafted to spark passion and drive academic achievement.</p>
+                                <div class="u-container-align-left u-container-style u-expanded-width-sm u-expanded-width-xs u-grey-5 u-group u-radius u-shape-round u-group-3" data-animation-name="flipIn" data-animation-duration="2000" data-animation-delay="0" data-animation-direction="X">
+                                    <div class="u-container-layout u-valign-middle u-container-layout-6">
+                                        <h5 class="u-align-left u-text u-text-default u-text-7"> Lifelong Learning</h5>
+                                        <p class="u-align-left u-text u-text-default u-text-8">Build a strong foundation for continuous growth with our comprehensive programs.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <section class="u-clearfix u-grey-5 u-valign-middle u-section-7" id="sec-dd8f">
+        <h2 class="u-align-center u-text u-text-default u-text-1">Elevate Your Skills with Our Learning Center</h2>
+        <div class="data-layout-selected u-clearfix u-expanded-width u-layout-wrap u-layout-wrap-1">
+            <div class="u-layout">
+                <div class="u-layout-row">
+                    <div class="u-container-style u-layout-cell u-size-30 u-layout-cell-1">
+                        <div class="u-container-layout u-valign-middle u-container-layout-1">
+                            <div class="u-expanded-width u-list u-list-1">
+                                <div class="u-repeater u-repeater-1">
+                                    <div class="u-border-1 u-border-grey-40 u-border-no-left u-border-no-right u-border-no-top u-container-style u-list-item u-repeater-item">
+                                        <div class="u-container-layout u-similar-container u-container-layout-2">
+                                            <span class="u-align-left u-file-icon u-icon u-icon-rounded u-palette-1-base u-radius u-text-white u-icon-1"><img src="~/images/3483127-d1c058cb.png" alt=""></span>
+                                            <h5 class="u-text u-text-default u-text-2">Master the Fundamentals</h5>
+                                            <p class="u-text u-text-3"> Discover our tailored courses designed to meet every learner’s unique needs.</p>
+                                        </div>
+                                    </div>
+                                    <div class="u-border-1 u-border-grey-40 u-border-no-left u-border-no-right u-border-no-top u-container-style u-list-item u-repeater-item">
+                                        <div class="u-container-layout u-similar-container u-container-layout-3">
+                                            <span class="u-align-left u-file-icon u-icon u-icon-rounded u-palette-1-base u-radius u-text-white u-icon-2"><img src="~/images/8593364-08248f1e.png" alt=""></span>
+                                            <h5 class="u-text u-text-default u-text-4"> Personalized Education</h5>
+                                            <p class="u-text u-text-5"> Create a customized learning path to achieve your academic and career goals.</p>
+                                        </div>
+                                    </div>
+                                    <div class="u-border-1 u-border-grey-40 u-border-no-left u-border-no-right u-border-no-top u-container-style u-list-item u-repeater-item">
+                                        <div class="u-container-layout u-similar-container u-container-layout-4">
+                                            <span class="u-align-left u-file-icon u-icon u-icon-rounded u-palette-1-base u-radius u-text-white u-icon-3"><img src="~/images/2591945-7b224637.png" alt=""></span>
+                                            <h5 class="u-text u-text-default u-text-6"> Holistic Skill-Building</h5>
+                                            <p class="u-text u-text-7">Develop essential skills to prepare for future challenges and opportunities.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="u-container-align-center u-container-style u-image u-image-round u-layout-cell u-radius u-size-30 u-image-1" data-image-width="425" data-image-height="283" data-animation-name="customAnimationIn" data-animation-duration="2000" data-animation-delay="0">
+                        <div class="u-container-layout u-container-layout-5"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <section class="u-clearfix u-container-align-left u-section-8" id="sec-ec68">
+        <div class="u-clearfix u-sheet u-valign-middle u-sheet-1">
+            <div class="u-accordion u-expanded-width u-faq u-accordion-1" role="tablist">
+                <div class="u-accordion-item">
+                    <a class="active u-accordion-link u-button-style u-custom-font u-font-montserrat u-text-body-color u-accordion-link-1" id="link-" aria-controls="" aria-selected="true" role="tab">
+                        <span class="u-accordion-link-text">  
+                            1. What courses does your learning center offer?</span><span class="u-accordion-link-icon u-black u-icon u-icon-rounded u-radius u-text-white u-icon-1">
+                            <svg class="u-svg-link" preserveAspectRatio="xMidYMin slice" viewBox="0 0 16 16" style=""><use xlink:href="#svg-2164"></use></svg>
+                            <svg class="u-svg-content" viewBox="0 0 16 16" x="0px" y="0px" id="svg-2164">
+                                <path d="M8,10.7L1.6,5.3c-0.4-0.4-1-0.4-1.3,0c-0.4,0.4-0.4,0.9,0,1.3l7.2,6.1c0.1,0.1,0.4,0.2,0.6,0.2s0.4-0.1,0.6-0.2l7.1-6
+	c0.4-0.4,0.4-0.9,0-1.3c-0.4-0.4-1-0.4-1.3,0L8,10.7z"></path>
+                            </svg>
+                        </span>
+                    </a>
+                    <div class="u-accordion-active u-accordion-pane u-container-style u-accordion-pane-1" aria-labelledby="link-" role="tabpanel">
+                        <div class="u-container-layout u-container-layout-1">
+                            <div class="fr-view u-clearfix u-rich-text u-text">
+                                <p>From STEM to arts, our diverse programs inspire and empower learners to excel.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="u-accordion-item">
+                    <a class="u-accordion-link u-button-style u-custom-font u-font-montserrat u-text-body-color u-accordion-link-2" id="link-" aria-controls="" aria-selected="false" role="tab">
+                        <span class="u-accordion-link-text">
+                            2. How can your programs benefit my academic journey?</span><span class="u-accordion-link-icon u-black u-icon u-icon-rounded u-radius u-text-white u-icon-2">
+                            <svg class="u-svg-link" preserveAspectRatio="xMidYMin slice" viewBox="0 0 16 16" style=""><use xlink:href="#svg-b44f"></use></svg>
+                            <svg class="u-svg-content" viewBox="0 0 16 16" x="0px" y="0px" id="svg-b44f">
+                                <path d="M8,10.7L1.6,5.3c-0.4-0.4-1-0.4-1.3,0c-0.4,0.4-0.4,0.9,0,1.3l7.2,6.1c0.1,0.1,0.4,0.2,0.6,0.2s0.4-0.1,0.6-0.2l7.1-6
+	c0.4-0.4,0.4-0.9,0-1.3c-0.4-0.4-1-0.4-1.3,0L8,10.7z"></path>
+                            </svg>
+                        </span>
+                    </a>
+                    <div class="u-accordion-pane u-container-style u-accordion-pane-2" id="" aria-labelledby="link-" role="tabpanel">
+                        <div class="u-container-layout u-container-layout-2">
+                            <div class="fr-view u-clearfix u-rich-text u-text">
+                                <p>Our personalized courses boost confidence and equip you with skills for success.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="u-accordion-item">
+                    <a class="u-accordion-link u-button-style u-custom-font u-font-montserrat u-text-body-color u-accordion-link-3" id="link-" aria-controls="" aria-selected="false" role="tab">
+                        <span class="u-accordion-link-text">
 
-        @Html.Partial("_LandingFooter")
-
+                            3. Who can join your learning center?
+                        </span><span class="u-accordion-link-icon u-black u-icon u-icon-rounded u-radius u-text-white u-icon-3">
+                            <svg class="u-svg-link" preserveAspectRatio="xMidYMin slice" viewBox="0 0 16 16" style=""><use xlink:href="#svg-f783"></use></svg>
+                            <svg class="u-svg-content" viewBox="0 0 16 16" x="0px" y="0px" id="svg-f783">
+                                <path d="M8,10.7L1.6,5.3c-0.4-0.4-1-0.4-1.3,0c-0.4,0.4-0.4,0.9,0,1.3l7.2,6.1c0.1,0.1,0.4,0.2,0.6,0.2s0.4-0.1,0.6-0.2l7.1-6
+	c0.4-0.4,0.4-0.9,0-1.3c-0.4-0.4-1-0.4-1.3,0L8,10.7z"></path>
+                            </svg>
+                        </span>
+                    </a>
+                    <div class="u-accordion-pane u-container-style u-accordion-pane-3" aria-labelledby="link-" role="tabpanel">
+                        <div class="u-container-layout u-container-layout-3">
+                            <div class="u-clearfix u-rich-text u-text">
+                                <p>We welcome learners of all ages, from young students to lifelong scholars.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="u-accordion-item">
+                    <a class="u-accordion-link u-button-style u-custom-font u-font-montserrat u-text-body-color u-accordion-link-4" id="link-ae24" aria-controls="ae24" aria-selected="false" role="tab">
+                        <span class="u-accordion-link-text">
+                            4. How long are your educational programs?
+                        </span><span class="u-accordion-link-icon u-black u-icon u-icon-rounded u-radius u-text-white u-icon-4">
+                            <svg class="u-svg-link" preserveAspectRatio="xMidYMin slice" viewBox="0 0 16 16" style=""><use xlink:href="#svg-1a33"></use></svg>
+                            <svg class="u-svg-content" viewBox="0 0 16 16" x="0px" y="0px" id="svg-1a33">
+                                <path d="M8,10.7L1.6,5.3c-0.4-0.4-1-0.4-1.3,0c-0.4,0.4-0.4,0.9,0,1.3l7.2,6.1c0.1,0.1,0.4,0.2,0.6,0.2s0.4-0.1,0.6-0.2l7.1-6
+	c0.4-0.4,0.4-0.9,0-1.3c-0.4-0.4-1-0.4-1.3,0L8,10.7z"></path>
+                            </svg>
+                        </span>
+                    </a>
+                    <div class="u-accordion-pane u-container-style u-accordion-pane-4" id="ae24" aria-labelledby="link-ae24" role="tabpanel">
+                        <div class="u-container-layout u-container-layout-4">
+                            <div class="u-clearfix u-rich-text u-text">
+                                <p> Our flexible courses are designed to fit your schedule and learning pace.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <section class="u-clearfix u-grey-5 u-section-9" id="sec-b6ec">
+        <img class="u-expanded-width u-image u-image-round u-radius u-image-1" 
+        src="~/images/md-duran-1VqHRwxcCCw-unsplash.jpg" alt=""
+             data-image-width="425" data-image-height="305" data-animation-name="fadeIn" 
+        data-animation-duration="1000" data-animation-delay="0">
+        <div class="u-container-style u-group u-radius u-shape-round u-white u-group-1" data-animation-name="customAnimationIn" data-animation-duration="2000" data-animation-delay="0">
+            <div class="u-container-layout u-container-layout-1">
+                <span class="u-align-left u-file-icon u-icon u-text-palette-1-base u-icon-1">
+                    <img src="~/images/527995-73b227c5.png" alt=""></span>
+                <h2 class="u-text u-text-default u-text-1">Cutting-Edge Educational Solutions</h2>
+                <ul class="u-custom-font u-custom-list u-file-icon u-font-montserrat u-spacing-10 u-text u-text-2">
+                    <li style="padding-left: 10px;">
+                        <div class="u-list-icon">
+                            <img src="~/images/35243881.png" alt="">
+                        </div> Mathematics Excellence
+                    </li>
+                    <li style="padding-left: 10px;">
+                        <div class="u-list-icon">
+                            <img src="~/images/35243881.png" alt="">
+                        </div>Science Discovery
+                    </li>
+                    <li style="padding-left: 10px;">
+                        <div class="u-list-icon">
+                            <img src="~/images/35243881.png" alt="">
+                        </div>Language Mastery
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </section>
+    <!-- //classes and subjects section -->
+    <!-- why choose block -->
+    <section class="w3l-service-1 py-5">
+        <div class="container py-md-5 py-4">
+            <div class="title-main text-center mx-auto mb-md-5 mb-4" style="max-width:500px;">
+                <p class="text-uppercase">Why Choose Us</p>
+                <h3 class="title-style">Empowering Designers and Developers</h3>
+            </div>
+            <div class="row content23-col-2 text-center">
+                <div class="col-md-6">
+                    <div class="content23-grid content23-grid1">
+                        <h4>Expert Mentors</h4>
+                        <p>Guided by professionals with extensive experience in creative and tech industries.</p>
+                    </div>
+                </div>
+                <div class="col-md-6 mt-md-0 mt-4">
+                    <div class="content23-grid content23-grid2">
+                        <h4>Inspiring Learning Spaces</h4>
+                        <p>Our academy offers a modern, collaborative environment tailored to creativity and innovation.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- //home image with content block -->
+    <!-- courses section -->
+    <div class="w3l-grids-block-5 home-course-bg py-5" id="courses">
+        <div class="container py-md-5 py-4">
+            <div class="title-main text-center mx-auto mb-md-5 mb-4" style="max-width:500px;">
+                <p class="text-uppercase">Best Courses</p>
+                <h3 class="title-style">Find The Right Course For You</h3>
+            </div>
+            <div class="row justify-content-center">
+                @if (false)
+                {
+                    foreach (var course in Model.Courses)
+                    {
+                        <div class="col-lg-4 col-md-6 mt-4">
+                            <div class="coursecard-single">
+                                <div class="grids5-info position-relative">
+                                    <img src="@Url.Content("~/images/classrom.jpg")" alt="Course Image" class="img-fluid" />
+                                    <div class="meta-list">
+                                        <span class="text-muted">@course.Name</span>
+                                    </div>
+                                </div>
+                                <div class="content-main-top">
+                                    <div class="content-top mb-4 mt-3">
+                                        <ul class="list-unstyled d-flex align-items-center justify-content-between">
+                                            <li><i class="fas fa-clock"></i> @course.Duration weeks</li>
+                                        </ul>
+                                    </div>
+                                    <h4><span class="text-muted">@course.Name</span></h4>
+                                    <p>@course.Description</p>
+                                    <div class="top-content-border d-flex align-items-center justify-content-between mt-4 pt-4">
+                                        <h6>Free</h6>
+                                        <span class="btn btn-style-primary disabled">Know Details <i class="fas fa-arrow-right"></i></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <p>No courses available at the moment.</p>
+                }
+            </div>
+            <div class="text-center mt-sm-5 mt-4 pt-sm-0 pt-1">
+                <span class="btn btn-style btn-style-secondary disabled mt-sm-3">
+                    Browse more courses
+                </span>
+            </div>
+        </div>
     </div>
+    <!-- //stats block -->
+    <!-- testimonials block -->
+    <section class="w3l-index4 py-5" id="testimonials">
+        <div class="container py-md-5 py-4">
+            <div class="content-slider text-center">
+                <div class="clients-slider">
+                    <div class="mask">
+                        <ul>
+                            <li class="anim1">
+                                <img src="~/images/testi1.jpg" class="img-fluid rounded-circle" alt="client image" />
+                                <blockquote class="quote">
+                                    <q>DevArt Academy transformed my journey into tech and design. The curriculum and mentorship provided here are unmatched!</q>
+                                </blockquote>
+                                <div class="source">- Mario Silva</div>
+                            </li>
 
+                            <li class="anim2">
+                                <img src="~/images/testi2.jpg" class="img-fluid rounded-circle" alt="client image" />
+                                <blockquote class="quote">
+                                    <q>The projects and real-world challenges at DevArt Academy prepared me for the tech industry. It’s been a phenomenal experience!</q>
+                                </blockquote>
+                                <div class="source">- Petey Cruz</div>
+                            </li>
+
+                            <li class="anim3">
+                                <img src="~/images/testi3.jpg" class="img-fluid rounded-circle" alt="client image" />
+                                <blockquote class="quote">
+                                    <q>I’ve grown so much as a designer. The supportive community and skilled mentors at DevArt Academy made all the difference.</q>
+                                </blockquote>
+                                <div class="source">- Ana Souza</div>
+                            </li>
+
+                            <li class="anim4">
+                                <img src="~/images/testi1.jpg" class="img-fluid rounded-circle" alt="client image" />
+                                <blockquote class="quote">
+                                    <q>It’s not just a school – it’s a network of creators. DevArt Academy is where innovation and creativity thrive!</q>
+                                </blockquote>
+                                <div class="source">- Gaila Ferreira</div>
+                            </li>
+
+                            <li class="anim5">
+                                <img src="~/images/testi2.jpg" class="img-fluid rounded-circle" alt="client image" />
+                                <blockquote class="quote">
+                                    <q>The skills and connections I gained here have been invaluable. My career in design took off thanks to DevArt Academy!</q>
+                                </blockquote>
+                                <div class="source">- Bruno Franco</div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <section class="u-clearfix u-container-align-left u-section-10" id="carousel_8ce7">
+        <div class="u-clearfix u-sheet u-sheet-1">
+            <h3 class="u-align-left u-text u-text-1"> Shape Your Academic Future</h3>
+            <div class="u-expanded-width u-list u-list-1">
+                <div class="u-repeater u-repeater-1">
+                    <div class="u-container-align-center u-container-style u-grey-5 u-list-item u-radius u-repeater-item u-shape-round u-list-item-1" data-animation-name="flipIn" data-animation-duration="1000" data-animation-direction="X">
+                        <div class="u-container-layout u-similar-container u-valign-middle u-container-layout-1">
+                            <img class="u-image u-image-contain u-image-default u-image-1" src="~/images/logo4.png" alt="" data-image-width="274" data-image-height="131">
+                            <h5 class="u-align-center u-text u-text-default u-text-2"> Interactive Learning Labs</h5>
+                            <p class="u-align-center u-text u-text-default-lg u-text-default-md u-text-default-xl u-text-3">
+                                Engage in hands-on activities that make education exciting and impactful.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="u-container-align-center u-container-style u-grey-5 u-list-item u-radius u-repeater-item u-shape-round u-list-item-2" data-animation-name="flipIn" data-animation-duration="1000" data-animation-direction="X">
+                        <div class="u-container-layout u-similar-container u-valign-middle u-container-layout-2">
+                            <img class="u-image u-image-contain u-image-default u-image-2" src="~/images/logo5.png" alt="" data-image-width="153" data-image-height="124">
+                            <h5 class="u-align-center u-text u-text-default u-text-4">Expert Instructors </h5>
+                            <p class="u-align-center u-text u-text-default-lg u-text-default-md u-text-default-xl u-text-5">
+                                Learn from dedicated educators committed to your academic growth.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="u-container-align-center u-container-style u-grey-5 u-list-item u-radius u-repeater-item u-shape-round u-list-item-3" data-animation-name="flipIn" data-animation-duration="2000" data-animation-delay="0" data-animation-direction="X">
+                        <div class="u-container-layout u-similar-container u-valign-middle u-container-layout-3">
+                            <img class="u-image u-image-contain u-image-default u-image-3" src="~/images/logo8.png" alt="" data-image-width="401" data-image-height="152">
+                            <h5 class="u-align-center u-text u-text-default u-text-6">Career-Ready Skills </h5>
+                            <p class="u-align-center u-text u-text-default-lg u-text-default-md u-text-default-xl u-text-7">
+                                Gain practical skills to thrive in today’s competitive world.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="u-container-align-center u-container-style u-grey-5 u-list-item u-radius u-repeater-item u-shape-round u-list-item-4" data-animation-name="flipIn" data-animation-duration="1000" data-animation-direction="X">
+                        <div class="u-container-layout u-similar-container u-valign-middle u-container-layout-4">
+                            <img class="u-image u-image-contain u-image-default u-image-4" src="~/images/logo6.png" alt="" data-image-width="144" data-image-height="184">
+                            <h5 class="u-align-center u-text u-text-default u-text-8">Vibrant Community</h5>
+                            <p class="u-align-center u-text u-text-default-lg u-text-default-md u-text-default-xl u-text-9">
+                                Join a supportive learning community that fosters collaboration and success.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+
+    @Html.Partial("_LandingFooter")
+    <section class="u-backlink u-clearfix u-grey-80"></section>
     <script>
         document.getElementById('current-year').textContent = new Date().getFullYear();
 
@@ -206,35 +569,34 @@
         });
     </script>
     @section Scripts {
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script>
-        const connection = new signalR.HubConnectionBuilder()
-            .withUrl("/chatHub")
-            .build();
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <script>
+            const connection = new signalR.HubConnectionBuilder()
+                .withUrl("/chatHub")
+                .build();
 
-      
 
-        connection.start()
-            .then(() => console.log("SignalR Connected"))
-            .catch(err => {
-                console.error("SignalR Connection Error:", err);
-                $("#status").text("Failed to connect to chat server");
-            });
-                            // معالج استقبال الإشعارات للرسائل الخاصة
-            connection.on("ReceiveNotification", (sender, message) => {
-                if (Notification.permission === "granted") {
-                    new Notification(`رسالة جديدة من ${sender}`, {
-                        body: message,
-                            icon: 'success' // استبدل بمسار أيقونة فعلي
-                    });
-                }
-            });
-                  
-    </script>
+
+            connection.start()
+                .then(() => console.log("SignalR Connected"))
+                .catch(err => {
+                    console.error("SignalR Connection Error:", err);
+                    $("#status").text("Failed to connect to chat server");
+                });
+                                // معالج استقبال الإشعارات للرسائل الخاصة
+                connection.on("ReceiveNotification", (sender, message) => {
+                    if (Notification.permission === "granted") {
+                        new Notification(`رسالة جديدة من ${sender}`, {
+                            body: message,
+                                icon: 'success' // استبدل بمسار أيقونة فعلي
+                        });
+                    }
+                });
+
+        </script>
     }
     </script>
+    <script class="u-script" type="text/javascript" src="~/js/jquery.js" defer=""></script>
+    <script class="u-script" type="text/javascript" src="~/js/nicepage.js" defer=""></script>
 </body>
-
-
-
