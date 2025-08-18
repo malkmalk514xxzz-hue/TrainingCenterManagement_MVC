@@ -12,6 +12,24 @@
                     <h4 class="mb-0">Create New Course</h4>
                 </div>
                 <div class="card-body">
+
+                    <!-- Success / Error Messages -->
+                    @if (TempData["SuccessMessage"] != null)
+                    {
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            @TempData["SuccessMessage"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    }
+
+                    @if (TempData["ErrorMessage"] != null)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            @TempData["ErrorMessage"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    }
+
                     <form asp-action="Create">
                         <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
@@ -60,13 +78,13 @@
 
                             <div class="col-md-6">
                                 <label asp-for="CreatedDate" class="form-label fw-bold"></label>
-                                <input asp-for="CreatedDate" class="form-control" />
+                                <input asp-for="CreatedDate" class="form-control" type="datetime-local" />
                                 <span asp-validation-for="CreatedDate" class="text-danger"></span>
                             </div>
 
                             <div class="col-md-6">
                                 <label asp-for="ReleaseDate" class="form-label fw-bold"></label>
-                                <input asp-for="ReleaseDate" class="form-control" />
+                                <input asp-for="ReleaseDate" class="form-control" type="datetime-local" />
                                 <span asp-validation-for="ReleaseDate" class="text-danger"></span>
                             </div>
 
@@ -103,7 +121,5 @@
 </div>
 
 @section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
+    @await Html.RenderPartialAsync("_ValidationScriptsPartial")
 }

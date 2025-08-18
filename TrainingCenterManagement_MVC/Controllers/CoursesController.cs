@@ -67,14 +67,26 @@ namespace TrainingCenterManagement_MVC.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("CourseId,CourseName,BatchNumber,NumberOfLectures,Price,Description,VideoUrl,ThumbnailUrl,CreatedDate,ReleaseDate,IsDeleted,AdminId")] Course course)
         {
-           
-            
+            // Check if course with same name and batch exists
+            var courseExists = await _context.Courses
+                .AnyAsync(c => c.CourseName == course.CourseName && c.BatchNumber == course.BatchNumber);
+
+            if (courseExists)
+            {
+                ModelState.AddModelError("", "Course with the same name and batch number already exists.");
+                ViewData["AdminId"] = new SelectList(_context.Admins, "AdminId", "UserId", course.AdminId);
+                return View(course);
+            }
+
+            // Assign new ID and add course
             course.CourseId = Guid.NewGuid();
             _context.Add(course);
             await _context.SaveChangesAsync();
-            ViewData["AdminId"] = new SelectList(_context.Admins, "AdminId", "UserId", course.AdminId);
+
+            // Redirect to Index after successful creation
             return RedirectToAction(nameof(Index));
         }
+
 
         // GET: Courses/Edit/5
         public async Task<IActionResult> Edit(Guid? id)
