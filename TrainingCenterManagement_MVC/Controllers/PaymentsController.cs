@@ -60,96 +60,54 @@ namespace TrainingCenterManagement_MVC.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("PaymentId,TotalAmount,CreatedDate,IsDeleted,TraineeId,CourseId")] Payment payment)
+        public async Task<IActionResult> Create(Payment payment)
         {
-            if (ModelState.IsValid)
+            var course = await _context.Courses.FindAsync(payment.CourseId);
+            var trianeePayments = await _context.Payments
+                .Where(p => p.TraineeId == payment.TraineeId && p.CourseId == payment.CourseId)
+                .ToListAsync();
+         
+            
+             decimal totalAmount = trianeePayments.Count > 0? trianeePayments.Sum(p => p.TotalAmount): 0;
+            // if AmountCourse bigger than TotalAmount
+            if (totalAmount == course.Price)
             {
-                // احسب مجموع الدفعات السابقة لنفس الطالب ونفس الدورة
-                var totalPaid = await _context.Payments
-                    .Where(p => p.TraineeId == payment.TraineeId && p.CourseId == payment.CourseId)
-                    .SumAsync(p => (decimal?)p.TotalAmount) ?? 0;
+             
+                TempData["ErrorMessage"] = "The total amount to Course is Complete";
+                return View(payment);
 
-                var course = await _context.Courses.FindAsync(payment.CourseId);
-                if (course == null)
-                {
-                    TempData["ErrorMessage"] = "الدورة غير موجودة.";
-                    return RedirectToAction(nameof(Index));
-                }
-
-                if (totalPaid + payment.TotalAmount > (decimal)course.Price)
-                {
-                    TempData["ErrorMessage"] = "لا يمكن أن يتجاوز مجموع المدفوعات سعر الدورة.";
-                    return RedirectToAction(nameof(Index));
-                }
-
-                payment.PaymentId = Guid.NewGuid();
-                payment.CreatedDate = DateTime.Now;
-
-                _context.Add(payment);
-                await _context.SaveChangesAsync();
-                TempData["SuccessMessage"] = "تم الدفع بنجاح.";
-                return RedirectToAction(nameof(Index));
             }
-
-            ViewData["CourseId"] = new SelectList(_context.Courses, "CourseId", "CourseName", payment.CourseId);
-            ViewData["TraineeId"] = new SelectList(_context.Trainees, "TraineeId", "UserId", payment.TraineeId);
-            return View(payment);
-        }
-
-
-        // GET: Payments/Edit/5
-        public async Task<IActionResult> Edit(Guid? id)
-        {
-            if (id == null)
+            var modifiedAmount = course.Price - totalAmount;
+            // if Payment Amount bigger than Course Price
+            if (modifiedAmount < payment.TotalAmount)
             {
-                return NotFound();
+               
+                TempData["ErrorMessage"] = "The modifiedAmount less than Payment.";
+                return View(payment);
             }
-
-            var payment = await _context.Payments.FindAsync(id);
-            if (payment == null)
-            {
-                return NotFound();
-            }
-            ViewData["CourseId"] = new SelectList(_context.Courses, "CourseId", "CourseName", payment.CourseId);
-            ViewData["TraineeId"] = new SelectList(_context.Trainees, "TraineeId", "UserId", payment.TraineeId);
-            return View(payment);
-        }
-
-        // POST: Payments/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Guid id, [Bind("PaymentId,TotalAmount,CreatedDate,IsDeleted,TraineeId,CourseId")] Payment payment)
-        {
-            if (id != payment.PaymentId)
-            {
-                return NotFound();
-            }
-
-            if (ModelState.IsValid)
+            if(payment.TotalAmount +totalAmount<=course.Price)
             {
                 try
                 {
-                    _context.Update(payment);
+                    _context.Add(payment);
                     await _context.SaveChangesAsync();
+                    TempData["SuccessMessage"] = "Payment created successfully.";
+                    return RedirectToAction(nameof(Index));
                 }
-                catch (DbUpdateConcurrencyException)
+                catch
                 {
-                    if (!PaymentExists(payment.PaymentId))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
+                    TempData["ErrorMessage"] = "An error occurred while creating the payment.";
+                    return View(payment);
+
                 }
-                return RedirectToAction(nameof(Index));
+
             }
-            ViewData["CourseId"] = new SelectList(_context.Courses, "CourseId", "CourseName", payment.CourseId);
-            ViewData["TraineeId"] = new SelectList(_context.Trainees, "TraineeId", "UserId", payment.TraineeId);
-            return View(payment);
+            else
+            {
+                TempData["ErrorMessage"] = "The total amount Big than modified";
+                return View(payment);
+            }
+
         }
 
         // GET: Payments/Delete/5
