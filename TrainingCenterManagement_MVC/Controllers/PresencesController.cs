@@ -1,12 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Rotativa.AspNetCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Security.Claims;
+using System.Threading.Tasks;
 using TrainingCenterManagement_MVC.Data;
 using TrainingCenterManagement_MVC.Models;
 using TrainingCenterManagement_MVC.ViewModels;
@@ -23,150 +24,6 @@ namespace TrainingCenterManagement_MVC.Controllers
             _context = context;
         }
 
-        // GET: Presences
-        public async Task<IActionResult> Index()
-        {
-            var applicationDbContext = _context.Presences.Include(p => p.Lecture).Include(p => p.Trainee);
-            return View(await applicationDbContext.ToListAsync());
-        }
-
-        // GET: Presences/Details/5
-        public async Task<IActionResult> Details(Guid? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var presence = await _context.Presences
-                .Include(p => p.Lecture)
-                .Include(p => p.Trainee)
-                .FirstOrDefaultAsync(m => m.PresenceId == id);
-            if (presence == null)
-            {
-                return NotFound();
-            }
-
-            return View(presence);
-        }
-
-        // GET: Presences/Create
-        public IActionResult Create()
-        {
-            ViewData["LectureId"] = new SelectList(_context.Lectures, "LectureId", "Title");
-            ViewData["TraineeId"] = new SelectList(_context.Trainees, "TraineeId", "UserId");
-            return View();
-        }
-
-        // POST: Presences/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("PresenceId,IsPresent,IsDeleted,LectureId,TraineeId")] Presence presence)
-        {
-           
-                presence.PresenceId = Guid.NewGuid();
-                _context.Add(presence);
-                await _context.SaveChangesAsync();
-          
-            ViewData["LectureId"] = new SelectList(_context.Lectures, "LectureId", "Title", presence.LectureId);
-            ViewData["TraineeId"] = new SelectList(_context.Trainees, "TraineeId", "UserId", presence.TraineeId);
-            return RedirectToAction(nameof(Index));
-        }
-
-        // GET: Presences/Edit/5
-        public async Task<IActionResult> Edit(Guid? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var presence = await _context.Presences.FindAsync(id);
-            if (presence == null)
-            {
-                return NotFound();
-            }
-            ViewData["LectureId"] = new SelectList(_context.Lectures, "LectureId", "Title", presence.LectureId);
-            ViewData["TraineeId"] = new SelectList(_context.Trainees, "TraineeId", "UserId", presence.TraineeId);
-            return View(presence);
-        }
-
-        // POST: Presences/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Guid id, [Bind("PresenceId,IsPresent,IsDeleted,LectureId,TraineeId")] Presence presence)
-        {
-            if (id != presence.PresenceId)
-            {
-                return NotFound();
-            }
-
-           
-                try
-                {
-                    _context.Update(presence);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!PresenceExists(presence.PresenceId))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-         
-            ViewData["LectureId"] = new SelectList(_context.Lectures, "LectureId", "Title", presence.LectureId);
-            ViewData["TraineeId"] = new SelectList(_context.Trainees, "TraineeId", "UserId", presence.TraineeId);
-            return RedirectToAction(nameof(Index));
-        }
-
-        // GET: Presences/Delete/5
-        public async Task<IActionResult> Delete(Guid? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var presence = await _context.Presences
-                .Include(p => p.Lecture)
-                .Include(p => p.Trainee)
-                .FirstOrDefaultAsync(m => m.PresenceId == id);
-            if (presence == null)
-            {
-                return NotFound();
-            }
-
-            return View(presence);
-        }
-
-        // POST: Presences/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(Guid id)
-        {
-            var presence = await _context.Presences.FindAsync(id);
-            if (presence != null)
-            {
-                _context.Presences.Remove(presence);
-            }
-
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
-        }
-
-        private bool PresenceExists(Guid id)
-        {
-            return _context.Presences.Any(e => e.PresenceId == id);
-        }
         public async Task<IActionResult> MarkAttendance(Guid lectureId)
         {
             var lecture = await _context.Lectures
@@ -320,6 +177,8 @@ namespace TrainingCenterManagement_MVC.Controllers
 
             return View(viewModel);
         }
+
+
 
     }
 }

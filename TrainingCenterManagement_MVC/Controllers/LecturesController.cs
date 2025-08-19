@@ -1,15 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Security.Claims;
+using System.Threading.Tasks;
+using System.Web;
 using TrainingCenterManagement_MVC.Data;
 using TrainingCenterManagement_MVC.Models;
 using TrainingCenterManagement_MVC.ViewModels;
-using System.Web;
 
 
 namespace TrainingCenterManagement_MVC.Controllers
@@ -26,28 +27,67 @@ namespace TrainingCenterManagement_MVC.Controllers
         // GET: Lectures
         public async Task<IActionResult> Index()
         {
-            var applicationDbContext = _context.Lectures.Include(l => l.Course).OrderByDescending(p=>p.LectureDate);
-            return View(await applicationDbContext.ToListAsync());
+            var coursesWithLectures = await _context.Courses
+                .Include(c => c.Lectures)
+                .OrderBy(c => c.CourseName)
+                .ToListAsync();
+
+            return View(coursesWithLectures);
         }
+
 
         // GET: Lectures/Details/5
         public async Task<IActionResult> Details(Guid? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            if (id == null) return NotFound();
 
             var lecture = await _context.Lectures
                 .Include(l => l.Course)
                 .FirstOrDefaultAsync(m => m.LectureId == id);
-            if (lecture == null)
+
+            if (lecture == null) return NotFound();
+
+            // تسجيل حضور الطالب تلقائيًا إذا كان Trainee
+            if (User.IsInRole("Trainee"))
             {
-                return NotFound();
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                // تحقق أولاً من أن الـ Trainee موجود فعلاً
+                // جلب المتدرب المرتبط بالمستخدم الحالي
+                var trainee = await _context.Trainees.FirstOrDefaultAsync(t => t.UserId == userId);
+                if (trainee == null)
+                {
+                    return BadRequest("Trainee record not found for this user.");
+                }
+
+                var traineeId = trainee.TraineeId;
+
+                var nextLecture = await _context.Lectures
+                      .Where(l => l.CourseId == lecture.CourseId && l.LectureDate > lecture.LectureDate)
+                      .OrderBy(l => l.LectureDate)
+                      .FirstOrDefaultAsync();
+
+                var alreadyPresent = await _context.Presences
+                    .AnyAsync(p => p.TraineeId == traineeId && p.LectureId == lecture.LectureId);
+
+
+                if (nextLecture == null && !alreadyPresent)
+                {
+                    var presence = new Presence
+                    {
+                        PresenceId = Guid.NewGuid(),
+                        LectureId = lecture.LectureId,
+                        TraineeId = traineeId,
+                        IsPresent = true
+                    };
+
+                    _context.Presences.Add(presence);
+                    await _context.SaveChangesAsync();
+                }
             }
 
             return View(lecture);
         }
+
 
         // GET: Lectures/Create
         public IActionResult Create()
@@ -303,6 +343,7 @@ namespace TrainingCenterManagement_MVC.Controllers
             TempData["SuccessMessage"] = "Attendance has been saved successfully.";
             return RedirectToAction(nameof(ViewLecture), new { id = lectureId });
         }
+
 
     }
 }
