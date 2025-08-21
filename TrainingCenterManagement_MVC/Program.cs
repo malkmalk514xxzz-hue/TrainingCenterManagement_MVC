@@ -66,6 +66,7 @@ builder.Services.AddSignalR(options =>
     options.PayloadSerializerOptions.PropertyNamingPolicy = null;
 });
 // Inject UserHelper 
+builder.Services.AddScoped<DashboardHelper>();
 builder.Services.AddScoped<IUserHelper, UserHelper>();
 // Add Role Initializer
 builder.Services.AddScoped<RoleInitializer>();

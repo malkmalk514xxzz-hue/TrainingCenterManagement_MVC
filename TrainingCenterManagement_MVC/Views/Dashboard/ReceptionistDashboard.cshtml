@@ -1,11 +1,11 @@
 ﻿@using TrainingCenterManagement_MVC.Resources
 @{
-    ViewData["Title"] = SharedResource.AdminDashboard_Title + " || TableTap";
+    ViewData["Title"] = "Receptionist Dashboard";
 }
 
 <body>
     <div class="dashboard-wrapper">
-        @await Html.PartialAsync("_AdminSidebar")
+        @await Html.PartialAsync("_ReceptionistSidebar")
 
         <main class="dashboard-main">
             <div class="dashboard-header">

@@ -1709,25 +1709,25 @@
   .admin-table tbody tr:hover {
     background-color: var(--muted);
   }
-  
-  .restaurant-info {
+
+.courses-info {
     display: flex;
     align-items: center;
     gap: 0.75rem;
-  }
-  
-  .restaurant-img {
+}
+
+.courses-img {
     width: 2.5rem;
     height: 2.5rem;
     border-radius: 0.25rem;
     object-fit: cover;
-  }
-  
-  .restaurant-name {
+}
+
+.courses-name {
     font-weight: 500;
-  }
+}
   
-  .restaurant-id {
+  .courses-id {
     font-size: 0.75rem;
     color: var(--muted-foreground);
   }

@@ -196,7 +196,7 @@
     <value>🔒 آمن وبدون الحاجة لأي تطبيق.</value>
   </data>
   <data name="TableTapFeatures" xml:space="preserve">
-    <value>مميزات TableTap</value>
+    <value>تحليل أداء واتجاهات التسجيل في الكورسات.</value>
   </data>
   <data name="EaseAccess" xml:space="preserve">
     <value>سهولة الوصول</value>
@@ -363,9 +363,6 @@
   <data name="TotalRequests" xml:space="preserve">
     <value>إجمالي الطلبات</value>
   </data>
-  <data name="AdminNavigation" xml:space="preserve">
-    <value>تنقل المسؤول</value>
-  </data>
   <data name="Facilities" xml:space="preserve">
     <value>المرافق</value>
   </data>
@@ -424,7 +421,7 @@
     <value>لوحة تحكم المستخدم</value>
   </data>
   <data name="signup" xml:space="preserve">
-    <value>إنشاء حساب</value>
+    <value>سجل الان </value>
   </data>
   <data name="heroHeading" xml:space="preserve">
     <value>قوائم رقمية للمؤسسات الحديثة</value>
@@ -544,7 +541,7 @@
     <value>مستخدم المسؤول</value>
   </data>
   <data name="AdminEmail" xml:space="preserve">
-    <value>admin@tabletap.com</value>
+    <value>admin@site.com</value>
   </data>
   <data name="AdminDashboard_Header" xml:space="preserve">
     <value>لوحة تحكم المسؤول</value>
@@ -592,7 +589,7 @@
     <value>الإيرادات</value>
   </data>
   <data name="Tab_Users" xml:space="preserve">
-    <value>المستخدمون</value>
+    <value>تحليلات الكورسات </value>
   </data>
   <data name="Tab_Restaurants" xml:space="preserve">
     <value>المطاعم</value>
@@ -701,5 +698,158 @@
   </data>
   <data name="Chat" xml:space="preserve">
     <value>الدردشة</value>
+  </data>
+  <data name="AdminNavigation" xml:space="preserve">
+    <value>تنقل المسؤول</value>
+  </data>
+  <data name="Stat_TotalCourses" xml:space="preserve">
+    <value>إجمالي الكورسات </value>
+  </data>
+  <data name="Stat_ActiveStudents" xml:space="preserve">
+    <value>الطلاب النشطون </value>
+  </data>
+  <data name="Stat_ActiveInstitutes" xml:space="preserve">
+    <value>المعاهد النشطة</value>
+  </data>
+  <data name="Tab_Students" xml:space="preserve">
+    <value>الطلاب</value>
+  </data>
+  <data name="Analytics_CoursesTitle" xml:space="preserve">
+    <value>تحليلات الكورسات</value>
+  </data>
+  <data name="Analytics_CoursesDescription" xml:space="preserve">
+    <value>تحليل أداء واتجاهات التسجيل في الكورسات.</value>
+  </data>
+  <data name="Analytics_StudentsTitle" xml:space="preserve">
+    <value>تحليلات الطلاب</value>
+  </data>
+  <data name="Analytics_StudentsDescription" xml:space="preserve">
+    <value>رؤى حول تفاعل الطلاب ونشاطهم.</value>
+  </data>
+  <data name="ThisMonth" xml:space="preserve">
+    <value>هذا الشهر</value>
+  </data>
+  <data name="LastMonth" xml:space="preserve">
+    <value>الشهر الماضي </value>
+  </data>
+  <data name="Courses" xml:space="preserve">
+    <value>الكورسات</value>
+  </data>
+  <data name="Tab_Courses" xml:space="preserve">
+    <value>الكورسات</value>
+  </data>
+  <data name="Revenue" xml:space="preserve">
+    <value>نظرة عامة</value>
+  </data>
+  <data name="Students" xml:space="preserve">
+    <value>الطلاب</value>
+  </data>
+  <data name="Error_LoadingData" xml:space="preserve">
+    <value>خطأ في جلب البيانات</value>
+  </data>
+  <data name="Presences" xml:space="preserve">
+    <value> الحضور</value>
+  </data>
+  <data name="PresencesControll" xml:space="preserve">
+    <value>ادارة الحضور</value>
+  </data>
+  <data name="ReceptionistsControll" xml:space="preserve">
+    <value>ادارة الاستقبال</value>
+  </data>
+  <data name="LecturesControll" xml:space="preserve">
+    <value>ادارة المحاضرات</value>
+  </data>
+  <data name="CertificatesControll" xml:space="preserve">
+    <value>ادارة الشهادات </value>
+  </data>
+  <data name="TrainersControll" xml:space="preserve">
+    <value>ادارة المتدربين</value>
+  </data>
+  <data name="TraineeDashboard_Title" xml:space="preserve">
+    <value>لوحة تحكم المتدرب</value>
+  </data>
+  <data name="TraineeDashboard_Header" xml:space="preserve">
+    <value> مرحبا</value>
+  </data>
+  <data name="Stat_TotalProgress" xml:space="preserve">
+    <value>التقدم الإجمالي</value>
+  </data>
+  <data name="Stat_EnrolledCourses" xml:space="preserve">
+    <value>الدورات المسجلة</value>
+  </data>
+  <data name="Stat_CompletedHours" xml:space="preserve">
+    <value>الساعات المكتملة</value>
+  </data>
+  <data name="Stat_CompletedExams" xml:space="preserve">
+    <value>الاختبارات المكتملة</value>
+  </data>
+  <data name="Stat_AttendanceRate" xml:space="preserve">
+    <value>معدل الحضور</value>
+  </data>
+  <data name="Tab_Upcoming" xml:space="preserve">
+    <value>الأنشطة القادمة</value>
+  </data>
+  <data name="Tab_Recommended" xml:space="preserve">
+    <value>الدورات الموصى بها</value>
+  </data>
+  <data name="Tab_Progress" xml:space="preserve">
+    <value>التقدم</value>
+  </data>
+  <data name="Tab_Certificates" xml:space="preserve">
+    <value>الشهادات والإنجازات</value>
+  </data>
+  <data name="Tab_Analytics" xml:space="preserve">
+    <value>تحليلات التعلم</value>
+  </data>
+  <data name="Tab_Feedback" xml:space="preserve">
+    <value>التغذية الراجعة والدعم</value>
+  </data>
+  <data name="CurrentCoursesProgress" xml:space="preserve">
+    <value>تقدم الدورات الحالية</value>
+  </data>
+  <data name="ResumeLastCourse" xml:space="preserve">
+    <value>استأنف آخر دورة</value>
+  </data>
+  <data name="Resume" xml:space="preserve">
+    <value>استأنف</value>
+  </data>
+  <data name="Remaining" xml:space="preserve">
+    <value>متبقي</value>
+  </data>
+  <data name="RecommendedCourses" xml:space="preserve">
+    <value>الدورات الموصى بها</value>
+  </data>
+  <data name="Enroll" xml:space="preserve">
+    <value>تسجيل</value>
+  </data>
+  <data name="Preview" xml:space="preserve">
+    <value>معاينة</value>
+  </data>
+  <data name="UpcomingActivities" xml:space="preserve">
+    <value>الأنشطة القادمة</value>
+  </data>
+  <data name="JoinSession" xml:space="preserve">
+    <value>الانضمام إلى الجلسة</value>
+  </data>
+  <data name="CertificatesAndAchievements" xml:space="preserve">
+    <value>الشهادات والإنجازات</value>
+  </data>
+  <data name="DownloadCertificate" xml:space="preserve">
+    <value>تحميل الشهادة</value>
+  </data>
+  <data name="LearningAnalytics" xml:space="preserve">
+    <value>تحليلات التعلم</value>
+  </data>
+  <data name="Feedback_Description" xml:space="preserve">
+    <value>تقديم ملاحظاتك لتحسين تجربتك</value>
+  </data>
+  <data name="SubmitFeedback" xml:space="preserve">
+    <value>تقديم ملاحظات</value>
+  </data>
+  <data name="Support_Link" xml:space="preserve">
+    <value>الدعم الفني</value>
+  </data>
+  <data name="FeedbackAndSupport" xml:space="preserve">
+    <value>الدعم وتقديم المراجعات</value>
   </data>
 </root>
