@@ -1,4 +1,7 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Azure.Core;
+using Azure;
+using DocumentFormat.OpenXml.Spreadsheet;
+using Microsoft.AspNetCore.Identity;
 using TrainingCenterManagement_MVC.Models;
 using TrainingCenterManagement_MVC.ViewModels;
 
@@ -138,11 +141,13 @@ namespace TrainingCenterManagement_MVC.Helpers
             return roles.FirstOrDefault(); // Returns the first role associated with the user
         }
 
+       
+
         //public async Task UpdateUserDataByRoleAsync(ApplicationUser user)
         //{
         //    var roles = await _userManager.GetRolesAsync(user);
 
-            
+
         //     if (roles.Contains("Student"))
         //    {
         //        var student = await _studentRepository.GetStudentByUserIdAsync(user.Id);
@@ -165,7 +170,7 @@ namespace TrainingCenterManagement_MVC.Helpers
         //    }
         //}
 
-       
+
 
 
     }

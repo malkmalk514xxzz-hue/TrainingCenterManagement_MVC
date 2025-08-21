@@ -10,6 +10,8 @@ using TrainingCenterManagement_MVC.Data;
 using TrainingCenterManagement_MVC.Models;
 using TrainingCenterManagement_MVC.ViewModels;
 using ClosedXML.Excel;
+using DocumentFormat.OpenXml.InkML;
+using System.Security.Claims;
 
 
 namespace TrainingCenterManagement_MVC.Controllers
@@ -191,6 +193,119 @@ namespace TrainingCenterManagement_MVC.Controllers
             ViewBag.Trainers = new SelectList(_context.Trainers.Include(t => t.User), "TrainerId", "User.FullName");
             ViewBag.CourseId = course.CourseId;
             return View(course.CourseId);
+        }
+        [Authorize(Roles = "Trainee")]
+        [HttpGet]
+        public async Task<IActionResult> Resume(Guid id)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var trainee = await _context.Trainees.FirstOrDefaultAsync(t => t.UserId == userId);
+            if (trainee == null)
+            {
+                return NotFound("المتدرب غير موجود.");
+            }
+
+            var course = await _context.Courses
+                .Include(c => c.Lectures)
+                .Include(c => c.CourseTrainees)
+                .FirstOrDefaultAsync(c => c.CourseId == id && c.CourseTrainees.Any(ct => ct.TraineeId == trainee.TraineeId));
+
+            if (course == null)
+            {
+                return NotFound("الدورة غير موجودة أو أنت غير مسجل فيها.");
+            }
+
+            // إعادة توجيه إلى أحدث محاضرة أو صفحة تقدم الدورة
+            var latestLecture = course.Lectures
+                .Where(l => !l.IsDeleted && l.LectureDate <= DateTime.UtcNow)
+                .OrderByDescending(l => l.LectureDate)
+                .FirstOrDefault();
+
+            if (latestLecture != null)
+            {
+                return RedirectToAction("ViewLecture", "Lectures", new { id = latestLecture.LectureId });
+            }
+
+            return View("CourseProgress", course); // صفحة افتراضية لعرض تقدم الدورة
+        }
+        [Authorize(Roles = "Trainee")]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Enroll(Guid id)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var trainee = await _context.Trainees.FirstOrDefaultAsync(t => t.UserId == userId);
+            if (trainee == null)
+            {
+                return NotFound("المتدرب غير موجود.");
+            }
+
+            var course = await _context.Courses.FindAsync(id);
+            if (course == null)
+            {
+                return NotFound("الدورة غير موجودة.");
+            }
+
+            var alreadyEnrolled = await _context.CourseTrainees
+                .AnyAsync(ct => ct.CourseId == id && ct.TraineeId == trainee.TraineeId);
+
+            if (alreadyEnrolled)
+            {
+                TempData["ErrorMessage"] = "أنت مسجل بالفعل في هذه الدورة.";
+                return RedirectToAction("Index");
+            }
+
+            var courseTrainee = new CourseTrainee
+            {
+                CourseId = id,
+                TraineeId = trainee.TraineeId,
+              
+            };
+
+            _context.CourseTrainees.Add(courseTrainee);
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = "تم التسجيل في الدورة بنجاح.";
+            return RedirectToAction("TraineeDashboard", "Dashboard");
+        }
+        [AllowAnonymous]
+        [HttpGet]
+        public async Task<IActionResult> Preview(Guid id)
+        {
+            var course = await _context.Courses
+                .Include(c => c.Lectures)
+                .FirstOrDefaultAsync(c => c.CourseId == id && !c.IsDeleted);
+
+            if (course == null)
+            {
+                return NotFound("الدورة غير موجودة.");
+            }
+
+            return View("Preview", course); // صفحة معاينة الدورة
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AssignTraineeToCourse(Guid courseId)
+        {
+            var userid = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var traineeId = _context.Trainees.FirstOrDefault(t => t.UserId == userid).TraineeId;
+            // تحقق أولاً إن كان الطالب مُسند مسبقاً لنفس الكورس
+            bool alreadyAssigned = await _context.CourseTrainees
+                .AnyAsync(ct => ct.CourseId == courseId && ct.TraineeId == traineeId);
+
+            if (!alreadyAssigned)
+            {
+                var courseTrainer = new CourseTrainer
+                {
+                    CourseId = courseId,
+                    TrainerId = traineeId
+                };
+
+                _context.CourseTrainers.Add(courseTrainer);
+                await _context.SaveChangesAsync();
+            }
+
+            return RedirectToAction("TraineeDashboard", "Dashboard");
         }
         [HttpPost]
         [ValidateAntiForgeryToken]

@@ -1,116 +1,566 @@
 ﻿@using TrainingCenterManagement_MVC.Resources
+@using Newtonsoft.Json
+@using TrainingCenterManagement_MVC.ViewModels
+@model TraineeDashboardViewModel
+
 @{
-    ViewData["Title"] = SharedResource.AdminDashboard_Title + " || TableTap";
+    ViewData["Title"] = SharedResource.TraineeDashboard_Title;
 }
+
+<style>
+    .dashboard-wrapper {
+        display: flex;
+        direction: @((System.Threading.Thread.CurrentThread.CurrentUICulture.TextInfo.IsRightToLeft ? "rtl" : "ltr"));
+    }
+
+    .dashboard-main {
+        flex-grow: 1;
+        padding: 20px;
+    }
+
+    .dashboard-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .profile-picture {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        margin-right: 15px;
+    }
+
+    .welcome-message {
+        font-size: 18px;
+        color: #555;
+    }
+
+    .overall-progress {
+        margin-left: auto;
+        font-size: 24px;
+        font-weight: bold;
+        color: #007bff;
+    }
+
+    .dashboard-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+
+    .stat-card {
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        padding: 15px;
+        text-align: center;
+    }
+
+    .stat-value {
+        font-size: 20px;
+        font-weight: bold;
+        color: #007bff;
+    }
+
+    .tabs {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+
+    .tab-btn {
+        padding: 10px 20px;
+        border: none;
+        background: #f1f1f1;
+        cursor: pointer;
+        border-radius: 5px;
+    }
+
+        .tab-btn.active {
+            background: #007bff;
+            color: #fff;
+        }
+
+    .tab-content {
+        display: none;
+    }
+
+        .tab-content.active {
+            display: block;
+        }
+
+    .card {
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+
+    .progress-bar {
+        background-color: #e9ecef;
+        border-radius: 5px;
+        height: 10px;
+        margin-top: 5px;
+    }
+
+    .progress-fill {
+        background-color: #28a745;
+        height: 100%;
+        border-radius: 5px;
+    }
+
+    .course-list {
+        list-style: none;
+        padding: 0;
+    }
+
+        .course-list li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+    .resume-btn {
+        padding: 5px 10px;
+        background: #007bff;
+        color: #fff;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+    .recommended-courses {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+    }
+
+    .recommended-card {
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        padding: 15px;
+        text-align: center;
+    }
+
+    .enroll-btn {
+        margin-top: 10px;
+        padding: 5px 10px;
+        background: #28a745;
+        color: #fff;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+    .upcoming-events {
+        list-style: none;
+        padding: 0;
+    }
+
+        .upcoming-events li {
+            margin-bottom: 10px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 5px;
+        }
+
+    .certificates-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .certificate-card {
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        padding: 10px;
+        width: 150px;
+        text-align: center;
+    }
+
+    .download-btn {
+        margin-top: 5px;
+        padding: 5px 10px;
+        background: #ffc107;
+        color: #000;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+    .loader {
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #007bff;
+        border-radius: 50%;
+        width: 30px;
+        height: 30px;
+        animation: spin 1s linear infinite;
+        margin: 20px auto;
+        display: none;
+    }
+
+    canvas {
+        height: 400px !important;
+        width: 100% !important;
+    }
+</style>
 
 <body>
     <div class="dashboard-wrapper">
-        @await Html.PartialAsync("_AdminSidebar")
+      @*  @await Html.PartialAsync("_TraineeSidebar")  <!-- Assuming a sidebar partial for trainee --> *@
 
         <main class="dashboard-main">
             <div class="dashboard-header">
-                <h1>@SharedResource.AdminDashboard_Header</h1>
-                <p>@SharedResource.AdminDashboard_Description</p>
+                <img src="@Model.ProfilePictureUrl" alt="Profile Picture" class="profile-picture" />
+                <div>
+                    <h1>@SharedResource.TraineeDashboard_Header, @Model.FullName!</h1>
+                    <p class="welcome-message">@Model.WelcomeMessage</p>
+                </div>
+                <div class="overall-progress">@Model.OverallProgress%</div>
             </div>
 
             <div class="dashboard-stats">
-                <div class="card stat-card">
-                    <div class="stat-header">
-                        <h3>@SharedResource.Stat_TotalRestaurants</h3>
-                        <i class="fas fa-building"></i>
-                    </div>
-                    <div class="stat-content">
-                        <div class="stat-value">2,856</div>
-                        <p class="stat-change">@string.Format(SharedResource.StatChange_ThisMonth, "124")</p>
-                    </div>
+                <div class="stat-card">
+                    <h4>@SharedResource.Stat_TotalProgress</h4>
+                    <div class="stat-value" id="progress-value"></div>
                 </div>
-                <div class="card stat-card">
-                    <div class="stat-header">
-                        <h3>@SharedResource.Stat_ActiveUsers</h3>
-                        <i class="fas fa-users"></i>
-                    </div>
-                    <div class="stat-content">
-                        <div class="stat-value">3,427</div>
-                        <p class="stat-change">@string.Format(SharedResource.StatChange_ThisMonth, "258")</p>
-                    </div>
+                <div class="stat-card">
+                    <h4>@SharedResource.Stat_EnrolledCourses</h4>
+                    <div class="stat-value" id="courses-value"></div>
                 </div>
-                <div class="card stat-card">
-                    <div class="stat-header">
-                        <h3>@SharedResource.Stat_MonthlyRevenue</h3>
-                        <i class="fas fa-credit-card"></i>
-                    </div>
-                    <div class="stat-content">
-                        <div class="stat-value">$128,540</div>
-                        <p class="stat-change">@string.Format(SharedResource.StatChange_LastMonth, "12.5")</p>
-                    </div>
+                <div class="stat-card">
+                    <h4>@SharedResource.Stat_CompletedHours</h4>
+                    <div class="stat-value" id="hours-value"></div>
                 </div>
-                <div class="card stat-card">
-                    <div class="stat-header">
-                        <h3>@SharedResource.Stat_ActiveCities</h3>
-                        <i class="fas fa-globe"></i>
-                    </div>
-                    <div class="stat-content">
-                        <div class="stat-value">42</div>
-                        <p class="stat-change">@string.Format(SharedResource.StatChange_ThisMonth, "3")</p>
-                    </div>
+                <div class="stat-card">
+                    <h4>@SharedResource.Stat_CompletedExams</h4>
+                    <div class="stat-value" id="exams-value"></div>
+                </div>
+                <div class="stat-card">
+                    <h4>@SharedResource.Stat_AttendanceRate</h4>
+                    <div class="stat-value" id="attendance-value"></div>
                 </div>
             </div>
 
             <div class="dashboard-tabs">
                 <div class="tabs">
-                    <button class="tab-btn active" data-tab="overview">@SharedResource.Tab_Overview</button>
-                    <button class="tab-btn" data-tab="restaurants">@SharedResource.Tab_Restaurants</button>
-                    <button class="tab-btn" data-tab="users">@SharedResource.Tab_Users</button>
-                    <button class="tab-btn" data-tab="revenue">@SharedResource.Tab_Revenue</button>
+                    <button id="progress-btn" class="tab-btn active" data-tab="progress">@SharedResource.Tab_Progress</button>
+                    <button id="recommended-btn" class="tab-btn" data-tab="recommended">@SharedResource.Tab_Recommended</button>
+                    <button id="upcoming-btn" class="tab-btn" data-tab="upcoming">@SharedResource.Tab_Upcoming</button>
+                    <button id="certificates-btn" class="tab-btn" data-tab="certificates">@SharedResource.Tab_Certificates</button>
+                    <button id="analytics-btn" class="tab-btn" data-tab="analytics">@SharedResource.Tab_Analytics</button>
+                    <button id="feedback-btn" class="tab-btn" data-tab="feedback">@SharedResource.Tab_Feedback</button>
                 </div>
-                <div class="tab-content active" id="overview">
+
+                <div class="tab-content active" id="progress">
                     <div class="card">
-                        <div class="card-header">
-                            <h3>@SharedResource.Growth_PlatformTitle</h3>
-                            <p>@SharedResource.Growth_PlatformDescription</p>
-                        </div>
-                        <div class="card-content chart-placeholder">
-                            <i class="fas fa-chart-bar"></i>
-                            <span>@SharedResource.ChartPlaceholder_Text</span>
+                        <h3>@SharedResource.CurrentCoursesProgress</h3>
+                        <ul class="course-list" id="current-courses-list">
+                            <!-- Dynamically populated -->
+                        </ul>
+                        <button class="resume-btn" id="resume-last-course">@SharedResource.ResumeLastCourse</button>
+                    </div>
+                </div>
+
+                <div class="tab-content" id="recommended">
+                    <div class="card">
+                        <h3>@SharedResource.RecommendedCourses</h3>
+                        <div class="recommended-courses" id="recommended-courses-grid">
+                            <!-- Dynamically populated -->
                         </div>
                     </div>
                 </div>
-                <div class="tab-content" id="restaurants">
+
+                <div class="tab-content" id="upcoming">
                     <div class="card">
-                        <div class="card-header">
-                            <h3>@SharedResource.Analytics_RestaurantTitle</h3>
-                            <p>@SharedResource.Analytics_RestaurantDescription</p>
-                        </div>
-                        <div class="card-content chart-placeholder">
-                            <span>@SharedResource.ChartPlaceholder_GenericText.Replace("[Category]", SharedResource.Restaurants)</span>
+                        <h3>@SharedResource.UpcomingActivities</h3>
+                        <ul class="upcoming-events" id="upcoming-events-list">
+                            <!-- Dynamically populated -->
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="tab-content" id="certificates">
+                    <div class="card">
+                        <h3>@SharedResource.CertificatesAndAchievements</h3>
+                        <div class="certificates-list" id="certificates-grid">
+                            <!-- Dynamically populated -->
                         </div>
                     </div>
                 </div>
-                <div class="tab-content" id="users">
+
+                <div class="tab-content" id="analytics">
                     <div class="card">
-                        <div class="card-header">
-                            <h3>@SharedResource.Analytics_UserTitle</h3>
-                            <p>@SharedResource.Analytics_UserDescription</p>
-                        </div>
-                        <div class="card-content chart-placeholder">
-                            <span>@SharedResource.ChartPlaceholder_GenericText.Replace("[Category]", SharedResource.Users)</span>
-                        </div>
+                        <h3>@SharedResource.LearningAnalytics</h3>
+                        <div class="loader" id="analytics-loader"></div>
+                        <canvas id="analytics-chart"></canvas>
+                        <p class="error-message" id="analytics-error" style="display: none; color: red;">@SharedResource.Error_LoadingData</p>
                     </div>
                 </div>
-                <div class="tab-content" id="revenue">
+
+                <div class="tab-content" id="feedback">
                     <div class="card">
-                        <div class="card-header">
-                            <h3>@SharedResource.Analytics_RevenueTitle</h3>
-                            <p>@SharedResource.Analytics_RevenueDescription</p>
-                        </div>
-                        <div class="card-content chart-placeholder">
-                            <span>@SharedResource.ChartPlaceholder_GenericText.Replace("[Category]", SharedResource.Subscriptions)</span>
-                        </div>
+                        <h3>@SharedResource.FeedbackAndSupport</h3>
+                        @* <form id="feedback-form">
+                            <textarea placeholder="@SharedResource.SubmitFeedback"></textarea>
+                            <button type="submit">@SharedResource.SubmitFeedback</button>
+                        </form> *@
+                        <a asp-controller="Chat" asp-action="CustomerSupportChat">@SharedResource.Support_Link</a>
+                        
                     </div>
                 </div>
             </div>
         </main>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script>
+               const translations = {
+            resume: '@Html.Raw(SharedResource.Resume)',
+            remaining: '@Html.Raw(SharedResource.Remaining)',
+            enroll: '@Html.Raw(SharedResource.Enroll)',
+            preview: '@Html.Raw(SharedResource.Preview)',
+            join: '@Html.Raw(SharedResource.JoinSession)',
+            download: '@Html.Raw(SharedResource.DownloadCertificate)',
+            progress: '@Html.Raw(SharedResource.Tab_Progress)',
+            noCoursesAvailable: '@Html.Raw(SharedResource.NoCoursesAvailable)' // إضافة ترجمة جديدة
+        };
 
+        document.addEventListener('DOMContentLoaded', () => {
+            let dashboardData;
+            try {
+                dashboardData = @Html.Raw(Json.Serialize(Model));
+                console.log('Dashboard Data:', dashboardData);
+            } catch (error) {
+                console.error('Error parsing dashboard data:', error);
+                dashboardData = {};
+            }
+
+            function updateStats(data) {
+                try {
+                    document.getElementById('progress-value').textContent = `${data.overallProgress || 0}%`;
+                    document.getElementById('courses-value').textContent = data.enrolledCourses || 0;
+                    document.getElementById('hours-value').textContent = data.completedHours || 0;
+                    document.getElementById('exams-value').textContent = data.completedExams || 0;
+                    document.getElementById('attendance-value').textContent = `${data.attendanceRate || 0}%`;
+                } catch (error) {
+                    console.error('Error updating stats:', error);
+                }
+            }
+
+                  function populateCurrentCourses(courses) {
+            courses = Array.isArray(courses) ? courses : (courses && courses.$values) || [];
+            console.log('Current Courses:', courses); // للتصحيح
+            const list = document.getElementById('current-courses-list');
+            if (!list) {
+                console.error('Element with ID current-courses-list not found');
+                return;
+            }
+            list.innerHTML = '';
+            if (courses.length === 0) {
+                list.innerHTML = '<li><span>' + translations.noCoursesAvailable + '</span></li>';
+                return;
+            }
+            courses.forEach(course => {
+                if (!course.id || !course.name || course.progress === undefined) {
+                    console.warn('Invalid course data:', course);
+                    return;
+                }
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <span>${course.name} — ${course.progress}% ${translations.resume}</span>
+                    <div class="progress-bar"><div class="progress-fill" style="width: ${course.progress}%"></div></div>
+                    <span>${course.remaining || 'N/A'} ${translations.remaining}</span>
+                    <button class="resume-btn" onclick="resumeCourse('${course.id}')">${translations.resume}</button>
+                `;
+                list.appendChild(li);
+            });
+        }
+
+            function populateRecommendedCourses(courses) {
+                courses = Array.isArray(courses) ? courses : (courses && courses.$values) || [];
+                console.log('Recommended Courses:', courses);
+                const grid = document.getElementById('recommended-courses-grid');
+                grid.innerHTML = '';
+                courses.forEach(course => {
+                    const card = document.createElement('div');
+                    card.classList.add('recommended-card');
+                    card.innerHTML = `
+                        <h4>${course.name}</h4>
+                        <p>${course.description}</p>
+                        <button class="enroll-btn" onclick="enrollCourse('${course.id}')">${translations.enroll}</button>
+                        <button onclick="previewCourse('${course.id}')">${translations.preview}</button>
+                    `;
+                    grid.appendChild(card);
+                });
+            }
+
+            function populateUpcomingEvents(events) {
+                events = Array.isArray(events) ? events : (events && events.$values) || [];
+                console.log('Upcoming Events:', events);
+                const list = document.getElementById('upcoming-events-list');
+                list.innerHTML = '';
+                events.forEach(event => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `
+                        <span>${event.title} - ${event.date}</span>
+                        <button onclick="joinSession('${event.link}')">${translations.join}</button>
+                    `;
+                    list.appendChild(li);
+                });
+            }
+
+            function populateCertificates(certificates) {
+                certificates = Array.isArray(certificates) ? certificates : (certificates && certificates.$values) || [];
+                console.log('Certificates:', certificates);
+                const grid = document.getElementById('certificates-grid');
+                grid.innerHTML = '';
+                certificates.forEach(cert => {
+                    const card = document.createElement('div');
+                    card.classList.add('certificate-card');
+                    card.innerHTML = `
+                        <h4>${cert.name}</h4>
+                        <button class="download-btn" onclick="downloadCertificate('${cert.id}')">${translations.download}</button>
+                    `;
+                    grid.appendChild(card);
+                });
+            }
+
+            const charts = {};
+            function renderChart(tab) {
+                if (tab !== 'analytics') return;
+                const loader = document.getElementById('analytics-loader');
+                const errorMessage = document.getElementById('analytics-error');
+                const canvas = document.getElementById('analytics-chart');
+
+                loader.style.display = 'block';
+                errorMessage.style.display = 'none';
+
+                let chartData = dashboardData && dashboardData.chartData && dashboardData.chartData.analytics
+                    ? dashboardData.chartData.analytics
+                    : { labels: [], values: [] };
+                console.log('Chart Data for Analytics:', chartData);
+
+                let labels = chartData.labels || [];
+                if (!Array.isArray(labels) && labels.$values) {
+                    labels = labels.$values;
+                }
+                if (!Array.isArray(labels) || labels.length === 0) {
+                    labels = ['Week 1', 'Week 2', 'Week 3', 'Week 4'];
+                }
+
+                let values = chartData.values || [];
+                if (!Array.isArray(values) && values.$values) {
+                    values = values.$values;
+                }
+                if (!Array.isArray(values) || values.length === 0) {
+                    values = [0, 0, 0, 0];
+                }
+
+                console.log('Chart Labels:', labels, 'Chart Values:', values);
+
+                if (charts.analytics) {
+                    charts.analytics.destroy();
+                }
+
+                const ctx = canvas.getContext('2d');
+                charts.analytics = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: translations.progress,
+                            data: values,
+                            borderColor: '#007bff',
+                            backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                            fill: true,
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: { y: { beginAtZero: true } },
+                        plugins: { legend: { display: true, position: 'top' } }
+                    }
+                });
+
+                loader.style.display = 'none';
+            }
+
+            if (dashboardData && dashboardData.stats) {
+                updateStats(dashboardData.stats);
+            }
+
+            if (dashboardData && dashboardData.currentCourses) {
+                populateCurrentCourses(dashboardData.currentCourses);
+            }
+
+            if (dashboardData && dashboardData.recommendedCourses) {
+                populateRecommendedCourses(dashboardData.recommendedCourses);
+            }
+
+            if (dashboardData && dashboardData.upcomingEvents) {
+                populateUpcomingEvents(dashboardData.upcomingEvents);
+            }
+
+            if (dashboardData && dashboardData.certificates) {
+                populateCertificates(dashboardData.certificates);
+            }
+
+            const tabs = [
+                { btnId: 'progress-btn', tabId: 'progress' },
+                { btnId: 'recommended-btn', tabId: 'recommended' },
+                { btnId: 'upcoming-btn', tabId: 'upcoming' },
+                { btnId: 'certificates-btn', tabId: 'certificates' },
+                { btnId: 'analytics-btn', tabId: 'analytics' },
+                { btnId: 'feedback-btn', tabId: 'feedback' }
+            ];
+
+            tabs.forEach(tab => {
+                const button = document.getElementById(tab.btnId);
+                if (!button) {
+                    console.error(`Button with ID ${tab.btnId} not found`);
+                    return;
+                }
+                button.addEventListener('click', () => {
+                    tabs.forEach(t => {
+                        const btn = document.getElementById(t.btnId);
+                        const content = document.getElementById(t.tabId);
+                        if (btn && content) {
+                            btn.classList.remove('active');
+                            content.classList.remove('active');
+                        }
+                    });
+                    button.classList.add('active');
+                    const tabContent = document.getElementById(tab.tabId);
+                    if (tabContent) {
+                        tabContent.classList.add('active');
+                    } else {
+                        console.error(`Tab content with ID ${tab.tabId} not found`);
+                    }
+                    renderChart(tab.tabId);
+                });
+            });
+
+            // Initial render for analytics if it's the active tab (but starts with progress)
+            // No initial call needed unless analytics is default
+        });
+
+        // Placeholder functions for actions
+        function resumeCourse(id) { console.log(`Resuming course ${id}`); window.location.href = `/Courses/Resume/${id}`; }
+        function enrollCourse(id) { console.log(`Enrolling in course ${id}`); window.location.href = `/Courses/Enroll/${id}`; }
+        function previewCourse(id) { console.log(`Previewing course ${id}`); window.location.href = `/Courses/Preview/${id}`; }
+        function joinSession(link) { console.log(`Joining session ${link}`); window.open(link, '_blank'); }
+        function downloadCertificate(id) { console.log(`Downloading certificate ${id}`); window.location.href = `/Certificates/Download/${id}`; }
+
+
+        
+    </script>
 </body>

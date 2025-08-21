@@ -1,0 +1,140 @@
+﻿@using TrainingCenterManagement_MVC.Resources
+@using TrainingCenterManagement_MVC.Models
+@model Course
+
+@{
+    ViewData["Title"] = "CourseProgress";
+}
+
+<style>
+    .course-progress-wrapper {
+        display: flex;
+        direction: @((System.Threading.Thread.CurrentThread.CurrentUICulture.TextInfo.IsRightToLeft ? "rtl" : "ltr"));
+        padding: 20px;
+    }
+
+    .course-progress-main {
+        flex-grow: 1;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .course-header {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    .progress-bar {
+        background-color: #e9ecef;
+        border-radius: 5px;
+        height: 20px;
+        margin: 10px 0;
+    }
+
+    .progress-fill {
+        background-color: #28a745;
+        height: 100%;
+        border-radius: 5px;
+    }
+
+    .lecture-list {
+        list-style: none;
+        padding: 0;
+    }
+
+        .lecture-list li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+
+    .resume-btn {
+        padding: 5px 10px;
+        background: #007bff;
+        color: #fff;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+    .course-actions {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin-top: 20px;
+    }
+
+    .btn-back {
+        padding: 10px 20px;
+        background: #6c757d;
+        color: #fff;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+</style>
+
+<body>
+    <div class="course-progress-wrapper">
+        @await Html.PartialAsync("_TraineeSidebar") <!-- افتراض وجود شريط جانبي للمتدرب -->
+
+        <main class="course-progress-main">
+            <div class="course-header">
+                <h1>contextCourseProgress: @Model.CourseName</h1>
+                <p>ResumeLastCourse</p>
+            </div>
+
+            <div class="course-details">
+                <h3>Progress</h3>
+                @{
+                    var totalLectures = Model.Lectures.Count(l => !l.IsDeleted);
+                    var attendedLectures = Model.Lectures.Count(l => l.Presences.Any(p => p.IsPresent));
+                    var progress = totalLectures > 0 ? (attendedLectures * 100 / totalLectures) : 0;
+                }
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: @progress%"></div>
+                </div>
+                <p>@progress% Completed</p>
+            </div>
+
+            <div class="course-details">
+                <h3>Lectures</h3>
+                <ul class="lecture-list">
+                    @foreach (var lecture in Model.Lectures.Where(l => !l.IsDeleted).OrderBy(l => l.LectureDate))
+                    {
+                        <li>
+                            <span>@lecture.Title - @lecture.LectureDate.ToString("MMM dd, yyyy HH:mm")</span>
+                            <button class="resume-btn" onclick="resumeLecture('@lecture.LectureId')">ViewLecture</button>
+                        </li>
+                    }
+                </ul>
+            </div>
+
+            <div class="course-actions">
+                <a href="@Url.Action("Index", "Courses")" class="btn-back">Back</a>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        function resumeLecture(id) {
+            console.log(`Resuming lecture ${id}`);
+            window.location.href = `/Lectures/ViewLecture/${id}`;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <text>alert('@TempData["ErrorMessage"]');</text>
+        }
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <text>alert('@TempData["SuccessMessage"]');</text>
+        }
+        });
+    </script>
+</body>

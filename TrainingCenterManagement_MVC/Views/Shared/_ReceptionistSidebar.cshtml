@@ -82,59 +82,59 @@
                     <span>@SharedResource.Dashboard</span>
                 </a>
             </li>
-            <li class="@(currentPage == "courses" ? "active" : "")">
+            <li class="@(currentPage == "restaurants" ? "active" : "")">
             <li>
                 <a asp-controller="Chat" asp-action="AdminCustomerSupportChats">
                     <i class="fas fa-building"></i>
             <span>AdminContactUsChats</span>
                 </a>
             </li>
-            <li class="@(currentPage == "students" ? "active" : "")">
-                <a asp-action="Index" asp-controller="Trainees">
+            <li class="@(currentPage == "users" ? "active" : "")">
+                <a asp-action="Users" asp-controller="Admin">
                     <i class="fas fa-users"></i>
-                    <span>@SharedResource.Students</span>
+                    <span>@SharedResource.Users</span>
                 </a>
             </li>
-            <li class="@(currentPage == "Trainers" ? "active" : "")">
-                <a asp-action="Index" asp-controller="Trainers">
+            <li class="@(currentPage == "subscriptions" ? "active" : "")">
+                <a asp-action="Subscriptions" asp-controller="Admin">
                     <i class="fas fa-credit-card"></i>
-                    <span>@SharedResource.TrainersControll</span>
+                    <span>@SharedResource.Subscriptions</span>
                 </a>
             </li>
-            <li class="@(currentPage == "Payments" ? "active" : "")">
-                <a asp-action="Index" asp-controller="Payments">
+            <li class="@(currentPage == "paymentrequests" ? "active" : "")">
+                <a asp-action="PaymentRequests" asp-controller="Admin">
                     <i class="fas fa-money-bill"></i>
                     <span>@SharedResource.PaymentRequests</span>
                 </a>
             </li>
-            <li class="@(currentPage == "Presences" ? "active" : "")">
-                <a asp-action="Index" asp-controller="Presences">
+            <li class="@(currentPage == "analytics" ? "active" : "")">
+                <a asp-action="Analytics" asp-controller="Admin">
                     <i class="fas fa-chart-bar"></i>
-                    <span>@SharedResource.PresencesControll</span>
+                    <span>@SharedResource.Analytics</span>
                 </a>
             </li>
-            <li class="@(currentPage == "Receptionists" ? "active" : "")">
-                <a asp-action="Index" asp-controller="Receptionists">
+            <li class="@(currentPage == "citiesmenu" ? "active" : "")">
+                <a asp-action="CitiesMenu" asp-controller="City">
                     <i class="fas fa-globe"></i>
-                    <span>@SharedResource.ReceptionistsControll</span>
+                    <span>@SharedResource.Cities</span>
                 </a>
             </li>
-            <li class="@(currentPage == "Lectures" ? "active" : "")">
-                <a asp-action="Index" asp-controller="Lectures">
+            <li class="@(currentPage == "paymentmethodsmenu" ? "active" : "")">
+                <a asp-action="PaymentMethodsMenu" asp-controller="PaymentMethod">
                     <i class="fas fa-wallet"></i>
-                    <span>@SharedResource.LecturesControll</span>
+                    <span>@SharedResource.PaymentMethods</span>
                 </a>
             </li>
-            <li class="@(currentPage == "Courses" ? "active" : "")">
-                <a asp-action="Index" asp-controller="Courses">
+            <li class="@(currentPage == "settings" ? "active" : "")">
+                <a asp-action="Settings" asp-controller="Admin">
                     <i class="fas fa-cog"></i>
-                    <span>@SharedResource.Courses</span>
+                    <span>@SharedResource.Settings</span>
                 </a>
             </li>
-            <li class="@(currentPage == "Certificates" ? "active" : "")">
-                <a asp-action="Index" asp-controller="Certificates">
+            <li class="@(currentPage == "security" ? "active" : "")">
+                <a asp-action="Security" asp-controller="Admin">
                     <i class="fas fa-shield-alt"></i>
-                    <span>@SharedResource.CertificatesControll</span>
+                    <span>@SharedResource.Security</span>
                 </a>
             </li>
         </ul>

@@ -1,6 +1,9 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 using TrainingCenterManagement_MVC.Data;
+using TrainingCenterManagement_MVC.Helpers;
+using TrainingCenterManagement_MVC.ViewModels;
 
 namespace TrainingCenterManagement_MVC.Controllers
 {
@@ -9,11 +12,14 @@ namespace TrainingCenterManagement_MVC.Controllers
     {
         
         private readonly ApplicationDbContext context;
+        private readonly DashboardHelper _dashboardHelper;
 
-        public DashboardController( ApplicationDbContext context)
+        public DashboardController( ApplicationDbContext context ,
+           DashboardHelper dashboardHelper)
         {
             
             this.context = context;
+            _dashboardHelper = dashboardHelper;
         }
 
         public async Task<IActionResult> Index()
@@ -24,56 +30,38 @@ namespace TrainingCenterManagement_MVC.Controllers
         [Authorize(Roles = "Admin")] 
         public async Task<IActionResult> AdminDashboard()
         {
-            //int totalusers = context.Users.Count();
-            //int totalteachers = context.Teachers.Count();
-            //var totalstudents = await userHelper.GetAllUsersInRoleAsync("Student");
-            //int totalstudentscount = totalstudents.Count();
-            //int totalcourses = context.Courses.Count();
-            //int totalsubjects = context.Subjects.Count();
-            //AdminDashboardViewModel viewModel = new AdminDashboardViewModel()
-            //{
-            //    TotalCourses = totalcourses,
-            //    TotalTeachers = totalteachers,
-            //    TotalSubjects = totalsubjects,
-            //    TotalUsers = totalusers,
-            //    TotalStudents = totalstudentscount,
+            var model = new AdminDashboardViewModelModel
+            {
+                Stats = _dashboardHelper.GetDashboardStats(),
+                ChartData = _dashboardHelper.GetChartData()
 
-            //};
-            return View(
-                //viewModel
-                );
+            };
+            Console.WriteLine($"Stats: TotalCourses={model.Stats.TotalCourses}, CoursesChange={model.Stats.CoursesChange}, ActiveStudents={model.Stats.ActiveStudents}");
+            Console.WriteLine($"ChartData: Overview={string.Join(",", model.ChartData["overview"].Values)}");
+
+
+            return View(model);
+
+
         }
 
-       
-        
-        [Authorize(Roles = "Trainee")] 
-        public IActionResult TraineeDashboard()
+
+
+        [Authorize(Roles = "Trainee")]
+        public async Task<IActionResult> TraineeDashboard()
         {
-    //        var userid = HttpContext.Session.GetString("UserId");
-    //        int totalstudentsInTeacherCourse = context.Teachers
-    //.Where(t => t.UserId == userid)
-    //.SelectMany(t => t.TeacherClasses)                  // الكورسات التي يدرسها المعلم
-    //.Select(c => c.Class)                               // الكورس نفسه
-    //.SelectMany(c => c.Students)                         // الطلاب المسجلين في الكورس
-    //.Count();
+            var userid = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var traineeId = context.Trainees.FirstOrDefault(t=>t.UserId==userid).TraineeId;
+            if (traineeId == null || string.IsNullOrEmpty(userid) )
+            {
+                return Unauthorized(); // Or handle appropriately if user ID is not found
+            }
 
-
-    //        int totalcourses = context.Teachers
-    //            .Where (t => t.UserId == userid)
-    //            .SelectMany(t => t.TeacherClasses)// الكورسات التي يدرسها المعلم
-    //                      .Count();
-           
-            //TeacherDashboardViewModel viewModel = new TeacherDashboardViewModel()
-            //{
-            //    TotalStudentsInTeacherCourses = totalstudentsInTeacherCourse,
-            //    TotalCourses = totalcourses
-
-            //};
-            return View(
-               // viewModel
-                );
+            
+            var model = await _dashboardHelper.GetDashboardDataAsync(traineeId,userid);
+            model.TraineeId = traineeId;
+            return View(model);
         }
-
         [Authorize(Roles = "Trainer")]
         public async Task<IActionResult> TrainerDashboard()
         {

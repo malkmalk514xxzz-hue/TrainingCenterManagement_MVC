@@ -1,0 +1,128 @@
+﻿@using TrainingCenterManagement_MVC.Resources
+@using TrainingCenterManagement_MVC.Models
+@model Course
+
+@{
+    ViewData["Title"] = "PreviewCourse";
+}
+
+<style>
+    .course-preview-wrapper {
+        display: flex;
+        direction: @((System.Threading.Thread.CurrentThread.CurrentUICulture.TextInfo.IsRightToLeft ? "rtl" : "ltr"));
+        padding: 20px;
+    }
+
+    .course-preview-main {
+        flex-grow: 1;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .course-header {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    .course-thumbnail {
+        width: 100%;
+        max-height: 300px;
+        object-fit: cover;
+        border-radius: 8px;
+        margin-bottom: 20px;
+    }
+
+    .course-details {
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+
+    .course-actions {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+    }
+
+    .btn-enroll {
+        padding: 10px 20px;
+        background: #28a745;
+        color: #fff;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+    .btn-back {
+        padding: 10px 20px;
+        background: #6c757d;
+        color: #fff;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+    .course-info {
+        margin-top: 20px;
+    }
+
+        .course-info h4 {
+            color: #007bff;
+        }
+</style>
+
+<body>
+    <div class="course-preview-wrapper">
+        <main class="course-preview-main">
+            <div class="course-header">
+                <h1>@Model.CourseName</h1>
+                <p>PreviewCourse</p>
+            </div>
+
+            @if (!string.IsNullOrEmpty(Model.ThumbnailUrl))
+            {
+                <img src="@Model.ThumbnailUrl" alt="@Model.CourseName" class="course-thumbnail" />
+            }
+
+            <div class="course-details">
+                <h3>CourseDetails</h3>
+                <div class="course-info">
+                    <h4>@SharedResource.Description</h4>
+                    <p>@(Model.Description ?? "NoDescriptionAvailable")</p>
+                    <h4>NumberOfLectures</h4>
+                    <p>@Model.NumberOfLectures</p>
+                    <h4>Price</h4>
+                    <p>@Model.Price.ToString("C")</p>
+                    <h4>ReleaseDate</h4>
+                    <p>@Model.ReleaseDate.ToString("MMM dd, yyyy")</p>
+                </div>
+            </div>
+
+            <div class="course-actions">
+                @if (User.IsInRole("Trainee"))
+                {
+                    <form asp-action="Enroll" asp-route-id="@Model.CourseId" method="post">
+                        <input type="hidden" name="id" value="@Model.CourseId" />
+                        <button type="submit" class="btn-enroll">Enroll</button>
+                    </form>
+                }
+                <a href="@Url.Action("Index", "Courses")" class="btn-back">Back</a>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <text>alert('@TempData["ErrorMessage"]');</text>
+        }
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <text>alert('@TempData["SuccessMessage"]');</text>
+        }
+        });
+    </script>
+</body>

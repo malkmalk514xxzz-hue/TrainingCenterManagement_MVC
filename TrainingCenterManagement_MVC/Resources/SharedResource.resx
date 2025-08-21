@@ -238,7 +238,7 @@
     <value>Customers use their phones to scan the code and access the digital menu instantly.</value>
   </data>
   <data name="tableTapNumbers" xml:space="preserve">
-    <value>TableTap numbers</value>
+    <value> numbers</value>
   </data>
   <data name="registeredEstablishment" xml:space="preserve">
     <value>Registered establishment</value>
@@ -362,9 +362,6 @@
   </data>
   <data name="TotalRequests" xml:space="preserve">
     <value>Total Requests </value>
-  </data>
-  <data name="AdminNavigation" xml:space="preserve">
-    <value>Admin Navigation </value>
   </data>
   <data name="Facilities" xml:space="preserve">
     <value>Facilities</value>
@@ -544,7 +541,7 @@
     <value>Admin User </value>
   </data>
   <data name="AdminEmail" xml:space="preserve">
-    <value>admin@tabletap.com</value>
+    <value>admin@site.com</value>
   </data>
   <data name="AdminDashboard_Header" xml:space="preserve">
     <value>Admin Dashboard </value>
@@ -701,5 +698,161 @@
   </data>
   <data name="Chat" xml:space="preserve">
     <value>Chat</value>
+  </data>
+  <data name="AdminNavigation" xml:space="preserve">
+    <value>Admin Navigation </value>
+  </data>
+  <data name="Stat_TotalCourses" xml:space="preserve">
+    <value>Total Courses</value>
+  </data>
+  <data name="Stat_ActiveStudents" xml:space="preserve">
+    <value>Active Students</value>
+  </data>
+  <data name="Stat_ActiveInstitutes" xml:space="preserve">
+    <value>Active Institutes</value>
+  </data>
+  <data name="Tab_Students" xml:space="preserve">
+    <value>Students</value>
+  </data>
+  <data name="Analytics_CoursesTitle" xml:space="preserve">
+    <value>Courses Analytics</value>
+  </data>
+  <data name="Analytics_CoursesDescription" xml:space="preserve">
+    <value>Analyze the performance and enrollment trends of courses.</value>
+  </data>
+  <data name="Analytics_StudentsTitle" xml:space="preserve">
+    <value>Students Analytics</value>
+  </data>
+  <data name="Analytics_StudentsDescription" xml:space="preserve">
+    <value>Insights into student engagement and activity.</value>
+  </data>
+  <data name="ThisMonth" xml:space="preserve">
+    <value>ThisMonth</value>
+  </data>
+  <data name="LastMonth" xml:space="preserve">
+    <value>LastMonth</value>
+  </data>
+  <data name="Courses" xml:space="preserve">
+    <value>Courses</value>
+  </data>
+  <data name="Tab_Courses" xml:space="preserve">
+    <value>Courses</value>
+  </data>
+  <data name="Revenue" xml:space="preserve">
+    <value>Revenue</value>
+  </data>
+  <data name="Students" xml:space="preserve">
+    <value>Students</value>
+  </data>
+  <data name="Error_LoadingData" xml:space="preserve">
+    <value>Error Loading Data</value>
+  </data>
+  <data name="Presences" xml:space="preserve">
+    <value>Presences</value>
+  </data>
+  <data name="PresencesControll" xml:space="preserve">
+    <value>Presences Controll</value>
+  </data>
+  <data name="ReceptionistsControll" xml:space="preserve">
+    <value>Receptionists Controll</value>
+  </data>
+  <data name="LecturesControll" xml:space="preserve">
+    <value>Lectures Controll</value>
+  </data>
+  <data name="CertificatesControll" xml:space="preserve">
+    <value>Certificates Controll</value>
+  </data>
+  <data name="TrainersControll" xml:space="preserve">
+    <value>Trainers Controll</value>
+  </data>
+  <data name="TraineeDashboard_Title" xml:space="preserve">
+    <value>trainee dashboard page</value>
+  </data>
+  <data name="TraineeDashboard_Header" xml:space="preserve">
+    <value>Hello</value>
+  </data>
+  <data name="Stat_TotalProgress" xml:space="preserve">
+    <value>progress percentage</value>
+  </data>
+  <data name="Stat_EnrolledCourses" xml:space="preserve">
+    <value> number of enrolled courses</value>
+  </data>
+  <data name="Stat_CompletedHours" xml:space="preserve">
+    <value>completed learning hours</value>
+  </data>
+  <data name="Stat_CompletedExams" xml:space="preserve">
+    <value>completed exams</value>
+  </data>
+  <data name="Stat_AttendanceRate" xml:space="preserve">
+    <value>attendance rate percentage</value>
+  </data>
+  <data name="Tab_Upcoming" xml:space="preserve">
+    <value>upcoming events</value>
+  </data>
+  <data name="Tab_Recommended" xml:space="preserve">
+    <value>recommended courses</value>
+  </data>
+  <data name="Tab_Progress" xml:space="preserve">
+    <value>current courses progress</value>
+  </data>
+  <data name="Tab_Certificates" xml:space="preserve">
+    <value>certificates and achievements</value>
+  </data>
+  <data name="Tab_Analytics" xml:space="preserve">
+    <value>learning analytics</value>
+  </data>
+  <data name="Tab_Feedback" xml:space="preserve">
+    <value>feedback and support</value>
+  </data>
+  <data name="CurrentCoursesProgress" xml:space="preserve">
+    <value>current courses progress section</value>
+  </data>
+  <data name="ResumeLastCourse" xml:space="preserve">
+    <value>resuming the last course</value>
+  </data>
+  <data name="Resume" xml:space="preserve">
+    <value>Resume</value>
+  </data>
+  <data name="Remaining" xml:space="preserve">
+    <value>Remaining</value>
+  </data>
+  <data name="RecommendedCourses" xml:space="preserve">
+    <value>Recommended Courses</value>
+  </data>
+  <data name="Enroll" xml:space="preserve">
+    <value>Enroll</value>
+  </data>
+  <data name="Preview" xml:space="preserve">
+    <value>Preview</value>
+  </data>
+  <data name="UpcomingActivities" xml:space="preserve">
+    <value>Upcoming Activities</value>
+  </data>
+  <data name="JoinSession" xml:space="preserve">
+    <value>Join Session</value>
+  </data>
+  <data name="CertificatesAndAchievements" xml:space="preserve">
+    <value>Certificates And Achievements</value>
+  </data>
+  <data name="DownloadCertificate" xml:space="preserve">
+    <value>Download Certificate</value>
+  </data>
+  <data name="LearningAnalytics" xml:space="preserve">
+    <value>Learning Analytics</value>
+  </data>
+  <data name="Feedback_Description" xml:space="preserve">
+    <value>feedback section</value>
+  </data>
+  <data name="SubmitFeedback" xml:space="preserve">
+    <value>Submit Feedback</value>
+  </data>
+  <data name="Support_Link" xml:space="preserve">
+    <value>Support Link</value>
+  </data>
+  <data name="FeedbackAndSupport" xml:space="preserve">
+    <value>Feedback And Support</value>
+  </data>
+  <data name="NoCoursesAvailable" xml:space="preserve">
+    <value>No Courses Available</value>
   </data>
 </root>

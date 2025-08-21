@@ -1,4 +1,7 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Azure.Core;
+using Azure;
+using DocumentFormat.OpenXml.Spreadsheet;
+using Microsoft.AspNetCore.Identity;
 using TrainingCenterManagement_MVC.Models;
 using TrainingCenterManagement_MVC.ViewModels;
 
@@ -65,7 +68,7 @@ namespace TrainingCenterManagement_MVC.Helpers
 
         //Task UpdateUserDataByRoleAsync(ApplicationUser user);
 
-       
+        
 
     }
 }
