@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using TrainingCenterManagement_MVC.Data;
 using TrainingCenterManagement_MVC.Helpers;
@@ -65,22 +66,38 @@ namespace TrainingCenterManagement_MVC.Controllers
         [Authorize(Roles = "Trainer")]
         public async Task<IActionResult> TrainerDashboard()
         {
-            // var userid = HttpContext.Session.GetString("UserId");
+            // Get the current user's ID from the authenticated user's claims
+            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized();
+            }
 
-            // //var user = await userHelper.GetUserByIdAsync(userid);
-            //// var user2 = await context.Students.FirstOrDefaultAsync(s=>s.UserId == userid);
-            // int totalstudentcourses = context.Users.Where(u => u.Id==userid).Select(u=>u.Courses).Count();
+            // Fetch the trainer associated with the user
+            var trainer = await context.Trainers
+                .FirstOrDefaultAsync(t => t.UserId == userId);
 
-            //StudentDashboardViewModel viewModel = new StudentDashboardViewModel()
-            //{
-            //   TotalStudentCourses = totalstudentcourses,
+            if (trainer == null)
+            {
+                return NotFound("Trainer profile not found.");
+            }
 
-            //};
-            return View(
-                //viewModel
-                );
+            // Fetch the full name from the ApplicationUser
+            var user = await context.Users
+                .FirstOrDefaultAsync(u => u.Id == userId);
+
+            if (user == null)
+            {
+                return NotFound("User not found.");
+            }
+
+            // Use DashboardHelper to get the complete dashboard data
+            var viewModel = await _dashboardHelper.GetTrainerDashboardAsync(trainer.TrainerId, user.FullName);
+
+            return View(viewModel);
         }
-        
+
+
         [Authorize(Roles = "Receptionist")]
         public async Task<IActionResult> ReceptionistDashboard()
         {

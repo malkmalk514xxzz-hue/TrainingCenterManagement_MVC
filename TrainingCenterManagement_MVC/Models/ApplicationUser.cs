@@ -7,8 +7,8 @@ namespace TrainingCenterManagement_MVC.Models
     {
         [Required, MaxLength(50)]
         public string FullName { get; set; }
-
-        public RoleType Role { get; set; }
+        public DateTime BirthDate { get; set; }
+        public RoleType Role { get; set; } = RoleType.Trainee;
 
         // Navigation properties (اختياري لربط الحساب بصاحب الدور)
         public Trainer Trainer { get; set; }

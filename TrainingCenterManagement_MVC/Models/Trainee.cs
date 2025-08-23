@@ -14,7 +14,7 @@ namespace TrainingCenterManagement_MVC.Models
         public string UserId { get; set; }
         public ApplicationUser User { get; set; }
 
-        public DateTime BirthDate { get; set; }
+        
 
         public ICollection<CourseTrainee> CourseTrainees { get; set; } = new List<CourseTrainee>();
         public ICollection<Payment> Payments { get; set; } = new List<Payment>();

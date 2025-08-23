@@ -14,8 +14,8 @@
         <dt class="col-sm-3 fw-semibold">@Html.DisplayNameFor(m => m.User)</dt>
         <dd class="col-sm-9">@Html.DisplayFor(m => m.User.Id)</dd>
 
-        <dt class="col-sm-3 fw-semibold">@Html.DisplayNameFor(m => m.BirthDate)</dt>
-        <dd class="col-sm-9">@Html.DisplayFor(m => m.BirthDate)</dd>
+      @*   <dt class="col-sm-3 fw-semibold">@Html.DisplayNameFor(m => m.BirthDate)</dt>
+        <dd class="col-sm-9">@Html.DisplayFor(m => m.BirthDate)</dd> *@
     </dl>
 
     <form asp-action="Delete" method="post" onsubmit="return confirm('هل أنت متأكد من حذف هذا المتدرب؟');">

@@ -13,14 +13,15 @@ namespace TrainingCenterManagement_MVC.Helpers
     public class DashboardHelper
     {
         private readonly ApplicationDbContext context;
-       
+
 
         public DashboardHelper(ApplicationDbContext context
             )
         {
             this.context = context;
-            
+
         }
+        ////////////////////////////////Admin/////////////////////////////////
 
         // حساب إجمالي عدد الدورات غير المحذوفة
         public int GetTotalCourses()
@@ -275,7 +276,7 @@ namespace TrainingCenterManagement_MVC.Helpers
                 InstitutesChange = GetInstitutesChange()
             };
         }
-        //////////////////////////////////////////////////////////////////////
+        ////////////////////////////////////////////////////////////////////// Trainee  /////////////////////////////////
 
         /// <summary>
         /// ///////////////////////////////////
@@ -283,13 +284,13 @@ namespace TrainingCenterManagement_MVC.Helpers
         /// <param name="_traineeId"></param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
-        public async Task<TraineeDashboardViewModel> GetDashboardDataAsync(Guid _traineeId,string userid)
+        public async Task<TraineeDashboardViewModel> GetDashboardDataAsync(Guid _traineeId, string userid)
         {
-          
+
             var trainee = await context.Trainees
-                
-                .FirstOrDefaultAsync(u => u.TraineeId == _traineeId );
-            var user = await context .Users.FirstOrDefaultAsync(u => u.Id == userid);
+
+                .FirstOrDefaultAsync(u => u.TraineeId == _traineeId);
+            var user = await context.Users.FirstOrDefaultAsync(u => u.Id == userid);
             if (trainee == null)
                 throw new Exception("Trainee not found");
 
@@ -297,9 +298,9 @@ namespace TrainingCenterManagement_MVC.Helpers
             {
                 FullName = user.FullName,
                 ProfilePictureUrl = //trainee.Trainee?.ProfilePictureUrl ?? 
-                "/images/default-profile.png",
+                "/images/team2.png",
                 WelcomeMessage = GenerateWelcomeMessage(user.FullName),
-                OverallProgress = await CalculateOverallProgressAsync( _traineeId),
+                OverallProgress = await CalculateOverallProgressAsync(_traineeId),
                 Stats = await GetDashboardStatsAsync(_traineeId),
                 ChartData = await GetChartDataAsync(_traineeId),
                 CurrentCourses = await GetCurrentCoursesAsync(_traineeId),
@@ -360,7 +361,7 @@ namespace TrainingCenterManagement_MVC.Helpers
 
             return new DashboardStats
             {
-                OverallProgress = await CalculateOverallProgressAsync( _traineeId),
+                OverallProgress = await CalculateOverallProgressAsync(_traineeId),
                 EnrolledCourses = enrolledCourses,
                 CompletedHours = completedHours,
                 CompletedExams = completedExams,
@@ -496,5 +497,427 @@ namespace TrainingCenterManagement_MVC.Helpers
                 .ToListAsync();
         }
 
+
+        /////////////////////////////////////// Trainer //////////////////////////////////////////
+        public async Task<TrainerDashboardViewModel> GetTrainerDashboardAsync(Guid trainerId, string fullName)
+        {
+            var trainer = await context.Trainers
+                .Include(t => t.User)
+                .FirstOrDefaultAsync(t => t.TrainerId == trainerId);
+
+            var model = new TrainerDashboardViewModel
+            {
+                FullName = fullName,
+                ProfilePictureUrl = "/images/default-profile.png", // Assume static; add field to User if needed
+                Specialization = trainer?.Specialty ?? "General",
+                Availability = "Available", // Implement logic, e.g., based on schedule
+                WelcomeMessage = "Welcome back to your Trainer Dashboard!",
+                OverallProgress = await GetTrainerOverallProgressAsync(trainerId)
+            };
+
+            model.Stats = new TrainerDashboardStats
+            {
+                TotalProgress = await GetTrainerTotalCoursesAsync(trainerId),
+                CurrentCourses = await GetTrainerActiveStudentsAsync(trainerId),
+                Certificates = await GetTrainerIssuedCertificatesCountAsync(trainerId),
+                UpcomingEvents = await GetTrainerUpcomingEventsCountAsync(trainerId)
+            };
+
+            model.CurrentCourses = await GetTrainerCurrentCoursesAsync(trainerId);
+            model.RecommendedCourses = await GetTrainerRecommendedCoursesAsync(trainerId);
+            model.UpcomingEvents = await GetTrainerUpcomingEventsAsync(trainerId);
+            model.Certificates = await GetTrainerCertificatesAsync(trainerId);
+            model.ChartData = await GetTrainerAnalyticsAsync(trainerId);
+
+            model.KPIs = await GetTrainerKPIsAsync(trainerId);
+            
+            model.ScheduleEvents = await GetTrainerScheduleEventsAsync(trainerId);
+            model.StudentsByCourse = await GetStudentsByCourseAsync(trainerId);
+            model.Assignments = await GetTrainerAssignmentsAsync(trainerId);
+            model.AttendanceRecords = await GetTrainerAttendanceRecordsAsync(trainerId);
+            model.Reports = await GetTrainerReportsAsync(trainerId);
+            model.Resources = await GetTrainerResourcesAsync(trainerId);
+
+            return model;
+        }
+
+        private async Task<int> GetTrainerOverallProgressAsync(Guid trainerId)
+        {
+            var courseIds = await context.CourseTrainers
+                .Where(ct => ct.TrainerId == trainerId && !ct.Course.IsDeleted)
+                .Select(ct => ct.CourseId)
+                .ToListAsync();
+
+            var totalPresences = await context.Presences
+                .Where(p => courseIds.Contains(p.Lecture.CourseId) && !p.IsDeleted)
+                .CountAsync();
+
+            var presentPresences = await context.Presences
+                .Where(p => courseIds.Contains(p.Lecture.CourseId) && p.IsPresent && !p.IsDeleted)
+                .CountAsync();
+
+            return totalPresences > 0 ? (presentPresences * 100) / totalPresences : 0;
+        }
+
+        private async Task<int> GetTrainerTotalCoursesAsync(Guid trainerId)
+        {
+            return await context.CourseTrainers
+                .CountAsync(ct => ct.TrainerId == trainerId && !ct.Course.IsDeleted);
+        }
+
+        private async Task<int> GetTrainerActiveStudentsAsync(Guid trainerId)
+        {
+            return await context.CourseTrainers
+                .Where(ct => ct.TrainerId == trainerId && !ct.Course.IsDeleted)
+                .SelectMany(ct => ct.Course.CourseTrainees)
+                .Select(ct => ct.TraineeId)
+                .Distinct()
+                .CountAsync();
+        }
+
+        private async Task<int> GetTrainerIssuedCertificatesCountAsync(Guid trainerId)
+        {
+            return await context.Certificates
+                .CountAsync(c => c.TrainerId == trainerId && !c.IsDeleted);
+        }
+
+        private async Task<int> GetTrainerUpcomingEventsCountAsync(Guid trainerId)
+        {
+            var upcomingLectures = await context.Lectures
+                .CountAsync(l => l.LectureDate >= DateTime.UtcNow && !l.IsDeleted && l.Course.CourseTrainers.Any(ct => ct.TrainerId == trainerId));
+
+            var upcomingExams = await context.Exams
+                .CountAsync(e => e.ExamDate >= DateTime.UtcNow && !e.IsDeleted && e.Course.CourseTrainers.Any(ct => ct.TrainerId == trainerId));
+
+            return upcomingLectures + upcomingExams;
+        }
+
+        private async Task<List<CurrentCourse>> GetTrainerCurrentCoursesAsync(Guid trainerId)
+        {
+            var courseTrainers = await context.CourseTrainers
+                .Where(ct => ct.TrainerId == trainerId && !ct.Course.IsDeleted)
+                .Include(ct => ct.Course)
+                .ThenInclude(c => c.Lectures.Where(l => !l.IsDeleted))
+                .ToListAsync();
+
+            var currentCourses = new List<CurrentCourse>();
+            foreach (var ct in courseTrainers)
+            {
+                var course = ct.Course;
+                var totalLectures = course.Lectures.Count();
+                var completedLectures = course.Lectures.Count(l => l.LectureDate < DateTime.UtcNow);
+
+                var progress = totalLectures > 0 ? (completedLectures * 100) / totalLectures : 0;
+                var remainingLectures = totalLectures - completedLectures;
+
+                currentCourses.Add(new CurrentCourse
+                {
+                    Id = course.CourseId,
+                    Name = course.CourseName,
+                    Progress = progress,
+                    Remaining = $"{remainingLectures} lectures remaining"
+                });
+            }
+
+            return currentCourses;
+        }
+
+        private async Task<List<RecommendedCourse>> GetTrainerRecommendedCoursesAsync(Guid trainerId)
+        {
+            var assignedCourseIds = await context.CourseTrainers
+                .Where(ct => ct.TrainerId == trainerId)
+                .Select(ct => ct.CourseId)
+                .ToListAsync();
+
+            return await context.Courses
+                .Where(c => !c.IsDeleted && !assignedCourseIds.Contains(c.CourseId))
+                .Take(4)
+                .Select(c => new RecommendedCourse
+                {
+                    Id = c.CourseId,
+                    Name = c.CourseName,
+                    Description = c.Description ?? "Great course to teach!"
+                })
+                .ToListAsync();
+        }
+
+        private async Task<List<UpcomingEvent>> GetTrainerUpcomingEventsAsync(Guid trainerId)
+        {
+            var upcomingLectures = await context.Lectures
+                .Where(l => l.LectureDate >= DateTime.UtcNow && !l.IsDeleted && l.Course.CourseTrainers.Any(ct => ct.TrainerId == trainerId))
+                .OrderBy(l => l.LectureDate)
+                .Take(5)
+                .Select(l => new UpcomingEvent
+                {
+                    Title = l.Title,
+                    Date = l.LectureDate.ToString("MMM dd, yyyy HH:mm"),
+                    Link = l.VideoUrl ?? "https://zoom.us/j/123456789"
+                })
+                .ToListAsync();
+
+            var upcomingExams = await context.Exams
+                .Where(e => e.ExamDate >= DateTime.UtcNow && !e.IsDeleted && e.Course.CourseTrainers.Any(ct => ct.TrainerId == trainerId))
+                .OrderBy(e => e.ExamDate)
+                .Take(5)
+                .Select(e => new UpcomingEvent
+                {
+                    Title = e.ExamName,
+                    Date = e.ExamDate.ToString("MMM dd, yyyy HH:mm"),
+                    Link = "https://zoom.us/j/123456789"
+                })
+                .ToListAsync();
+
+            return upcomingLectures.Concat(upcomingExams)
+                .OrderBy(e => DateTime.Parse(e.Date))
+                .Take(5)
+                .ToList();
+        }
+
+        private async Task<List<CertificateViewModel>> GetTrainerCertificatesAsync(Guid trainerId)
+        {
+            return await context.Certificates
+                .Where(c => c.TrainerId == trainerId && !c.IsDeleted)
+                .Include(c => c.Course)
+                .Select(c => new CertificateViewModel
+                {
+                    Id = c.CertificateId,
+                    Name = c.Course.CourseName
+                })
+                .ToListAsync();
+        }
+
+        private async Task<DashboardChartData> GetTrainerAnalyticsAsync(Guid trainerId)
+        {
+            var labels = new List<string>();
+            var values = new List<decimal>();
+            var startDate = DateTime.UtcNow.AddMonths(-1);
+            var endDate = DateTime.UtcNow;
+
+            var courseIds = await context.CourseTrainers
+                .Where(ct => ct.TrainerId == trainerId && !ct.Course.IsDeleted)
+                .Select(ct => ct.CourseId)
+                .ToListAsync();
+
+            for (var date = startDate; date <= endDate; date = date.AddDays(7))
+            {
+                labels.Add(date.ToString("MMM dd"));
+
+                var presencesInWeek = await context.Presences
+                    .Include(p => p.Lecture)
+                    .Where(p => courseIds.Contains(p.Lecture.CourseId)
+                             && p.Lecture.LectureDate >= date
+                             && p.Lecture.LectureDate < date.AddDays(7)
+                             && !p.IsDeleted
+                             && !p.Lecture.IsDeleted)
+                    .ToListAsync();
+
+                var total = presencesInWeek.Count;
+                var present = presencesInWeek.Count(p => p.IsPresent);
+                var attendance = total > 0 ? (present * 100m) / total : 0m;
+                values.Add(attendance);
+            }
+
+            return new DashboardChartData
+            {
+                Analytics = new ChartData
+                {
+                    Labels = labels,
+                    Values = values
+                }
+            };
+        }
+
+        private async Task<TrainerKPIs> GetTrainerKPIsAsync(Guid trainerId)
+        {
+            var courseIds = await context.CourseTrainers
+                .Where(ct => ct.TrainerId == trainerId && !ct.Course.IsDeleted)
+                .Select(ct => ct.CourseId)
+                .ToListAsync();
+
+            var currentCourses = courseIds.Count;
+
+            var enrolledStudents = await context.CourseTrainees
+                .Where(ct => courseIds.Contains(ct.CourseId) && !ct.Course.IsDeleted)
+                .Select(ct => ct.TraineeId)
+                .Distinct()
+                .CountAsync();
+
+            // Average attendance last month
+            var lastMonthStart = DateTime.UtcNow.AddMonths(-1);
+            var presencesLastMonth = await context.Presences
+                .Include(p => p.Lecture)
+                .Where(p => courseIds.Contains(p.Lecture.CourseId)
+                         && p.Lecture.LectureDate >= lastMonthStart
+                         && !p.IsDeleted
+                         && !p.Lecture.IsDeleted)
+                .ToListAsync();
+
+            var totalPresences = presencesLastMonth.Count;
+            var presentCount = presencesLastMonth.Count(p => p.IsPresent);
+            var averageAttendance = totalPresences > 0 ? (presentCount * 100m) / totalPresences : 0m;
+
+            // Ungraded assignments: Assume no Assignment model, placeholder 0
+            var ungradedAssignments = 0; // Implement if Assignment model added
+
+            // Average rating: Assume no Rating model, placeholder
+            var averageRating = 4.5m; // Query if added
+
+            return new TrainerKPIs
+            {
+                CurrentCourses = currentCourses,
+                EnrolledStudents = enrolledStudents,
+                AverageAttendance = averageAttendance,
+                UngradedAssignments = ungradedAssignments,
+                AverageRating = averageRating
+            };
+        }
+     
+
+
+        private async Task<List<ScheduleEvent>> GetTrainerScheduleEventsAsync(Guid trainerId)
+        {
+            var lectures = await context.Lectures
+                .Where(l => !l.IsDeleted && l.Course.CourseTrainers.Any(ct => ct.TrainerId == trainerId))
+                .Select(l => new ScheduleEvent
+                {
+                    Id = l.LectureId,
+                    Title = l.Title,
+                    Start = l.LectureDate,
+                    End = l.LectureDate.AddHours(1), // Assume 1 hour duration
+                    Type = "Lecture",
+                    Link = l.VideoUrl
+                })
+                .ToListAsync();
+
+            var exams = await context.Exams
+                .Where(e => !e.IsDeleted && e.Course.CourseTrainers.Any(ct => ct.TrainerId == trainerId))
+                .Select(e => new ScheduleEvent
+                {
+                    Id = e.ExamId,
+                    Title = e.ExamName,
+                    Start = e.ExamDate,
+                    End = e.ExamDate.AddHours(2), // Assume 2 hours
+                    Type = "Exam",
+                    Link = null // Add if available
+                })
+                .ToListAsync();
+
+            // Add meetings if model exists
+
+            var events = lectures.Cast<ScheduleEvent>().Concat(exams).ToList();
+            return events;
+        }
+
+        private async Task<Dictionary<Guid, List<StudentInfo>>> GetStudentsByCourseAsync(Guid trainerId)
+        {
+            var courseIds = await context.CourseTrainers
+                .Where(ct => ct.TrainerId == trainerId && !ct.Course.IsDeleted)
+                .Select(ct => ct.CourseId)
+                .ToListAsync();
+
+            var studentsByCourse = new Dictionary<Guid, List<StudentInfo>>();
+
+            foreach (var courseId in courseIds)
+            {
+                        
+                var Courseob = await context.Courses.FirstOrDefaultAsync(c=>c.CourseId == courseId);
+                var students = await context.CourseTrainees
+                    .Where(ct => ct.CourseId == courseId)
+                    .Include(ct => ct.Trainee)
+                    .ThenInclude(t => t.User)
+                    .Select(ct => new StudentInfo
+                    {
+                        Id = ct.TraineeId,
+                        Name = ct.Trainee.User.FullName,
+                        AttendanceStatus = "Present", // Calculate based on recent presence
+                        Grade = 0, // Assume from certificates or add model
+                        Contact = ct.Trainee.User.PhoneNumber,
+                        CourseName = Courseob.CourseName
+                    })
+                    .ToListAsync();
+
+                // Enhance with actual attendance status, e.g., average presence
+                foreach (var student in students)
+                {
+                    var presences = await context.Presences
+                        .Where(p => p.TraineeId == student.Id
+                                 && p.Lecture.CourseId == courseId
+                                 && !p.IsDeleted)
+                        .ToListAsync();
+
+                    var total = presences.Count;
+                    var present = presences.Count(p => p.IsPresent);
+                    student.AttendanceStatus = total > 0 ? $"{(present * 100 / total)}% Attendance" : "No Data";
+                }
+
+                studentsByCourse[courseId] = students;
+            }
+
+            return studentsByCourse;
+        }
+
+        private async Task<List<Assignment>> GetTrainerAssignmentsAsync(Guid trainerId)
+        {
+            // No Assignment model provided; placeholder
+            // If added, query like:
+            // return await context.Assignments
+            //     .Where(a => a.TrainerId == trainerId)
+            //     .ToListAsync();
+            return new List<Assignment>();
+        }
+
+        private async Task<List<AttendanceRecord>> GetTrainerAttendanceRecordsAsync(Guid trainerId)
+        {
+            var courseIds = await context.CourseTrainers
+                .Where(ct => ct.TrainerId == trainerId && !ct.Course.IsDeleted)
+                .Select(ct => ct.CourseId)
+                .ToListAsync();
+
+            var lectures = await context.Lectures
+                .Where(l => courseIds.Contains(l.CourseId) && !l.IsDeleted)
+                .Include(l => l.Presences.Where(p => !p.IsDeleted))
+                .ThenInclude(p => p.Trainee)
+                .ThenInclude(t => t.User)
+                .ToListAsync();
+
+            var records = new List<AttendanceRecord>();
+
+            foreach (var lecture in lectures)
+            {
+                var record = new AttendanceRecord
+                {
+                    LectureId = lecture.LectureId,
+                    Date = lecture.LectureDate,
+                    Students = lecture.Presences.Select(p => new StudentAttendance
+                    {
+                        StudentId = p.TraineeId,
+                        Present = p.IsPresent,
+                        Notes = "" // Add if field exists
+                    }).ToList()
+                };
+                records.Add(record);
+            }
+
+            return records.OrderByDescending(r => r.Date).Take(10).ToList(); // Recent 10
+        }
+
+        private async Task<List<Report>> GetTrainerReportsAsync(Guid trainerId)
+        {
+            // Placeholder; generate reports based on data
+            // For example, student performance report
+            var reports = new List<Report>
+            {
+                new Report { Title = "Attendance Report", Data = "JSON chart data" },
+                // Query and serialize
+            };
+            return reports;
+        }
+
+        private async Task<List<Resource>> GetTrainerResourcesAsync(Guid trainerId)
+        {
+            // No Resource model; placeholder
+            // If added, query resources linked to trainer or courses
+            return new List<Resource>();
+        }
     }
-}
+    }
