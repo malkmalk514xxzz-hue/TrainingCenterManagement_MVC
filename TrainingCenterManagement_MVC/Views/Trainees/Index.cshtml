@@ -14,7 +14,7 @@
     <thead class="table-dark">
         <tr>
             <th>@Html.DisplayNameFor(model => model.User)</th>
-            <th>@Html.DisplayNameFor(model => model.BirthDate)</th>
+            <th>@Html.DisplayNameFor(model => model.User.BirthDate)</th>
             <th style="width: 150px;">Actions</th>
         </tr>
     </thead>
@@ -25,7 +25,7 @@
             {
                 <tr>
                     <td>@item.User.FullName</td>
-                    <td>@item.BirthDate.ToShortDateString()</td>
+                    <td>@item.User.BirthDate.ToShortDateString()</td>
                     <td>
                         <a asp-action="Edit" asp-route-id="@item.TraineeId" class="btn btn-sm btn-primary me-1">Edit</a>
                         <a asp-action="Details" asp-route-id="@item.TraineeId" class="btn btn-sm btn-info me-1">Details</a>

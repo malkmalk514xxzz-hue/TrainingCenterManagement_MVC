@@ -1,116 +1,659 @@
 ﻿@using TrainingCenterManagement_MVC.Resources
+@using Newtonsoft.Json
+@using TrainingCenterManagement_MVC.ViewModels
+@model TrainerDashboardViewModel
+
 @{
-    ViewData["Title"] ="Trainer Dashboard";
+    ViewData["Title"] = "لوحة تحكم المدرب";
 }
+
+<!-- إضافة مكتبة FullCalendar -->
+<link href='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css' rel='stylesheet' />
+<script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js'></script>
+<!-- إضافة Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+    .dashboard-wrapper {
+        display: flex;
+        direction: @((System.Threading.Thread.CurrentThread.CurrentUICulture.TextInfo.IsRightToLeft ? "rtl" : "ltr"));
+    }
+
+    .dashboard-main {
+        flex-grow: 1;
+        padding: 20px;
+    }
+
+    .profile-section {
+        display: flex;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .profile-picture {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        margin-right: 15px;
+    }
+
+    .welcome-message {
+        font-size: 18px;
+        color: #555;
+    }
+
+    .overall-progress {
+        margin-left: auto;
+        font-size: 24px;
+        font-weight: bold;
+        color: #007bff;
+    }
+
+    .kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+
+    .stat-card {
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        padding: 15px;
+        text-align: center;
+    }
+
+    .stat-value {
+        font-size: 20px;
+        font-weight: bold;
+        color: #007bff;
+    }
+
+    .notification-list {
+        list-style: none;
+        padding: 0;
+    }
+
+    .tabs {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+
+    .tab-btn {
+        padding: 10px 20px;
+        border: none;
+        background: #f1f1f1;
+        cursor: pointer;
+        border-radius: 5px;
+    }
+
+        .tab-btn.active {
+            background: #007bff;
+            color: #fff;
+        }
+
+    .tab-content {
+        display: none;
+    }
+
+        .tab-content.active {
+            display: block;
+        }
+
+    .card {
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+
+    .progress-bar {
+        background-color: #e9ecef;
+        border-radius: 5px;
+        height: 10px;
+        margin-top: 5px;
+    }
+
+    .progress-fill {
+        background-color: #28a745;
+        height: 100%;
+        border-radius: 5px;
+    }
+
+    #calendar {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+
+    .students-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+        .students-table th, .students-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+
+    .upcoming-events {
+        list-style: none;
+        padding: 0;
+    }
+
+        .upcoming-events li {
+            margin-bottom: 10px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 5px;
+        }
+
+    .certificates-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .certificate-card {
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        padding: 10px;
+        width: 150px;
+        text-align: center;
+    }
+
+    .issue-btn {
+        margin-top: 5px;
+        padding: 5px 10px;
+        background: #ffc107;
+        color: #000;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+    .loader {
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #007bff;
+        border-radius: 50%;
+        width: 30px;
+        height: 30px;
+        animation: spin 1s linear infinite;
+        margin: 20px auto;
+        display: none;
+    }
+
+    .attendance-report {
+        margin-top: 20px;
+        padding: 10px;
+        background: #f8f9fa;
+        border-radius: 5px;
+    }
+
+    canvas {
+        height: 400px !important;
+        width: 100% !important;
+    }
+
+   
+    
+</style>
 
 <body>
     <div class="dashboard-wrapper">
-        @await Html.PartialAsync("_TrainerSidebar")
-
         <main class="dashboard-main">
-            <div class="dashboard-header">
-                <h1>@SharedResource.AdminDashboard_Header</h1>
-                <p>@SharedResource.AdminDashboard_Description</p>
+            <!-- النظرة العامة -->
+            <div class="profile-section">
+                <img src="@Model.ProfilePictureUrl" alt="الصورة الشخصية" class="profile-picture" />
+                <div>
+                    <h2>@Model.FullName</h2>
+                    <p>التخصص: @Model.Specialization</p>
+                    <p>التوافر: @Model.Availability</p>
+                </div>
+                <div class="overall-progress">@Model.OverallProgress%</div>
             </div>
 
-            <div class="dashboard-stats">
-                <div class="card stat-card">
-                    <div class="stat-header">
-                        <h3>@SharedResource.Stat_TotalRestaurants</h3>
-                        <i class="fas fa-building"></i>
-                    </div>
-                    <div class="stat-content">
-                        <div class="stat-value">2,856</div>
-                        <p class="stat-change">@string.Format(SharedResource.StatChange_ThisMonth, "124")</p>
-                    </div>
+            <!-- مؤشرات الأداء -->
+            <div class="kpi-grid">
+                <div class="stat-card">
+                    <h4>الدورات الحالية</h4>
+                    <div class="stat-value" id="courses-value">@Model.KPIs.CurrentCourses</div>
                 </div>
-                <div class="card stat-card">
-                    <div class="stat-header">
-                        <h3>@SharedResource.Stat_ActiveUsers</h3>
-                        <i class="fas fa-users"></i>
-                    </div>
-                    <div class="stat-content">
-                        <div class="stat-value">3,427</div>
-                        <p class="stat-change">@string.Format(SharedResource.StatChange_ThisMonth, "258")</p>
-                    </div>
+                <div class="stat-card">
+                    <h4>الطلاب المسجلون</h4>
+                    <div class="stat-value" id="students-value">@Model.KPIs.EnrolledStudents</div>
                 </div>
-                <div class="card stat-card">
-                    <div class="stat-header">
-                        <h3>@SharedResource.Stat_MonthlyRevenue</h3>
-                        <i class="fas fa-credit-card"></i>
-                    </div>
-                    <div class="stat-content">
-                        <div class="stat-value">$128,540</div>
-                        <p class="stat-change">@string.Format(SharedResource.StatChange_LastMonth, "12.5")</p>
-                    </div>
+                <div class="stat-card">
+                    <h4>متوسط الحضور</h4>
+                    <div class="stat-value">@Model.KPIs.AverageAttendance%</div>
                 </div>
-                <div class="card stat-card">
-                    <div class="stat-header">
-                        <h3>@SharedResource.Stat_ActiveCities</h3>
-                        <i class="fas fa-globe"></i>
-                    </div>
-                    <div class="stat-content">
-                        <div class="stat-value">42</div>
-                        <p class="stat-change">@string.Format(SharedResource.StatChange_ThisMonth, "3")</p>
-                    </div>
+                <div class="stat-card">
+                    <h4>المهام غير المصححة</h4>
+                    <div class="stat-value">@Model.KPIs.UngradedAssignments</div>
+                </div>
+                <div class="stat-card">
+                    <h4>متوسط التقييم</h4>
+                    <div class="stat-value">@Model.KPIs.AverageRating</div>
                 </div>
             </div>
 
-            <div class="dashboard-tabs">
-                <div class="tabs">
-                    <button class="tab-btn active" data-tab="overview">@SharedResource.Tab_Overview</button>
-                    <button class="tab-btn" data-tab="restaurants">@SharedResource.Tab_Restaurants</button>
-                    <button class="tab-btn" data-tab="users">@SharedResource.Tab_Users</button>
-                    <button class="tab-btn" data-tab="revenue">@SharedResource.Tab_Revenue</button>
+            <!-- الإشعارات -->
+            <div class="card">
+                <h3>الإشعارات</h3>
+                <ul class="notification-list">
+                    @foreach (var notif in Model.Notifications)
+                    {
+                        <li>@notif.Message - @notif.Time.ToString("MMM dd, yyyy HH:mm")</li>
+                    }
+                </ul>
+            </div>
+
+            <!-- التبويبات -->
+            <div class="tabs">
+                <button id="schedule-btn" class="tab-btn active">الجدول</button>
+                <button id="students-btn" class="tab-btn">إدارة الطلاب</button>
+                <button id="assignments-btn" class="tab-btn">المهام</button>
+                <button id="attendance-btn" class="tab-btn">الحضور</button>
+                <button id="analytics-btn" class="tab-btn">التحليلات والتقارير</button>
+                <button id="resources-btn" class="tab-btn">الموارد</button>
+                <button id="courses-btn" class="tab-btn">الدورات الحالية</button>
+                <button id="recommended-btn" class="tab-btn">الدورات الموصى بها</button>
+                <button id="certificates-btn" class="tab-btn">الشهادات المصدرة</button>
+            </div>
+
+            <!-- محتوى التبويبات -->
+            <div id="schedule" class="tab-content card active">
+                <h3>الجدول</h3>
+                <div id="calendar"></div>
+                <button class="btn btn-primary mt-3" onclick="addEvent()">إضافة حدث</button>
+            </div>
+
+            <div id="students" class="tab-content card">
+                <h3>إدارة الطلاب</h3>
+                @foreach (var course in Model.StudentsByCourse)
+                {
+                    <h4>الدورة: @course.Value[0].CourseName</h4>
+                    <table class="students-table">
+                        <thead>
+                            <tr>
+                                <th>الاسم</th>
+                                <th>حالة الحضور</th>
+                                <th>الدرجة</th>
+                                <th>معلومات التواصل</th>
+                               
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var student in course.Value)
+                            {
+                                <tr>
+                                    <td>@student.Name</td>
+                                    <td>@student.AttendanceStatus</td>
+                                    <td>@student.Grade</td>
+                                    <td>@student.Contact</td>
+                                 
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+            </div>
+
+            <div id="assignments" class="tab-content card">
+                <h3>المهام</h3>
+                <button class="btn btn-primary mb-3" onclick="createAssignment()">إنشاء مهمة</button>
+                <ul class="course-list">
+                    @foreach (var assign in Model.Assignments)
+                    {
+                        <li>@assign.Title - الموعد النهائي: @assign.DueDate.ToString("MMM dd, yyyy") - النوع: @assign.Type</li>
+                    }
+                </ul>
+            </div>
+
+            <div id="attendance" class="tab-content card">
+                <h3>الحضور</h3>
+                <button class="btn btn-primary mb-3" onclick="viewTraineeAttendance('47b0f901-d4d2-44a9-a045-6ea12d20c590', 'fdb196c0-9c76-429b-8ef3-45f94b93798f')">عرض تقرير حضور المتدرب المحدد</button>
+                <div id="attendance-report" class="attendance-report" style="display: none;"></div>
+                @foreach (var course in Model.StudentsByCourse)
+                {
+                    <h4>الدورة: @course.Key</h4>
+                    <table class="students-table">
+                        <thead>
+                            <tr>
+                                <th>اسم المتدرب</th>
+                                <th>الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var student in course.Value)
+                            {
+                                <tr>
+                                    <td>@student.Name</td>
+                                    <td>
+                                      <a href="@Url.Action("TraineeAttendanceInCourse", "Presences", 
+                                     new { traineeId = student.Id, courseId = course.Key })"  >
+                                                عرض تقرير الحضور</a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+            </div>
+
+            <div id="analytics" class="tab-content card">
+                <h3>التحليلات والتقارير</h3>
+                <canvas id="analytics-chart"></canvas>
+                <div class="loader" id="analytics-loader"></div>
+                <button class="btn btn-primary mt-3" onclick="exportReport('pdf')">تصدير PDF</button>
+                <button class="btn btn-primary mt-3" onclick="exportReport('excel')">تصدير Excel</button>
+            </div>
+
+            <div id="resources" class="tab-content card">
+                <h3>الموارد</h3>
+                <button class="btn btn-primary mb-3" onclick="uploadResource()">رفع مورد</button>
+                <ul class="course-list">
+                    @foreach (var res in Model.Resources)
+                    {
+                        <li><a href="@res.Url">@res.Name (@res.Type)</a></li>
+                    }
+                </ul>
+            </div>
+
+            <div id="courses" class="tab-content card">
+                <h3>الدورات الحالية</h3>
+                <ul class="course-list">
+                    @foreach (var course in Model.CurrentCourses)
+                    {
+                        <li>
+                            <div>
+                                <strong>@course.Name</strong>
+                                <div class="progress-bar"><div class="progress-fill" style="width: @course.Progress%"></div></div>
+                                <small>@course.Remaining</small>
+                            </div>
+                            <button class="btn btn-primary" onclick="manageCourse('@course.Id')">إدارة</button>
+                        </li>
+                    }
+                </ul>
+            </div>
+
+            <div id="recommended" class="tab-content card">
+                <h3>الدورات الموصى بها</h3>
+                <div class="recommended-courses">
+                    @foreach (var course in Model.RecommendedCourses)
+                    {
+                        <div class="recommended-card">
+                            <h5>@course.Name</h5>
+                            <p>@course.Description</p>
+                            <button class="btn btn-success" onclick="assignCourse('@course.Id')">تعيين</button>
+                        </div>
+                    }
                 </div>
-                <div class="tab-content active" id="overview">
-                    <div class="card">
-                        <div class="card-header">
-                            <h3>@SharedResource.Growth_PlatformTitle</h3>
-                            <p>@SharedResource.Growth_PlatformDescription</p>
+            </div>
+
+            <div id="certificates" class="tab-content card">
+                <h3>الشهادات المصدرة</h3>
+                <div class="certificates-list">
+                    @foreach (var cert in Model.Certificates)
+                    {
+                        <div class="certificate-card">
+                            <h5>@cert.Name</h5>
+                            <button class="issue-btn" onclick="viewCertificate('@cert.Id')">عرض</button>
                         </div>
-                        <div class="card-content chart-placeholder">
-                            <i class="fas fa-chart-bar"></i>
-                            <span>@SharedResource.ChartPlaceholder_Text</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="tab-content" id="restaurants">
-                    <div class="card">
-                        <div class="card-header">
-                            <h3>@SharedResource.Analytics_RestaurantTitle</h3>
-                            <p>@SharedResource.Analytics_RestaurantDescription</p>
-                        </div>
-                        <div class="card-content chart-placeholder">
-                            <span>@SharedResource.ChartPlaceholder_GenericText.Replace("[Category]", SharedResource.Restaurants)</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="tab-content" id="users">
-                    <div class="card">
-                        <div class="card-header">
-                            <h3>@SharedResource.Analytics_UserTitle</h3>
-                            <p>@SharedResource.Analytics_UserDescription</p>
-                        </div>
-                        <div class="card-content chart-placeholder">
-                            <span>@SharedResource.ChartPlaceholder_GenericText.Replace("[Category]", SharedResource.Users)</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="tab-content" id="revenue">
-                    <div class="card">
-                        <div class="card-header">
-                            <h3>@SharedResource.Analytics_RevenueTitle</h3>
-                            <p>@SharedResource.Analytics_RevenueDescription</p>
-                        </div>
-                        <div class="card-content chart-placeholder">
-                            <span>@SharedResource.ChartPlaceholder_GenericText.Replace("[Category]", SharedResource.Subscriptions)</span>
-                        </div>
-                    </div>
+                    }
                 </div>
             </div>
         </main>
     </div>
 
+    <script>
+        // التأكد من أن dashboardData ليس null
+        const dashboardData = @Html.Raw(JsonConvert.SerializeObject(Model)) || {};
+        const translations = {
+            coursesTeaching: 'الدورات الحالية',
+            activeStudents: 'الطلاب المسجلون',
+            issuedCertificates: 'الشهادات المصدرة',
+            upcomingEvents: 'الأحداث القادمة',
+            attendance: 'الحضور'
+        };
 
+        let charts = {};
+
+        // تحديث الإحصائيات
+        function updateStats(stats) {
+            console.log('Updating stats:', stats);
+            const coursesValue = document.getElementById('courses-value');
+            const studentsValue = document.getElementById('students-value');
+            const certificatesValue = document.getElementById('certificates-value');
+            const eventsValue = document.getElementById('events-value');
+
+            if (coursesValue && stats.totalProgress !== undefined) {
+                coursesValue.textContent = stats.totalProgress;
+            }
+            if (studentsValue && stats.currentCourses !== undefined) {
+                studentsValue.textContent = stats.currentCourses;
+            }
+            if (certificatesValue && stats.certificates !== undefined) {
+                certificatesValue.textContent = stats.certificates;
+            }
+            if (eventsValue && stats.upcomingEvents !== undefined) {
+                eventsValue.textContent = stats.upcomingEvents;
+            }
+        }
+
+        // عرض الرسم البياني
+        function renderChart(tabId) {
+            if (tabId !== 'analytics') return;
+
+            const canvas = document.getElementById('analytics-chart');
+            const loader = document.getElementById('analytics-loader');
+            if (!canvas || !loader) {
+                console.error('Analytics chart or loader not found');
+                return;
+            }
+
+            loader.style.display = 'block';
+
+            let chartData = dashboardData?.chartData?.analytics || { labels: [], values: [] };
+            let labels = chartData.labels || [];
+            let values = chartData.values || [];
+
+            if (charts.analytics) {
+                charts.analytics.destroy();
+            }
+
+            const ctx = canvas.getContext('2d');
+            charts.analytics = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: translations.attendance,
+                        data: values,
+                        borderColor: '#007bff',
+                        backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: { y: { beginAtZero: true } },
+                    plugins: { legend: { display: true, position: 'top' } }
+                }
+            });
+
+            loader.style.display = 'none';
+        }
+
+        // إعداد التقويم والتبويبات
+        document.addEventListener('DOMContentLoaded', function () {
+            console.log('DOM fully loaded');
+
+            // إعداد التقويم
+            const calendarEl = document.getElementById('calendar');
+            if (calendarEl) {
+                const calendar = new FullCalendar.Calendar(calendarEl, {
+                    initialView: 'dayGridMonth',
+                    events: @Html.Raw(JsonConvert.SerializeObject(Model.ScheduleEvents.Select(e => new
+            {
+                id = e.Id,
+                title = e.Title,
+                start = e.Start.ToString("o"),
+                end = e.End.ToString("o"),
+                url = e.Link
+            }))),
+                    eventClick: function(info) {
+                        if (info.event.url) {
+                            window.open(info.event.url, '_blank');
+                            info.jsEvent.preventDefault();
+                        }
+                    }
+                });
+                calendar.render();
+            } else {
+                console.error('Calendar element not found');
+            }
+
+            // إعداد التبويبات
+            const tabs = [
+                { btnId: 'schedule-btn', tabId: 'schedule' },
+                { btnId: 'students-btn', tabId: 'students' },
+                { btnId: 'assignments-btn', tabId: 'assignments' },
+                { btnId: 'attendance-btn', tabId: 'attendance' },
+                { btnId: 'analytics-btn', tabId: 'analytics' },
+                { btnId: 'resources-btn', tabId: 'resources' },
+                { btnId: 'courses-btn', tabId: 'courses' },
+                { btnId: 'recommended-btn', tabId: 'recommended' },
+                { btnId: 'certificates-btn', tabId: 'certificates' }
+            ];
+
+            tabs.forEach(tab => {
+                const button = document.getElementById(tab.btnId);
+                const content = document.getElementById(tab.tabId);
+                if (!button) {
+                    console.error(`Button with ID ${tab.btnId} not found`);
+                    return;
+                }
+                if (!content) {
+                    console.error(`Tab content with ID ${tab.tabId} not found`);
+                    return;
+                }
+                button.addEventListener('click', () => {
+                    console.log(`Clicked tab: ${tab.btnId}`);
+                    tabs.forEach(t => {
+                        const btn = document.getElementById(t.btnId);
+                        const cont = document.getElementById(t.tabId);
+                        if (btn && cont) {
+                            btn.classList.remove('active');
+                            cont.classList.remove('active');
+                        }
+                    });
+                    button.classList.add('active');
+                    content.classList.add('active');
+                    renderChart(tab.tabId);
+                });
+            });
+
+            // تحديث البيانات الأولية
+            if (dashboardData && dashboardData.stats) {
+                updateStats(dashboardData.stats);
+            } else {
+                console.warn('dashboardData or stats not available');
+            }
+        });
+
+        // دالة جلب تقرير الحضور عبر AJAX
+        async function viewTraineeAttendance(courseId, traineeId) {
+            console.log(`جلب تقرير حضور المتدرب ${traineeId} في الدورة ${courseId}`);
+            const reportDiv = document.getElementById('attendance-report');
+            const loader = document.createElement('div');
+            loader.className = 'loader';
+            reportDiv.innerHTML = '';
+            reportDiv.appendChild(loader);
+            reportDiv.style.display = 'block';
+
+            try {
+                  console.log(`/Presences/TraineeAttendanceInCourse/${traineeId}/${courseId}`);
+                const response = await fetch(`/Presences/TraineeAttendanceInCourse/${traineeId}/${courseId}`
+                );
+
+                if (!response.ok) {
+                    console.error(`فشل جلب تقرير الحضور: ${response.status} ${response.statusText}`);
+                    if (response.status === 404) {
+                        alert('الدورة أو المتدرب غير موجود. يرجى التحقق من البيانات.');
+                    } else if (response.status === 401 || response.status === 403) {
+                        alert('غير مصرح لك بالوصول إلى تقرير الحضور. يرجى تسجيل الدخول كمدرب.');
+                    } else {
+                        alert(`خطأ في جلب تقرير الحضور: ${response.statusText}`);
+                    }
+                    reportDiv.style.display = 'none';
+                    return;
+                }
+
+                const data = await response.json();
+                console.log('البيانات المستلمة:', data);
+                reportDiv.innerHTML = `
+                    <h4>تقرير حضور المتدرب</h4>
+                    <p><strong>المتدرب:</strong> ${data.traineeName}</p>
+                    <p><strong>الدورة:</strong> ${data.courseName}</p>
+                    <p><strong>عدد المحاضرات التي حضرها:</strong> ${data.attended}</p>
+                    <p><strong>إجمالي المحاضرات:</strong> ${data.totalLectures}</p>
+                    <p><strong>نسبة الحضور:</strong> ${data.percentage}%</p>
+                `;
+            } catch (error) {
+                console.error('خطأ في جلب تقرير الحضور:', error);
+                alert('حدث خطأ أثناء جلب تقرير الحضور. يرجى المحاولة لاحقًا.');
+                reportDiv.style.display = 'none';
+            }
+        }
+
+        // دوال الإجراءات
+        function manageCourse(id) {
+            console.log(`إدارة الدورة ${id}`);
+            window.location.href = `/Courses/Details/${id}`;
+        }
+
+        function assignCourse(id) {
+            console.log(`تعيين الدورة ${id}`);
+            window.location.href = `/Courses/Assign/${id}`;
+        }
+
+        function viewCertificate(id) {
+            console.log(`عرض الشهادة ${id}`);
+            window.location.href = `/Certificates/Details/${id}`;
+        }
+
+        function addEvent() {
+            console.log('إضافة حدث جديد');
+            window.location.href = `/Events/Create`;
+        }
+
+        function createAssignment() {
+            console.log('إنشاء مهمة جديدة');
+            window.location.href = `/Assignments/Create`;
+        }
+
+
+   
+
+        function uploadResource() {
+            console.log('رفع مورد جديد');
+            window.location.href = `/Resources/Upload`;
+        }
+
+        function exportReport(format) {
+            console.log(`تصدير تقرير بصيغة ${format}`);
+            const courseId = dashboardData.currentCourseId || '00000000-0000-0000-0000-000000000000';
+            if (format === 'pdf') {
+                window.location.href = `/Courses/ExportPdf/${courseId}`;
+            } else if (format === 'excel') {
+                window.location.href = `/Courses/CourseAttendance/${courseId}`;
+            }
+        }
+    </script>
 </body>

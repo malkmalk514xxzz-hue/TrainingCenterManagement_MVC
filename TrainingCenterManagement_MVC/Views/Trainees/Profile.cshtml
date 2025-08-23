@@ -17,7 +17,7 @@
             <dd class="col-sm-8">@Model.User?.Email ?? "غير متوفر"</dd>
 
             <dt class="col-sm-4 fw-bold">تاريخ الميلاد</dt>
-            <dd class="col-sm-8">@Model.BirthDate.ToShortDateString()</dd>
+            <dd class="col-sm-8">@Model.User.BirthDate.ToShortDateString()</dd>
         </dl>
     </div>
 </div>

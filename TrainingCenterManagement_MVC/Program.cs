@@ -65,6 +65,11 @@ builder.Services.AddSignalR(options =>
 {
     options.PayloadSerializerOptions.PropertyNamingPolicy = null;
 });
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.LoginPath = "/Account/Login";
+    options.AccessDeniedPath = "/Account/AccessDenied";
+});
 // Inject UserHelper 
 builder.Services.AddScoped<DashboardHelper>();
 builder.Services.AddScoped<IUserHelper, UserHelper>();

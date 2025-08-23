@@ -14,7 +14,7 @@ using TrainingCenterManagement_MVC.ViewModels;
 
 namespace TrainingCenterManagement_MVC.Controllers
 {
-    [Authorize(Roles = "Trainer")]
+   // [Authorize(Roles = "Trainer")]
     public class PresencesController : Controller
     {
         private readonly ApplicationDbContext _context;

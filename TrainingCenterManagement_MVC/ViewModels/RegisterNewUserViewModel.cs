@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using TrainingCenterManagement_MVC.Models;
 namespace TrainingCenterManagement_MVC.ViewModels
 {
     public class RegisterNewUserViewModel
@@ -22,7 +23,9 @@ namespace TrainingCenterManagement_MVC.ViewModels
         [MaxLength(20, ErrorMessage = "The field {0} can only contain {1} characters.")]
         [RegularExpression(@"^\+?[0-9\s\-()]*$", ErrorMessage = "The field {0} must contain only numbers and valid phone characters.")]
         public string PhoneNumber { get; set; }
-
+        [Required(ErrorMessage = "BirthDate is required.")]
+        public DateTime BirthDate { get; set; }
+        public RoleType Role { get; set; }
         // Password is required with a minimum length of 6
         [Required(ErrorMessage = "Password is required.")]
         [MinLength(6, ErrorMessage = "Password must be at least {1} characters long.")]

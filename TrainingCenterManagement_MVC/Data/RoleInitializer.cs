@@ -131,7 +131,8 @@ namespace TrainingCenterManagement_MVC.Data
                 UserName = email,
                 Email = email,
                 FullName = fullName,
-                Role = role
+                Role = role,
+                BirthDate = new DateTime(1997,6,10),
             };
 
             var result = await _userManager.CreateAsync(user, password);
@@ -160,7 +161,7 @@ namespace TrainingCenterManagement_MVC.Data
                         {
                             UserId = user.Id,
                             User = user,
-                            BirthDate = DateTime.Now.AddYears(-20)
+                           // BirthDate = DateTime.Now.AddYears(-20)
                         });
                         break;
                     case RoleType.Receptionist:

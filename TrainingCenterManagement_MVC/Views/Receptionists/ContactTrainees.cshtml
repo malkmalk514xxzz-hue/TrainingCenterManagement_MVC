@@ -35,7 +35,7 @@
                         <td class="text-center">@index</td>
                         <td>@trainee.User.FullName</td>
                         <td><a href="mailto:@trainee.User.Email">@trainee.User.Email</a></td>
-                        <td>@trainee.BirthDate.ToShortDateString()</td>
+                        <td>@trainee.User.BirthDate.ToShortDateString()</td>
                         <td>
                             <form asp-action="SendMessageToTrainee" asp-controller="Receptionists" method="post" class="d-flex flex-column flex-sm-row gap-2">
                                 <input type="hidden" name="email" value="@trainee.User.Email" />

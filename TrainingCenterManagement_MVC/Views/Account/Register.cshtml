@@ -1,10 +1,7 @@
-﻿@{
-    Layout = "_LayoutAccount";
-}
-
-@model TrainingCenterManagement_MVC.ViewModels.RegisterNewUserViewModel
+﻿@model TrainingCenterManagement_MVC.ViewModels.RegisterNewUserViewModel
 @{
     ViewData["Title"] = "Register";
+    Layout = "_LayoutAccount";
 }
 
 <div class="container mt-5" data-aos="fade-up" data-aos-duration="1000">
@@ -47,11 +44,33 @@
                     </div>
 
                     <div class="form-group form-account-group mb-3">
-                        <label asp-for="Address" class="form-label">
-                            <i class="fas fa-map-marker-alt me-2"></i>Address
+                        <label asp-for="BirthDate" class="form-label">
+                            <i class="fas fa-calendar-alt me-2"></i>Birth Date
                         </label>
-                        <input asp-for="Address" class="form-control" placeholder="Enter your address" />
+                        <input asp-for="BirthDate" type="date" class="form-control" />
+                        <span asp-validation-for="BirthDate" class="text-warning"></span>
+                    </div>
+                    <div class="form-group form-account-group mb-3">
+                        <label asp-for="Address" class="form-label">
+                            <i class="fas fa-phone me-2"></i>Address
+                        </label>
+                        <input asp-for="Address" class="form-control" placeholder="Enter your Address" />
                         <span asp-validation-for="Address" class="text-warning"></span>
+                    </div>
+
+
+                    <div class="form-group form-account-group mb-3">
+                        <label class="form-label">
+                            <i class="fas fa-user-tag me-2"></i>Role
+                        </label>
+                        <div class="form-check">
+                            <input asp-for="Role" type="radio" value="Trainee" class="form-check-input" id="roleTrainee" checked />
+                            <label class="form-check-label" for="roleTrainee">Trainee</label>
+                            <input asp-for="Role" type="radio" value="Trainer" class="form-check-input" id="roleTrainer" />
+                            <label class="form-check-label" for="roleTrainer">Trainer</label>
+                        </div>
+
+                        <span asp-validation-for="Role" class="text-warning"></span>
                     </div>
 
                     <div class="form-group form-account-group mb-3">
@@ -96,17 +115,6 @@
                     {
                         <div class="alert alert-success mt-3 text-center" data-aos="fade-up" data-aos-delay="200">
                             <p>@ViewBag.Message</p>
-                        </div>
-                    }
-
-                    @if (ViewBag.Links != null)
-                    {
-                        <div class="mt-3 text-center" data-aos="fade-up" data-aos-delay="300">
-                            <h5>Create Related Entities:</h5>
-                            @foreach (var link in ViewBag.Links)
-                            {
-                                <a href="@link.Value" class="btn btn-secondary mt-2 mx-1">@link.Key</a>
-                            }
                         </div>
                     }
                 </form>

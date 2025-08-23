@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using DocumentFormat.OpenXml.InkML;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using TrainingCenterManagement_MVC.Data;
 using TrainingCenterManagement_MVC.Helpers;
 using TrainingCenterManagement_MVC.Models;
 using TrainingCenterManagement_MVC.ViewModels;
@@ -9,15 +11,19 @@ namespace TrainingCenterManagement_MVC.Controllers
     public class AccountController : Controller
     {
         private readonly IUserHelper _userHelper;
+        private readonly ApplicationDbContext context;
+
         //private readonly IMailHelper _mailHelper;
         private readonly IConfiguration _configuration;
 
         public AccountController(
             IUserHelper userHelper,
            // IMailHelper mailHelper,
+           ApplicationDbContext context ,
             IConfiguration configuration)
         {
             _userHelper = userHelper;
+            this.context = context;
             //_mailHelper = mailHelper;
             _configuration = configuration;
         }
@@ -96,64 +102,66 @@ namespace TrainingCenterManagement_MVC.Controllers
         }
 
         // Processes the registration
-        [HttpPost]
-        public async Task<IActionResult> Register(RegisterNewUserViewModel model)
-        {
-            if (ModelState.IsValid)
+            [HttpPost]
+            public async Task<IActionResult> Register(RegisterNewUserViewModel model)
             {
-                var user = await _userHelper.GetUserByEmailAsync(model.Username);
-
-                if (user == null)
+                if (ModelState.IsValid)
                 {
-                    user = new ApplicationUser
-                    {
-                        FullName = model.FullName,
-                        Email = model.Username,
-                        UserName = model.Username,
-                        //Address = model.Address,
-                        PhoneNumber = model.PhoneNumber,
-                       // DateCreated = DateTime.UtcNow
-                    };
+                    var user = await _userHelper.GetUserByEmailAsync(model.Username);
 
-                    string temporaryPassword = GenerateRandomPassword();
-                    model.TemporaryPassword = temporaryPassword;
-
-                    // Create user with temporary password
-                    var result = await _userHelper.AddUserAsync(user, temporaryPassword);
-                    if (result != IdentityResult.Success)
+                    if (user == null)
                     {
-                        ModelState.AddModelError(string.Empty, "The user could not be created.");
+                        user = new ApplicationUser
+                        {
+                            FullName = model.FullName,
+                            Email = model.Username,
+                            UserName = model.Username,
+                            BirthDate = model.BirthDate,
+                            PhoneNumber = model.PhoneNumber,
+                        };
+
+                        // Create user with password
+                        var result = await _userHelper.AddUserAsync(user, model.Password);
+                        if (result != IdentityResult.Success)
+                        {
+                            ModelState.AddModelError(string.Empty, "The user could not be created.");
+                            return View(model);
+                        }
+
+                        // Assign the selected role
+                        string role = model.Role == RoleType.Trainee ? "Trainee" : "Trainer";
+                        await _userHelper.AddUserToRoleAsync(user, role);
+
+                        // Add to appropriate table based on role
+                        if (model.Role == RoleType.Trainee)
+                        {
+                            await context.Trainees.AddAsync(new Trainee
+                            {
+                                User = user,
+                            });
+                        }
+                        else if (model.Role == RoleType.Trainer)
+                        {
+                            await context.Trainers.AddAsync(new Trainer
+                            {
+                                User = user,
+                            });
+                        }
+
+                        await context.SaveChangesAsync();
+
+                        ViewBag.Message = "User created successfully. An email was sent with further instructions.";
+                        return RedirectToAction("Login");
+                    }
+                    else
+                    {
+                        ModelState.AddModelError(string.Empty, "This email is already registered.");
                         return View(model);
                     }
-
-                    // Assign the role "Pending"
-                    await _userHelper.AddUserToRoleAsync(user, "Pending");
-
-                    // Generates the email activation token
-                    string myToken = await _userHelper.GenerateEmailConfirmationTokenAsync(user);
-                    string tokenLink = Url.Action("ConfirmEmail", "Account", new { userid = user.Id, token = myToken }, protocol: HttpContext.Request.Scheme);
-
-                 
-
-                  
-                        ViewBag.Message = "User created successfully. An email was sent with further instructions.";
-
-                        ViewBag.Links = new Dictionary<string, string>
-                        {
-                            { "Create Admin", Url.Action("Create", "Admin") },
-                            { "Create Trainer", Url.Action("Create", "Trainer") },
-                             { "Create Trainee", Url.Action("Create", "Trainee") },
-                            { "Create Receptionist", Url.Action("Create", "Receptionist") }
-                        };
-                    
-                        return View(model);
-                    
-
-                   
                 }
-            }
 
-            return View(model);
+                return View(model);
+            
         }
 
         // Displays the change user details page
