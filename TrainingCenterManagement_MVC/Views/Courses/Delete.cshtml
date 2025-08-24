@@ -49,8 +49,8 @@
                         <dt class="col-sm-3">Is Deleted</dt>
                         <dd class="col-sm-9">@Html.DisplayFor(model => model.IsDeleted)</dd>
 
-                        <dt class="col-sm-3">Admin ID</dt>
-                        <dd class="col-sm-9">@Html.DisplayFor(model => model.Admin.UserId)</dd>
+                        <dt class="col-sm-3">Admin Name</dt>
+                        <dd class="col-sm-9">@Html.DisplayFor(model => model.Admin.User.FullName)</dd>
                     </dl>
 
                     <form asp-action="Delete" class="mt-4">

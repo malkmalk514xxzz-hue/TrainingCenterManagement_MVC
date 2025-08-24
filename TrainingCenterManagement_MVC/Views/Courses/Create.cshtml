@@ -99,7 +99,9 @@
 
                             <div class="col-12">
                                 <label asp-for="AdminId" class="form-label fw-bold"></label>
-                                <select asp-for="AdminId" class="form-select" asp-items="ViewBag.AdminId"></select>
+                                <select asp-for="AdminId" class="form-select" asp-items="ViewBag.AdminId">
+                                    <option value="">-- Select Admin --</option>
+                                </select>
                                 <span asp-validation-for="AdminId" class="text-danger"></span>
                             </div>
 
@@ -125,4 +127,3 @@
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
 }
-

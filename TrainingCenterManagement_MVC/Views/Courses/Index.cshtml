@@ -23,7 +23,7 @@
                 <th>@Html.DisplayNameFor(model => model.CreatedDate)</th>
                 <th>@Html.DisplayNameFor(model => model.ReleaseDate)</th>
                 <th>@Html.DisplayNameFor(model => model.IsDeleted)</th>
-                <th>Admin ID</th>
+                <th>Admin Full Name</th>
                 <th class="text-center">Actions</th>
             </tr>
         </thead>
@@ -68,7 +68,7 @@
                             <span class="badge bg-success">Active</span>
                         }
                     </td>
-                    <td>@Html.DisplayFor(modelItem => item.Admin.UserId)</td>
+                    <td>@item.Admin?.User?.FullName</td> <!-- عرض الاسم الكامل بدلاً من الـ ID -->
                     <td class="text-center">
                         <a asp-action="Edit" asp-route-id="@item.CourseId" class="btn btn-sm btn-primary me-1">Edit</a>
                         <a asp-action="Details" asp-route-id="@item.CourseId" class="btn btn-sm btn-info me-1">Details</a>
