@@ -5,7 +5,6 @@
 }
 
 <h1>Edit Lecture</h1>
-
 <h4>Lecture Details</h4>
 <hr />
 <div class="row">
@@ -50,9 +49,12 @@
                 <label class="form-check-label" asp-for="IsDeleted"></label>
             </div>
 
+            <!-- Course Dropdown (Searchable) -->
             <div class="mb-3">
                 <label asp-for="CourseId" class="form-label"></label>
-                <select asp-for="CourseId" class="form-select" asp-items="ViewBag.CourseId"></select>
+                <select asp-for="CourseId" class="form-select select2" asp-items="ViewBag.CourseId">
+                    <option></option> <!-- placeholder for Select2 -->
+                </select>
                 <span asp-validation-for="CourseId" class="text-danger"></span>
             </div>
 
@@ -63,7 +65,22 @@
 </div>
 
 @section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
+@{
+    await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+
+    <!-- jQuery (Select2 dependency) -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Select2 CSS & JS -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            $('.select2').select2({
+                placeholder: "Select a course",
+                allowClear: true,
+                width: '100%' // لضبط العرض
+            });
+        });
+    </script>
 }

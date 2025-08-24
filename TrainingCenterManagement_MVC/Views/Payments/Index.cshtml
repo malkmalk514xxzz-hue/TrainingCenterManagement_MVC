@@ -1,40 +1,43 @@
-﻿@model IEnumerable<TrainingCenterManagement_MVC.Models.Payment>
+﻿@model IEnumerable<IGrouping<dynamic, TrainingCenterManagement_MVC.Models.Payment>>
 
 @{
     ViewData["Title"] = "Payments";
 }
 
-<h1 class="mb-4">Payments List</h1>
-
+<h1 class="mb-4">Payments by Month</h1>
 <p>
     <a asp-action="Create" class="btn btn-primary">Add New Payment</a>
 </p>
 
-<table class="table table-bordered table-hover table-striped">
-    <thead class="thead-dark">
-        <tr>
-            <th>@Html.DisplayNameFor(model => model.TotalAmount)</th>
-            <th>@Html.DisplayNameFor(model => model.CreatedDate)</th>
-            <th>@Html.DisplayNameFor(model => model.IsDeleted)</th>
-            <th>Trainee</th>
-            <th>Course</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model)
-        {
+@foreach (var monthGroup in Model)
+{
+    <h3 class="mt-5">@System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(monthGroup.Key.Month) @monthGroup.Key.Year</h3>
+    <table class="table table-bordered table-striped table-hover">
+        <thead class="table-dark">
             <tr>
-                <td>@Html.DisplayFor(modelItem => item.TotalAmount)</td>
-                <td>@item.CreatedDate.ToString("yyyy-MM-dd")</td>   <!-- ✅ Fixed -->
-                <td>@Html.DisplayFor(modelItem => item.IsDeleted)</td>
-                <td>@(item.Trainee?.User?.FullName)</td>            <!-- ✅ Fixed -->
-                <td>@(item.Course?.CourseName)</td>                 <!-- ✅ Fixed -->
-                <td>
-                    <a asp-action="Details" asp-route-id="@item.PaymentId" class="btn btn-sm btn-info mx-1">Details</a>
-                    <a asp-action="Delete" asp-route-id="@item.PaymentId" class="btn btn-sm btn-danger">Delete</a>
-                </td>
+                <th>Total Amount</th>
+                <th>Created Date</th>
+                <th>Is Deleted</th>
+                <th>Trainee</th>
+                <th>Course</th>
+                <th>Actions</th>
             </tr>
-        }
-    </tbody>
-</table>
+        </thead>
+        <tbody>
+            @foreach (var item in monthGroup)
+            {
+                <tr>
+                    <td>@item.TotalAmount</td>
+                    <td>@item.CreatedDate.ToString("yyyy-MM-dd")</td>
+                    <td>@Html.DisplayFor(m => item.IsDeleted)</td>
+                    <td>@(item.Trainee?.User?.FullName ?? "N/A")</td>
+                    <td>@(item.Course?.CourseName ?? "N/A")</td>
+                    <td>
+                        <a asp-action="Details" asp-route-id="@item.PaymentId" class="btn btn-sm btn-info mx-1">Details</a>
+                        <a asp-action="Delete" asp-route-id="@item.PaymentId" class="btn btn-sm btn-danger">Delete</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

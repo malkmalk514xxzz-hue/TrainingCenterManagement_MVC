@@ -23,9 +23,23 @@ namespace TrainingCenterManagement_MVC.Controllers
         // GET: Payments
         public async Task<IActionResult> Index()
         {
-            var applicationDbContext = _context.Payments.Include(p => p.Course).Include(p => p.Trainee);
-            return View(await applicationDbContext.ToListAsync());
+            var payments = await _context.Payments
+                .Include(p => p.Course)
+                .Include(p => p.Trainee)
+                    .ThenInclude(t => t.User)
+                .ToListAsync();
+
+            // تجميع الدفعات حسب السنة والشهر
+            var groupedPayments = payments
+                .GroupBy(p => new { p.CreatedDate.Year, p.CreatedDate.Month })
+                .OrderByDescending(g => g.Key.Year)
+                .ThenByDescending(g => g.Key.Month)
+                .ToList();
+
+            return View(groupedPayments);
         }
+
+
 
         // GET: Payments/Details/5
         public async Task<IActionResult> Details(Guid? id)
@@ -51,9 +65,17 @@ namespace TrainingCenterManagement_MVC.Controllers
         public IActionResult Create()
         {
             ViewData["CourseId"] = new SelectList(_context.Courses, "CourseId", "CourseName");
-            ViewData["TraineeId"] = new SelectList(_context.Trainees, "TraineeId", "UserId");
+
+            // استخدام FullName بدل UserId
+            ViewData["TraineeId"] = new SelectList(
+                _context.Trainees.Include(t => t.User).ToList(),
+                "TraineeId",
+                "User.FullName" // عرض FullName في القائمة
+            );
+
             return View();
         }
+
 
         // POST: Payments/Create
         // To protect from overposting attacks, enable the specific properties you want to bind to.
