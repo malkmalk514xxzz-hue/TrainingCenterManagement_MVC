@@ -12,8 +12,8 @@ using TrainingCenterManagement_MVC.Data;
 namespace TrainingCenterManagement_MVC.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250823151032_adjustBirthDate")]
-    partial class adjustBirthDate
+    [Migration("20250824131507_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
