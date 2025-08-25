@@ -475,11 +475,47 @@ namespace TrainingCenterManagement_MVC.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Best Courses.
+        /// </summary>
+        internal static string BestCourses {
+            get {
+                return ResourceManager.GetString("BestCourses", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Browse more courses.
+        /// </summary>
+        internal static string BrowseMoreCourses {
+            get {
+                return ResourceManager.GetString("BrowseMoreCourses", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cancel.
         /// </summary>
         internal static string cancel {
             get {
                 return ResourceManager.GetString("cancel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Experience the thrill of learning through captivating lessons and resources..
+        /// </summary>
+        internal static string CaptivatingLessons {
+            get {
+                return ResourceManager.GetString("CaptivatingLessons", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Career-Ready Skills.
+        /// </summary>
+        internal static string CareerReadySkills {
+            get {
+                return ResourceManager.GetString("CareerReadySkills", resourceCulture);
             }
         }
         
@@ -574,6 +610,24 @@ namespace TrainingCenterManagement_MVC.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Coding Academy.
+        /// </summary>
+        internal static string CodingAcademy {
+            get {
+                return ResourceManager.GetString("CodingAcademy", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Our center offers a modern, collaborative environment tailored to learning and innovation..
+        /// </summary>
+        internal static string CollaborativeEnvironment {
+            get {
+                return ResourceManager.GetString("CollaborativeEnvironment", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Color Scheme.
         /// </summary>
         internal static string colorScheme {
@@ -588,6 +642,15 @@ namespace TrainingCenterManagement_MVC.Resources {
         internal static string company {
             get {
                 return ResourceManager.GetString("company", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Build a strong foundation for continuous growth with our comprehensive programs..
+        /// </summary>
+        internal static string ComprehensivePrograms {
+            get {
+                return ResourceManager.GetString("ComprehensivePrograms", resourceCulture);
             }
         }
         
@@ -664,6 +727,15 @@ namespace TrainingCenterManagement_MVC.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Duration.
+        /// </summary>
+        internal static string CourseDuration {
+            get {
+                return ResourceManager.GetString("CourseDuration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Courses.
         /// </summary>
         internal static string Courses {
@@ -682,11 +754,29 @@ namespace TrainingCenterManagement_MVC.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Creative Arts.
+        /// </summary>
+        internal static string CreativeArts {
+            get {
+                return ResourceManager.GetString("CreativeArts", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Credit Card.
         /// </summary>
         internal static string CreditCard {
             get {
                 return ResourceManager.GetString("CreditCard", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Critical Thinking.
+        /// </summary>
+        internal static string CriticalThinking {
+            get {
+                return ResourceManager.GetString("CriticalThinking", resourceCulture);
             }
         }
         
@@ -772,6 +862,33 @@ namespace TrainingCenterManagement_MVC.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Create a customized learning path to achieve your academic and career goals..
+        /// </summary>
+        internal static string CustomizedPath {
+            get {
+                return ResourceManager.GetString("CustomizedPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Our cutting-edge programs ignite curiosity and foster academic excellence for learners of all ages..
+        /// </summary>
+        internal static string CuttingEdgePrograms {
+            get {
+                return ResourceManager.GetString("CuttingEdgePrograms", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cutting-Edge Educational Solutions.
+        /// </summary>
+        internal static string CuttingEdgeSolutions {
+            get {
+                return ResourceManager.GetString("CuttingEdgeSolutions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Dark.
         /// </summary>
         internal static string dark {
@@ -808,6 +925,15 @@ namespace TrainingCenterManagement_MVC.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Learn from dedicated educators committed to your academic growth..
+        /// </summary>
+        internal static string DedicatedEducators {
+            get {
+                return ResourceManager.GetString("DedicatedEducators", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Description.
         /// </summary>
         internal static string Description {
@@ -831,6 +957,24 @@ namespace TrainingCenterManagement_MVC.Resources {
         internal static string Disable {
             get {
                 return ResourceManager.GetString("Disable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Discover Our Premier Learning Center.
+        /// </summary>
+        internal static string DiscoverLearningCenter {
+            get {
+                return ResourceManager.GetString("DiscoverLearningCenter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Explore our diverse courses crafted to spark passion and drive academic achievement..
+        /// </summary>
+        internal static string DiverseCourses {
+            get {
+                return ResourceManager.GetString("DiverseCourses", resourceCulture);
             }
         }
         
@@ -880,6 +1024,15 @@ namespace TrainingCenterManagement_MVC.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Our expertly designed curriculum offers dynamic learning experiences to inspire growth and success..
+        /// </summary>
+        internal static string DynamicCurriculum {
+            get {
+                return ResourceManager.GetString("DynamicCurriculum", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Ease of access.
         /// </summary>
         internal static string EaseAccess {
@@ -925,6 +1078,15 @@ namespace TrainingCenterManagement_MVC.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Elevate Your Skills with Our Learning Center.
+        /// </summary>
+        internal static string ElevateSkills {
+            get {
+                return ResourceManager.GetString("ElevateSkills", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Email.
         /// </summary>
         internal static string EmailLabel {
@@ -943,11 +1105,38 @@ namespace TrainingCenterManagement_MVC.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Empower Your Future with Education.
+        /// </summary>
+        internal static string EmpowerFuture {
+            get {
+                return ResourceManager.GetString("EmpowerFuture", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Empowering Learners.
+        /// </summary>
+        internal static string EmpoweringLearners {
+            get {
+                return ResourceManager.GetString("EmpoweringLearners", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Enable.
         /// </summary>
         internal static string Enable {
             get {
                 return ResourceManager.GetString("Enable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Dive into engaging, practical sessions led by passionate educators to enhance your skills..
+        /// </summary>
+        internal static string EngagingSessions {
+            get {
+                return ResourceManager.GetString("EngagingSessions", resourceCulture);
             }
         }
         
@@ -1042,6 +1231,15 @@ namespace TrainingCenterManagement_MVC.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Develop essential skills to prepare for future challenges and opportunities..
+        /// </summary>
+        internal static string EssentialSkills {
+            get {
+                return ResourceManager.GetString("EssentialSkills", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Establishment.
         /// </summary>
         internal static string Establishment {
@@ -1074,6 +1272,24 @@ namespace TrainingCenterManagement_MVC.Resources {
         internal static string Exams {
             get {
                 return ResourceManager.GetString("Exams", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Expert Instructors.
+        /// </summary>
+        internal static string ExpertInstructors {
+            get {
+                return ResourceManager.GetString("ExpertInstructors", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Expert Mentors.
+        /// </summary>
+        internal static string ExpertMentors {
+            get {
+                return ResourceManager.GetString("ExpertMentors", resourceCulture);
             }
         }
         
@@ -1119,6 +1335,78 @@ namespace TrainingCenterManagement_MVC.Resources {
         internal static string faq {
             get {
                 return ResourceManager.GetString("faq", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to From STEM to arts, our diverse programs inspire and empower learners to excel..
+        /// </summary>
+        internal static string FAQ1Answer {
+            get {
+                return ResourceManager.GetString("FAQ1Answer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to What courses does your learning center offer?.
+        /// </summary>
+        internal static string FAQ1Question {
+            get {
+                return ResourceManager.GetString("FAQ1Question", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Our personalized courses boost confidence and equip you with skills for success..
+        /// </summary>
+        internal static string FAQ2Answer {
+            get {
+                return ResourceManager.GetString("FAQ2Answer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to How can your programs benefit my academic journey?.
+        /// </summary>
+        internal static string FAQ2Question {
+            get {
+                return ResourceManager.GetString("FAQ2Question", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to We welcome learners of all ages, from young students to lifelong scholars..
+        /// </summary>
+        internal static string FAQ3Answer {
+            get {
+                return ResourceManager.GetString("FAQ3Answer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Who can join your learning center?.
+        /// </summary>
+        internal static string FAQ3Question {
+            get {
+                return ResourceManager.GetString("FAQ3Question", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Our flexible courses are designed to fit your schedule and learning pace..
+        /// </summary>
+        internal static string FAQ4Answer {
+            get {
+                return ResourceManager.GetString("FAQ4Answer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to How long are your educational programs?.
+        /// </summary>
+        internal static string FAQ4Question {
+            get {
+                return ResourceManager.GetString("FAQ4Question", resourceCulture);
             }
         }
         
@@ -1348,6 +1636,15 @@ namespace TrainingCenterManagement_MVC.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Find The Right Course For You.
+        /// </summary>
+        internal static string FindRightCourse {
+            get {
+                return ResourceManager.GetString("FindRightCourse", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Food.
         /// </summary>
         internal static string Food {
@@ -1371,6 +1668,15 @@ namespace TrainingCenterManagement_MVC.Resources {
         internal static string ForgotPassword {
             get {
                 return ResourceManager.GetString("ForgotPassword", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Free.
+        /// </summary>
+        internal static string Free {
+            get {
+                return ResourceManager.GetString("Free", resourceCulture);
             }
         }
         
@@ -1402,7 +1708,7 @@ namespace TrainingCenterManagement_MVC.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Monthly growth of restaurants, users, and revenue. .
+        ///   Looks up a localized string similar to Join a transformative learning platform designed to empower your academic and professional growth..
         /// </summary>
         internal static string Growth_PlatformDescription {
             get {
@@ -1416,6 +1722,24 @@ namespace TrainingCenterManagement_MVC.Resources {
         internal static string Growth_PlatformTitle {
             get {
                 return ResourceManager.GetString("Growth_PlatformTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Engage in hands-on activities that make education exciting and impactful..
+        /// </summary>
+        internal static string HandsOnActivities {
+            get {
+                return ResourceManager.GetString("HandsOnActivities", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Hands-On Workshops.
+        /// </summary>
+        internal static string HandsOnWorkshops {
+            get {
+                return ResourceManager.GetString("HandsOnWorkshops", resourceCulture);
             }
         }
         
@@ -1456,6 +1780,15 @@ namespace TrainingCenterManagement_MVC.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Holistic Skill-Building.
+        /// </summary>
+        internal static string HolisticSkillBuilding {
+            get {
+                return ResourceManager.GetString("HolisticSkillBuilding", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Home page.
         /// </summary>
         internal static string homePage {
@@ -1479,6 +1812,42 @@ namespace TrainingCenterManagement_MVC.Resources {
         internal static string inactive_status {
             get {
                 return ResourceManager.GetString("inactive_status", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Innovative Teaching.
+        /// </summary>
+        internal static string InnovativeTeaching {
+            get {
+                return ResourceManager.GetString("InnovativeTeaching", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Inspire Your Mind.
+        /// </summary>
+        internal static string InspireMind {
+            get {
+                return ResourceManager.GetString("InspireMind", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Inspiring Learning Spaces.
+        /// </summary>
+        internal static string InspiringSpaces {
+            get {
+                return ResourceManager.GetString("InspiringSpaces", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Interactive Learning Labs.
+        /// </summary>
+        internal static string InteractiveLearningLabs {
+            get {
+                return ResourceManager.GetString("InteractiveLearningLabs", resourceCulture);
             }
         }
         
@@ -1528,11 +1897,29 @@ namespace TrainingCenterManagement_MVC.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Know Details.
+        /// </summary>
+        internal static string KnowDetails {
+            get {
+                return ResourceManager.GetString("KnowDetails", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Language.
         /// </summary>
         internal static string language {
             get {
                 return ResourceManager.GetString("language", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Language Mastery.
+        /// </summary>
+        internal static string LanguageMastery {
+            get {
+                return ResourceManager.GetString("LanguageMastery", resourceCulture);
             }
         }
         
@@ -1591,6 +1978,15 @@ namespace TrainingCenterManagement_MVC.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Build a strong foundation for continuous growth with our comprehensive programs..
+        /// </summary>
+        internal static string LifelongLearning {
+            get {
+                return ResourceManager.GetString("LifelongLearning", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Light.
         /// </summary>
         internal static string light {
@@ -1636,6 +2032,24 @@ namespace TrainingCenterManagement_MVC.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Master the Fundamentals.
+        /// </summary>
+        internal static string MasterFundamentals {
+            get {
+                return ResourceManager.GetString("MasterFundamentals", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Mathematics Excellence.
+        /// </summary>
+        internal static string MathematicsExcellence {
+            get {
+                return ResourceManager.GetString("MathematicsExcellence", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Menu Name.
         /// </summary>
         internal static string MenuName {
@@ -1668,6 +2082,15 @@ namespace TrainingCenterManagement_MVC.Resources {
         internal static string MobileWallet {
             get {
                 return ResourceManager.GetString("MobileWallet", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Embrace modern educational methods that make learning both fun and effective..
+        /// </summary>
+        internal static string ModernMethods {
+            get {
+                return ResourceManager.GetString("ModernMethods", resourceCulture);
             }
         }
         
@@ -1789,6 +2212,15 @@ namespace TrainingCenterManagement_MVC.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Learn from passionate educators dedicated to your success..
+        /// </summary>
+        internal static string PassionateEducators {
+            get {
+                return ResourceManager.GetString("PassionateEducators", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Password.
         /// </summary>
         internal static string Password {
@@ -1870,6 +2302,15 @@ namespace TrainingCenterManagement_MVC.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Personalized Education.
+        /// </summary>
+        internal static string PersonalizedEducation {
+            get {
+                return ResourceManager.GetString("PersonalizedEducation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Plan Requests .
         /// </summary>
         internal static string PlanRequests {
@@ -1884,6 +2325,15 @@ namespace TrainingCenterManagement_MVC.Resources {
         internal static string Plans {
             get {
                 return ResourceManager.GetString("Plans", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Gain practical skills to thrive in today’s competitive world..
+        /// </summary>
+        internal static string PracticalSkills {
+            get {
+                return ResourceManager.GetString("PracticalSkills", resourceCulture);
             }
         }
         
@@ -1965,6 +2415,15 @@ namespace TrainingCenterManagement_MVC.Resources {
         internal static string product {
             get {
                 return ResourceManager.GetString("product", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Guided by professionals with extensive experience in education..
+        /// </summary>
+        internal static string ProfessionalGuidance {
+            get {
+                return ResourceManager.GetString("ProfessionalGuidance", resourceCulture);
             }
         }
         
@@ -2176,6 +2635,15 @@ namespace TrainingCenterManagement_MVC.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Science Discovery.
+        /// </summary>
+        internal static string ScienceDiscovery {
+            get {
+                return ResourceManager.GetString("ScienceDiscovery", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Search payment methods....
         /// </summary>
         internal static string search_payment_methods {
@@ -2262,6 +2730,15 @@ namespace TrainingCenterManagement_MVC.Resources {
         internal static string Settings {
             get {
                 return ResourceManager.GetString("Settings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Shape Your Academic Future.
+        /// </summary>
+        internal static string ShapeAcademicFuture {
+            get {
+                return ResourceManager.GetString("ShapeAcademicFuture", resourceCulture);
             }
         }
         
@@ -2518,6 +2995,15 @@ namespace TrainingCenterManagement_MVC.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Join a supportive learning community that fosters collaboration and success..
+        /// </summary>
+        internal static string SupportiveCommunity {
+            get {
+                return ResourceManager.GetString("SupportiveCommunity", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to learning analytics.
         /// </summary>
         internal static string Tab_Analytics {
@@ -2653,11 +3139,119 @@ namespace TrainingCenterManagement_MVC.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Discover our tailored courses designed to meet every learner’s unique needs..
+        /// </summary>
+        internal static string TailoredCourses {
+            get {
+                return ResourceManager.GetString("TailoredCourses", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Terms.
         /// </summary>
         internal static string terms {
             get {
                 return ResourceManager.GetString("terms", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to @SharedResource.TrainingCenter transformed my journey into learning. The curriculum and mentorship provided here are unmatched!.
+        /// </summary>
+        internal static string Testimonial1 {
+            get {
+                return ResourceManager.GetString("Testimonial1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The projects and real-world challenges at @SharedResource.TrainingCenter prepared me for success. It’s been a phenomenal experience!.
+        /// </summary>
+        internal static string Testimonial2 {
+            get {
+                return ResourceManager.GetString("Testimonial2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to I’ve grown so much as a learner. The supportive community and skilled mentors at @SharedResource.TrainingCenter made all the difference..
+        /// </summary>
+        internal static string Testimonial3 {
+            get {
+                return ResourceManager.GetString("Testimonial3", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to It’s not just a center – it’s a network of learners. @SharedResource.TrainingCenter is where innovation and learning thrive!.
+        /// </summary>
+        internal static string Testimonial4 {
+            get {
+                return ResourceManager.GetString("Testimonial4", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The skills and connections I gained here have been invaluable. My career took off thanks to @SharedResource.TrainingCenter!.
+        /// </summary>
+        internal static string Testimonial5 {
+            get {
+                return ResourceManager.GetString("Testimonial5", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Mario Silva.
+        /// </summary>
+        internal static string TestimonialAuthor1 {
+            get {
+                return ResourceManager.GetString("TestimonialAuthor1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Petey Cruz.
+        /// </summary>
+        internal static string TestimonialAuthor2 {
+            get {
+                return ResourceManager.GetString("TestimonialAuthor2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Ana Souza.
+        /// </summary>
+        internal static string TestimonialAuthor3 {
+            get {
+                return ResourceManager.GetString("TestimonialAuthor3", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Gaila Ferreira.
+        /// </summary>
+        internal static string TestimonialAuthor4 {
+            get {
+                return ResourceManager.GetString("TestimonialAuthor4", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Bruno Franco.
+        /// </summary>
+        internal static string TestimonialAuthor5 {
+            get {
+                return ResourceManager.GetString("TestimonialAuthor5", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Testimonials.
+        /// </summary>
+        internal static string Testimonials {
+            get {
+                return ResourceManager.GetString("Testimonials", resourceCulture);
             }
         }
         
@@ -2752,6 +3346,15 @@ namespace TrainingCenterManagement_MVC.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to TrainingCenter .
+        /// </summary>
+        internal static string TrainingCenter_ {
+            get {
+                return ResourceManager.GetString("TrainingCenter ", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Our training center offers up-to-date programs and certified instructors to help you develop your skills and achieve your career goals quickly and effectively. Join today for an interactive learning experience and personalized support that ensures your success..
         /// </summary>
         internal static string TrainingCenterDescription {
@@ -2761,11 +3364,29 @@ namespace TrainingCenterManagement_MVC.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Embark on a transformative journey of knowledge and skill-building at our innovative learning hub..
+        /// </summary>
+        internal static string TransformativeJourney {
+            get {
+                return ResourceManager.GetString("TransformativeJourney", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Type.
         /// </summary>
         internal static string type {
             get {
                 return ResourceManager.GetString("type", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unlock Your Potential with Our Courses.
+        /// </summary>
+        internal static string UnlockPotential {
+            get {
+                return ResourceManager.GetString("UnlockPotential", resourceCulture);
             }
         }
         
@@ -2833,6 +3454,15 @@ namespace TrainingCenterManagement_MVC.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Vibrant Community.
+        /// </summary>
+        internal static string VibrantCommunity {
+            get {
+                return ResourceManager.GetString("VibrantCommunity", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to View Details.
         /// </summary>
         internal static string ViewDetails {
@@ -2851,11 +3481,38 @@ namespace TrainingCenterManagement_MVC.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Weeks.
+        /// </summary>
+        internal static string Weeks {
+            get {
+                return ResourceManager.GetString("Weeks", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to What You Whateing For.
+        /// </summary>
+        internal static string WhtYouWhateFor {
+            get {
+                return ResourceManager.GetString("WhtYouWhateFor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to  Why Choose TableTap? .
         /// </summary>
         internal static string whyChoose {
             get {
                 return ResourceManager.GetString("whyChoose", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Why Choose Us.
+        /// </summary>
+        internal static string WhyChooseUs {
+            get {
+                return ResourceManager.GetString("WhyChooseUs", resourceCulture);
             }
         }
         

@@ -1,4 +1,5 @@
-﻿
+﻿@using System.Globalization
+@using TrainingCenterManagement_MVC.Resources
 <head>
  
     
@@ -18,14 +19,14 @@
                         <div class="u-layout-row">
                             <div class="u-container-style u-layout-cell u-size-40 u-layout-cell-1">
                                 <div class="u-container-layout u-container-layout-1">
-                                    <h5 class="u-align-left u-text u-text-default u-text-1">Discover Our Premier Learning Center</h5>
-                                    <h1 class="u-align-left u-text u-text-default u-text-2">Empower Your Future with Education</h1>
-                                    <p class="u-align-left u-text u-text-default u-text-3"> Embark on a transformative journey of knowledge and skill-building at our innovative learning hub..</p><span class="u-file-icon u-icon u-icon-1"><img src="~/images/20959.png" alt=""></span>
+                                    <h5 class="u-align-left u-text u-text-default u-text-1">@SharedResource.DiscoverLearningCenter</h5>
+                                    <h1 class="u-align-left u-text u-text-default u-text-2">@SharedResource.EmpowerFuture</h1>
+                                    <p class="u-align-left u-text u-text-default u-text-3"> @SharedResource.TransformativeJourney</p><span class="u-file-icon u-icon u-icon-1"><img src="~/images/20959.png" alt=""></span>
                                 </div>
                             </div>
                             <div class="u-container-style u-grey-5 u-layout-cell u-radius u-shape-round u-size-20 u-layout-cell-2" data-animation-name="flipIn" data-animation-duration="2000" data-animation-delay="0" data-animation-direction="X">
                                 <div class="u-container-layout u-valign-bottom u-container-layout-2">
-                                    <p class="u-text u-text-default u-text-4">Our cutting-edge programs ignite curiosity and foster academic excellence for learners of all ages.</p>
+                                    <p class="u-text u-text-default u-text-4">@SharedResource.CuttingEdgePrograms</p>
                                     <div class="u-social-icons u-social-icons-1">
                                         <a class="u-social-url" title="facebook" target="_blank" href="https://facebook.com/name">
                                             <span class="u-icon u-social-facebook u-social-icon u-text-black u-icon-2">
@@ -71,8 +72,8 @@ c5.5,0,9.9,4.5,9.9,9.9V73.3z"></path>
                             <div class="u-container-style u-grey-5 u-layout-cell u-radius u-shape-round u-size-20 u-layout-cell-3" data-animation-name="flipIn" 
                             data-animation-duration="2000" data-animation-delay="0" data-animation-direction="X">
                                 <div class="u-container-layout u-valign-middle u-container-layout-3">
-                                    <h4 class="u-text u-text-5">Why Choose Our Learning Center?</h4>
-                                    <a href="#" class="u-black u-border-none u-btn u-button-style u-btn-1">Get Started </a>
+                                    <h4 class="u-text u-text-5">@SharedResource.WhtYouWhateFor</h4>
+                                    <a href="#" class="u-black u-border-none u-btn u-button-style u-btn-1">@SharedResource.getStarted </a>
                                 </div>
                             </div>
    
@@ -91,9 +92,9 @@ c5.5,0,9.9,4.5,9.9,9.9V73.3z"></path>
     </section>
     <section class="u-clearfix u-container-align-center u-section-2" id="sec-008c">
         <div class="u-clearfix u-sheet u-valign-middle u-sheet-1">
-            <h2 class="u-align-center u-text u-text-default u-text-1">Unlock Your Potential with Our Courses</h2>
-            <p class="u-align-center u-text u-text-2">Our expertly designed curriculum offers dynamic learning experiences to inspire growth and success..</p>
-            <a href="#" class="u-black u-border-none u-btn u-button-style u-btn-1">Contact Us  </a>
+            <h2 class="u-align-center u-text u-text-default u-text-1">@SharedResource.UnlockPotential</h2>
+            <p class="u-align-center u-text u-text-2">@SharedResource.DynamicCurriculum</p>
+            <a href="#" class="u-black u-border-none u-btn u-button-style u-btn-1">@SharedResource.contact  </a>
         </div>
     </section>
     <section class="skrollable u-clearfix u-image u-parallax u-section-3" id="sec-3c99" data-image-width="425"
@@ -104,8 +105,8 @@ c5.5,0,9.9,4.5,9.9,9.9V73.3z"></path>
             <div class="u-container-style u-group u-radius u-shape-round u-white u-group-1" data-animation-name="customAnimationIn" data-animation-duration="2000" data-animation-delay="0">
                 
                 <div class="u-container-layout u-valign-top u-container-layout-1">
-                    <h3 class="u-text u-text-default u-text-1">Hands-On Workshops</h3>
-                    <p class="u-text u-text-default u-text-2"> Dive into engaging, practical sessions led by passionate educators to enhance your skills..</p><span class="u-file-icon u-icon u-icon-1" data-href="#">
+                    <h3 class="u-text u-text-default u-text-1">@SharedResource.HandsOnWorkshops</h3>
+                    <p class="u-text u-text-default u-text-2"> @SharedResource.EngagingSessions</p><span class="u-file-icon u-icon u-icon-1" data-href="#">
                         <img src="~/images/20959.png" alt=""></span>
                 </div>
             </div>
@@ -127,32 +128,32 @@ c5.5,0,9.9,4.5,9.9,9.9V73.3z"></path>
                                 <li style="padding-left: 10px;">
                                     <div class="u-list-icon">
                                         <img src="~/images/35243881.png" alt="">
-                                    </div> Mathematics Excellence
+                                    </div> @SharedResource.MathematicsExcellence
                                 </li>
                                 <li style="padding-left: 10px;">
                                     <div class="u-list-icon">
                                         <img src="~/images/35243881.png" alt="">
-                                    </div>Science Discovery
+                                    </div>@SharedResource.ScienceDiscovery
                                 </li>
                                 <li style="padding-left: 10px;">
                                     <div class="u-list-icon">
                                         <img src="~/images/35243881.png" alt="">
-                                    </div>Language Mastery
+                                    </div>@SharedResource.LanguageMastery
                                 </li>
                                 <li style="padding-left: 10px;">
                                     <div class="u-list-icon">
                                         <img src="~/images/35243881.png" alt="">
-                                    </div>Coding Academy
+                                    </div>@SharedResource.CodingAcademy
                                 </li>
                                 <li style="padding-left: 10px;">
                                     <div class="u-list-icon">
                                         <img src="~/images/35243881.png" alt="">
-                                    </div>Critical Thinking
+                                    </div>@SharedResource.CriticalThinking
                                 </li>
                                 <li style="padding-left: 10px;">
                                     <div class="u-list-icon">
                                         <img src="~/images/35243881.png" alt="">
-                                    </div>Creative Arts
+                                    </div>@SharedResource.CreativeArts
                                 </li>
                             </ul>
                             <p class="u-align-left u-text u-text-2"></p>
@@ -171,31 +172,31 @@ c5.5,0,9.9,4.5,9.9,9.9V73.3z"></path>
                             <div class="u-container-layout u-valign-top u-container-layout-1">
                                 <div class="u-container-align-left u-container-style u-expanded-width u-grey-5 u-group u-radius u-shape-round u-group-1" data-animation-name="flipIn" data-animation-duration="2000" data-animation-delay="0" data-animation-direction="X">
                                     <div class="u-container-layout u-valign-middle u-container-layout-2">
-                                        <h5 class="u-align-left u-text u-text-default u-text-1"> Inspire Your Mind </h5>
-                                        <p class="u-align-left u-text u-text-default u-text-2">Begin a journey of academic discovery with our vibrant learning community..</p>
+                                        <h5 class="u-align-left u-text u-text-default u-text-1"> @SharedResource.InspireMind </h5>
+                                        <p class="u-align-left u-text u-text-default u-text-2">@SharedResource.CaptivatingLessons</p>
                                     </div>
                                 </div>
                                 <img class="u-image u-image-circle u-image-1" src="~/images/portrait-robot-scifi.jpg" alt="" data-image-width="2000" data-image-height="2926" data-animation-name="customAnimationIn" data-animation-duration="2000" data-animation-delay="0">
-                                <p class="u-text u-text-3">Experience the thrill of learning through captivating lessons and resources.</p><span class="u-file-icon u-icon u-icon-1" data-href="#"><img src="~/images/20959.png" alt=""></span>
+                                <p class="u-text u-text-3">@SharedResource.CaptivatingLessons</p><span class="u-file-icon u-icon u-icon-1" data-href="#"><img src="~/images/20959.png" alt=""></span>
                             </div>
                         </div>
                         <div class="u-container-align-center u-container-style u-layout-cell u-size-20 u-layout-cell-2">
                             <div class="u-container-layout u-valign-middle u-container-layout-3">
                                 <div class="u-container-align-left u-container-style u-expanded-width u-grey-5 u-group u-radius u-shape-round u-group-2" data-animation-name="flipIn" data-animation-duration="2000" data-animation-delay="0" data-animation-direction="X">
                                     <div class="u-container-layout u-valign-middle u-container-layout-4">
-                                        <h5 class="u-align-left u-text u-text-default u-text-4">Innovative Teaching</h5>
-                                        <p class="u-align-left u-text u-text-default u-text-5">Embrace modern educational methods that make learning both fun and effective.</p>
+                                        <h5 class="u-align-left u-text u-text-default u-text-4">@SharedResource.InnovativeTeaching</h5>
+                                        <p class="u-align-left u-text u-text-default u-text-5">@SharedResource.ModernMethods</p>
                                     </div>
                                 </div>
                             </div>
                         </div>
                         <div class="u-container-style u-layout-cell u-size-20 u-layout-cell-3">
                             <div class="u-container-layout u-container-layout-5">
-                                <p class="u-text u-text-default u-text-6">Explore our diverse courses crafted to spark passion and drive academic achievement.</p>
+                                <p class="u-text u-text-default u-text-6">@SharedResource.DiverseCourses</p>
                                 <div class="u-container-align-left u-container-style u-expanded-width-sm u-expanded-width-xs u-grey-5 u-group u-radius u-shape-round u-group-3" data-animation-name="flipIn" data-animation-duration="2000" data-animation-delay="0" data-animation-direction="X">
                                     <div class="u-container-layout u-valign-middle u-container-layout-6">
-                                        <h5 class="u-align-left u-text u-text-default u-text-7"> Lifelong Learning</h5>
-                                        <p class="u-align-left u-text u-text-default u-text-8">Build a strong foundation for continuous growth with our comprehensive programs.</p>
+                                        <h5 class="u-align-left u-text u-text-default u-text-7"> @SharedResource.LifelongLearning</h5>
+                                        <p class="u-align-left u-text u-text-default u-text-8">@SharedResource.ComprehensivePrograms</p>
                                     </div>
                                 </div>
                             </div>
@@ -206,7 +207,7 @@ c5.5,0,9.9,4.5,9.9,9.9V73.3z"></path>
         </div>
     </section>
     <section class="u-clearfix u-grey-5 u-valign-middle u-section-7" id="sec-dd8f">
-        <h2 class="u-align-center u-text u-text-default u-text-1">Elevate Your Skills with Our Learning Center</h2>
+        <h2 class="u-align-center u-text u-text-default u-text-1">@SharedResource.ElevateSkills</h2>
         <div class="data-layout-selected u-clearfix u-expanded-width u-layout-wrap u-layout-wrap-1">
             <div class="u-layout">
                 <div class="u-layout-row">
@@ -217,22 +218,22 @@ c5.5,0,9.9,4.5,9.9,9.9V73.3z"></path>
                                     <div class="u-border-1 u-border-grey-40 u-border-no-left u-border-no-right u-border-no-top u-container-style u-list-item u-repeater-item">
                                         <div class="u-container-layout u-similar-container u-container-layout-2">
                                             <span class="u-align-left u-file-icon u-icon u-icon-rounded u-palette-1-base u-radius u-text-white u-icon-1"><img src="~/images/3483127-d1c058cb.png" alt=""></span>
-                                            <h5 class="u-text u-text-default u-text-2">Master the Fundamentals</h5>
-                                            <p class="u-text u-text-3"> Discover our tailored courses designed to meet every learner’s unique needs.</p>
+                                            <h5 class="u-text u-text-default u-text-2">@SharedResource.MasterFundamentals</h5>
+                                            <p class="u-text u-text-3"> @SharedResource.TailoredCourses</p>
                                         </div>
                                     </div>
                                     <div class="u-border-1 u-border-grey-40 u-border-no-left u-border-no-right u-border-no-top u-container-style u-list-item u-repeater-item">
                                         <div class="u-container-layout u-similar-container u-container-layout-3">
                                             <span class="u-align-left u-file-icon u-icon u-icon-rounded u-palette-1-base u-radius u-text-white u-icon-2"><img src="~/images/8593364-08248f1e.png" alt=""></span>
-                                            <h5 class="u-text u-text-default u-text-4"> Personalized Education</h5>
-                                            <p class="u-text u-text-5"> Create a customized learning path to achieve your academic and career goals.</p>
+                                            <h5 class="u-text u-text-default u-text-4"> @SharedResource.PersonalizedEducation<</h5>
+                                            <p class="u-text u-text-5"> @SharedResource.CustomizedPath</p>
                                         </div>
                                     </div>
                                     <div class="u-border-1 u-border-grey-40 u-border-no-left u-border-no-right u-border-no-top u-container-style u-list-item u-repeater-item">
                                         <div class="u-container-layout u-similar-container u-container-layout-4">
                                             <span class="u-align-left u-file-icon u-icon u-icon-rounded u-palette-1-base u-radius u-text-white u-icon-3"><img src="~/images/2591945-7b224637.png" alt=""></span>
-                                            <h5 class="u-text u-text-default u-text-6"> Holistic Skill-Building</h5>
-                                            <p class="u-text u-text-7">Develop essential skills to prepare for future challenges and opportunities.</p>
+                                            <h5 class="u-text u-text-default u-text-6"> @SharedResource.HolisticSkillBuilding</h5>
+                                            <p class="u-text u-text-7">@SharedResource.EssentialSkills</p>
                                         </div>
                                     </div>
                                 </div>
@@ -252,7 +253,8 @@ c5.5,0,9.9,4.5,9.9,9.9V73.3z"></path>
                 <div class="u-accordion-item">
                     <a class="active u-accordion-link u-button-style u-custom-font u-font-montserrat u-text-body-color u-accordion-link-1" id="link-" aria-controls="" aria-selected="true" role="tab">
                         <span class="u-accordion-link-text">  
-                            1. What courses does your learning center offer?</span><span class="u-accordion-link-icon u-black u-icon u-icon-rounded u-radius u-text-white u-icon-1">
+                            1. @SharedResource.FAQ1Question?
+                        </span><span class="u-accordion-link-icon u-black u-icon u-icon-rounded u-radius u-text-white u-icon-1">
                             <svg class="u-svg-link" preserveAspectRatio="xMidYMin slice" viewBox="0 0 16 16" style=""><use xlink:href="#svg-2164"></use></svg>
                             <svg class="u-svg-content" viewBox="0 0 16 16" x="0px" y="0px" id="svg-2164">
                                 <path d="M8,10.7L1.6,5.3c-0.4-0.4-1-0.4-1.3,0c-0.4,0.4-0.4,0.9,0,1.3l7.2,6.1c0.1,0.1,0.4,0.2,0.6,0.2s0.4-0.1,0.6-0.2l7.1-6
@@ -263,7 +265,7 @@ c5.5,0,9.9,4.5,9.9,9.9V73.3z"></path>
                     <div class="u-accordion-active u-accordion-pane u-container-style u-accordion-pane-1" aria-labelledby="link-" role="tabpanel">
                         <div class="u-container-layout u-container-layout-1">
                             <div class="fr-view u-clearfix u-rich-text u-text">
-                                <p>From STEM to arts, our diverse programs inspire and empower learners to excel.</p>
+                                <p>@SharedResource.FAQ1Answer.</p>
                             </div>
                         </div>
                     </div>
@@ -271,7 +273,8 @@ c5.5,0,9.9,4.5,9.9,9.9V73.3z"></path>
                 <div class="u-accordion-item">
                     <a class="u-accordion-link u-button-style u-custom-font u-font-montserrat u-text-body-color u-accordion-link-2" id="link-" aria-controls="" aria-selected="false" role="tab">
                         <span class="u-accordion-link-text">
-                            2. How can your programs benefit my academic journey?</span><span class="u-accordion-link-icon u-black u-icon u-icon-rounded u-radius u-text-white u-icon-2">
+                            2. @SharedResource.FAQ2Question?
+                        </span><span class="u-accordion-link-icon u-black u-icon u-icon-rounded u-radius u-text-white u-icon-2">
                             <svg class="u-svg-link" preserveAspectRatio="xMidYMin slice" viewBox="0 0 16 16" style=""><use xlink:href="#svg-b44f"></use></svg>
                             <svg class="u-svg-content" viewBox="0 0 16 16" x="0px" y="0px" id="svg-b44f">
                                 <path d="M8,10.7L1.6,5.3c-0.4-0.4-1-0.4-1.3,0c-0.4,0.4-0.4,0.9,0,1.3l7.2,6.1c0.1,0.1,0.4,0.2,0.6,0.2s0.4-0.1,0.6-0.2l7.1-6
@@ -282,7 +285,7 @@ c5.5,0,9.9,4.5,9.9,9.9V73.3z"></path>
                     <div class="u-accordion-pane u-container-style u-accordion-pane-2" id="" aria-labelledby="link-" role="tabpanel">
                         <div class="u-container-layout u-container-layout-2">
                             <div class="fr-view u-clearfix u-rich-text u-text">
-                                <p>Our personalized courses boost confidence and equip you with skills for success.</p>
+                                <p>@SharedResource.FAQ2Answer.</p>
                             </div>
                         </div>
                     </div>
@@ -291,7 +294,7 @@ c5.5,0,9.9,4.5,9.9,9.9V73.3z"></path>
                     <a class="u-accordion-link u-button-style u-custom-font u-font-montserrat u-text-body-color u-accordion-link-3" id="link-" aria-controls="" aria-selected="false" role="tab">
                         <span class="u-accordion-link-text">
 
-                            3. Who can join your learning center?
+                            3. @SharedResource.FAQ3Question?
                         </span><span class="u-accordion-link-icon u-black u-icon u-icon-rounded u-radius u-text-white u-icon-3">
                             <svg class="u-svg-link" preserveAspectRatio="xMidYMin slice" viewBox="0 0 16 16" style=""><use xlink:href="#svg-f783"></use></svg>
                             <svg class="u-svg-content" viewBox="0 0 16 16" x="0px" y="0px" id="svg-f783">
@@ -303,7 +306,7 @@ c5.5,0,9.9,4.5,9.9,9.9V73.3z"></path>
                     <div class="u-accordion-pane u-container-style u-accordion-pane-3" aria-labelledby="link-" role="tabpanel">
                         <div class="u-container-layout u-container-layout-3">
                             <div class="u-clearfix u-rich-text u-text">
-                                <p>We welcome learners of all ages, from young students to lifelong scholars.</p>
+                                <p>@SharedResource.FAQ3Answer.</p>
                             </div>
                         </div>
                     </div>
@@ -311,7 +314,7 @@ c5.5,0,9.9,4.5,9.9,9.9V73.3z"></path>
                 <div class="u-accordion-item">
                     <a class="u-accordion-link u-button-style u-custom-font u-font-montserrat u-text-body-color u-accordion-link-4" id="link-ae24" aria-controls="ae24" aria-selected="false" role="tab">
                         <span class="u-accordion-link-text">
-                            4. How long are your educational programs?
+                            4. @SharedResource.FAQ4Question?
                         </span><span class="u-accordion-link-icon u-black u-icon u-icon-rounded u-radius u-text-white u-icon-4">
                             <svg class="u-svg-link" preserveAspectRatio="xMidYMin slice" viewBox="0 0 16 16" style=""><use xlink:href="#svg-1a33"></use></svg>
                             <svg class="u-svg-content" viewBox="0 0 16 16" x="0px" y="0px" id="svg-1a33">
@@ -323,7 +326,7 @@ c5.5,0,9.9,4.5,9.9,9.9V73.3z"></path>
                     <div class="u-accordion-pane u-container-style u-accordion-pane-4" id="ae24" aria-labelledby="link-ae24" role="tabpanel">
                         <div class="u-container-layout u-container-layout-4">
                             <div class="u-clearfix u-rich-text u-text">
-                                <p> Our flexible courses are designed to fit your schedule and learning pace.</p>
+                                <p>@SharedResource.FAQ4Answer</p>
                             </div>
                         </div>
                     </div>
@@ -340,22 +343,22 @@ c5.5,0,9.9,4.5,9.9,9.9V73.3z"></path>
             <div class="u-container-layout u-container-layout-1">
                 <span class="u-align-left u-file-icon u-icon u-text-palette-1-base u-icon-1">
                     <img src="~/images/527995-73b227c5.png" alt=""></span>
-                <h2 class="u-text u-text-default u-text-1">Cutting-Edge Educational Solutions</h2>
+                <h2 class="u-text u-text-default u-text-1">@SharedResource.CuttingEdgeSolutions</h2>
                 <ul class="u-custom-font u-custom-list u-file-icon u-font-montserrat u-spacing-10 u-text u-text-2">
                     <li style="padding-left: 10px;">
                         <div class="u-list-icon">
                             <img src="~/images/35243881.png" alt="">
-                        </div> Mathematics Excellence
+                        </div> @SharedResource.MathematicsExcellence
                     </li>
                     <li style="padding-left: 10px;">
                         <div class="u-list-icon">
                             <img src="~/images/35243881.png" alt="">
-                        </div>Science Discovery
+                        </div>@SharedResource.ScienceDiscovery
                     </li>
                     <li style="padding-left: 10px;">
                         <div class="u-list-icon">
                             <img src="~/images/35243881.png" alt="">
-                        </div>Language Mastery
+                        </div>@SharedResource.LanguageMastery
                     </li>
                 </ul>
             </div>
@@ -366,20 +369,20 @@ c5.5,0,9.9,4.5,9.9,9.9V73.3z"></path>
     <section class="w3l-service-1 py-5">
         <div class="container py-md-5 py-4">
             <div class="title-main text-center mx-auto mb-md-5 mb-4" style="max-width:500px;">
-                <p class="text-uppercase">Why Choose Us</p>
-                <h3 class="title-style">Empowering Designers and Developers</h3>
+                <p class="text-uppercase">@SharedResource.WhyChooseUs</p>
+                <h3 class="title-style">@SharedResource.EmpoweringLearners</h3>
             </div>
             <div class="row content23-col-2 text-center">
                 <div class="col-md-6">
                     <div class="content23-grid content23-grid1">
-                        <h4>Expert Mentors</h4>
-                        <p>Guided by professionals with extensive experience in creative and tech industries.</p>
+                        <h4>@SharedResource.ExpertMentors</h4>
+                        <p>@SharedResource.ProfessionalGuidance</p>
                     </div>
                 </div>
                 <div class="col-md-6 mt-md-0 mt-4">
                     <div class="content23-grid content23-grid2">
-                        <h4>Inspiring Learning Spaces</h4>
-                        <p>Our academy offers a modern, collaborative environment tailored to creativity and innovation.</p>
+                        <h4>@SharedResource.InspiringSpaces</h4>
+                        <p>@SharedResource.CollaborativeEnvironment</p>
                     </div>
                 </div>
             </div>
@@ -390,8 +393,8 @@ c5.5,0,9.9,4.5,9.9,9.9V73.3z"></path>
     <div class="w3l-grids-block-5 home-course-bg py-5" id="courses">
         <div class="container py-md-5 py-4">
             <div class="title-main text-center mx-auto mb-md-5 mb-4" style="max-width:500px;">
-                <p class="text-uppercase">Best Courses</p>
-                <h3 class="title-style">Find The Right Course For You</h3>
+                <p class="text-uppercase">@SharedResource.BestCourses</p>
+                <h3 class="title-style">@SharedResource.FindRightCourse</h3>
             </div>
             <div class="row justify-content-center">
                 @if (false)
@@ -409,14 +412,14 @@ c5.5,0,9.9,4.5,9.9,9.9V73.3z"></path>
                                 <div class="content-main-top">
                                     <div class="content-top mb-4 mt-3">
                                         <ul class="list-unstyled d-flex align-items-center justify-content-between">
-                                            <li><i class="fas fa-clock"></i> @course.Duration weeks</li>
+                                            <li><i class="fas fa-clock"></i> @course.Duration @SharedResource.Weeks</li>
                                         </ul>
                                     </div>
                                     <h4><span class="text-muted">@course.Name</span></h4>
                                     <p>@course.Description</p>
                                     <div class="top-content-border d-flex align-items-center justify-content-between mt-4 pt-4">
-                                        <h6>Free</h6>
-                                        <span class="btn btn-style-primary disabled">Know Details <i class="fas fa-arrow-right"></i></span>
+                                        <h6>@SharedResource.Free</h6>
+                                        <span class="btn btn-style-primary disabled">@SharedResource.KnowDetails <i class="fas fa-arrow-right"></i></span>
                                     </div>
                                 </div>
                             </div>
@@ -425,12 +428,12 @@ c5.5,0,9.9,4.5,9.9,9.9V73.3z"></path>
                 }
                 else
                 {
-                    <p>No courses available at the moment.</p>
+                    <p>@SharedResource.NoCoursesAvailable.</p>
                 }
             </div>
             <div class="text-center mt-sm-5 mt-4 pt-sm-0 pt-1">
                 <span class="btn btn-style btn-style-secondary disabled mt-sm-3">
-                    Browse more courses
+                    @SharedResource.BrowseMoreCourses
                 </span>
             </div>
         </div>
@@ -446,41 +449,41 @@ c5.5,0,9.9,4.5,9.9,9.9V73.3z"></path>
                             <li class="anim1">
                                 <img src="~/images/testi1.jpg" class="img-fluid rounded-circle" alt="client image" />
                                 <blockquote class="quote">
-                                    <q>DevArt Academy transformed my journey into tech and design. The curriculum and mentorship provided here are unmatched!</q>
+                                    <q>@SharedResource.Testimonial1</q>
                                 </blockquote>
-                                <div class="source">- Mario Silva</div>
+                                <div class="source">@SharedResource.TestimonialAuthor1</div>
                             </li>
 
                             <li class="anim2">
                                 <img src="~/images/testi2.jpg" class="img-fluid rounded-circle" alt="client image" />
                                 <blockquote class="quote">
-                                    <q>The projects and real-world challenges at DevArt Academy prepared me for the tech industry. It’s been a phenomenal experience!</q>
+                                    <q>@SharedResource.Testimonial2</q>
                                 </blockquote>
-                                <div class="source">- Petey Cruz</div>
+                                <div class="source">@SharedResource.TestimonialAuthor2</div>
                             </li>
 
                             <li class="anim3">
                                 <img src="~/images/testi3.jpg" class="img-fluid rounded-circle" alt="client image" />
                                 <blockquote class="quote">
-                                    <q>I’ve grown so much as a designer. The supportive community and skilled mentors at DevArt Academy made all the difference.</q>
+                                    <q>@SharedResource.Testimonial3</q>
                                 </blockquote>
-                                <div class="source">- Ana Souza</div>
+                                <div class="source">@SharedResource.TestimonialAuthor3</div>
                             </li>
 
                             <li class="anim4">
                                 <img src="~/images/testi1.jpg" class="img-fluid rounded-circle" alt="client image" />
                                 <blockquote class="quote">
-                                    <q>It’s not just a school – it’s a network of creators. DevArt Academy is where innovation and creativity thrive!</q>
+                                    <q>@SharedResource.Testimonial4</q>
                                 </blockquote>
-                                <div class="source">- Gaila Ferreira</div>
+                                <div class="source">@SharedResource.TestimonialAuthor4</div>
                             </li>
 
                             <li class="anim5">
                                 <img src="~/images/testi2.jpg" class="img-fluid rounded-circle" alt="client image" />
                                 <blockquote class="quote">
-                                    <q>The skills and connections I gained here have been invaluable. My career in design took off thanks to DevArt Academy!</q>
+                                    <q>@SharedResource.Testimonial5</q>
                                 </blockquote>
-                                <div class="source">- Bruno Franco</div>
+                                <div class="source">@SharedResource.TestimonialAuthor5</div>
                             </li>
                         </ul>
                     </div>
@@ -490,42 +493,42 @@ c5.5,0,9.9,4.5,9.9,9.9V73.3z"></path>
     </section>
     <section class="u-clearfix u-container-align-left u-section-10" id="carousel_8ce7">
         <div class="u-clearfix u-sheet u-sheet-1">
-            <h3 class="u-align-left u-text u-text-1"> Shape Your Academic Future</h3>
+            <h3 class="u-align-left u-text u-text-1"> @SharedResource.ShapeAcademicFuture</h3>
             <div class="u-expanded-width u-list u-list-1">
                 <div class="u-repeater u-repeater-1">
                     <div class="u-container-align-center u-container-style u-grey-5 u-list-item u-radius u-repeater-item u-shape-round u-list-item-1" data-animation-name="flipIn" data-animation-duration="1000" data-animation-direction="X">
                         <div class="u-container-layout u-similar-container u-valign-middle u-container-layout-1">
                             <img class="u-image u-image-contain u-image-default u-image-1" src="~/images/logo4.png" alt="" data-image-width="274" data-image-height="131">
-                            <h5 class="u-align-center u-text u-text-default u-text-2"> Interactive Learning Labs</h5>
+                            <h5 class="u-align-center u-text u-text-default u-text-2"> @SharedResource.InteractiveLearningLabs</h5>
                             <p class="u-align-center u-text u-text-default-lg u-text-default-md u-text-default-xl u-text-3">
-                                Engage in hands-on activities that make education exciting and impactful.
+                                @SharedResource.HandsOnActivities
                             </p>
                         </div>
                     </div>
                     <div class="u-container-align-center u-container-style u-grey-5 u-list-item u-radius u-repeater-item u-shape-round u-list-item-2" data-animation-name="flipIn" data-animation-duration="1000" data-animation-direction="X">
                         <div class="u-container-layout u-similar-container u-valign-middle u-container-layout-2">
                             <img class="u-image u-image-contain u-image-default u-image-2" src="~/images/logo5.png" alt="" data-image-width="153" data-image-height="124">
-                            <h5 class="u-align-center u-text u-text-default u-text-4">Expert Instructors </h5>
+                            <h5 class="u-align-center u-text u-text-default u-text-4">@SharedResource.ExpertInstructors</h5>
                             <p class="u-align-center u-text u-text-default-lg u-text-default-md u-text-default-xl u-text-5">
-                                Learn from dedicated educators committed to your academic growth.
+                                @SharedResource.DedicatedEducators
                             </p>
                         </div>
                     </div>
                     <div class="u-container-align-center u-container-style u-grey-5 u-list-item u-radius u-repeater-item u-shape-round u-list-item-3" data-animation-name="flipIn" data-animation-duration="2000" data-animation-delay="0" data-animation-direction="X">
                         <div class="u-container-layout u-similar-container u-valign-middle u-container-layout-3">
                             <img class="u-image u-image-contain u-image-default u-image-3" src="~/images/logo8.png" alt="" data-image-width="401" data-image-height="152">
-                            <h5 class="u-align-center u-text u-text-default u-text-6">Career-Ready Skills </h5>
+                            <h5 class="u-align-center u-text u-text-default u-text-6">@SharedResource.CareerReadySkills</h5>
                             <p class="u-align-center u-text u-text-default-lg u-text-default-md u-text-default-xl u-text-7">
-                                Gain practical skills to thrive in today’s competitive world.
+                                @SharedResource.PracticalSkills
                             </p>
                         </div>
                     </div>
                     <div class="u-container-align-center u-container-style u-grey-5 u-list-item u-radius u-repeater-item u-shape-round u-list-item-4" data-animation-name="flipIn" data-animation-duration="1000" data-animation-direction="X">
                         <div class="u-container-layout u-similar-container u-valign-middle u-container-layout-4">
                             <img class="u-image u-image-contain u-image-default u-image-4" src="~/images/logo6.png" alt="" data-image-width="144" data-image-height="184">
-                            <h5 class="u-align-center u-text u-text-default u-text-8">Vibrant Community</h5>
+                            <h5 class="u-align-center u-text u-text-default u-text-8">@SharedResource.VibrantCommunity</h5>
                             <p class="u-align-center u-text u-text-default-lg u-text-default-md u-text-default-xl u-text-9">
-                                Join a supportive learning community that fosters collaboration and success.
+                                @SharedResource.SupportiveCommunity
                             </p>
                         </div>
                     </div>

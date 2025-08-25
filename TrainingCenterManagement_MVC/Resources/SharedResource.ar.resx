@@ -579,9 +579,6 @@
   <data name="ChartPlaceholder_Text" xml:space="preserve">
     <value>سيتم عرض مخطط التحليلات هنا</value>
   </data>
-  <data name="Growth_PlatformDescription" xml:space="preserve">
-    <value>النمو الشهري للمطاعم والمستخدمين والإيرادات</value>
-  </data>
   <data name="Growth_PlatformTitle" xml:space="preserve">
     <value>نمو المنصة</value>
   </data>
@@ -1043,5 +1040,227 @@
   </data>
   <data name="JoinNow" xml:space="preserve">
     <value>انضم الان</value>
+  </data>
+  <data name="DiscoverLearningCenter" xml:space="preserve">
+    <value>اكتشف مركز التعلم الرائد لدينا</value>
+  </data>
+  <data name="EmpowerFuture" xml:space="preserve">
+    <value>امنح مستقبلك القوة بالتعليم</value>
+  </data>
+  <data name="TransformativeJourney" xml:space="preserve">
+    <value>ابدأ رحلة تحويلية لاكتساب المعرفة وتطوير المهارات في مركزنا التعليمي المبتكر.</value>
+  </data>
+  <data name="CuttingEdgePrograms" xml:space="preserve">
+    <value>برامجنا المتطورة تثير الفضول وتعزز التميز الأكاديمي للمتعلمين من جميع الأعمار.</value>
+  </data>
+  <data name="PassionateEducators" xml:space="preserve">
+    <value>تعلم من مدرسين متحمسين مكرسين لنجاحك.</value>
+  </data>
+  <data name="LifelongLearning" xml:space="preserve">
+    <value>ابنِ أساسًا قويًا للنمو المستمر من خلال برامجنا الشاملة.</value>
+  </data>
+  <data name="UnlockPotential" xml:space="preserve">
+    <value>افتح إمكانياتك مع دوراتنا</value>
+  </data>
+  <data name="DynamicCurriculum" xml:space="preserve">
+    <value>مناهجنا المصممة ببراعة تقدم تجارب تعليمية ديناميكية لإلهام النمو والنجاح.</value>
+  </data>
+  <data name="HandsOnWorkshops" xml:space="preserve">
+    <value>ورش عمل تطبيقية</value>
+  </data>
+  <data name="EngagingSessions" xml:space="preserve">
+    <value>انغمس في جلسات عملية وجذابة يقودها مدرسون متحمسون لتعزيز مهاراتك.</value>
+  </data>
+  <data name="MathematicsExcellence" xml:space="preserve">
+    <value>التميز في الرياضيات</value>
+  </data>
+  <data name="ScienceDiscovery" xml:space="preserve">
+    <value>اكتشاف العلوم</value>
+  </data>
+  <data name="LanguageMastery" xml:space="preserve">
+    <value>إتقان اللغة</value>
+  </data>
+  <data name="CodingAcademy" xml:space="preserve">
+    <value>أكاديمية البرمجة</value>
+  </data>
+  <data name="CriticalThinking" xml:space="preserve">
+    <value>التفكير النقدي</value>
+  </data>
+  <data name="CreativeArts" xml:space="preserve">
+    <value>الفنون الإبداعية</value>
+  </data>
+  <data name="InspireMind" xml:space="preserve">
+    <value>ألهم عقلك</value>
+  </data>
+  <data name="CaptivatingLessons" xml:space="preserve">
+    <value>اختبر إثارة التعلم من خلال دروس وموارد ممتعة.</value>
+  </data>
+  <data name="InnovativeTeaching" xml:space="preserve">
+    <value>تعليم مبتكر</value>
+  </data>
+  <data name="ModernMethods" xml:space="preserve">
+    <value>تبنَّ أساليب تعليمية حديثة تجعل التعلم ممتعًا وفعالًا.</value>
+  </data>
+  <data name="DiverseCourses" xml:space="preserve">
+    <value>استكشف دوراتنا المتنوعة المصممة لإثارة الشغف ودفع الإنجاز الأكاديمي.</value>
+  </data>
+  <data name="ComprehensivePrograms" xml:space="preserve">
+    <value>ابنِ أساسًا قويًا للنمو المستمر من خلال برامجنا الشاملة.</value>
+  </data>
+  <data name="ElevateSkills" xml:space="preserve">
+    <value>ارفع مهاراتك مع مركزنا التعليمي</value>
+  </data>
+  <data name="MasterFundamentals" xml:space="preserve">
+    <value>إتقان الأساسيات</value>
+  </data>
+  <data name="TailoredCourses" xml:space="preserve">
+    <value>اكتشف دوراتنا المصممة خصيصًا لتلبية احتياجات كل متعلم.</value>
+  </data>
+  <data name="PersonalizedEducation" xml:space="preserve">
+    <value>تعليم مخصص</value>
+  </data>
+  <data name="CustomizedPath" xml:space="preserve">
+    <value>اصنع مسارًا تعليميًا مخصصًا لتحقيق أهدافك الأكاديمية والمهنية.</value>
+  </data>
+  <data name="HolisticSkillBuilding" xml:space="preserve">
+    <value>بناء مهارات شامل</value>
+  </data>
+  <data name="EssentialSkills" xml:space="preserve">
+    <value>طوّر مهارات أساسية للتحضير لتحديات وفرص المستقبل.</value>
+  </data>
+  <data name="FAQ1Question" xml:space="preserve">
+    <value>ما هي الدورات التي يقدمها مركز التعلم؟</value>
+  </data>
+  <data name="FAQ1Answer" xml:space="preserve">
+    <value>من العلوم والتكنولوجيا إلى الفنون، برامجنا المتنوعة تلهم المتعلمين وتمكّنهم من التفوق.</value>
+  </data>
+  <data name="FAQ2Question" xml:space="preserve">
+    <value>كيف يمكن لبرامجكم أن تفيد رحلتي الأكاديمية؟</value>
+  </data>
+  <data name="FAQ2Answer" xml:space="preserve">
+    <value>دوراتنا المخصصة تعزز الثقة وتزودك بالمهارات اللازمة للنجاح.</value>
+  </data>
+  <data name="FAQ3Question" xml:space="preserve">
+    <value>من يمكنه الانضمام إلى مركز التعلم؟</value>
+  </data>
+  <data name="FAQ3Answer" xml:space="preserve">
+    <value>نرحب بالمتعلمين من جميع الأعمار، من الطلاب الصغار إلى العلماء مدى الحياة.</value>
+  </data>
+  <data name="FAQ4Question" xml:space="preserve">
+    <value>كم هي مدة برامجكم التعليمية؟</value>
+  </data>
+  <data name="FAQ4Answer" xml:space="preserve">
+    <value>دوراتنا المرنة مصممة لتناسب جدولك وسرعتك التعليمية.</value>
+  </data>
+  <data name="CuttingEdgeSolutions" xml:space="preserve">
+    <value>حلول تعليمية متطورة</value>
+  </data>
+  <data name="WhyChooseUs" xml:space="preserve">
+    <value>لماذا تختارنا</value>
+  </data>
+  <data name="EmpoweringLearners" xml:space="preserve">
+    <value>تمكين المتعلمين</value>
+  </data>
+  <data name="ExpertMentors" xml:space="preserve">
+    <value>مدرسون خبراء</value>
+  </data>
+  <data name="ProfessionalGuidance" xml:space="preserve">
+    <value>يوجهك محترفون يتمتعون بخبرة واسعة في التعليم.</value>
+  </data>
+  <data name="InspiringSpaces" xml:space="preserve">
+    <value>فضاءات تعليمية ملهمة</value>
+  </data>
+  <data name="CollaborativeEnvironment" xml:space="preserve">
+    <value>يقدم مركزنا بيئة تعاونية حديثة مصممة للتعلم والابتكار.</value>
+  </data>
+  <data name="BestCourses" xml:space="preserve">
+    <value>أفضل الدورات</value>
+  </data>
+  <data name="FindRightCourse" xml:space="preserve">
+    <value>ابحث عن الدورة المناسبة لك</value>
+  </data>
+  <data name="CourseDuration" xml:space="preserve">
+    <value>المدة:</value>
+  </data>
+  <data name="Weeks" xml:space="preserve">
+    <value>أسابيع</value>
+  </data>
+  <data name="Free" xml:space="preserve">
+    <value>مجاني</value>
+  </data>
+  <data name="KnowDetails" xml:space="preserve">
+    <value>تعرف على التفاصيل</value>
+  </data>
+  <data name="BrowseMoreCourses" xml:space="preserve">
+    <value>تصفح المزيد من الدورات</value>
+  </data>
+  <data name="Testimonials" xml:space="preserve">
+    <value>الشهادات</value>
+  </data>
+  <data name="Testimonial1" xml:space="preserve">
+    <value>لقد غيّر @SharedResource.TrainingCenter رحلتي التعليمية. المناهج والإرشاد المقدم هنا لا مثيل له!</value>
+  </data>
+  <data name="TrainingCenter " xml:space="preserve">
+    <value>مركزنا التعليمي</value>
+  </data>
+  <data name="TestimonialAuthor1" xml:space="preserve">
+    <value>ماريو سيلفا</value>
+  </data>
+  <data name="Testimonial2" xml:space="preserve">
+    <value>المشاريع والتحديات العملية في @SharedResource.TrainingCenter أعدتني للنجاح. كانت تجربة رائعة!</value>
+  </data>
+  <data name="TestimonialAuthor2" xml:space="preserve">
+    <value>بيتي كروز</value>
+  </data>
+  <data name="Testimonial3" xml:space="preserve">
+    <value>لقد تطورت كثيرًا كمتعلم. المجتمع الداعم والمدرسون المهرة في @SharedResource.TrainingCenter صنعوا الفارق.</value>
+  </data>
+  <data name="TestimonialAuthor3" xml:space="preserve">
+    <value>آنا سوزا</value>
+  </data>
+  <data name="Testimonial4" xml:space="preserve">
+    <value>إنه ليس مجرد مركز – إنه شبكة من المتعلمين. @SharedResource.TrainingCenter هو المكان الذي يزدهر فيه الابتكار والتعلم!</value>
+  </data>
+  <data name="TestimonialAuthor4" xml:space="preserve">
+    <value>جايلا فيريرا</value>
+  </data>
+  <data name="Testimonial5" xml:space="preserve">
+    <value>المهارات والعلاقات التي اكتسبتها هنا كانت لا تقدر بثمن. انطلقت مسيرتي بفضل @SharedResource.TrainingCenter!</value>
+  </data>
+  <data name="TestimonialAuthor5" xml:space="preserve">
+    <value>برونو فرانكو</value>
+  </data>
+  <data name="ShapeAcademicFuture" xml:space="preserve">
+    <value>صيغ مستقبلك الأكاديمي</value>
+  </data>
+  <data name="InteractiveLearningLabs" xml:space="preserve">
+    <value>مختبرات تعليمية تفاعلية</value>
+  </data>
+  <data name="HandsOnActivities" xml:space="preserve">
+    <value>شارك في أنشطة تطبيقية تجعل التعليم مثيرًا ومؤثرًا.</value>
+  </data>
+  <data name="ExpertInstructors" xml:space="preserve">
+    <value>مدرسون خبراء</value>
+  </data>
+  <data name="DedicatedEducators" xml:space="preserve">
+    <value>تعلم من مدرسين مكرسين ملتزمين بنموك الأكاديمي.</value>
+  </data>
+  <data name="CareerReadySkills" xml:space="preserve">
+    <value>مهارات جاهزة للعمل</value>
+  </data>
+  <data name="PracticalSkills" xml:space="preserve">
+    <value>اكتسب مهارات عملية لتزدهر في عالم اليوم التنافسي.</value>
+  </data>
+  <data name="VibrantCommunity" xml:space="preserve">
+    <value>مجتمع نابض بالحياة</value>
+  </data>
+  <data name="SupportiveCommunity" xml:space="preserve">
+    <value>انضم إلى مجتمع تعليمي داعم يعزز التعاون والنجاح.</value>
+  </data>
+  <data name="WhtYouWhateFor" xml:space="preserve">
+    <value> ماذا تنتظر ؟</value>
+  </data>
+  <data name="Growth_PlatformDescription" xml:space="preserve">
+    <value>انضم إلى منصة تعليمية تحويلية مصممة لتمكين نموك الأكاديمي والمهني.</value>
   </data>
 </root>

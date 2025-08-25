@@ -579,9 +579,6 @@
   <data name="ChartPlaceholder_Text" xml:space="preserve">
     <value>Analytics chart will appear here </value>
   </data>
-  <data name="Growth_PlatformDescription" xml:space="preserve">
-    <value>Monthly growth of restaurants, users, and revenue. </value>
-  </data>
   <data name="Growth_PlatformTitle" xml:space="preserve">
     <value>Platform Growth </value>
   </data>
@@ -1052,5 +1049,227 @@
   </data>
   <data name="JoinNow" xml:space="preserve">
     <value>JoinNow</value>
+  </data>
+  <data name="DiscoverLearningCenter" xml:space="preserve">
+    <value>Discover Our Premier Learning Center</value>
+  </data>
+  <data name="EmpowerFuture" xml:space="preserve">
+    <value>Empower Your Future with Education</value>
+  </data>
+  <data name="TransformativeJourney" xml:space="preserve">
+    <value>Embark on a transformative journey of knowledge and skill-building at our innovative learning hub.</value>
+  </data>
+  <data name="CuttingEdgePrograms" xml:space="preserve">
+    <value>Our cutting-edge programs ignite curiosity and foster academic excellence for learners of all ages.</value>
+  </data>
+  <data name="PassionateEducators" xml:space="preserve">
+    <value>Learn from passionate educators dedicated to your success.</value>
+  </data>
+  <data name="LifelongLearning" xml:space="preserve">
+    <value>Build a strong foundation for continuous growth with our comprehensive programs.</value>
+  </data>
+  <data name="UnlockPotential" xml:space="preserve">
+    <value>Unlock Your Potential with Our Courses</value>
+  </data>
+  <data name="DynamicCurriculum" xml:space="preserve">
+    <value>Our expertly designed curriculum offers dynamic learning experiences to inspire growth and success.</value>
+  </data>
+  <data name="HandsOnWorkshops" xml:space="preserve">
+    <value>Hands-On Workshops</value>
+  </data>
+  <data name="EngagingSessions" xml:space="preserve">
+    <value>Dive into engaging, practical sessions led by passionate educators to enhance your skills.</value>
+  </data>
+  <data name="MathematicsExcellence" xml:space="preserve">
+    <value>Mathematics Excellence</value>
+  </data>
+  <data name="ScienceDiscovery" xml:space="preserve">
+    <value>Science Discovery</value>
+  </data>
+  <data name="LanguageMastery" xml:space="preserve">
+    <value>Language Mastery</value>
+  </data>
+  <data name="CodingAcademy" xml:space="preserve">
+    <value>Coding Academy</value>
+  </data>
+  <data name="CriticalThinking" xml:space="preserve">
+    <value>Critical Thinking</value>
+  </data>
+  <data name="CreativeArts" xml:space="preserve">
+    <value>Creative Arts</value>
+  </data>
+  <data name="InspireMind" xml:space="preserve">
+    <value>Inspire Your Mind</value>
+  </data>
+  <data name="CaptivatingLessons" xml:space="preserve">
+    <value>Experience the thrill of learning through captivating lessons and resources.</value>
+  </data>
+  <data name="InnovativeTeaching" xml:space="preserve">
+    <value>Innovative Teaching</value>
+  </data>
+  <data name="ModernMethods" xml:space="preserve">
+    <value>Embrace modern educational methods that make learning both fun and effective.</value>
+  </data>
+  <data name="DiverseCourses" xml:space="preserve">
+    <value>Explore our diverse courses crafted to spark passion and drive academic achievement.</value>
+  </data>
+  <data name="ComprehensivePrograms" xml:space="preserve">
+    <value>Build a strong foundation for continuous growth with our comprehensive programs.</value>
+  </data>
+  <data name="ElevateSkills" xml:space="preserve">
+    <value>Elevate Your Skills with Our Learning Center</value>
+  </data>
+  <data name="MasterFundamentals" xml:space="preserve">
+    <value>Master the Fundamentals</value>
+  </data>
+  <data name="TailoredCourses" xml:space="preserve">
+    <value>Discover our tailored courses designed to meet every learner’s unique needs.</value>
+  </data>
+  <data name="PersonalizedEducation" xml:space="preserve">
+    <value>Personalized Education</value>
+  </data>
+  <data name="CustomizedPath" xml:space="preserve">
+    <value>Create a customized learning path to achieve your academic and career goals.</value>
+  </data>
+  <data name="HolisticSkillBuilding" xml:space="preserve">
+    <value>Holistic Skill-Building</value>
+  </data>
+  <data name="EssentialSkills" xml:space="preserve">
+    <value>Develop essential skills to prepare for future challenges and opportunities.</value>
+  </data>
+  <data name="FAQ1Question" xml:space="preserve">
+    <value>What courses does your learning center offer?</value>
+  </data>
+  <data name="FAQ1Answer" xml:space="preserve">
+    <value>From STEM to arts, our diverse programs inspire and empower learners to excel.</value>
+  </data>
+  <data name="FAQ2Question" xml:space="preserve">
+    <value>How can your programs benefit my academic journey?</value>
+  </data>
+  <data name="FAQ2Answer" xml:space="preserve">
+    <value>Our personalized courses boost confidence and equip you with skills for success.</value>
+  </data>
+  <data name="FAQ3Question" xml:space="preserve">
+    <value>Who can join your learning center?</value>
+  </data>
+  <data name="FAQ3Answer" xml:space="preserve">
+    <value>We welcome learners of all ages, from young students to lifelong scholars.</value>
+  </data>
+  <data name="FAQ4Question" xml:space="preserve">
+    <value>How long are your educational programs?</value>
+  </data>
+  <data name="FAQ4Answer" xml:space="preserve">
+    <value>Our flexible courses are designed to fit your schedule and learning pace.</value>
+  </data>
+  <data name="CuttingEdgeSolutions" xml:space="preserve">
+    <value>Cutting-Edge Educational Solutions</value>
+  </data>
+  <data name="WhyChooseUs" xml:space="preserve">
+    <value>Why Choose Us</value>
+  </data>
+  <data name="EmpoweringLearners" xml:space="preserve">
+    <value>Empowering Learners</value>
+  </data>
+  <data name="ExpertMentors" xml:space="preserve">
+    <value>Expert Mentors</value>
+  </data>
+  <data name="ProfessionalGuidance" xml:space="preserve">
+    <value>Guided by professionals with extensive experience in education.</value>
+  </data>
+  <data name="InspiringSpaces" xml:space="preserve">
+    <value>Inspiring Learning Spaces</value>
+  </data>
+  <data name="CollaborativeEnvironment" xml:space="preserve">
+    <value>Our center offers a modern, collaborative environment tailored to learning and innovation.</value>
+  </data>
+  <data name="BestCourses" xml:space="preserve">
+    <value>Best Courses</value>
+  </data>
+  <data name="FindRightCourse" xml:space="preserve">
+    <value>Find The Right Course For You</value>
+  </data>
+  <data name="CourseDuration" xml:space="preserve">
+    <value>Duration</value>
+  </data>
+  <data name="Weeks" xml:space="preserve">
+    <value>Weeks</value>
+  </data>
+  <data name="Free" xml:space="preserve">
+    <value>Free</value>
+  </data>
+  <data name="KnowDetails" xml:space="preserve">
+    <value>Know Details</value>
+  </data>
+  <data name="BrowseMoreCourses" xml:space="preserve">
+    <value>Browse more courses</value>
+  </data>
+  <data name="Testimonials" xml:space="preserve">
+    <value>Testimonials</value>
+  </data>
+  <data name="Testimonial1" xml:space="preserve">
+    <value>@SharedResource.TrainingCenter transformed my journey into learning. The curriculum and mentorship provided here are unmatched!</value>
+  </data>
+  <data name="TrainingCenter " xml:space="preserve">
+    <value>TrainingCenter </value>
+  </data>
+  <data name="TestimonialAuthor1" xml:space="preserve">
+    <value>Mario Silva</value>
+  </data>
+  <data name="Testimonial2" xml:space="preserve">
+    <value>The projects and real-world challenges at @SharedResource.TrainingCenter prepared me for success. It’s been a phenomenal experience!</value>
+  </data>
+  <data name="TestimonialAuthor2" xml:space="preserve">
+    <value>Petey Cruz</value>
+  </data>
+  <data name="Testimonial3" xml:space="preserve">
+    <value>I’ve grown so much as a learner. The supportive community and skilled mentors at @SharedResource.TrainingCenter made all the difference.</value>
+  </data>
+  <data name="TestimonialAuthor3" xml:space="preserve">
+    <value>Ana Souza</value>
+  </data>
+  <data name="Testimonial4" xml:space="preserve">
+    <value>It’s not just a center – it’s a network of learners. @SharedResource.TrainingCenter is where innovation and learning thrive!</value>
+  </data>
+  <data name="TestimonialAuthor4" xml:space="preserve">
+    <value>Gaila Ferreira</value>
+  </data>
+  <data name="Testimonial5" xml:space="preserve">
+    <value>The skills and connections I gained here have been invaluable. My career took off thanks to @SharedResource.TrainingCenter!</value>
+  </data>
+  <data name="TestimonialAuthor5" xml:space="preserve">
+    <value>Bruno Franco</value>
+  </data>
+  <data name="ShapeAcademicFuture" xml:space="preserve">
+    <value>Shape Your Academic Future</value>
+  </data>
+  <data name="InteractiveLearningLabs" xml:space="preserve">
+    <value>Interactive Learning Labs</value>
+  </data>
+  <data name="HandsOnActivities" xml:space="preserve">
+    <value>Engage in hands-on activities that make education exciting and impactful.</value>
+  </data>
+  <data name="ExpertInstructors" xml:space="preserve">
+    <value>Expert Instructors</value>
+  </data>
+  <data name="DedicatedEducators" xml:space="preserve">
+    <value>Learn from dedicated educators committed to your academic growth.</value>
+  </data>
+  <data name="CareerReadySkills" xml:space="preserve">
+    <value>Career-Ready Skills</value>
+  </data>
+  <data name="PracticalSkills" xml:space="preserve">
+    <value>Gain practical skills to thrive in today’s competitive world.</value>
+  </data>
+  <data name="VibrantCommunity" xml:space="preserve">
+    <value>Vibrant Community</value>
+  </data>
+  <data name="SupportiveCommunity" xml:space="preserve">
+    <value>Join a supportive learning community that fosters collaboration and success.</value>
+  </data>
+  <data name="WhtYouWhateFor" xml:space="preserve">
+    <value>What You Whateing For</value>
+  </data>
+  <data name="Growth_PlatformDescription" xml:space="preserve">
+    <value>Join a transformative learning platform designed to empower your academic and professional growth.</value>
   </data>
 </root>
