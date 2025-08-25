@@ -1,7 +1,7 @@
 ﻿@model TrainingCenterManagement_MVC.Models.Trainee
 
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = "Trainee Details";
 }
 
 <h1 class="mb-4">Trainee Details</h1>
@@ -9,15 +9,28 @@
 <div class="card p-4 mb-4" style="max-width: 600px;">
     <h4 class="mb-3">Information</h4>
     <dl class="row">
-        <dt class="col-sm-3 fw-semibold">@Html.DisplayNameFor(model => model.User)</dt>
-        <dd class="col-sm-9">@Html.DisplayFor(model => model.User.Id)</dd>
+        <dt class="col-sm-3 fw-semibold">Full Name</dt>
+        <dd class="col-sm-9">@Model.User.FullName</dd>
 
-        @* <dt class="col-sm-3 fw-semibold">@Html.DisplayNameFor(model => model.BirthDate)</dt>
-        <dd class="col-sm-9">@Html.DisplayFor(model => model.BirthDate)</dd> *@
+        <dt class="col-sm-3 fw-semibold">Email</dt>
+        <dd class="col-sm-9">@Model.User.Email</dd>
+
+        <dt class="col-sm-3 fw-semibold">Birth Date</dt>
+        <dd class="col-sm-9">@Model.User?.BirthDate.ToShortDateString()</dd>
     </dl>
 </div>
 
-<div>
-    <a asp-action="Edit" asp-route-id="@Model?.TraineeId" class="btn btn-primary me-2">Edit</a>
-    <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+<div class="mt-4">
+    <a asp-action="Index" class="btn btn-secondary me-2">⬅ Back to List</a>
+</div>
+
+<hr />
+
+<h4 class="mb-3">Trainee Actions</h4>
+<div class="d-flex flex-wrap gap-2">
+    <a asp-action="MyCertificates" class="btn btn-outline-primary">📜 My Certificates</a>
+    <a asp-action="MyCourses" class="btn btn-outline-success">📚 My Courses</a>
+    <a asp-action="Profile" class="btn btn-outline-info">👤 Profile</a>
+    <a asp-action="TrackAttendance" class="btn btn-outline-warning">📅 Track Attendance</a>
+  
 </div>

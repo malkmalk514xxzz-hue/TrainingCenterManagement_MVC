@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using TrainingCenterManagement_MVC.Data;
 using TrainingCenterManagement_MVC.Models;
+using TrainingCenterManagement_MVC.ViewModels;
 
 namespace TrainingCenterManagement_MVC.Controllers
 {
@@ -26,9 +27,13 @@ namespace TrainingCenterManagement_MVC.Controllers
 
         public async Task<IActionResult> Index()
         {
-            var applicationDbContext = _context.Receptionists.Include(r => r.User);
-            return View(await applicationDbContext.ToListAsync());
+            var receptionists = await _context.Receptionists
+                .Include(r => r.User) // لجلب بيانات المستخدم المرتبط
+                .ToListAsync();
+
+            return View(receptionists);
         }
+
 
         // GET: Receptionists/Details/5
         [Authorize(Roles = "Admin")]
@@ -56,84 +61,42 @@ namespace TrainingCenterManagement_MVC.Controllers
 
         public IActionResult Create()
         {
-            ViewData["UserId"] = new SelectList(_context.Users, "Id", "Id");
             return View();
         }
 
-        // POST: Receptionists/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Admin")]
-
-        public async Task<IActionResult> Create([Bind("ReceptionistId,UserId")] Receptionist receptionist)
+        public async Task<IActionResult> Create(ReceptionistCreateViewModel model)
         {
-            if (ModelState.IsValid)
-            {
-                receptionist.ReceptionistId = Guid.NewGuid();
-                _context.Add(receptionist);
+            
+                // إنشاء مستخدم جديد
+                var user = new ApplicationUser
+                {
+                    UserName = model.Email,
+                    Email = model.Email,
+                    FullName = model.FullName
+                };
+
+                // حفظ المستخدم في قاعدة البيانات
+                _context.Users.Add(user);
                 await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
-            }
-            ViewData["UserId"] = new SelectList(_context.Users, "Id", "Id", receptionist.UserId);
-            return View(receptionist);
-        }
 
-        // GET: Receptionists/Edit/5
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Edit(Guid? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var receptionist = await _context.Receptionists.FindAsync(id);
-            if (receptionist == null)
-            {
-                return NotFound();
-            }
-            ViewData["UserId"] = new SelectList(_context.Users, "Id", "Id", receptionist.UserId);
-            return View(receptionist);
-        }
-
-        // POST: Receptionists/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Edit(Guid id, [Bind("ReceptionistId,UserId")] Receptionist receptionist)
-        {
-            if (id != receptionist.ReceptionistId)
-            {
-                return NotFound();
-            }
-
-            if (ModelState.IsValid)
-            {
-                try
+                // إنشاء Receptionist وربطه بالمستخدم
+                var receptionist = new Receptionist
                 {
-                    _context.Update(receptionist);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!ReceptionistExists(receptionist.ReceptionistId))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
+                    ReceptionistId = model.ReceptionistId,
+                    UserId = user.Id
+                };
+
+                _context.Receptionists.Add(receptionist);
+                await _context.SaveChangesAsync();
+
                 return RedirectToAction(nameof(Index));
-            }
-            ViewData["UserId"] = new SelectList(_context.Users, "Id", "Id", receptionist.UserId);
-            return View(receptionist);
+            
+
         }
+
+
 
         // GET: Receptionists/Delete/5
         [Authorize(Roles = "Admin")]

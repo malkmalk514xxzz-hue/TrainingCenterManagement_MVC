@@ -1,11 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using Rotativa.AspNetCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using TrainingCenterManagement_MVC.Data;
 using TrainingCenterManagement_MVC.Models;
 
@@ -273,6 +274,27 @@ namespace TrainingCenterManagement_MVC.Controllers
             return View(certificates);
         }
 
+        [HttpGet]
+        [Authorize(Roles = "Admin, Trainer, Trainee")]
+        public async Task<IActionResult> CertificatePdf(Guid certificateId)
+        {
+            var certificate = await _context.Certificates
+                .Include(c => c.Course)
+                .Include(c => c.Trainee).ThenInclude(t => t.User)
+                .Include(c => c.Trainer).ThenInclude(t => t.User)
+                .FirstOrDefaultAsync(c => c.CertificateId == certificateId);
+
+            if (certificate == null)
+                return NotFound();
+
+            return new ViewAsPdf("CertificatePdf", certificate)
+            {
+                FileName = $"Certificate_{certificate.Course.CourseName}_{certificate.Trainee.User.FullName}.pdf",
+                PageOrientation = Rotativa.AspNetCore.Options.Orientation.Landscape,
+                PageSize = Rotativa.AspNetCore.Options.Size.A4
+            };
+
+        }
 
     }
 }

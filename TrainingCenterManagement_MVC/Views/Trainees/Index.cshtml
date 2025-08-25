@@ -13,7 +13,8 @@
 <table class="table table-striped table-bordered table-hover">
     <thead class="table-dark">
         <tr>
-            <th>@Html.DisplayNameFor(model => model.User)</th>
+            <th>Full Name</th>
+            <th>Email</th>
             <th>@Html.DisplayNameFor(model => model.User.BirthDate)</th>
             <th style="width: 150px;">Actions</th>
         </tr>
@@ -25,9 +26,9 @@
             {
                 <tr>
                     <td>@item.User.FullName</td>
+                    <td>@item.User.Email</td>
                     <td>@item.User.BirthDate.ToShortDateString()</td>
                     <td>
-                        <a asp-action="Edit" asp-route-id="@item.TraineeId" class="btn btn-sm btn-primary me-1">Edit</a>
                         <a asp-action="Details" asp-route-id="@item.TraineeId" class="btn btn-sm btn-info me-1">Details</a>
                         <a asp-action="Delete" asp-route-id="@item.TraineeId" class="btn btn-sm btn-danger">Delete</a>
                     </td>
@@ -37,7 +38,7 @@
         else
         {
             <tr>
-                <td colspan="3" class="text-center">No trainees found.</td>
+                <td colspan="4" class="text-center">No trainees found.</td>
             </tr>
         }
     </tbody>

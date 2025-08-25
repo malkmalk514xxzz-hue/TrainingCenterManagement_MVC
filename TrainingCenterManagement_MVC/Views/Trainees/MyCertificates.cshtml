@@ -29,7 +29,7 @@ else
                     <td>@cert.Average.ToString("F2")</td>
                     <td class="text-center text-success" title="Certificate Issued">✔️</td>
                     <td>
-                        <a asp-action="GenerateCertificatePdf" asp-route-certificateId="@cert.CertificateId"
+                        <a asp-controller="Certificates" asp-action="CertificatePdf" asp-route-certificateId="@cert.CertificateId"
                            class="btn btn-danger btn-sm"
                            title="Download Certificate PDF">
                             <i class="bi bi-file-earmark-pdf"></i> Download PDF
