@@ -1,11 +1,106 @@
 ﻿@using TrainingCenterManagement_MVC.Resources
+@using Newtonsoft.Json
+@using TrainingCenterManagement_MVC.ViewModels
+@model AdminDashboardViewModelModel
+
 @{
-    ViewData["Title"] = "Receptionist Dashboard";
+    ViewData["Title"] = SharedResource.AdminDashboard_Title;
 }
+
+<style>
+    .dashboard-wrapper {
+        display: flex;
+        direction: @((System.Threading.Thread.CurrentThread.CurrentUICulture.TextInfo.IsRightToLeft ? "rtl" : "ltr"));
+    }
+
+    .dashboard-main {
+        flex-grow: 1;
+        padding: 20px;
+    }
+
+    .dashboard-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-bottom: 20px;
+    }
+
+    .stat-card {
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+    }
+
+    .stat-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .stat-value {
+        font-size: 24px;
+        font-weight: bold;
+        color: #007bff;
+    }
+
+    .stat-change {
+        color: #28a745;
+    }
+
+        .stat-change.negative {
+            color: red;
+        }
+
+    .tabs {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+
+    .tab-btn {
+        padding: 10px 20px;
+        border: none;
+        background: #f1f1f1;
+        cursor: pointer;
+        border-radius: 5px;
+    }
+
+        .tab-btn.active {
+            background: #007bff;
+            color: #fff;
+        }
+
+    .tab-content {
+        display: none;
+    }
+
+        .tab-content.active {
+            display: block;
+        }
+
+    .card {
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+    }
+
+    .loader {
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #007bff;
+        border-radius: 50%;
+        width: 30px;
+        height: 30px;
+        animation: spin 1s linear infinite;
+        margin: 20px auto;
+        display: none;
+    }
+</style>
 
 <body>
     <div class="dashboard-wrapper">
-        @await Html.PartialAsync("_ReceptionistSidebar")
+        @await Html.PartialAsync("_AdminSidebar")
 
         <main class="dashboard-main">
             <div class="dashboard-header">
@@ -14,54 +109,54 @@
             </div>
 
             <div class="dashboard-stats">
-                <div class="card stat-card">
+                <div class="card stat-card" id="total-courses">
                     <div class="stat-header">
-                        <h3>@SharedResource.Stat_TotalRestaurants</h3>
-                        <i class="fas fa-building"></i>
+                        <h3>@SharedResource.Stat_TotalCourses</h3>
+                        <i class="fas fa-book"></i>
                     </div>
                     <div class="stat-content">
-                        <div class="stat-value">2,856</div>
-                        <p class="stat-change">@string.Format(SharedResource.StatChange_ThisMonth, "124")</p>
+                        <div class="stat-value" id="courses-value"></div>
+                        <p class="stat-change" id="courses-change"></p>
                     </div>
                 </div>
-                <div class="card stat-card">
+                <div class="card stat-card" id="active-students">
                     <div class="stat-header">
-                        <h3>@SharedResource.Stat_ActiveUsers</h3>
+                        <h3>@SharedResource.Stat_ActiveStudents</h3>
                         <i class="fas fa-users"></i>
                     </div>
                     <div class="stat-content">
-                        <div class="stat-value">3,427</div>
-                        <p class="stat-change">@string.Format(SharedResource.StatChange_ThisMonth, "258")</p>
+                        <div class="stat-value" id="students-value"></div>
+                        <p class="stat-change" id="students-change"></p>
                     </div>
                 </div>
-                <div class="card stat-card">
+                <div class="card stat-card" id="monthly-revenue">
                     <div class="stat-header">
                         <h3>@SharedResource.Stat_MonthlyRevenue</h3>
                         <i class="fas fa-credit-card"></i>
                     </div>
                     <div class="stat-content">
-                        <div class="stat-value">$128,540</div>
-                        <p class="stat-change">@string.Format(SharedResource.StatChange_LastMonth, "12.5")</p>
+                        <div class="stat-value" id="revenue-value"></div>
+                        <p class="stat-change" id="revenue-change"></p>
                     </div>
                 </div>
-                <div class="card stat-card">
+                <div class="card stat-card" id="active-institutes">
                     <div class="stat-header">
-                        <h3>@SharedResource.Stat_ActiveCities</h3>
-                        <i class="fas fa-globe"></i>
+                        <h3>@SharedResource.Stat_ActiveInstitutes</h3>
+                        <i class="fas fa-school"></i>
                     </div>
                     <div class="stat-content">
-                        <div class="stat-value">42</div>
-                        <p class="stat-change">@string.Format(SharedResource.StatChange_ThisMonth, "3")</p>
+                        <div class="stat-value" id="institutes-value"></div>
+                        <p class="stat-change" id="institutes-change"></p>
                     </div>
                 </div>
             </div>
 
             <div class="dashboard-tabs">
                 <div class="tabs">
-                    <button class="tab-btn active" data-tab="overview">@SharedResource.Tab_Overview</button>
-                    <button class="tab-btn" data-tab="restaurants">@SharedResource.Tab_Restaurants</button>
-                    <button class="tab-btn" data-tab="users">@SharedResource.Tab_Users</button>
-                    <button class="tab-btn" data-tab="revenue">@SharedResource.Tab_Revenue</button>
+                    <button id="overview-btn" class="tab-btn active" data-tab="overview">@SharedResource.Tab_Overview</button>
+                    <button id="courses-btn" class="tab-btn" data-tab="courses">@SharedResource.Tab_Courses</button>
+                    <button id="students-btn" class="tab-btn" data-tab="students">@SharedResource.Tab_Students</button>
+                    <button id="revenue-btn" class="tab-btn" data-tab="revenue">@SharedResource.Tab_Revenue</button>
                 </div>
                 <div class="tab-content active" id="overview">
                     <div class="card">
@@ -69,31 +164,36 @@
                             <h3>@SharedResource.Growth_PlatformTitle</h3>
                             <p>@SharedResource.Growth_PlatformDescription</p>
                         </div>
-                        <div class="card-content chart-placeholder">
-                            <i class="fas fa-chart-bar"></i>
-                            <span>@SharedResource.ChartPlaceholder_Text</span>
+                        <div class="card-content">
+                            <div class="loader" id="overview-loader"></div>
+                            <canvas id="overview-chart"></canvas>
+                            <p class="error-message" id="overview-error" style="display: none; color: red;">@SharedResource.Error_LoadingData</p>
                         </div>
                     </div>
                 </div>
-                <div class="tab-content" id="restaurants">
+                <div class="tab-content" id="courses">
                     <div class="card">
                         <div class="card-header">
-                            <h3>@SharedResource.Analytics_RestaurantTitle</h3>
-                            <p>@SharedResource.Analytics_RestaurantDescription</p>
+                            <h3>@SharedResource.Analytics_CoursesTitle</h3>
+                            <p>@SharedResource.Analytics_CoursesDescription</p>
                         </div>
-                        <div class="card-content chart-placeholder">
-                            <span>@SharedResource.ChartPlaceholder_GenericText.Replace("[Category]", SharedResource.Restaurants)</span>
+                        <div class="card-content">
+                            <div class="loader" id="courses-loader"></div>
+                            <canvas id="courses-chart"></canvas>
+                            <p class="error-message" id="courses-error" style="display: none; color: red;">@SharedResource.Error_LoadingData</p>
                         </div>
                     </div>
                 </div>
-                <div class="tab-content" id="users">
+                <div class="tab-content" id="students">
                     <div class="card">
                         <div class="card-header">
-                            <h3>@SharedResource.Analytics_UserTitle</h3>
-                            <p>@SharedResource.Analytics_UserDescription</p>
+                            <h3>@SharedResource.Analytics_StudentsTitle</h3>
+                            <p>@SharedResource.Analytics_StudentsDescription</p>
                         </div>
-                        <div class="card-content chart-placeholder">
-                            <span>@SharedResource.ChartPlaceholder_GenericText.Replace("[Category]", SharedResource.Users)</span>
+                        <div class="card-content">
+                            <div class="loader" id="students-loader"></div>
+                            <canvas id="students-chart"></canvas>
+                            <p class="error-message" id="students-error" style="display: none; color: red;">@SharedResource.Error_LoadingData</p>
                         </div>
                     </div>
                 </div>
@@ -103,8 +203,10 @@
                             <h3>@SharedResource.Analytics_RevenueTitle</h3>
                             <p>@SharedResource.Analytics_RevenueDescription</p>
                         </div>
-                        <div class="card-content chart-placeholder">
-                            <span>@SharedResource.ChartPlaceholder_GenericText.Replace("[Category]", SharedResource.Subscriptions)</span>
+                        <div class="card-content">
+                            <div class="loader" id="revenue-loader"></div>
+                            <canvas id="revenue-chart"></canvas>
+                            <p class="error-message" id="revenue-error" style="display: none; color: red;">@SharedResource.Error_LoadingData</p>
                         </div>
                     </div>
                 </div>
@@ -112,5 +214,186 @@
         </main>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script>
+        const translations = {
+            thisMonth: '@Html.Raw(SharedResource.ThisMonth)',
+            lastMonth: '@Html.Raw(SharedResource.LastMonth)',
+            growthPlatformTitle: '@Html.Raw(SharedResource.Growth_PlatformTitle)',
+            courses: '@Html.Raw(SharedResource.Courses)',
+            students: '@Html.Raw(SharedResource.Students)',
+            revenue: '@Html.Raw(SharedResource.Revenue)'
+        };
 
+        document.addEventListener('DOMContentLoaded', () => {
+            let dashboardData;
+            try {
+                dashboardData = @Html.Raw(Json.Serialize(Model ?? new AdminDashboardViewModelModel()));
+                console.log('Dashboard Data:', dashboardData);
+            } catch (error) {
+                console.error('Error parsing dashboard data:', error);
+                dashboardData = { stats: {}, chartData: {} };
+            }
+
+            function updateStats(data) {
+                try {
+                    console.log('Updating stats with data:', data);
+                    const elements = {
+                        coursesValue: document.getElementById('courses-value'),
+                        coursesChange: document.getElementById('courses-change'),
+                        studentsValue: document.getElementById('students-value'),
+                        studentsChange: document.getElementById('students-change'),
+                        revenueValue: document.getElementById('revenue-value'),
+                        revenueChange: document.getElementById('revenue-change'),
+                        institutesValue: document.getElementById('institutes-value'),
+                        institutesChange: document.getElementById('institutes-change')
+                    };
+
+                    Object.keys(elements).forEach(key => {
+                        if (!elements[key]) {
+                            console.error(`Element ${key} not found`);
+                        }
+                    });
+
+                    if (!Object.values(elements).every(el => el)) {
+                        console.error('One or more stat elements not found');
+                        return;
+                    }
+
+                    elements.coursesValue.textContent = (data.totalCourses || 0).toLocaleString();
+                    elements.coursesChange.textContent = `${data.coursesChange >= 0 ? '+' : ''}${data.coursesChange || 0} ${translations.thisMonth}`;
+                    elements.coursesChange.classList.toggle('negative', (data.coursesChange || 0) < 0);
+                    elements.studentsValue.textContent = (data.activeStudents || 0).toLocaleString();
+                    elements.studentsChange.textContent = `${data.studentsChange >= 0 ? '+' : ''}${data.studentsChange || 0} ${translations.thisMonth}`;
+                    elements.studentsChange.classList.toggle('negative', (data.studentsChange || 0) < 0);
+                    elements.revenueValue.textContent = `$${(data.monthlyRevenue || 0).toLocaleString()}`;
+                    elements.revenueChange.textContent = `${data.revenueChange >= 0 ? '+' : ''}${parseFloat(data.revenueChange || 0).toFixed(1)}% ${translations.lastMonth}`;
+                    elements.revenueChange.classList.toggle('negative', (data.revenueChange || 0) < 0);
+                    elements.institutesValue.textContent = (data.activeInstitutes || 0).toLocaleString();
+                    elements.institutesChange.textContent = `${data.institutesChange >= 0 ? '+' : ''}${data.institutesChange || 0} ${translations.thisMonth}`;
+                    elements.institutesChange.classList.toggle('negative', (data.institutesChange || 0) < 0);
+                } catch (error) {
+                    console.error('Error updating stats:', error);
+                }
+            }
+
+            const charts = {};
+            function renderChart(tab) {
+                const loader = document.getElementById(`${tab}-loader`);
+                const errorMessage = document.getElementById(`${tab}-error`);
+                const canvas = document.getElementById(`${tab}-chart`);
+
+                if (!canvas) {
+                    console.error(`Canvas element for ${tab}-chart not found`);
+                    errorMessage.style.display = 'block';
+                    return;
+                }
+
+                loader.style.display = 'block';
+                errorMessage.style.display = 'none';
+
+                const chartData = dashboardData && dashboardData.chartData && dashboardData.chartData[tab]
+                    ? dashboardData.chartData[tab]
+                    : { labels: { $values: ['March', 'April', 'May', 'June', 'July', 'August'] }, values: { $values: [0, 0, 0, 0, 0, 0] } };
+
+                const labels = chartData.labels && chartData.labels.$values && Array.isArray(chartData.labels.$values)
+                    ? chartData.labels.$values
+                    : ['March', 'April', 'May', 'June', 'July', 'August'];
+                const values = chartData.values && chartData.values.$values && Array.isArray(chartData.values.$values)
+                    ? chartData.values.$values
+                    : [0, 0, 0, 0, 0, 0];
+
+                console.log(`Rendering chart for ${tab}:`, { labels, values });
+
+                if (!labels.length || !values.length) {
+                    console.error(`Invalid chart data for ${tab}:`, { labels, values });
+                    loader.style.display = 'none';
+                    errorMessage.style.display = 'block';
+                    return;
+                }
+
+                if (charts[tab]) {
+                    charts[tab].destroy();
+                }
+
+                const ctx = canvas.getContext('2d');
+                charts[tab] = new Chart(ctx, {
+                    type: tab === 'revenue' ? 'bar' : 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: tab === 'overview' ? translations.growthPlatformTitle :
+                                   tab === 'courses' ? translations.courses :
+                                   tab === 'students' ? translations.students :
+                                   translations.revenue,
+                            data: values,
+                            borderColor: '#007bff',
+                            backgroundColor: tab === 'revenue' ? '#007bff' : 'rgba(0, 123, 255, 0.1)',
+                            fill: tab !== 'revenue',
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: { beginAtZero: true }
+                        },
+                        plugins: {
+                            legend: { display: true, position: 'top' }
+                        }
+                    }
+                });
+
+                loader.style.display = 'none';
+            }
+
+            if (dashboardData && dashboardData.stats) {
+                updateStats(dashboardData.stats);
+            } else {
+                console.error('No valid stats data available');
+                updateStats({});
+            }
+
+            const tabs = [
+                { btnId: 'overview-btn', tabId: 'overview' },
+                { btnId: 'courses-btn', tabId: 'courses' },
+                { btnId: 'students-btn', tabId: 'students' },
+                { btnId: 'revenue-btn', tabId: 'revenue' }
+            ];
+
+            tabs.forEach(tab => {
+                const button = document.getElementById(tab.btnId);
+                if (!button) {
+                    console.error(`Button with ID ${tab.btnId} not found`);
+                    return;
+                }
+
+                button.addEventListener('click', (event) => {
+                    event.preventDefault();
+                    tabs.forEach(t => {
+                        const btn = document.getElementById(t.btnId);
+                        const content = document.getElementById(t.tabId);
+                        if (btn && content) {
+                            btn.classList.remove('active');
+                            content.classList.remove('active');
+                        }
+                    });
+
+                    button.classList.add('active');
+                    const tabContent = document.getElementById(tab.tabId);
+                    if (tabContent) {
+                        tabContent.classList.add('active');
+                    } else {
+                        console.error(`Tab content with ID ${tab.tabId} not found`);
+                    }
+
+                    document.querySelectorAll('.error-message').forEach(error => error.style.display = 'none');
+                    renderChart(tab.tabId);
+                });
+            });
+
+            renderChart('overview');
+        });
+    </script>
 </body>

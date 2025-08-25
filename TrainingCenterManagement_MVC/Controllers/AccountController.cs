@@ -1,4 +1,5 @@
 ﻿using DocumentFormat.OpenXml.InkML;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using TrainingCenterManagement_MVC.Data;
@@ -86,6 +87,7 @@ namespace TrainingCenterManagement_MVC.Controllers
         }
 
         // Displays the registration page
+        [Authorize(Roles = "Receptionist,Admin")]
         [HttpGet]
         public IActionResult Register()
         {
@@ -102,7 +104,9 @@ namespace TrainingCenterManagement_MVC.Controllers
         }
 
         // Processes the registration
-            [HttpPost]
+        [Authorize(Roles = "Receptionist,Admin")]
+        [HttpPost]
+
             public async Task<IActionResult> Register(RegisterNewUserViewModel model)
             {
                 if (ModelState.IsValid)
@@ -232,13 +236,16 @@ namespace TrainingCenterManagement_MVC.Controllers
 
 
         // Displays the password reset page
+        [Authorize(Roles = "Receptionist,Admin")]
         public IActionResult ResetPassword(string token)
         {
             return View();
         }
 
         // Processes the password reset request
+        [Authorize(Roles = "Receptionist,Admin")]
         [HttpPost]
+
         public async Task<IActionResult> ResetPassword(ResetPasswordViewModel model)
         {
             var user = await _userHelper.GetUserByEmailAsync(model.Email);
@@ -282,6 +289,7 @@ namespace TrainingCenterManagement_MVC.Controllers
         }
 
         // Processes the change password request
+        [Authorize(Roles = "Receptionist,Admin")]
         [HttpPost]
         public async Task<IActionResult> ChangePassword(ChangePasswordViewModel model)
         {

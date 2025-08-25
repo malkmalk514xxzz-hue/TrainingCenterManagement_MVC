@@ -403,6 +403,15 @@ namespace TrainingCenterManagement_MVC.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Certificates.
+        /// </summary>
+        internal static string Certificates {
+            get {
+                return ResourceManager.GetString("Certificates", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Certificates And Achievements.
         /// </summary>
         internal static string CertificatesAndAchievements {
@@ -1078,6 +1087,15 @@ namespace TrainingCenterManagement_MVC.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Feedback.
+        /// </summary>
+        internal static string Feedback {
+            get {
+                return ResourceManager.GetString("Feedback", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to feedback section.
         /// </summary>
         internal static string Feedback_Description {
@@ -1497,6 +1515,15 @@ namespace TrainingCenterManagement_MVC.Resources {
         internal static string Pending {
             get {
                 return ResourceManager.GetString("Pending", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Performance Analytics.
+        /// </summary>
+        internal static string PerformanceAnalytics {
+            get {
+                return ResourceManager.GetString("PerformanceAnalytics", resourceCulture);
             }
         }
         
@@ -2217,6 +2244,33 @@ namespace TrainingCenterManagement_MVC.Resources {
         internal static string UpcomingActivities {
             get {
                 return ResourceManager.GetString("UpcomingActivities", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Upcoming Events.
+        /// </summary>
+        internal static string UpcomingEvents {
+            get {
+                return ResourceManager.GetString("UpcomingEvents", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Upcoming Events.
+        /// </summary>
+        internal static string UpcomingEvents1 {
+            get {
+                return ResourceManager.GetString("UpcomingEvents1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Upcoming Events.
+        /// </summary>
+        internal static string UpcomingEvents2 {
+            get {
+                return ResourceManager.GetString("UpcomingEvents2", resourceCulture);
             }
         }
         

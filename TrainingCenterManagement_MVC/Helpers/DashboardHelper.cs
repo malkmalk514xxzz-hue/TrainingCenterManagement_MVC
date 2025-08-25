@@ -513,6 +513,7 @@ namespace TrainingCenterManagement_MVC.Helpers
                 Availability = "Available", // Implement logic, e.g., based on schedule
                 WelcomeMessage = "Welcome back to your Trainer Dashboard!",
                 OverallProgress = await GetTrainerOverallProgressAsync(trainerId)
+               
             };
 
             model.Stats = new TrainerDashboardStats
@@ -528,7 +529,13 @@ namespace TrainingCenterManagement_MVC.Helpers
             model.UpcomingEvents = await GetTrainerUpcomingEventsAsync(trainerId);
             model.Certificates = await GetTrainerCertificatesAsync(trainerId);
             model.ChartData = await GetTrainerAnalyticsAsync(trainerId);
-
+            Console.WriteLine("/***************************************************///////////////////////////////////////////***************//////////");
+            foreach (var x in model.ChartData.Analytics.Labels)
+            {  Console.WriteLine(x); }
+            Console.WriteLine("/***************************************************///////////////////////////////////////////***************//////////");
+            foreach (var x in model.ChartData.Analytics.Values)
+            { Console.WriteLine(x); }
+           
             model.KPIs = await GetTrainerKPIsAsync(trainerId);
             
             model.ScheduleEvents = await GetTrainerScheduleEventsAsync(trainerId);
@@ -686,37 +693,72 @@ namespace TrainingCenterManagement_MVC.Helpers
                 .ToListAsync();
         }
 
+        // دالة لجلب بيانات الرسم البياني لتحليلات المدرب (نسبة الحضور الأسبوعية للدورات المرتبطة به)
         private async Task<DashboardChartData> GetTrainerAnalyticsAsync(Guid trainerId)
         {
+            // إنشاء قائمتين لتخزين تسميات الأسابيع (مثل "Jul 25") وقيم نسب الحضور (مثل 80%)
             var labels = new List<string>();
             var values = new List<decimal>();
+
+            // تحديد النطاق الزمني للبيانات: منذ شهر مضى حتى الآن
             var startDate = DateTime.UtcNow.AddMonths(-1);
             var endDate = DateTime.UtcNow;
 
+            // جلب معرفات الدورات المرتبطة بالمدرب (trainerId) من جدول CourseTrainers، مع استبعاد الدورات المحذوفة
             var courseIds = await context.CourseTrainers
                 .Where(ct => ct.TrainerId == trainerId && !ct.Course.IsDeleted)
                 .Select(ct => ct.CourseId)
                 .ToListAsync();
 
+            // التحقق مما إذا كان المدرب ليس لديه دورات، وإرجاع كائن فارغ إذا لم توجد دورات
+            if (!courseIds.Any())
+            {
+                return new DashboardChartData
+                {
+                    Analytics = new ChartData
+                    {
+                        Labels = new List<string>(),
+                        Values = new List<decimal>()
+                    }
+                };
+            }
+
+            // جلب جميع سجلات الحضور للدورات المرتبطة بالمدرب خلال الشهر الماضي، مع التأكد من أن المحاضرات غير محذوفة وأن LectureDate ليست null
+            var presences = await context.Presences
+                .Include(p => p.Lecture)
+                .Where(p => courseIds.Contains(p.Lecture.CourseId)
+                         && p.Lecture.LectureDate != null
+                         && p.Lecture.LectureDate >= startDate
+                         && p.Lecture.LectureDate <= endDate
+                         && !p.IsDeleted
+                         && !p.Lecture.IsDeleted)
+                .ToListAsync();
+
+            // حلقة لمعالجة كل أسبوع في النطاق الزمني (بفاصل 7 أيام)
             for (var date = startDate; date <= endDate; date = date.AddDays(7))
             {
+                // إضافة تسمية الأسبوع (مثل "Jul 25") إلى قائمة التسميات
                 labels.Add(date.ToString("MMM dd"));
 
-                var presencesInWeek = await context.Presences
-                    .Include(p => p.Lecture)
-                    .Where(p => courseIds.Contains(p.Lecture.CourseId)
-                             && p.Lecture.LectureDate >= date
-                             && p.Lecture.LectureDate < date.AddDays(7)
-                             && !p.IsDeleted
-                             && !p.Lecture.IsDeleted)
-                    .ToListAsync();
+                // تصفية سجلات الحضور للأسبوع الحالي (من date إلى date + 7 أيام)
+                var presencesInWeek = presences
+                    .Where(p => p.Lecture.LectureDate >= date && p.Lecture.LectureDate < date.AddDays(7))
+                    .ToList();
 
+                // حساب عدد سجلات الحضور الكلية في الأسبوع
                 var total = presencesInWeek.Count;
+
+                // حساب عدد الحاضرين (IsPresent = true) في الأسبوع
                 var present = presencesInWeek.Count(p => p.IsPresent);
+
+                // حساب نسبة الحضور (الحاضرون / الإجمالي * 100)، أو 0 إذا لم يكن هناك سجلات
                 var attendance = total > 0 ? (present * 100m) / total : 0m;
+
+                // إضافة نسبة الحضور إلى قائمة القيم
                 values.Add(attendance);
             }
 
+            // إرجاع كائن DashboardChartData يحتوي على التسميات ونسب الحضور لاستخدامها في الرسم البياني
             return new DashboardChartData
             {
                 Analytics = new ChartData

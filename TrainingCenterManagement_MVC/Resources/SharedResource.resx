@@ -855,4 +855,22 @@
   <data name="NoCoursesAvailable" xml:space="preserve">
     <value>No Courses Available</value>
   </data>
+  <data name="UpcomingEvents" xml:space="preserve">
+    <value>Upcoming Events</value>
+  </data>
+  <data name="UpcomingEvents2" xml:space="preserve">
+    <value>Upcoming Events</value>
+  </data>
+  <data name="UpcomingEvents1" xml:space="preserve">
+    <value>Upcoming Events</value>
+  </data>
+  <data name="Certificates" xml:space="preserve">
+    <value>Certificates</value>
+  </data>
+  <data name="PerformanceAnalytics" xml:space="preserve">
+    <value>Performance Analytics</value>
+  </data>
+  <data name="Feedback" xml:space="preserve">
+    <value>Feedback</value>
+  </data>
 </root>

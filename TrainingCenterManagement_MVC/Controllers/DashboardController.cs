@@ -23,10 +23,41 @@ namespace TrainingCenterManagement_MVC.Controllers
             _dashboardHelper = dashboardHelper;
         }
 
+
         public async Task<IActionResult> Index()
         {
-            return View();
+            // التحقق مما إذا كان المستخدم مصادقًا
+            if (User.Identity.IsAuthenticated)
+            {
+                // إذا كان المستخدم مدربًا، إعادة توجيه إلى لوحة تحكم المدرب
+                if (User.IsInRole("Trainer"))
+                {
+                    return RedirectToAction("TrainerDashboard", "Dashboard");
+                }
+                // إذا كان المستخدم طالبًا، إعادة توجيه إلى لوحة تحكم الطالب
+                else if (User.IsInRole("Student"))
+                {
+                    return RedirectToAction("StudentDashboard", "Dashboard");
+                }
+                // إذا كان المستخدم مديرًا، إعادة توجيه إلى لوحة تحكم المدير
+                else if (User.IsInRole("Admin"))
+                {
+                    return RedirectToAction("AdminDashboard", "Dashboard");
+                }
+                // إذا كان للمستخدم دور آخر أو لا ينتمي إلى أي من الأدوار المحددة
+                else
+                {
+                    // إعادة توجيه إلى صفحة افتراضية أو عرض رسالة خطأ
+                    return RedirectToAction("Error", "Home", new { message = "دور المستخدم غير مدعوم." });
+                }
+            }
+            else
+            {
+                // إذا لم يكن المستخدم مصادقًا، إعادة توجيه إلى صفحة تسجيل الدخول
+                return RedirectToAction("Login", "Account");
+            }
         }
+
          
         [Authorize(Roles = "Admin")] 
         public async Task<IActionResult> AdminDashboard()
@@ -92,9 +123,16 @@ namespace TrainingCenterManagement_MVC.Controllers
             }
 
             // Use DashboardHelper to get the complete dashboard data
-            var viewModel = await _dashboardHelper.GetTrainerDashboardAsync(trainer.TrainerId, user.FullName);
-
-            return View(viewModel);
+            try
+            {
+                var viewModel = await _dashboardHelper.GetTrainerDashboardAsync(trainer.TrainerId, user.FullName);
+                return View(viewModel);
+            }
+            catch (Exception ex)
+            {
+                // تسجيل الخطأ (logging) 
+                return StatusCode(500, "An error occurred while loading the dashboard.");
+            }
         }
 
 

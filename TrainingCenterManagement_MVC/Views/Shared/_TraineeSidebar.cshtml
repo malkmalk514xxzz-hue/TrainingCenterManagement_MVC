@@ -77,66 +77,19 @@
     <nav class="sidebar-nav">
         <ul>
             <li class="@(currentPage == "dashboard" ? "active" : "")">
-                <a asp-action="Dashboard" asp-controller="Admin">
+                <a asp-action="TraineeDashboard" asp-controller="Dashboard">
                     <i class="fas fa-home"></i>
                     <span>@SharedResource.Dashboard</span>
                 </a>
             </li>
             <li class="@(currentPage == "coursess" ? "active" : "")">
             <li>
-                <a asp-controller="Chat" asp-action="AdminCustomerSupportChats">
+                <a asp-controller="Chat" asp-action="Index">
                     <i class="fas fa-building"></i>
-            <span>AdminContactUsChats</span>
+                    <span>@SharedResource.Chat</span>
                 </a>
             </li>
-            <li class="@(currentPage == "users" ? "active" : "")">
-                <a asp-action="Users" asp-controller="Admin">
-                    <i class="fas fa-users"></i>
-                    <span>@SharedResource.Users</span>
-                </a>
-            </li>
-            <li class="@(currentPage == "subscriptions" ? "active" : "")">
-                <a asp-action="Subscriptions" asp-controller="Admin">
-                    <i class="fas fa-credit-card"></i>
-                    <span>@SharedResource.Subscriptions</span>
-                </a>
-            </li>
-            <li class="@(currentPage == "paymentrequests" ? "active" : "")">
-                <a asp-action="PaymentRequests" asp-controller="Admin">
-                    <i class="fas fa-money-bill"></i>
-                    <span>@SharedResource.PaymentRequests</span>
-                </a>
-            </li>
-            <li class="@(currentPage == "analytics" ? "active" : "")">
-                <a asp-action="Analytics" asp-controller="Admin">
-                    <i class="fas fa-chart-bar"></i>
-                    <span>@SharedResource.Analytics</span>
-                </a>
-            </li>
-            <li class="@(currentPage == "citiesmenu" ? "active" : "")">
-                <a asp-action="CitiesMenu" asp-controller="City">
-                    <i class="fas fa-globe"></i>
-                    <span>@SharedResource.Cities</span>
-                </a>
-            </li>
-            <li class="@(currentPage == "paymentmethodsmenu" ? "active" : "")">
-                <a asp-action="PaymentMethodsMenu" asp-controller="PaymentMethod">
-                    <i class="fas fa-wallet"></i>
-                    <span>@SharedResource.PaymentMethods</span>
-                </a>
-            </li>
-            <li class="@(currentPage == "settings" ? "active" : "")">
-                <a asp-action="Settings" asp-controller="Admin">
-                    <i class="fas fa-cog"></i>
-                    <span>@SharedResource.Settings</span>
-                </a>
-            </li>
-            <li class="@(currentPage == "security" ? "active" : "")">
-                <a asp-action="Security" asp-controller="Admin">
-                    <i class="fas fa-shield-alt"></i>
-                    <span>@SharedResource.Security</span>
-                </a>
-            </li>
+           
         </ul>
     </nav>
     <div class="sidebar-footer">
