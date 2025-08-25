@@ -17,7 +17,7 @@
 
                         <div class="mb-4">
                             <label for="traineeIds" class="form-label fw-bold">Select Trainees</label>
-                            <select name="traineeIds" id="traineeIds" class="form-select" multiple asp-items="ViewBag.Trainees">
+                            <select name="traineeIds" id="traineeIds" class="form-select select2" multiple asp-items="ViewBag.Trainees">
                                 <option value="">-- Select Trainees --</option>
                             </select>
                             <div class="form-text">Use Ctrl / Cmd لتحديد أكثر من متدرب.</div>
@@ -32,3 +32,17 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $('#traineeIds').select2({
+                placeholder: "Select trainees",
+                allowClear: true
+            });
+        });
+    </script>
+}

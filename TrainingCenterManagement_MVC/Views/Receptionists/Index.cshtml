@@ -14,7 +14,7 @@
     <table class="table table-bordered table-striped table-hover align-middle">
         <thead class="table-light">
             <tr>
-                <th>User ID</th>
+                <th>Full Name</th>
                 <th style="width: 25%;">Actions</th>
             </tr>
         </thead>
@@ -30,9 +30,17 @@
                 foreach (var item in Model)
                 {
                     <tr>
-                        <td>@item.User.Id</td>
                         <td>
-                            <a asp-action="Edit" asp-route-id="@item.ReceptionistId" class="btn btn-sm btn-primary me-1">Edit</a>
+                            @if (item.User != null)
+                            {
+                                @(item.User.FullName)
+                            }
+                            else
+                            {
+                                <span class="text-muted">No User Linked</span>
+                            }
+                        </td>
+                        <td>
                             <a asp-action="Details" asp-route-id="@item.ReceptionistId" class="btn btn-sm btn-info me-1">Details</a>
                             <a asp-action="Delete" asp-route-id="@item.ReceptionistId" class="btn btn-sm btn-danger">Delete</a>
                         </td>

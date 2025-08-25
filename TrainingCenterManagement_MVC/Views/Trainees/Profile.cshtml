@@ -1,22 +1,26 @@
 ﻿@model TrainingCenterManagement_MVC.Models.Trainee
 
 @{
-    ViewData["Title"] = "الملف الشخصي";
+    ViewData["Title"] = "Profile";
 }
 
-<h2 class="mb-4">الملف الشخصي</h2>
+<h2 class="mb-4">Profile</h2>
 
-<div class="card shadow-sm mt-3" style="max-width: 600px;">
+<div class="card shadow-sm mt-3 text-center" style="max-width: 600px; margin: auto;">
     <div class="card-body">
-        <h5 class="card-title mb-4">بيانات المتدرّب</h5>
-        <dl class="row">
-            <dt class="col-sm-4 fw-bold">اسم المستخدم</dt>
-            <dd class="col-sm-8">@Model.User?.UserName ?? "غير متوفر"</dd>
+        <!-- Profile Picture -->
+        <img src="~/images/profile-student.jpg" alt="Profile Picture"
+             class="rounded-circle mb-3" style="width:120px; height:120px; object-fit:cover; border:3px solid #ddd;" />
 
-            <dt class="col-sm-4 fw-bold">البريد الإلكتروني</dt>
-            <dd class="col-sm-8">@Model.User?.Email ?? "غير متوفر"</dd>
+        <h5 class="card-title mb-4">Trainee Information</h5>
+        <dl class="row text-start">
+            <dt class="col-sm-4 fw-bold">Username</dt>
+            <dd class="col-sm-8">@Model.User?.UserName ?? "Not Available"</dd>
 
-            <dt class="col-sm-4 fw-bold">تاريخ الميلاد</dt>
+            <dt class="col-sm-4 fw-bold">Email</dt>
+            <dd class="col-sm-8">@Model.User?.Email ?? "Not Available"</dd>
+
+            <dt class="col-sm-4 fw-bold">Date of Birth</dt>
             <dd class="col-sm-8">@Model.User.BirthDate.ToShortDateString()</dd>
         </dl>
     </div>

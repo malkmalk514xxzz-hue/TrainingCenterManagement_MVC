@@ -1,12 +1,13 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
+using Rotativa.AspNetCore;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
 using TrainingCenterManagement_MVC.Data;
 using TrainingCenterManagement_MVC.Models;
 using TrainingCenterManagement_MVC.ViewModels;
@@ -31,8 +32,7 @@ namespace TrainingCenterManagement_MVC.Controllers
             return View(await applicationDbContext.ToListAsync());
         }
 
-        // GET: Trainees/Details/5
-        [Authorize(Roles = "Admin")]
+
 
         public async Task<IActionResult> Details(Guid? id)
         {
@@ -55,88 +55,45 @@ namespace TrainingCenterManagement_MVC.Controllers
         // GET: Trainees/Create
         [Authorize(Roles = "Admin")]
 
+        // GET
         public IActionResult Create()
         {
-            ViewData["UserId"] = new SelectList(_context.Users, "Id", "Id");
             return View();
         }
 
-        // POST: Trainees/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        // POST
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Admin")]
-
-        public async Task<IActionResult> Create([Bind("TraineeId,UserId,BirthDate")] Trainee trainee)
+        public async Task<IActionResult> Create(TraineeCreateViewModel model)
         {
-            if (ModelState.IsValid)
+
+            // إنشاء مستخدم جديد
+            var user = new ApplicationUser
             {
-                trainee.TraineeId = Guid.NewGuid();
-                _context.Add(trainee);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
-            }
-            ViewData["UserId"] = new SelectList(_context.Users, "Id", "Id", trainee.UserId);
-            return View(trainee);
+                UserName = model.Email,
+                Email = model.Email,
+                FullName = model.FullName
+            };
+
+            _context.Users.Add(user);
+            await _context.SaveChangesAsync();
+
+            // إنشاء Trainee وربطه بالمستخدم
+            var trainee = new Trainee
+            {
+                TraineeId = model.TraineeId,
+                UserId = user.Id
+            };
+
+            _context.Trainees.Add(trainee);
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction(nameof(Index));
+
         }
 
-        // GET: Trainees/Edit/5
-        [Authorize(Roles = "Admin")]
 
-        public async Task<IActionResult> Edit(Guid? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
 
-            var trainee = await _context.Trainees.FindAsync(id);
-            if (trainee == null)
-            {
-                return NotFound();
-            }
-            ViewData["UserId"] = new SelectList(_context.Users, "Id", "Id", trainee.UserId);
-            return View(trainee);
-        }
-
-        // POST: Trainees/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Admin")]
-
-        public async Task<IActionResult> Edit(Guid id, [Bind("TraineeId,UserId,BirthDate")] Trainee trainee)
-        {
-            if (id != trainee.TraineeId)
-            {
-                return NotFound();
-            }
-
-            if (ModelState.IsValid)
-            {
-                try
-                {
-                    _context.Update(trainee);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!TraineeExists(trainee.TraineeId))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
-            }
-            ViewData["UserId"] = new SelectList(_context.Users, "Id", "Id", trainee.UserId);
-            return View(trainee);
-        }
 
         // GET: Trainees/Delete/5
         [Authorize(Roles = "Admin")]
@@ -309,5 +266,6 @@ namespace TrainingCenterManagement_MVC.Controllers
             return View(payments);
         }
 
+   
     }
 }

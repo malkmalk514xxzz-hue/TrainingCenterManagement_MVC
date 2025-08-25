@@ -1,11 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using Rotativa.AspNetCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using TrainingCenterManagement_MVC.Data;
 using TrainingCenterManagement_MVC.Models;
 
@@ -23,8 +24,12 @@ namespace TrainingCenterManagement_MVC.Controllers
         // GET: Certificates
         public async Task<IActionResult> Index()
         {
-            var applicationDbContext = _context.Certificates.Include(c => c.Course).Include(c => c.Exam).Include(c => c.Trainee).Include(c => c.Trainer);
-            return View(await applicationDbContext.ToListAsync());
+            var applicationDbContext = _context.Certificates
+                    .Include(c => c.Course)
+                    .Include(c => c.Exam)
+                    .Include(c => c.Trainee)
+                        .ThenInclude(t => t.User) // لجلب بيانات المستخدم
+                    .Include(c => c.Trainer); return View(await applicationDbContext.ToListAsync());
         }
 
         // GET: Certificates/Details/5
@@ -39,8 +44,10 @@ namespace TrainingCenterManagement_MVC.Controllers
                 .Include(c => c.Course)
                 .Include(c => c.Exam)
                 .Include(c => c.Trainee)
+                    .ThenInclude(t => t.User) // لجلب بيانات المستخدم
                 .Include(c => c.Trainer)
                 .FirstOrDefaultAsync(m => m.CertificateId == id);
+
             if (certificate == null)
             {
                 return NotFound();
@@ -49,6 +56,7 @@ namespace TrainingCenterManagement_MVC.Controllers
             return View(certificate);
         }
 
+
         // GET: Certificates/Create
         [Authorize(Roles = "Admin")]
 
@@ -56,8 +64,31 @@ namespace TrainingCenterManagement_MVC.Controllers
         {
             ViewData["CourseId"] = new SelectList(_context.Courses, "CourseId", "CourseName");
             ViewData["ExamId"] = new SelectList(_context.Exams, "ExamId", "ExamName");
-            ViewData["TraineeId"] = new SelectList(_context.Trainees, "TraineeId", "UserId");
-            ViewData["TrainerId"] = new SelectList(_context.Trainers, "TrainerId", "Specialty");
+            //ViewData["TraineeId"] = new SelectList(_context.Trainees, "TraineeId", "UserId");
+            ViewData["TraineeId"] = new SelectList(
+                                            _context.Trainees
+                                                .Include(t => t.User)
+                                                .Select(t => new
+                                                {
+                                                    t.TraineeId,
+                                                    Email = t.User.Email // أو t.User.UserName إذا أردت عرض اسم الحساب
+                                                }),
+                                            "TraineeId",
+                                            "Email"
+                                        );
+            // ViewData["TrainerId"] = new SelectList(_context.Trainers, "TrainerId", "Specialty");
+            // Trainers (show email instead of Specialty)
+            ViewData["TrainerId"] = new SelectList(
+                                            _context.Trainers
+                                                .Include(tr => tr.User)
+                                                .Select(tr => new
+                                                {
+                                                    tr.TrainerId,
+                                                    Email = tr.User.Email
+                                                }),
+                                            "TrainerId",
+                                            "Email"
+                                        );
             return View();
         }
 
@@ -89,17 +120,32 @@ namespace TrainingCenterManagement_MVC.Controllers
                 return NotFound();
             }
 
-            var certificate = await _context.Certificates.FindAsync(id);
+            var certificate = await _context.Certificates
+                .Include(c => c.Trainee)
+                    .ThenInclude(t => t.User) // لجلب بيانات المستخدم
+                .FirstOrDefaultAsync(c => c.CertificateId == id);
+
             if (certificate == null)
             {
                 return NotFound();
             }
+
             ViewData["CourseId"] = new SelectList(_context.Courses, "CourseId", "CourseName", certificate.CourseId);
             ViewData["ExamId"] = new SelectList(_context.Exams, "ExamId", "ExamName", certificate.ExamId);
-            ViewData["TraineeId"] = new SelectList(_context.Trainees, "TraineeId", "UserId", certificate.TraineeId);
+
+            // هنا نعرض Email بدل UserId
+            ViewData["TraineeId"] = new SelectList(
+                _context.Trainees.Include(t => t.User),
+                "TraineeId",
+                "User.Email",
+                certificate.TraineeId
+            );
+
             ViewData["TrainerId"] = new SelectList(_context.Trainers, "TrainerId", "Specialty", certificate.TrainerId);
+
             return View(certificate);
         }
+
 
         // POST: Certificates/Edit/5
         // To protect from overposting attacks, enable the specific properties you want to bind to.
@@ -152,8 +198,10 @@ namespace TrainingCenterManagement_MVC.Controllers
                 .Include(c => c.Course)
                 .Include(c => c.Exam)
                 .Include(c => c.Trainee)
+                    .ThenInclude(t => t.User) // لجلب بيانات المستخدم
                 .Include(c => c.Trainer)
                 .FirstOrDefaultAsync(m => m.CertificateId == id);
+
             if (certificate == null)
             {
                 return NotFound();
@@ -161,6 +209,7 @@ namespace TrainingCenterManagement_MVC.Controllers
 
             return View(certificate);
         }
+
 
         // POST: Certificates/Delete/5
         [HttpPost, ActionName("Delete")]
@@ -225,6 +274,27 @@ namespace TrainingCenterManagement_MVC.Controllers
             return View(certificates);
         }
 
+        [HttpGet]
+        [Authorize(Roles = "Admin, Trainer, Trainee")]
+        public async Task<IActionResult> CertificatePdf(Guid certificateId)
+        {
+            var certificate = await _context.Certificates
+                .Include(c => c.Course)
+                .Include(c => c.Trainee).ThenInclude(t => t.User)
+                .Include(c => c.Trainer).ThenInclude(t => t.User)
+                .FirstOrDefaultAsync(c => c.CertificateId == certificateId);
+
+            if (certificate == null)
+                return NotFound();
+
+            return new ViewAsPdf("CertificatePdf", certificate)
+            {
+                FileName = $"Certificate_{certificate.Course.CourseName}_{certificate.Trainee.User.FullName}.pdf",
+                PageOrientation = Rotativa.AspNetCore.Options.Orientation.Landscape,
+                PageSize = Rotativa.AspNetCore.Options.Size.A4
+            };
+
+        }
 
     }
 }

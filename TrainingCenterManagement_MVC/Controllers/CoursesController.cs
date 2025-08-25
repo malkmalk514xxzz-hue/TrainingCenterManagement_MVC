@@ -28,9 +28,13 @@ namespace TrainingCenterManagement_MVC.Controllers
         // GET: Courses
         public async Task<IActionResult> Index()
         {
-            var applicationDbContext = _context.Courses.Include(c => c.Admin);
+            var applicationDbContext = _context.Courses
+                .Include(c => c.Admin)
+                    .ThenInclude(a => a.User); // لجلب بيانات المستخدم المرتبطة بالأدمن
+
             return View(await applicationDbContext.ToListAsync());
         }
+
 
         // GET: Courses/Details/5
         public async Task<IActionResult> Details(Guid? id)
@@ -58,9 +62,15 @@ namespace TrainingCenterManagement_MVC.Controllers
         // GET: Courses/Create
         public IActionResult Create()
         {
-            ViewData["AdminId"] = new SelectList(_context.Admins, "AdminId", "UserId");
+            ViewData["AdminId"] = new SelectList(
+                _context.Admins
+                    .Include(a => a.User), // جلب بيانات المستخدم المرتبط
+                "AdminId",
+                "User.FullName" // عرض الاسم الكامل بدل الـ UserId
+            );
             return View();
         }
+
 
         // POST: Courses/Create
         // To protect from overposting attacks, enable the specific properties you want to bind to.
@@ -103,9 +113,17 @@ namespace TrainingCenterManagement_MVC.Controllers
             {
                 return NotFound();
             }
-            ViewData["AdminId"] = new SelectList(_context.Admins, "AdminId", "UserId", course.AdminId);
+
+            ViewData["AdminId"] = new SelectList(
+                _context.Admins.Include(a => a.User), // لجلب بيانات المستخدم
+                "AdminId",
+                "User.FullName", // عرض الاسم الكامل
+                course.AdminId
+            );
+
             return View(course);
         }
+
 
         // POST: Courses/Edit/5
         // To protect from overposting attacks, enable the specific properties you want to bind to.
@@ -151,7 +169,9 @@ namespace TrainingCenterManagement_MVC.Controllers
 
             var course = await _context.Courses
                 .Include(c => c.Admin)
+                .ThenInclude(a => a.User) // لجلب بيانات المستخدم المرتبطة بالإدمن
                 .FirstOrDefaultAsync(m => m.CourseId == id);
+
             if (course == null)
             {
                 return NotFound();
@@ -159,6 +179,7 @@ namespace TrainingCenterManagement_MVC.Controllers
 
             return View(course);
         }
+
 
         // POST: Courses/Delete/5
         [HttpPost, ActionName("Delete")]

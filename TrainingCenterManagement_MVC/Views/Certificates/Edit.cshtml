@@ -33,25 +33,33 @@
 
                 <div class="mb-3">
                     <label asp-for="TraineeId" class="form-label"></label>
-                    <select asp-for="TraineeId" class="form-select" asp-items="ViewBag.TraineeId"></select>
+                    <select asp-for="TraineeId" class="form-select select2" asp-items="ViewBag.TraineeId">
+                        <option disabled selected>Select a trainee...</option>
+                    </select>
                     <span asp-validation-for="TraineeId" class="text-danger"></span>
                 </div>
 
                 <div class="mb-3">
                     <label asp-for="TrainerId" class="form-label"></label>
-                    <select asp-for="TrainerId" class="form-select" asp-items="ViewBag.TrainerId"></select>
+                    <select asp-for="TrainerId" class="form-select select2" asp-items="ViewBag.TrainerId">
+                        <option disabled selected>Select a trainer...</option>
+                    </select>
                     <span asp-validation-for="TrainerId" class="text-danger"></span>
                 </div>
 
                 <div class="mb-3">
                     <label asp-for="CourseId" class="form-label"></label>
-                    <select asp-for="CourseId" class="form-select" asp-items="ViewBag.CourseId"></select>
+                    <select asp-for="CourseId" class="form-select select2" asp-items="ViewBag.CourseId">
+                        <option disabled selected>Select a course...</option>
+                    </select>
                     <span asp-validation-for="CourseId" class="text-danger"></span>
                 </div>
 
                 <div class="mb-3">
                     <label asp-for="ExamId" class="form-label"></label>
-                    <select asp-for="ExamId" class="form-select" asp-items="ViewBag.ExamId"></select>
+                    <select asp-for="ExamId" class="form-select select2" asp-items="ViewBag.ExamId">
+                        <option disabled selected>Select an exam...</option>
+                    </select>
                     <span asp-validation-for="ExamId" class="text-danger"></span>
                 </div>
 
@@ -63,7 +71,18 @@
 </div>
 
 @section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+
+    <!-- Select2 CSS & JS -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $('.select2').select2({
+                placeholder: "Select an option",
+                allowClear: true
+            });
+        });
+    </script>
 }

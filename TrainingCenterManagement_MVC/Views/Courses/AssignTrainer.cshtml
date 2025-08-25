@@ -17,7 +17,7 @@
 
                         <div class="mb-4">
                             <label for="trainerId" class="form-label fw-bold">Select Trainer</label>
-                            <select name="trainerId" id="trainerId" class="form-select" asp-items="ViewBag.Trainers">
+                            <select name="trainerId" id="trainerId" class="form-select select2" asp-items="ViewBag.Trainers">
                                 <option value="">-- Select Trainer --</option>
                             </select>
                         </div>
@@ -31,3 +31,17 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $('#trainerId').select2({
+                placeholder: "Select a trainer",
+                allowClear: true
+            });
+        });
+    </script>
+}

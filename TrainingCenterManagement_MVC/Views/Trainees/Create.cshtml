@@ -1,34 +1,31 @@
-﻿@model TrainingCenterManagement_MVC.Models.Trainee
+﻿@using TrainingCenterManagement_MVC.ViewModels
+@model TraineeCreateViewModel
 
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "Create Trainee";
 }
 
 <h1 class="mb-4">Create Trainee</h1>
-
-<h4>Trainee Details</h4>
 <hr />
 
 <div class="row justify-content-center">
     <div class="col-md-5">
-        <form asp-action="Create" method="post" novalidate>
+        <form asp-action="Create" method="post" novalidate class="shadow p-4 border rounded bg-light">
             <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
 
             <div class="mb-3">
-                <label asp-for="UserId" class="form-label"></label>
-                <select asp-for="UserId" class="form-select" asp-items="ViewBag.UserId">
-                    <option value="">-- Select User --</option>
-                </select>
-                <span asp-validation-for="UserId" class="text-danger"></span>
+                <label asp-for="FullName" class="form-label"></label>
+                <input asp-for="FullName" class="form-control" placeholder="Enter full name" />
+                <span asp-validation-for="FullName" class="text-danger"></span>
             </div>
 
-          @*   <div class="mb-3">
-                <label asp-for="BirthDate" class="form-label"></label>
-                <input asp-for="BirthDate" type="date" class="form-control" />
-                <span asp-validation-for="BirthDate" class="text-danger"></span>
-            </div> *@
+            <div class="mb-3">
+                <label asp-for="Email" class="form-label"></label>
+                <input asp-for="Email" class="form-control" placeholder="Enter email" />
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
 
-            <button type="submit" class="btn btn-primary">Create</button>
+            <button type="submit" class="btn btn-primary w-100">Create</button>
         </form>
     </div>
 </div>
@@ -38,7 +35,7 @@
 </div>
 
 @section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
+@{
+    await Html.RenderPartialAsync("_ValidationScriptsPartial");
+}
 }
