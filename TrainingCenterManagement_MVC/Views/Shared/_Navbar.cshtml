@@ -1,91 +1,45 @@
-﻿@using Microsoft.AspNetCore.Http
-@inject IHttpContextAccessor HttpContextAccessor
-@{
-    
-    string sessionUserId = HttpContextAccessor.HttpContext.Session.GetString("UserId");
-}
-<nav class="navbar navbar-expand-lg navbar-light">
-   
-    <a class="navbar-brand" href="@Url.Action("Index", "Home")">
-        <img src="~/images/logo.png?v=@DateTime.Now.Ticks" alt="Al Hakim Academy Logo" style="height: 70px;">
-        Al Hakim Academy
-    </a>
-    <button class="navbar-toggler collapsed" type="button" data-bs-toggle="collapse"
-    data-bs-target="#navbarScroll" aria-controls="navbarScroll" aria-expanded="false"
-    aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon fa icon-expand fa-bars"></span>
-        <span class="navbar-toggler-icon fa icon-close fa-times"></span>
-    </button>
-    <div class="collapse navbar-collapse" id="navbarScroll">
-        <ul class="navbar-nav ms-auto my-2 my-lg-0 navbar-nav-scroll">
-            <li class="nav-item">
-                @Html.ActionLink("Home", "Index", "Home", null, new { @class = "nav-link" })
-            </li>
-          
-            @if (User.Identity.IsAuthenticated)
-            {
+﻿<aside class="sidebar">
+    <h2>القائمة</h2>
+    <ul>
+        <li><a asp-action="ReceptionistDashboard" asp-controller="Dashboard">لوحة التحكم</a></li>
+        <li><a asp-action="Register" asp-controller="Account">تسجيل زبون جديد</a></li>
+        <li><a asp-action="RegisterTraineeToCourse" asp-controller="Receptionists">تسجيل في دورة</a></li>
+        <li><a asp-action="UnregisterTraineeFromCourse" asp-controller="Receptionists">إلغاء تسجيل من دورة</a></li>
+        <li><a asp-action="Create" asp-controller="Payments">إضافة دفعة</a></li>
+        <li><a asp-action="PaymentReports" asp-controller="Receptionists">سجل الدفعات</a></li>
+        <li><a asp-action="AttendanceReports" asp-controller="Receptionists">تقارير الحضور</a></li>
+        <li><a asp-action="ContactTrainees" asp-controller="Receptionists">الاتصال بالطلاب</a></li>
+    </ul>
+</aside>
 
-                <!-- Link to Dashboard based on user role -->
-                @if (User.IsInRole("Admin"))
-                {
-                    <li class="nav-item">
-                        <a class="nav-link" href="@Url.Action("AdminDashboard", "Dashboard")">Dashboard</a>
-                    </li>
-                }
+<style>
+    .sidebar {
+        width: 250px;
+        background: #f8f9fa;
+        padding: 20px;
+        box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+    }
 
-                else if (User.IsInRole("Teacher"))
-                {
-                    <li class="nav-item">
-                        <a class="nav-link" href="@Url.Action("TeacherDashboard", "Dashboard")">Dashboard</a>
-                    </li>
-                }
-                else if (User.IsInRole("Student"))
-                {
-                    <li class="nav-item">
-                        <a class="nav-link" href="@Url.Action("StudentDashboard", "Dashboard")">Dashboard</a>
-                    </li>
-                }
+        .sidebar h2 {
+            margin-bottom: 20px;
+        }
 
-              
+        .sidebar ul {
+            list-style: none;
+            padding: 0;
+        }
 
-
-                <li class="nav-item">
-                    @* <a class="nav-link" href="@Url.Action("Register", "Account")">Register</a> *@
-                <li class="nav-item">
-                    <a asp-area="" asp-controller="Account" asp-action="Register" class="nav-link">Register</a>
-                </li>
-                </li>
-                @if (User.Identity.IsAuthenticated && !string.IsNullOrEmpty(sessionUserId))
-                {
-                   @*  <li class="nav-item">
-                        <a asp-area="" class="nav-link" href="@Url.Action("Index", "Chat")">Chat</a>
-                    </li> *@
-                    <li class="nav-item">
-                        <a asp-area="" asp-controller="Chat" asp-action="Index" class="nav-link">Chat</a>
-                    </li>
-                }
-               
-
-                <!-- Account Dropdown -->
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="navbarAccount" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        Account
-                    </a>
-                    <ul class="dropdown-menu" aria-labelledby="navbarAccount">
-                        @* <li><a class="dropdown-item" href="@Url.Action("ChangeUser", "Account")">Profile</a></li> *@
-                        <li><a class="dropdown-item" href="@Url.Action("Logout", "Account")">Logout</a></li>
-                    </ul>
-                </li>
+            .sidebar ul li {
+                margin-bottom: 10px;
             }
-            else
-            {
-                <li class="nav-item">
-                    @Html.ActionLink("Login", "Login", "Account", null, new { @class = "nav-link" })
-                </li>
-                <li class="nav-item">
-                    @Html.ActionLink("Register", "Register", "Account", null, new { @class = "nav-link" })
-                </li>
-            }
-        </ul>
-    </div>
-</nav>
+
+                .sidebar ul li a {
+                    text-decoration: none;
+                    color: #007bff;
+                    font-size: 16px;
+                }
+
+                    .sidebar ul li a:hover {
+                        text-decoration: underline;
+                    }
+</style>

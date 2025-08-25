@@ -260,7 +260,7 @@ namespace TrainingCenterManagement_MVC.Controllers
             return View("SearchResults", results);
         }
 
-        [Authorize(Roles = "Admin, Trainer")]
+        [Authorize(Roles = "Admin, Trainer,Trainee")]
         public async Task<IActionResult> CertificatesByCourse(Guid courseId)
         {
             var certificates = await _context.Certificates
@@ -275,7 +275,7 @@ namespace TrainingCenterManagement_MVC.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin, Trainer, Trainee")]
+       // [Authorize(Roles = "Admin, Trainer, Trainee")]
         public async Task<IActionResult> CertificatePdf(Guid certificateId)
         {
             var certificate = await _context.Certificates

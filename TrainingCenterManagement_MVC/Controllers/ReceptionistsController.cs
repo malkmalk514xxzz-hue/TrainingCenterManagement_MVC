@@ -22,22 +22,16 @@ namespace TrainingCenterManagement_MVC.Controllers
             _context = context;
         }
 
-        // GET: Receptionists
         [Authorize(Roles = "Admin")]
-
         public async Task<IActionResult> Index()
         {
             var receptionists = await _context.Receptionists
-                .Include(r => r.User) // لجلب بيانات المستخدم المرتبط
+                .Include(r => r.User)
                 .ToListAsync();
-
             return View(receptionists);
         }
 
-
-        // GET: Receptionists/Details/5
         [Authorize(Roles = "Admin")]
-
         public async Task<IActionResult> Details(Guid? id)
         {
             if (id == null)
@@ -52,13 +46,10 @@ namespace TrainingCenterManagement_MVC.Controllers
             {
                 return NotFound();
             }
-
             return View(receptionist);
         }
 
-        // GET: Receptionists/Create
         [Authorize(Roles = "Admin")]
-
         public IActionResult Create()
         {
             return View();
@@ -66,39 +57,32 @@ namespace TrainingCenterManagement_MVC.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Create(ReceptionistCreateViewModel model)
         {
-            
-                // إنشاء مستخدم جديد
+            if (ModelState.IsValid)
+            {
                 var user = new ApplicationUser
                 {
                     UserName = model.Email,
                     Email = model.Email,
                     FullName = model.FullName
                 };
-
-                // حفظ المستخدم في قاعدة البيانات
                 _context.Users.Add(user);
                 await _context.SaveChangesAsync();
 
-                // إنشاء Receptionist وربطه بالمستخدم
                 var receptionist = new Receptionist
                 {
-                    ReceptionistId = model.ReceptionistId,
+                    ReceptionistId = Guid.NewGuid(),
                     UserId = user.Id
                 };
-
                 _context.Receptionists.Add(receptionist);
                 await _context.SaveChangesAsync();
-
                 return RedirectToAction(nameof(Index));
-            
-
+            }
+            return View(model);
         }
 
-
-
-        // GET: Receptionists/Delete/5
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(Guid? id)
         {
@@ -114,11 +98,9 @@ namespace TrainingCenterManagement_MVC.Controllers
             {
                 return NotFound();
             }
-
             return View(receptionist);
         }
 
-        // POST: Receptionists/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Admin")]
@@ -129,7 +111,6 @@ namespace TrainingCenterManagement_MVC.Controllers
             {
                 _context.Receptionists.Remove(receptionist);
             }
-
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
@@ -137,6 +118,103 @@ namespace TrainingCenterManagement_MVC.Controllers
         private bool ReceptionistExists(Guid id)
         {
             return _context.Receptionists.Any(e => e.ReceptionistId == id);
+        }
+
+        [Authorize(Roles = "Receptionist,Admin")]
+        public async Task<IActionResult> RegisterTraineeToCourse()
+        {
+            ViewData["CourseId"] = new SelectList(_context.Courses, "CourseId", "CourseName");
+            ViewData["TraineeId"] = new SelectList(_context.Trainees.Include(t => t.User), "TraineeId", "User.FullName");
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Receptionist,Admin")]
+        public async Task<IActionResult> RegisterTraineeToCourse(Guid courseId, Guid traineeId)
+        {
+            if (!_context.Courses.Any(c => c.CourseId == courseId) || !_context.Trainees.Any(t => t.TraineeId == traineeId))
+            {
+                TempData["ErrorMessage"] = "الدورة أو الطالب غير موجود.";
+                return RedirectToAction(nameof(RegisterTraineeToCourse));
+            }
+
+            var existingRegistration = await _context.CourseTrainees
+                .AnyAsync(ct => ct.CourseId == courseId && ct.TraineeId == traineeId);
+            if (existingRegistration)
+            {
+                TempData["ErrorMessage"] = "الطالب مسجل بالفعل في هذه الدورة.";
+                return RedirectToAction(nameof(RegisterTraineeToCourse));
+            }
+
+            _context.CourseTrainees.Add(new CourseTrainee
+            {
+                CourseId = courseId,
+                TraineeId = traineeId
+            });
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = "تم تسجيل الطالب في الدورة بنجاح.";
+            return RedirectToAction("ReceptionistDashboard", "Dashboard");
+        }
+
+        [Authorize(Roles = "Receptionist,Admin")]
+        public IActionResult UnregisterTraineeFromCourse()
+        {
+            ViewData["CourseId"] = new SelectList(_context.Courses, "CourseId", "CourseName");
+            ViewData["TraineeId"] = new SelectList(_context.Trainees.Include(t => t.User), "TraineeId", "User.FullName");
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Receptionist,Admin")]
+        public async Task<IActionResult> UnregisterTraineeFromCourse(Guid courseId, Guid traineeId)
+        {
+            var registration = await _context.CourseTrainees
+                .FirstOrDefaultAsync(ct => ct.CourseId == courseId && ct.TraineeId == traineeId);
+            if (registration == null)
+            {
+                TempData["ErrorMessage"] = "الطالب غير مسجل في هذه الدورة.";
+                return RedirectToAction(nameof(UnregisterTraineeFromCourse));
+            }
+
+            _context.CourseTrainees.Remove(registration);
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = "تم إلغاء تسجيل الطالب من الدورة بنجاح.";
+            return RedirectToAction("ReceptionistDashboard", "Dashboard");
+        }
+
+        [Authorize(Roles = "Receptionist,Admin")]
+        public async Task<IActionResult> RefundPayment(Guid paymentId)
+        {
+            var payment = await _context.Payments.FindAsync(paymentId);
+            if (payment == null)
+            {
+                TempData["ErrorMessage"] = "الدفعة غير موجودة.";
+                return RedirectToAction("PaymentReports");
+            }
+
+            _context.Payments.Remove(payment);
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = "تم استرداد الدفعة بنجاح.";
+            return RedirectToAction("ReceptionistDashboard", "Dashboard");
+        }
+
+        [Authorize(Roles = "Receptionist,Admin")]
+        public async Task<IActionResult> CourseDetails(Guid courseId)
+        {
+            var course = await _context.Courses
+                .Include(c => c.CourseTrainees).ThenInclude(ct => ct.Trainee).ThenInclude(t => t.User)
+                .Include(c => c.CourseTrainers).ThenInclude(ct => ct.Trainer).ThenInclude(t => t.User)
+                .FirstOrDefaultAsync(c => c.CourseId == courseId);
+            if (course == null)
+            {
+                return NotFound();
+            }
+            return View(course);
         }
 
         [Authorize(Roles = "Receptionist,Admin")]
@@ -148,6 +226,7 @@ namespace TrainingCenterManagement_MVC.Controllers
                 .ToListAsync();
             return View(reports);
         }
+
         [Authorize(Roles = "Receptionist,Admin")]
         public async Task<IActionResult> PaymentReports()
         {
@@ -157,12 +236,14 @@ namespace TrainingCenterManagement_MVC.Controllers
                 .ToListAsync();
             return View(payments);
         }
+
         [Authorize(Roles = "Receptionist,Admin")]
         public async Task<IActionResult> ContactTrainees()
         {
             var trainees = await _context.Trainees.Include(t => t.User).ToListAsync();
             return View(trainees);
         }
+
         [Authorize(Roles = "Receptionist")]
         public IActionResult AttendanceReportPdf()
         {
@@ -170,7 +251,6 @@ namespace TrainingCenterManagement_MVC.Controllers
                 .Include(p => p.Lecture).ThenInclude(l => l.Course)
                 .Include(p => p.Trainee).ThenInclude(t => t.User)
                 .ToList();
-
             return new ViewAsPdf("AttendanceReportPdf", data)
             {
                 FileName = "Attendance_Report.pdf"
@@ -184,23 +264,19 @@ namespace TrainingCenterManagement_MVC.Controllers
                 .Include(p => p.Course)
                 .Include(p => p.Trainee).ThenInclude(t => t.User)
                 .ToList();
-
             return new ViewAsPdf("PaymentReportPdf", data)
             {
                 FileName = "Payment_Report.pdf"
             };
         }
 
-
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Receptionist,Admin")]
         public async Task<IActionResult> SendMessageToTrainee(string email, string message)
         {
-            // يمكنك هنا استخدام خدمة إرسال بريد إلكتروني أو حفظ الرسالة في جدول
-            TempData["SuccessMessage"] = $"Message sent to {email}";
+            TempData["SuccessMessage"] = $"تم إرسال الرسالة إلى {email}";
             return RedirectToAction(nameof(ContactTrainees));
         }
-
     }
 }

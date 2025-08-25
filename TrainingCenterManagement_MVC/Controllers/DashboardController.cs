@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using TrainingCenterManagement_MVC.Data;
@@ -139,20 +140,14 @@ namespace TrainingCenterManagement_MVC.Controllers
         [Authorize(Roles = "Receptionist")]
         public async Task<IActionResult> ReceptionistDashboard()
         {
-            // var userid = HttpContext.Session.GetString("UserId");
-
-            // //var user = await userHelper.GetUserByIdAsync(userid);
-            //// var user2 = await context.Students.FirstOrDefaultAsync(s=>s.UserId == userid);
-            // int totalstudentcourses = context.Users.Where(u => u.Id==userid).Select(u=>u.Courses).Count();
-
-            //StudentDashboardViewModel viewModel = new StudentDashboardViewModel()
-            //{
-            //   TotalStudentCourses = totalstudentcourses,
-
-            //};
-            return View(
-                //viewModel
-                );
+            var helper = new DashboardHelper(context);
+            ViewBag.ActiveStudents = helper.GetActiveStudents();
+            ViewBag.MonthlyRevenue = helper.GetMonthlyRevenue();
+            ViewBag.TotalCourses = helper.GetTotalCourses();
+            ViewData["CourseId"] = new SelectList(context.Courses, "CourseId", "CourseName");
+            ViewData["TraineeId"] = new SelectList(context.Trainees.Include(t => t.User), "TraineeId", "User.FullName");
+            return View();
         }
+
     }
 }

@@ -7,7 +7,7 @@
 
 <style>
     html[dir="rtl"] .sidebar-nav ul li a i {
-        margin-left: 8px; 
+        margin-left: 8px;
     }
 
     html[dir="ltr"] .sidebar-nav ul li a i {
@@ -60,14 +60,13 @@
             .language-dropdown li a:hover {
                 background-color: #f5f5f5;
             }
-
 </style>
 
 <aside class="sidebar">
     <div class="sidebar-header">
         <div class="logo">
             <a href="/">
-                <span class="logo-text">TableTap</span>
+                <span class="logo-text">TrainingCenter</span>
             </a>
         </div>
         <button class="sidebar-toggle" aria-label="Toggle Sidebar">
@@ -76,65 +75,70 @@
     </div>
     <nav class="sidebar-nav">
         <ul>
-            <li class="@(currentPage == "dashboard" ? "active" : "")">
-                <a asp-action="Dashboard" asp-controller="Admin">
+            <li class="@(currentPage == "receptionistdashboard" ? "active" : "")">
+                <a href="#" class="tab-btn" data-tab="dashboard-stats">
                     <i class="fas fa-home"></i>
                     <span>@SharedResource.Dashboard</span>
                 </a>
             </li>
-            <li class="@(currentPage == "restaurants" ? "active" : "")">
-            <li>
-                <a asp-controller="Chat" asp-action="AdminCustomerSupportChats">
-                    <i class="fas fa-building"></i>
-            <span>AdminContactUsChats</span>
+            <li class="@(currentPage == "register" ? "active" : "")">
+                <a href="#" class="tab-btn" data-tab="register">
+                    <i class="fas fa-user-plus"></i>
+                    <span>@SharedResource.RegisterNewCustomer</span>
                 </a>
             </li>
-            <li class="@(currentPage == "users" ? "active" : "")">
-                <a asp-action="Users" asp-controller="Admin">
-                    <i class="fas fa-users"></i>
-                    <span>@SharedResource.Users</span>
+            <li class="@(currentPage == "registertraineetocourse" ? "active" : "")">
+                <a href="#" class="tab-btn" data-tab="register-course">
+                    <i class="fas fa-user-check"></i>
+                    <span>@SharedResource.RegisterCourse</span>
                 </a>
             </li>
-            <li class="@(currentPage == "subscriptions" ? "active" : "")">
-                <a asp-action="Subscriptions" asp-controller="Admin">
-                    <i class="fas fa-credit-card"></i>
-                    <span>@SharedResource.Subscriptions</span>
+            <li class="@(currentPage == "unregistertraineefromcourse" ? "active" : "")">
+                <a href="#" class="tab-btn" data-tab="register-course">
+                    <i class="fas fa-user-times"></i>
+                    <span>@SharedResource.UnregisterCourse</span>
                 </a>
             </li>
-            <li class="@(currentPage == "paymentrequests" ? "active" : "")">
-                <a asp-action="PaymentRequests" asp-controller="Admin">
+            <li class="@(currentPage == "create" ? "active" : "")">
+                <a href="#" class="tab-btn" data-tab="add-payment">
                     <i class="fas fa-money-bill"></i>
-                    <span>@SharedResource.PaymentRequests</span>
+                    <span>@SharedResource.AddPayment</span>
                 </a>
             </li>
-            <li class="@(currentPage == "analytics" ? "active" : "")">
-                <a asp-action="Analytics" asp-controller="Admin">
-                    <i class="fas fa-chart-bar"></i>
-                    <span>@SharedResource.Analytics</span>
+            <li class="@(currentPage == "paymentreports" ? "active" : "")">
+                <a href="#" class="tab-btn" data-tab="add-payment">
+                    <i class="fas fa-file-invoice-dollar"></i>
+                    <span>@SharedResource.PaymentReports</span>
                 </a>
             </li>
-            <li class="@(currentPage == "citiesmenu" ? "active" : "")">
-                <a asp-action="CitiesMenu" asp-controller="City">
-                    <i class="fas fa-globe"></i>
-                    <span>@SharedResource.Cities</span>
+            <li class="@(currentPage == "paymentreportpdf" ? "active" : "")">
+                <a href="#" class="tab-btn" data-tab="add-payment">
+                    <i class="fas fa-file-pdf"></i>
+                    <span>@SharedResource.ExportPaymentReport</span>
                 </a>
             </li>
-            <li class="@(currentPage == "paymentmethodsmenu" ? "active" : "")">
-                <a asp-action="PaymentMethodsMenu" asp-controller="PaymentMethod">
-                    <i class="fas fa-wallet"></i>
-                    <span>@SharedResource.PaymentMethods</span>
+            <li class="@(currentPage == "attendancereports" ? "active" : "")">
+                <a href="#" class="tab-btn" data-tab="attendance-reports">
+                    <i class="fas fa-clipboard-check"></i>
+                    <span>@SharedResource.AttendanceReports</span>
                 </a>
             </li>
-            <li class="@(currentPage == "settings" ? "active" : "")">
-                <a asp-action="Settings" asp-controller="Admin">
-                    <i class="fas fa-cog"></i>
-                    <span>@SharedResource.Settings</span>
+            <li class="@(currentPage == "attendancereportpdf" ? "active" : "")">
+                <a href="#" class="tab-btn" data-tab="attendance-reports">
+                    <i class="fas fa-file-pdf"></i>
+                    <span>@SharedResource.ExportAttendanceReport</span>
                 </a>
             </li>
-            <li class="@(currentPage == "security" ? "active" : "")">
-                <a asp-action="Security" asp-controller="Admin">
-                    <i class="fas fa-shield-alt"></i>
-                    <span>@SharedResource.Security</span>
+            <li class="@(currentPage == "coursedetails" ? "active" : "")">
+                <a href="#" class="tab-btn" data-tab="course-details">
+                    <i class="fas fa-info-circle"></i>
+                    <span>@SharedResource.CourseDetails</span>
+                </a>
+            </li>
+            <li class="@(currentPage == "contacttrainees" ? "active" : "")">
+                <a href="#" class="tab-btn" data-tab="contact-trainees">
+                    <i class="fas fa-envelope"></i>
+                    <span>@SharedResource.ContactTrainees</span>
                 </a>
             </li>
         </ul>
@@ -142,12 +146,9 @@
     <div class="sidebar-footer">
         <div class="user-info">
             <div class="user-avatar">
-                <img src="https://placehold.co/100" alt="Admin">
+                <img src="https://placehold.co/100" alt="Receptionist">
             </div>
-            <div class="user-details">
-                <span class="user-name">@SharedResource.AdminUser</span>
-                <span class="user-email">@SharedResource.AdminEmail</span>
-            </div>
+           
             <button class="user-settings" aria-label="User settings">
                 <i class="fas fa-cog"></i>
             </button>
@@ -166,35 +167,17 @@
                 </li>
             </ul>
         </div>
-
     </div>
 </aside>
-
 
 <script>
     const sidebarToggle = document.querySelector('.sidebar-toggle');
     const dashboardWrapper = document.querySelector('.dashboard-wrapper');
 
     sidebarToggle.addEventListener('click', () => {
-      dashboardWrapper.classList.toggle('sidebar-collapsed');
+        dashboardWrapper.classList.toggle('sidebar-collapsed');
     });
 
-    const tabButtons = document.querySelectorAll('.tab-btn');
-    const tabContents = document.querySelectorAll('.tab-content');
-
-    tabButtons.forEach(button => {
-      button.addEventListener('click', () => {
-        tabButtons.forEach(btn => btn.classList.remove('active'));
-        tabContents.forEach(content => content.classList.remove('active'));
-
-        button.classList.add('active');
-        const tabId = button.getAttribute('data-tab');
-        document.getElementById(tabId).classList.add('active');
-      });
-    });
-</script>
-
-<script>
     const langBtn = document.getElementById('languageToggle');
     const langList = document.getElementById('languageList');
 

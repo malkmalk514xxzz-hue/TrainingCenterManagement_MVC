@@ -298,7 +298,7 @@ namespace TrainingCenterManagement_MVC.Helpers
             {
                 FullName = user.FullName,
                 ProfilePictureUrl = //trainee.Trainee?.ProfilePictureUrl ?? 
-                "/images/team2.png",
+                "/images/profile-student.jpg",
                 WelcomeMessage = GenerateWelcomeMessage(user.FullName),
                 OverallProgress = await CalculateOverallProgressAsync(_traineeId),
                 Stats = await GetDashboardStatsAsync(_traineeId),

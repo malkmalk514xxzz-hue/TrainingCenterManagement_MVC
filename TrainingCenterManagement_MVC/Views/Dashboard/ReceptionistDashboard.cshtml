@@ -1,16 +1,15 @@
 ﻿@using TrainingCenterManagement_MVC.Resources
-@using Newtonsoft.Json
-@using TrainingCenterManagement_MVC.ViewModels
-@model AdminDashboardViewModelModel
+@using Microsoft.AspNetCore.Mvc.Rendering
+@model dynamic
 
 @{
-    ViewData["Title"] = SharedResource.AdminDashboard_Title;
+    ViewData["Title"] = SharedResource.Dashboard;
 }
 
 <style>
     .dashboard-wrapper {
         display: flex;
-        direction: @((System.Threading.Thread.CurrentThread.CurrentUICulture.TextInfo.IsRightToLeft ? "rtl" : "ltr"));
+        direction: @(System.Threading.Thread.CurrentThread.CurrentUICulture.TextInfo.IsRightToLeft ? "rtl" : "ltr");
     }
 
     .dashboard-main {
@@ -32,368 +31,149 @@
         padding: 20px;
     }
 
-    .stat-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-    .stat-value {
-        font-size: 24px;
-        font-weight: bold;
-        color: #007bff;
-    }
-
-    .stat-change {
-        color: #28a745;
-    }
-
-        .stat-change.negative {
-            color: red;
-        }
-
-    .tabs {
-        display: flex;
-        gap: 10px;
-        margin-bottom: 20px;
-    }
-
-    .tab-btn {
-        padding: 10px 20px;
-        border: none;
-        background: #f1f1f1;
-        cursor: pointer;
-        border-radius: 5px;
-    }
-
-        .tab-btn.active {
-            background: #007bff;
-            color: #fff;
-        }
-
-    .tab-content {
-        display: none;
-    }
-
-        .tab-content.active {
-            display: block;
-        }
-
     .card {
         background: #fff;
         border-radius: 8px;
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         padding: 20px;
+        margin-bottom: 20px;
+        display: none;
     }
 
-    .loader {
-        border: 4px solid #f3f3f3;
-        border-top: 4px solid #007bff;
-        border-radius: 50%;
-        width: 30px;
-        height: 30px;
-        animation: spin 1s linear infinite;
-        margin: 20px auto;
-        display: none;
+        .card.active {
+            display: block;
+        }
+
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    .btn {
+        margin-top: 10px;
     }
 </style>
 
-<body>
-    <div class="dashboard-wrapper">
-        @await Html.PartialAsync("_AdminSidebar")
+<div class="dashboard-wrapper">
+    @await Html.PartialAsync("_ReceptionistSidebar")
 
-        <main class="dashboard-main">
-            <div class="dashboard-header">
-                <h1>@SharedResource.AdminDashboard_Header</h1>
-                <p>@SharedResource.AdminDashboard_Description</p>
-            </div>
+    <main class="dashboard-main">
+       
 
+        <div id="dashboard-stats" class="card active">
+            <h3>@SharedResource.Statistics</h3>
             <div class="dashboard-stats">
-                <div class="card stat-card" id="total-courses">
-                    <div class="stat-header">
-                        <h3>@SharedResource.Stat_TotalCourses</h3>
-                        <i class="fas fa-book"></i>
-                    </div>
-                    <div class="stat-content">
-                        <div class="stat-value" id="courses-value"></div>
-                        <p class="stat-change" id="courses-change"></p>
-                    </div>
+                <div class="stat-card">
+                    <h3>@SharedResource.ActiveStudents</h3>
+                    <div class="stat-value">@ViewBag.ActiveStudents</div>
                 </div>
-                <div class="card stat-card" id="active-students">
-                    <div class="stat-header">
-                        <h3>@SharedResource.Stat_ActiveStudents</h3>
-                        <i class="fas fa-users"></i>
-                    </div>
-                    <div class="stat-content">
-                        <div class="stat-value" id="students-value"></div>
-                        <p class="stat-change" id="students-change"></p>
-                    </div>
+                <div class="stat-card">
+                    <h3>@SharedResource.MonthlyRevenue</h3>
+                    <div class="stat-value">$@ViewBag.MonthlyRevenue</div>
                 </div>
-                <div class="card stat-card" id="monthly-revenue">
-                    <div class="stat-header">
-                        <h3>@SharedResource.Stat_MonthlyRevenue</h3>
-                        <i class="fas fa-credit-card"></i>
-                    </div>
-                    <div class="stat-content">
-                        <div class="stat-value" id="revenue-value"></div>
-                        <p class="stat-change" id="revenue-change"></p>
-                    </div>
-                </div>
-                <div class="card stat-card" id="active-institutes">
-                    <div class="stat-header">
-                        <h3>@SharedResource.Stat_ActiveInstitutes</h3>
-                        <i class="fas fa-school"></i>
-                    </div>
-                    <div class="stat-content">
-                        <div class="stat-value" id="institutes-value"></div>
-                        <p class="stat-change" id="institutes-change"></p>
-                    </div>
+                <div class="stat-card">
+                    <h3>@SharedResource.TotalCourses</h3>
+                    <div class="stat-value">@ViewBag.TotalCourses</div>
                 </div>
             </div>
+        </div>
 
-            <div class="dashboard-tabs">
-                <div class="tabs">
-                    <button id="overview-btn" class="tab-btn active" data-tab="overview">@SharedResource.Tab_Overview</button>
-                    <button id="courses-btn" class="tab-btn" data-tab="courses">@SharedResource.Tab_Courses</button>
-                    <button id="students-btn" class="tab-btn" data-tab="students">@SharedResource.Tab_Students</button>
-                    <button id="revenue-btn" class="tab-btn" data-tab="revenue">@SharedResource.Tab_Revenue</button>
-                </div>
-                <div class="tab-content active" id="overview">
-                    <div class="card">
-                        <div class="card-header">
-                            <h3>@SharedResource.Growth_PlatformTitle</h3>
-                            <p>@SharedResource.Growth_PlatformDescription</p>
-                        </div>
-                        <div class="card-content">
-                            <div class="loader" id="overview-loader"></div>
-                            <canvas id="overview-chart"></canvas>
-                            <p class="error-message" id="overview-error" style="display: none; color: red;">@SharedResource.Error_LoadingData</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="tab-content" id="courses">
-                    <div class="card">
-                        <div class="card-header">
-                            <h3>@SharedResource.Analytics_CoursesTitle</h3>
-                            <p>@SharedResource.Analytics_CoursesDescription</p>
-                        </div>
-                        <div class="card-content">
-                            <div class="loader" id="courses-loader"></div>
-                            <canvas id="courses-chart"></canvas>
-                            <p class="error-message" id="courses-error" style="display: none; color: red;">@SharedResource.Error_LoadingData</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="tab-content" id="students">
-                    <div class="card">
-                        <div class="card-header">
-                            <h3>@SharedResource.Analytics_StudentsTitle</h3>
-                            <p>@SharedResource.Analytics_StudentsDescription</p>
-                        </div>
-                        <div class="card-content">
-                            <div class="loader" id="students-loader"></div>
-                            <canvas id="students-chart"></canvas>
-                            <p class="error-message" id="students-error" style="display: none; color: red;">@SharedResource.Error_LoadingData</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="tab-content" id="revenue">
-                    <div class="card">
-                        <div class="card-header">
-                            <h3>@SharedResource.Analytics_RevenueTitle</h3>
-                            <p>@SharedResource.Analytics_RevenueDescription</p>
-                        </div>
-                        <div class="card-content">
-                            <div class="loader" id="revenue-loader"></div>
-                            <canvas id="revenue-chart"></canvas>
-                            <p class="error-message" id="revenue-error" style="display: none; color: red;">@SharedResource.Error_LoadingData</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </main>
-    </div>
+        <div id="register" class="card">
+            <h3>@SharedResource.RegisterNewCustomer</h3>
+            <a asp-action="Register" asp-controller="Account" class="btn btn-primary">@SharedResource.RegisterNewCustomer</a>
+        </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <script>
-        const translations = {
-            thisMonth: '@Html.Raw(SharedResource.ThisMonth)',
-            lastMonth: '@Html.Raw(SharedResource.LastMonth)',
-            growthPlatformTitle: '@Html.Raw(SharedResource.Growth_PlatformTitle)',
-            courses: '@Html.Raw(SharedResource.Courses)',
-            students: '@Html.Raw(SharedResource.Students)',
-            revenue: '@Html.Raw(SharedResource.Revenue)'
-        };
+        <div id="register-course" class="card">
+            <h3>@SharedResource.RegisterCourse</h3>
+            <form asp-action="RegisterTraineeToCourse" asp-controller="Receptionists" method="post">
+                <div class="form-group">
+                    <label>@SharedResource.SelectCourse</label>
+                    <select name="CourseId" class="form-control" asp-items="@ViewBag.CourseId"></select>
+                </div>
+                <div class="form-group">
+                    <label>@SharedResource.SelectTrainee</label>
+                    <select name="TraineeId" class="form-control" asp-items="@ViewBag.TraineeId"></select>
+                </div>
+                <button type="submit" class="btn btn-primary">@SharedResource.RegisterCourse</button>
+            </form>
+            <form asp-action="UnregisterTraineeFromCourse" asp-controller="Receptionists" method="post">
+                <div class="form-group">
+                    <label>@SharedResource.SelectCourse</label>
+                    <select name="CourseId" class="form-control" asp-items="@ViewBag.CourseId"></select>
+                </div>
+                <div class="form-group">
+                    <label>@SharedResource.SelectTrainee</label>
+                    <select name="TraineeId" class="form-control" asp-items="@ViewBag.TraineeId"></select>
+                </div>
+                <button type="submit" class="btn btn-danger">@SharedResource.UnregisterCourse</button>
+            </form>
+        </div>
 
-        document.addEventListener('DOMContentLoaded', () => {
-            let dashboardData;
-            try {
-                dashboardData = @Html.Raw(Json.Serialize(Model ?? new AdminDashboardViewModelModel()));
-                console.log('Dashboard Data:', dashboardData);
-            } catch (error) {
-                console.error('Error parsing dashboard data:', error);
-                dashboardData = { stats: {}, chartData: {} };
+        <div id="add-payment" class="card">
+            <h3>@SharedResource.AddPayment</h3>
+            <a asp-action="Create" asp-controller="Payments" class="btn btn-primary">@SharedResource.AddPayment</a>
+            <a asp-action="PaymentReports" asp-controller="Receptionists" class="btn btn-info">@SharedResource.PaymentReports</a>
+            <a asp-action="PaymentReportPdf" asp-controller="Receptionists" class="btn btn-secondary">@SharedResource.ExportPaymentReport</a>
+        </div>
+
+        <div id="attendance-reports" class="card">
+            <h3>@SharedResource.AttendanceReports</h3>
+            <a asp-action="AttendanceReports" asp-controller="Receptionists" class="btn btn-info">@SharedResource.AttendanceReports</a>
+            <a asp-action="AttendanceReportPdf" asp-controller="Receptionists" class="btn btn-secondary">@SharedResource.ExportAttendanceReport</a>
+        </div>
+
+        <div id="course-details" class="card">
+            <h3>@SharedResource.CourseDetails</h3>
+            <form asp-action="Details" asp-controller="Courses" method="get">
+                <div class="form-group">
+                    <label>@SharedResource.SelectCourse</label>
+                    <select name="id" class="form-control" asp-items="@ViewBag.CourseId"></select>
+                </div>
+                <button type="submit" class="btn btn-primary">@SharedResource.ViewDetails</button>
+            </form>
+        </div>
+
+        <div id="contact-trainees" class="card">
+            <h3>@SharedResource.ContactTrainees</h3>
+            <a asp-action="ContactTrainees" asp-controller="Receptionists" class="btn btn-primary">@SharedResource.ContactTrainees</a>
+        </div>
+    </main>
+</div>
+
+<script>
+    // Show/hide sections based on tab click
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    const sections = document.querySelectorAll('.card');
+
+    // Ensure only one section is visible initially
+    sections.forEach(section => section.classList.remove('active'));
+    document.getElementById('dashboard-stats').classList.add('active');
+
+    tabButtons.forEach(button => {
+        button.addEventListener('click', (e) => {
+            e.preventDefault();
+            const tabId = button.getAttribute('data-tab');
+
+            // Hide all sections
+            sections.forEach(section => section.classList.remove('active'));
+
+            // Show the selected section
+            const targetSection = document.getElementById(tabId);
+            if (targetSection) {
+                targetSection.classList.add('active');
             }
 
-            function updateStats(data) {
-                try {
-                    console.log('Updating stats with data:', data);
-                    const elements = {
-                        coursesValue: document.getElementById('courses-value'),
-                        coursesChange: document.getElementById('courses-change'),
-                        studentsValue: document.getElementById('students-value'),
-                        studentsChange: document.getElementById('students-change'),
-                        revenueValue: document.getElementById('revenue-value'),
-                        revenueChange: document.getElementById('revenue-change'),
-                        institutesValue: document.getElementById('institutes-value'),
-                        institutesChange: document.getElementById('institutes-change')
-                    };
-
-                    Object.keys(elements).forEach(key => {
-                        if (!elements[key]) {
-                            console.error(`Element ${key} not found`);
-                        }
-                    });
-
-                    if (!Object.values(elements).every(el => el)) {
-                        console.error('One or more stat elements not found');
-                        return;
-                    }
-
-                    elements.coursesValue.textContent = (data.totalCourses || 0).toLocaleString();
-                    elements.coursesChange.textContent = `${data.coursesChange >= 0 ? '+' : ''}${data.coursesChange || 0} ${translations.thisMonth}`;
-                    elements.coursesChange.classList.toggle('negative', (data.coursesChange || 0) < 0);
-                    elements.studentsValue.textContent = (data.activeStudents || 0).toLocaleString();
-                    elements.studentsChange.textContent = `${data.studentsChange >= 0 ? '+' : ''}${data.studentsChange || 0} ${translations.thisMonth}`;
-                    elements.studentsChange.classList.toggle('negative', (data.studentsChange || 0) < 0);
-                    elements.revenueValue.textContent = `$${(data.monthlyRevenue || 0).toLocaleString()}`;
-                    elements.revenueChange.textContent = `${data.revenueChange >= 0 ? '+' : ''}${parseFloat(data.revenueChange || 0).toFixed(1)}% ${translations.lastMonth}`;
-                    elements.revenueChange.classList.toggle('negative', (data.revenueChange || 0) < 0);
-                    elements.institutesValue.textContent = (data.activeInstitutes || 0).toLocaleString();
-                    elements.institutesChange.textContent = `${data.institutesChange >= 0 ? '+' : ''}${data.institutesChange || 0} ${translations.thisMonth}`;
-                    elements.institutesChange.classList.toggle('negative', (data.institutesChange || 0) < 0);
-                } catch (error) {
-                    console.error('Error updating stats:', error);
-                }
-            }
-
-            const charts = {};
-            function renderChart(tab) {
-                const loader = document.getElementById(`${tab}-loader`);
-                const errorMessage = document.getElementById(`${tab}-error`);
-                const canvas = document.getElementById(`${tab}-chart`);
-
-                if (!canvas) {
-                    console.error(`Canvas element for ${tab}-chart not found`);
-                    errorMessage.style.display = 'block';
-                    return;
-                }
-
-                loader.style.display = 'block';
-                errorMessage.style.display = 'none';
-
-                const chartData = dashboardData && dashboardData.chartData && dashboardData.chartData[tab]
-                    ? dashboardData.chartData[tab]
-                    : { labels: { $values: ['March', 'April', 'May', 'June', 'July', 'August'] }, values: { $values: [0, 0, 0, 0, 0, 0] } };
-
-                const labels = chartData.labels && chartData.labels.$values && Array.isArray(chartData.labels.$values)
-                    ? chartData.labels.$values
-                    : ['March', 'April', 'May', 'June', 'July', 'August'];
-                const values = chartData.values && chartData.values.$values && Array.isArray(chartData.values.$values)
-                    ? chartData.values.$values
-                    : [0, 0, 0, 0, 0, 0];
-
-                console.log(`Rendering chart for ${tab}:`, { labels, values });
-
-                if (!labels.length || !values.length) {
-                    console.error(`Invalid chart data for ${tab}:`, { labels, values });
-                    loader.style.display = 'none';
-                    errorMessage.style.display = 'block';
-                    return;
-                }
-
-                if (charts[tab]) {
-                    charts[tab].destroy();
-                }
-
-                const ctx = canvas.getContext('2d');
-                charts[tab] = new Chart(ctx, {
-                    type: tab === 'revenue' ? 'bar' : 'line',
-                    data: {
-                        labels: labels,
-                        datasets: [{
-                            label: tab === 'overview' ? translations.growthPlatformTitle :
-                                   tab === 'courses' ? translations.courses :
-                                   tab === 'students' ? translations.students :
-                                   translations.revenue,
-                            data: values,
-                            borderColor: '#007bff',
-                            backgroundColor: tab === 'revenue' ? '#007bff' : 'rgba(0, 123, 255, 0.1)',
-                            fill: tab !== 'revenue',
-                            tension: 0.4
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        scales: {
-                            y: { beginAtZero: true }
-                        },
-                        plugins: {
-                            legend: { display: true, position: 'top' }
-                        }
-                    }
-                });
-
-                loader.style.display = 'none';
-            }
-
-            if (dashboardData && dashboardData.stats) {
-                updateStats(dashboardData.stats);
-            } else {
-                console.error('No valid stats data available');
-                updateStats({});
-            }
-
-            const tabs = [
-                { btnId: 'overview-btn', tabId: 'overview' },
-                { btnId: 'courses-btn', tabId: 'courses' },
-                { btnId: 'students-btn', tabId: 'students' },
-                { btnId: 'revenue-btn', tabId: 'revenue' }
-            ];
-
-            tabs.forEach(tab => {
-                const button = document.getElementById(tab.btnId);
-                if (!button) {
-                    console.error(`Button with ID ${tab.btnId} not found`);
-                    return;
-                }
-
-                button.addEventListener('click', (event) => {
-                    event.preventDefault();
-                    tabs.forEach(t => {
-                        const btn = document.getElementById(t.btnId);
-                        const content = document.getElementById(t.tabId);
-                        if (btn && content) {
-                            btn.classList.remove('active');
-                            content.classList.remove('active');
-                        }
-                    });
-
-                    button.classList.add('active');
-                    const tabContent = document.getElementById(tab.tabId);
-                    if (tabContent) {
-                        tabContent.classList.add('active');
-                    } else {
-                        console.error(`Tab content with ID ${tab.tabId} not found`);
-                    }
-
-                    document.querySelectorAll('.error-message').forEach(error => error.style.display = 'none');
-                    renderChart(tab.tabId);
-                });
-            });
-
-            renderChart('overview');
+            // Update active tab
+            tabButtons.forEach(btn => btn.parentElement.classList.remove('active'));
+            button.parentElement.classList.add('active');
         });
-    </script>
-</body>
+    });
+
+    // Validate course selection form
+    document.querySelector('form[action*="Details"]').addEventListener('submit', function (e) {
+        const select = document.querySelector('select[name="id"]');
+        if (!select.value) {
+            e.preventDefault();
+            alert('@SharedResource.SelectCourseError');
+        }
+    });
+</script>

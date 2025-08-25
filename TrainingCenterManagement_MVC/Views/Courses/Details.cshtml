@@ -101,14 +101,18 @@
                     }
                 </div>
             </div>
+            @if (User.IsInRole("Admin"))
+            {
 
-            <!-- Action Buttons -->
-            <div class="d-flex flex-wrap gap-2 justify-content-start mt-4">
-                <a asp-action="Edit" asp-route-id="@Model.CourseId" class="btn btn-primary">✏️ Edit</a>
-                <a asp-action="Index" class="btn btn-outline-secondary">🔙 Back to List</a>
-                <a asp-action="AssignTrainer" asp-route-id="@Model.CourseId" class="btn btn-outline-info">➕ Assign Trainer</a>
-                <a asp-action="AssignTrainees" asp-route-id="@Model.CourseId" class="btn btn-outline-info">➕ Assign Trainees</a>
-            </div>
+                <!-- Action Buttons -->
+                <div class="d-flex flex-wrap gap-2 justify-content-start mt-4">
+                    <a asp-action="Edit" asp-route-id="@Model.CourseId" class="btn btn-primary">✏️ Edit</a>
+                    <a asp-action="Index" class="btn btn-outline-secondary">🔙 Back to List</a>
+                    <a asp-action="AssignTrainer" asp-route-id="@Model.CourseId" class="btn btn-outline-info">➕ Assign Trainer</a>
+                    <a asp-action="AssignTrainees" asp-route-id="@Model.CourseId" class="btn btn-outline-info">➕ Assign Trainees</a>
+                </div>
+            }
+          
 
             <!-- Course Analytics -->
             <div class="mt-5">

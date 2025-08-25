@@ -1,283 +1,369 @@
 ﻿@using TrainingCenterManagement_MVC.Resources
 @using Newtonsoft.Json
 @using TrainingCenterManagement_MVC.ViewModels
-@model TraineeDashboardViewModel
+@model TrainerDashboardViewModel
 
 @{
-    ViewData["Title"] = SharedResource.TraineeDashboard_Title;
+    ViewData["Title"] = SharedResource.TrainerDashboard_Title;
 }
 
+<!-- إضافة مكتبة FullCalendar -->
+<link href='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css' rel='stylesheet' />
+<script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js'></script>
+<!-- إضافة Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- إضافة Syncfusion Grid -->
+<script src="https://cdn.syncfusion.com/ej2/dist/ej2.min.js"></script>
+<link href="https://cdn.syncfusion.com/ej2/material.css" rel="stylesheet" />
 <!-- إضافة خط Roboto -->
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
-
-<link href="~/css/TraineeDashboard.css" rel="stylesheet" />
+<!-- استدعاء ملف CSS المنفصل -->
+<link href="~/css/TrainerDashboard.css" rel="stylesheet" />
 
 <body>
     <div class="dashboard-wrapper">
-        @await Html.PartialAsync("_TraineeSidebar")  <!-- Assuming a sidebar partial for trainee --> 
-
+        @await Html.PartialAsync("_TrainerSidebar")
         <main class="dashboard-main">
-            <div class="dashboard-header">
-                <img src="@Model.ProfilePictureUrl" alt="Profile Picture" class="profile-picture" />
+            <!-- النظرة العامة -->
+            <div class="profile-section">
+                <img src="@Model.ProfilePictureUrl" alt="@SharedResource.ProfilePicture" class="profile-picture" />
                 <div>
-                    <h1>@SharedResource.TraineeDashboard_Header, @Model.FullName!</h1>
-                    <p class="welcome-message">@Model.WelcomeMessage</p>
+                    <h2>@Model.FullName</h2>
+                    <p>@SharedResource.Specialization: @Model.Specialization</p>
+                    <p>@SharedResource.Availability: @Model.Availability</p>
                 </div>
                 <div class="overall-progress">@Model.OverallProgress%</div>
             </div>
 
-            <div class="dashboard-stats">
+            <!-- مؤشرات الأداء -->
+            <div class="kpi-grid">
                 <div class="stat-card">
-                    <h4>@SharedResource.Stat_TotalProgress</h4>
-                    <div class="stat-value" id="progress-value"></div>
+                    <h4>@SharedResource.CurrentCourses</h4>
+                    <div class="stat-value" id="courses-value">@Model.KPIs.CurrentCourses</div>
                 </div>
                 <div class="stat-card">
-                    <h4>@SharedResource.Stat_EnrolledCourses</h4>
-                    <div class="stat-value" id="courses-value"></div>
+                    <h4>@SharedResource.EnrolledStudents</h4>
+                    <div class="stat-value" id="students-value">@Model.KPIs.EnrolledStudents</div>
                 </div>
                 <div class="stat-card">
-                    <h4>@SharedResource.Stat_CompletedHours</h4>
-                    <div class="stat-value" id="hours-value"></div>
+                    <h4>@SharedResource.AverageAttendance</h4>
+                    <div class="stat-value">@Model.KPIs.AverageAttendance%</div>
                 </div>
                 <div class="stat-card">
-                    <h4>@SharedResource.Stat_CompletedExams</h4>
-                    <div class="stat-value" id="exams-value"></div>
+                    <h4>UngradedAssignments</h4>
+                    <div class="stat-value">@Model.KPIs.UngradedAssignments</div>
                 </div>
                 <div class="stat-card">
-                    <h4>@SharedResource.Stat_AttendanceRate</h4>
-                    <div class="stat-value" id="attendance-value"></div>
+                    <h4>AverageRating</h4>
+                    <div class="stat-value">@Model.KPIs.AverageRating</div>
                 </div>
             </div>
 
-            <div class="dashboard-tabs">
-                <div class="tabs">
-                    <button id="progress-btn" class="tab-btn active" data-tab="progress">@SharedResource.Tab_Progress</button>
-                    <button id="recommended-btn" class="tab-btn" data-tab="recommended">@SharedResource.Tab_Recommended</button>
-                    <button id="upcoming-btn" class="tab-btn" data-tab="upcoming">@SharedResource.Tab_Upcoming</button>
-                    <button id="certificates-btn" class="tab-btn" data-tab="certificates">@SharedResource.Tab_Certificates</button>
-                    <button id="analytics-btn" class="tab-btn" data-tab="analytics">@SharedResource.Tab_Analytics</button>
-                    <button id="feedback-btn" class="tab-btn" data-tab="feedback">@SharedResource.Tab_Feedback</button>
-                </div>
+            <!-- الإشعارات -->
+            @* <div class="card">
+                <h3>@SharedResource.Notifications</h3>
+                <ul class="notification-list">
+                    @foreach (var notif in Model.Notifications)
+                    {
+                        <li>@notif.Message - @notif.Time.ToString("MMM dd, yyyy HH:mm")</li>
+                    }
+                </ul>
+            </div *@>
 
-                <div class="tab-content active" id="progress">
-                    <div class="card">
-                        <h3>@SharedResource.CurrentCoursesProgress</h3>
-                        <ul class="course-list" id="current-courses-list">
-                            <!-- Dynamically populated -->
-                        </ul>
-                        <button class="resume-btn" id="resume-last-course">@SharedResource.ResumeLastCourse</button>
-                    </div>
-                </div>
+            <!-- التبويبات -->
+            <div class="tabs">
+                <button id="schedule-btn" class="tab-btn active" data-tab="schedule">@SharedResource.Schedule</button>
+                <button id="students-btn" class="tab-btn" data-tab="students">@SharedResource.StudentManagement</button>
+                <button id="attendance-btn" class="tab-btn" data-tab="attendance">@SharedResource.Attendance</button>
+                <button id="analytics-btn" class="tab-btn" data-tab="analytics">@SharedResource.Analytics</button>
+                <button id="courses-btn" class="tab-btn" data-tab="courses">@SharedResource.CurrentCourses</button>
+                <button id="recommended-btn" class="tab-btn" data-tab="recommended">@SharedResource.RecommendedCourses</button>
+                <button id="certificates-btn" class="tab-btn" data-tab="certificates">@SharedResource.Certificates</button>
+            </div>
 
-                <div class="tab-content" id="recommended">
-                    <div class="card">
-                        <h3>@SharedResource.RecommendedCourses</h3>
-                        <div class="recommended-courses" id="recommended-courses-grid">
-                            <!-- Dynamically populated -->
-                        </div>
-                    </div>
-                </div>
+            <!-- محتوى التبويبات -->
+            <div id="schedule" class="tab-content card active">
+                <h3>@SharedResource.Schedule</h3>
+                <div id="calendar"></div>
+            </div>
 
-                <div class="tab-content" id="upcoming">
-                    <div class="card">
-                        <h3>@SharedResource.UpcomingActivities</h3>
-                        <ul class="upcoming-events" id="upcoming-events-list">
-                            <!-- Dynamically populated -->
-                        </ul>
-                    </div>
-                </div>
+            <div id="students" class="tab-content card">
+                <h3>@SharedResource.StudentManagement</h3>
+                @foreach (var course in Model.StudentsByCourse)
+                {
+                    <h4>@SharedResource.Course: @course.Value[0].CourseName</h4>
+                    <table class="students-table">
+                        <thead>
+                            <tr>
+                                <th>@SharedResource.StudentName</th>
+                                <th>@SharedResource.Attendance</th>
+                                <th>@SharedResource.Grade</th>
+                                <th>@SharedResource.contact</th>
+                                <th>@SharedResource.Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var student in course.Value)
+                            {
+                                <tr>
+                                    <td>@student.Name</td>
+                                    <td>@student.AttendanceStatus</td>
+                                    <td>@student.Grade</td>
+                                    <td>@student.Contact</td>
+                                    <td>
+                                        <button onclick="viewTraineeAttendance('@course.Key', '@student.Id')" class="btn btn-primary">@SharedResource.Attendance</button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+            </div>
 
-                <div class="tab-content" id="certificates">
-                    <div class="card">
-                        <h3>@SharedResource.CertificatesAndAchievements</h3>
-                        <div class="certificates-list" id="certificates-grid">
-                            <!-- Dynamically populated -->
-                        </div>
-                    </div>
-                </div>
+            <div id="attendance" class="tab-content card">
+                <h3>@SharedResource.Attendance</h3>
+                <div id="attendance-grid"></div>
+                <div id="attendance-report" style="display: none;"></div>
+            </div>
 
-                <div class="tab-content" id="analytics">
-                    <div class="card">
-                        <h3>@SharedResource.LearningAnalytics</h3>
-                        <div class="loader" id="analytics-loader"></div>
-                        <canvas id="analytics-chart"></canvas>
-                        <p class="error-message" id="analytics-error" style="display: none; color: red;">@SharedResource.Error_LoadingData</p>
-                    </div>
-                </div>
+            <div id="analytics" class="tab-content card">
+                <h3>@SharedResource.Analytics</h3>
+                <canvas id="analytics-chart"></canvas>
+            </div>
 
-                <div class="tab-content" id="feedback">
-                    <div class="card">
-                        <h3>@SharedResource.FeedbackAndSupport</h3>
-                        @* <form id="feedback-form">
-                            <textarea placeholder="@SharedResource.SubmitFeedback"></textarea>
-                            <button type="submit">@SharedResource.SubmitFeedback</button>
-                        </form> *@
-                        <a asp-controller="Chat" asp-action="CustomerSupportChat">@SharedResource.Support_Link</a>
-                        
-                    </div>
-                </div>
+            <div id="courses" class="tab-content card">
+                <h3>@SharedResource.CurrentCourses</h3>
+                <ul>
+                    @foreach (var course in Model.CurrentCourses)
+                    {
+                        <li>
+                            @course.Name
+                            <button onclick="manageCourse('@course.Id')" class="btn btn-primary">@SharedResource.Manage</button>
+                        </li>
+                    }
+                </ul>
+            </div>
+
+            <div id="recommended" class="tab-content card">
+                <h3>@SharedResource.RecommendedCourses</h3>
+                <ul>
+                    @foreach (var course in Model.RecommendedCourses)
+                    {
+                        <li>
+                            @course.Name
+                            <button onclick="assignCourse('@course.Id')" class="btn btn-primary">@SharedResource.Assign</button>
+                        </li>
+                    }
+                </ul>
+            </div>
+
+            <div id="certificates" class="tab-content card">
+                <h3>@SharedResource.Certificates</h3>
+                <ul>
+                    @foreach (var cert in Model.Certificates)
+                    {
+                        <li>
+                            @cert.Name
+                            <a asp-controller="Certificates" asp-action="CertificatePdf" asp-route-certificateId="@cert.Id" class="btn btn-danger btn-sm" title="@SharedResource.DownloadCertificatePDF">
+                                <i class="bi bi-file-earmark-pdf"></i> @SharedResource.Download
+                            </a>
+                        </li>
+                    }
+                </ul>
             </div>
         </main>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script id="attendanceStatusTemplate" type="text/x-template">
+        ${Present ? '@SharedResource.Present' : '@SharedResource.Absent'}
+    </script>
+
+    <script id="attendanceActionTemplate" type="text/x-template">
+        <button onclick="viewTraineeAttendance('${CourseId}', '${StudentId}')" class="btn btn-primary">@SharedResource.Attendance</button>
+    </script>
+
     <script>
-               const translations = {
-            resume: '@Html.Raw(SharedResource.Resume)',
-            remaining: '@Html.Raw(SharedResource.Remaining)',
-            enroll: '@Html.Raw(SharedResource.Enroll)',
-            preview: '@Html.Raw(SharedResource.Preview)',
-            join: '@Html.Raw(SharedResource.JoinSession)',
-            download: '@Html.Raw(SharedResource.DownloadCertificate)',
-            progress: '@Html.Raw(SharedResource.Tab_Progress)',
-            noCoursesAvailable: '@Html.Raw(SharedResource.NoCoursesAvailable)' // إضافة ترجمة جديدة
+        const translations = {
+            present: '@Html.Raw(SharedResource.Present)',
+            absent: '@Html.Raw(SharedResource.Absent)',
+            viewAttendance: '@Html.Raw(SharedResource.Attendance)',
+            noAttendanceData: '@Html.Raw(SharedResource.NoAttendanceData ?? "لا توجد بيانات حضور.")'
         };
 
         document.addEventListener('DOMContentLoaded', () => {
             let dashboardData;
             try {
-                dashboardData = @Html.Raw(Json.Serialize(Model));
+                dashboardData = @Html.Raw(JsonConvert.SerializeObject(Model, new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore }));
                 console.log('Dashboard Data:', dashboardData);
             } catch (error) {
                 console.error('Error parsing dashboard data:', error);
                 dashboardData = {};
             }
 
-            function updateStats(data) {
-                try {
-                    document.getElementById('progress-value').textContent = `${data.overallProgress || 0}%`;
-                    document.getElementById('courses-value').textContent = data.enrolledCourses || 0;
-                    document.getElementById('hours-value').textContent = data.completedHours || 0;
-                    document.getElementById('exams-value').textContent = data.completedExams || 0;
-                    document.getElementById('attendance-value').textContent = `${data.attendanceRate || 0}%`;
-                } catch (error) {
-                    console.error('Error updating stats:', error);
+            // Initialize attendance grid
+            function initializeAttendanceGrid() {
+                let attendanceData = dashboardData.attendanceRecords || [];
+                if (!Array.isArray(attendanceData) && attendanceData.$values) {
+                    attendanceData = attendanceData.$values;
                 }
-            }
 
-                  function populateCurrentCourses(courses) {
-            courses = Array.isArray(courses) ? courses : (courses && courses.$values) || [];
-            console.log('Current Courses:', courses); // للتصحيح
-            const list = document.getElementById('current-courses-list');
-            if (!list) {
-                console.error('Element with ID current-courses-list not found');
-                return;
-            }
-            list.innerHTML = '';
-            if (courses.length === 0) {
-                list.innerHTML = '<li><span>' + translations.noCoursesAvailable + '</span></li>';
-                return;
-            }
-            courses.forEach(course => {
-                if (!course.id || !course.name || course.progress === undefined) {
-                    console.warn('Invalid course data:', course);
+                console.log('Attendance Data:', attendanceData);
+
+                const flattenedData = [];
+                attendanceData.forEach(record => {
+                    if (record.students && record.students.$values) {
+                        record.students = record.students.$values;
+                    }
+                    record.students.forEach(student => {
+                        flattenedData.push({
+                            LectureId: record.lectureId,
+                            Date: new Date(record.date).toLocaleDateString(),
+                            StudentId: student.studentId,
+                            Present: student.present,
+                            Notes: student.notes || '',
+                            CourseId: record.courseId
+                        });
+                    });
+                });
+
+                console.log('Flattened Data:', flattenedData);
+
+                if (flattenedData.length === 0) {
+                    document.getElementById('attendance-grid').innerHTML = `<div class="alert alert-info">${translations.noAttendanceData}</div>`;
                     return;
                 }
-                const li = document.createElement('li');
-                li.innerHTML = `
-                    <span>${course.name} — ${course.progress}% ${translations.resume}</span>
-                    <div class="progress-bar"><div class="progress-fill" style="width: ${course.progress}%"></div></div>
-                    <span>${course.remaining || 'N/A'} ${translations.remaining}</span>
-                    <button class="resume-btn" onclick="resumeCourse('${course.id}')">${translations.resume}</button>
-                `;
-                list.appendChild(li);
+
+                flattenedData.forEach(record => {
+                    record.PresentText = record.Present ? translations.present : translations.absent;
+                });
+
+                const grid = new ej.grids.Grid({
+                    dataSource: flattenedData,
+                    allowPaging: true,
+                    allowSorting: true,
+                    allowFiltering: true,
+                    allowGrouping: true,
+                    filterSettings: { type: 'Menu' },
+                    pageSettings: { pageSize: 10 },
+                    toolbar: ['Search'],
+                    groupSettings: { showGroupedColumn: true },
+                    columns: [
+                        { field: 'LectureId', headerText: '@SharedResource.LectureId', width: 120 },
+                        { field: 'Date', headerText: '@SharedResource.Date', width: 150 },
+                        { field: 'StudentId', headerText: '@SharedResource.StudentId', width: 120 },
+                        { field: 'PresentText', headerText: '@SharedResource.Attendance', width: 100, template: '#attendanceStatusTemplate' },
+                        { field: 'Notes', headerText: '@SharedResource.Notes', width: 150 },
+                        { headerText: '@SharedResource.Actions', width: 180, textAlign: 'Center', template: '#attendanceActionTemplate' }
+                    ]
+                });
+
+                grid.appendTo('#attendance-grid');
+            }
+
+            // Initialize stats
+            function updateStats(data) {
+                document.getElementById('courses-value').textContent = data.currentCourses || 0;
+                document.getElementById('students-value').textContent = data.enrolledStudents || 0;
+            }
+
+            // Initialize calendar
+            const calendarEl = document.getElementById('calendar');
+            if (calendarEl) {
+                const calendar = new FullCalendar.Calendar(calendarEl, {
+                    initialView: 'dayGridMonth',
+                    events: dashboardData.schedule || []
+                });
+                calendar.render();
+            }
+
+            // Tab switching
+            const tabButtons = document.querySelectorAll('.tab-btn');
+            const tabContents = document.querySelectorAll('.tab-content');
+            tabButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    tabButtons.forEach(btn => btn.classList.remove('active'));
+                    tabContents.forEach(content => content.classList.remove('active'));
+                    button.classList.add('active');
+                    const tabId = button.getAttribute('data-tab');
+                    document.getElementById(tabId).classList.add('active');
+                    if (tabId === 'attendance') {
+                        initializeAttendanceGrid();
+                    } else if (tabId === 'analytics') {
+                        renderChart();
+                    }
+                });
             });
-        }
 
-            function populateRecommendedCourses(courses) {
-                courses = Array.isArray(courses) ? courses : (courses && courses.$values) || [];
-                console.log('Recommended Courses:', courses);
-                const grid = document.getElementById('recommended-courses-grid');
-                grid.innerHTML = '';
-                courses.forEach(course => {
-                    const card = document.createElement('div');
-                    card.classList.add('recommended-card');
-                    card.innerHTML = `
-                        <h4>${course.name}</h4>
-                        <p>${course.description}</p>
-                        <button class="enroll-btn" onclick="enrollCourse('${course.id}')">${translations.enroll}</button>
-                        <button onclick="previewCourse('${course.id}')">${translations.preview}</button>
-                    `;
-                    grid.appendChild(card);
-                });
+            // Initialize initial data
+            if (dashboardData && dashboardData.kpis) {
+                updateStats(dashboardData.kpis);
+            }
+            if (document.getElementById('attendance').classList.contains('active')) {
+                initializeAttendanceGrid();
             }
 
-            function populateUpcomingEvents(events) {
-                events = Array.isArray(events) ? events : (events && events.$values) || [];
-                console.log('Upcoming Events:', events);
-                const list = document.getElementById('upcoming-events-list');
-                list.innerHTML = '';
-                events.forEach(event => {
-                    const li = document.createElement('li');
-                    li.innerHTML = `
-                        <span>${event.title} - ${event.date}</span>
-                        <button onclick="joinSession('${event.link}')">${translations.join}</button>
+            async function viewTraineeAttendance(courseId, traineeId) {
+                console.log(`جلب تقرير حضور المتدرب ${traineeId} في الدورة ${courseId}`);
+                const reportDiv = document.getElementById('attendance-report');
+                const loader = document.createElement('div');
+                loader.className = 'loader';
+                reportDiv.innerHTML = '';
+                reportDiv.appendChild(loader);
+                reportDiv.style.display = 'block';
+
+                try {
+                    console.log(`/Presences/TraineeAttendanceInCourse/${traineeId}/${courseId}`);
+                    const response = await fetch(`/Presences/TraineeAttendanceInCourse/${traineeId}/${courseId}`);
+
+                    if (!response.ok) {
+                        console.error(`فشل جلب تقرير الحضور: ${response.status} ${response.statusText}`);
+                        if (response.status === 404) {
+                            alert('@SharedResource.Error_CourseOrTraineeNotFound');
+                        } else if (response.status === 401 || response.status === 403) {
+                            alert('@SharedResource.Error_Unauthorized');
+                        } else {
+                            alert(`@SharedResource.Error_FetchingAttendance: ${response.statusText}`);
+                        }
+                        reportDiv.style.display = 'none';
+                        return;
+                    }
+
+                    const data = await response.json();
+                    console.log('البيانات المستلمة:', data);
+                    reportDiv.innerHTML = `
+                        <h4>@SharedResource.AttendanceReport</h4>
+                        <p><strong>@SharedResource.Trainee:</strong> ${data.traineeName}</p>
+                        <p><strong>@SharedResource.Course:</strong> ${data.courseName}</p>
+                        <p><strong>@SharedResource.AttendedLectures:</strong> ${data.attended}</p>
+                        <p><strong>@SharedResource.TotalLectures:</strong> ${data.totalLectures}</p>
+                        <p><strong>@SharedResource.AttendancePercentage:</strong> ${data.percentage}%</p>
                     `;
-                    list.appendChild(li);
-                });
+                } catch (error) {
+                    console.error('خطأ في جلب تقرير الحضور:', error);
+                    alert('@SharedResource.Error_FetchingAttendance');
+                    reportDiv.style.display = 'none';
+                }
             }
 
-            function populateCertificates(certificates) {
-                certificates = Array.isArray(certificates) ? certificates : (certificates && certificates.$values) || [];
-                console.log('Certificates:', certificates);
-                const grid = document.getElementById('certificates-grid');
-                grid.innerHTML = '';
-                certificates.forEach(cert => {
-                    const card = document.createElement('div');
-                    card.classList.add('certificate-card');
-                    card.innerHTML = `
-                        <h4>${cert.name}</h4>
-                        <button class="download-btn" onclick="downloadCertificate('${cert.id}')">${translations.download}</button>
-                    `;
-                    grid.appendChild(card);
-                });
+            function manageCourse(id) {
+                console.log(`إدارة الدورة ${id}`);
+                window.location.href = `/Courses/Details/${id}`;
             }
 
-            const charts = {};
-            function renderChart(tab) {
-                if (tab !== 'analytics') return;
-                const loader = document.getElementById('analytics-loader');
-                const errorMessage = document.getElementById('analytics-error');
-                const canvas = document.getElementById('analytics-chart');
+            function assignCourse(id) {
+                console.log(`تعيين الدورة ${id}`);
+                window.location.href = `/Courses/Assign/${id}`;
+            }
 
-                loader.style.display = 'block';
-                errorMessage.style.display = 'none';
-
-                let chartData = dashboardData && dashboardData.chartData && dashboardData.chartData.analytics
-                    ? dashboardData.chartData.analytics
-                    : { labels: [], values: [] };
-                console.log('Chart Data for Analytics:', chartData);
-
-                let labels = chartData.labels || [];
-                if (!Array.isArray(labels) && labels.$values) {
-                    labels = labels.$values;
-                }
-                if (!Array.isArray(labels) || labels.length === 0) {
-                    labels = ['Week 1', 'Week 2', 'Week 3', 'Week 4'];
-                }
-
-                let values = chartData.values || [];
-                if (!Array.isArray(values) && values.$values) {
-                    values = values.$values;
-                }
-                if (!Array.isArray(values) || values.length === 0) {
-                    values = [0, 0, 0, 0];
-                }
-
-                console.log('Chart Labels:', labels, 'Chart Values:', values);
-
-                if (charts.analytics) {
-                    charts.analytics.destroy();
-                }
-
-                const ctx = canvas.getContext('2d');
-                charts.analytics = new Chart(ctx, {
+            function renderChart() {
+                const ctx = document.getElementById('analytics-chart').getContext('2d');
+                new Chart(ctx, {
                     type: 'line',
                     data: {
-                        labels: labels,
+                        labels: dashboardData.chartData?.labels || ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
                         datasets: [{
-                            label: translations.progress,
-                            data: values,
+                            label: '@SharedResource.Progress',
+                            data: dashboardData.chartData?.values || [0, 0, 0, 0],
                             borderColor: '#007bff',
                             backgroundColor: 'rgba(0, 123, 255, 0.1)',
                             fill: true,
@@ -291,77 +377,7 @@
                         plugins: { legend: { display: true, position: 'top' } }
                     }
                 });
-
-                loader.style.display = 'none';
             }
-
-            if (dashboardData && dashboardData.stats) {
-                updateStats(dashboardData.stats);
-            }
-
-            if (dashboardData && dashboardData.currentCourses) {
-                populateCurrentCourses(dashboardData.currentCourses);
-            }
-
-            if (dashboardData && dashboardData.recommendedCourses) {
-                populateRecommendedCourses(dashboardData.recommendedCourses);
-            }
-
-            if (dashboardData && dashboardData.upcomingEvents) {
-                populateUpcomingEvents(dashboardData.upcomingEvents);
-            }
-
-            if (dashboardData && dashboardData.certificates) {
-                populateCertificates(dashboardData.certificates);
-            }
-
-            const tabs = [
-                { btnId: 'progress-btn', tabId: 'progress' },
-                { btnId: 'recommended-btn', tabId: 'recommended' },
-                { btnId: 'upcoming-btn', tabId: 'upcoming' },
-                { btnId: 'certificates-btn', tabId: 'certificates' },
-                { btnId: 'analytics-btn', tabId: 'analytics' },
-                { btnId: 'feedback-btn', tabId: 'feedback' }
-            ];
-
-            tabs.forEach(tab => {
-                const button = document.getElementById(tab.btnId);
-                if (!button) {
-                    console.error(`Button with ID ${tab.btnId} not found`);
-                    return;
-                }
-                button.addEventListener('click', () => {
-                    tabs.forEach(t => {
-                        const btn = document.getElementById(t.btnId);
-                        const content = document.getElementById(t.tabId);
-                        if (btn && content) {
-                            btn.classList.remove('active');
-                            content.classList.remove('active');
-                        }
-                    });
-                    button.classList.add('active');
-                    const tabContent = document.getElementById(tab.tabId);
-                    if (tabContent) {
-                        tabContent.classList.add('active');
-                    } else {
-                        console.error(`Tab content with ID ${tab.tabId} not found`);
-                    }
-                    renderChart(tab.tabId);
-                });
-            });
-
-            // Initial render for analytics if it's the active tab (but starts with progress)
-            // No initial call needed unless analytics is default
         });
-
-        // Placeholder functions for actions
-        function resumeCourse(id) { console.log(`Resuming course ${id}`); window.location.href = `/Courses/Resume/${id}`; }
-        function enrollCourse(id) { console.log(`Enrolling in course ${id}`); window.location.href = `/Courses/Enroll/${id}`; }
-        function previewCourse(id) { console.log(`Previewing course ${id}`); window.location.href = `/Courses/Preview/${id}`; }
-        function joinSession(link) { console.log(`Joining session ${link}`); window.open(link, '_blank'); }
-        function downloadCertificate(id) { console.log(`Downloading certificate ${id}`); window.location.href = `/Certificates/Download/${id}`; }
-
-
-        
     </script>
 </body>

@@ -1,39 +1,93 @@
 ﻿@using TrainingCenterManagement_MVC.Resources
 
-<footer class="footer">
+<style>
+    .footer-ad {
+        background: linear-gradient(135deg, #f0f0f0, #bdbdbd);
+        color: #fff;
+        padding: 40px 20px;
+        text-align: center;
+        direction: @(System.Threading.Thread.CurrentThread.CurrentUICulture.TextInfo.IsRightToLeft ? "rtl" : "ltr");
+    }
+
+        .footer-ad .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .footer-ad h2 {
+            font-size: 2rem;
+            margin-bottom: 20px;
+        }
+
+        .footer-ad p {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .footer-ad .cta-button {
+            display: inline-block;
+            background: #fff;
+            color: #007bff;
+            padding: 12px 24px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 1rem;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+            .footer-ad .cta-button:hover {
+                background: #e9ecef;
+                color: #0056b3;
+            }
+
+        .footer-ad .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+            .footer-ad .footer-links a {
+                color: #fff;
+                text-decoration: none;
+                font-size: 0.9rem;
+            }
+
+                .footer-ad .footer-links a:hover {
+                    text-decoration: underline;
+                }
+
+        .footer-ad .footer-bottom {
+            margin-top: 20px;
+            font-size: 0.85rem;
+            opacity: 0.8;
+        }
+</style>
+
+<footer class="footer-ad">
     <div class="container">
-        <div class="footer-grid">
-            <div class="footer-column">
-                <h3>TableTap</h3>
-                <p>@SharedResource.digitalMenuPlatform</p>
-            </div>
-            <div class="footer-column">
-                <h4>@SharedResource.product</h4>
-                <ul>
-                    <li><a href="pricing.html">@SharedResource.pricing</a></li>
-                    <li><a href="cities.html">@SharedResource.Cities</a></li>
-                    <li><a href="faq.html">@SharedResource.faq</a></li>
-                </ul>
-            </div>
-            <div class="footer-column">
-                <h4>@SharedResource.company</h4>
-                <ul>
-                    <li><a href="about.html">@SharedResource.about</a></li>
-                    <li><a href="contact.html">@SharedResource.contact</a></li>
-                    <li><a href="careers.html">@SharedResource.careers</a></li>
-                </ul>
-            </div>
-            <div class="footer-column">
-                <h4>@SharedResource.legal</h4>
-                <ul>
-                    <li><a href="terms.html">@SharedResource.terms</a></li>
-                    <li><a href="privacy.html">@SharedResource.privacy</a></li>
-                    <li><a href="cookies.html">@SharedResource.cookies</a></li>
-                </ul>
-            </div>
+        <h2>TrainingCenter</h2>
+        <p>@SharedResource.TrainingCenterDescription</p>
+        <a asp-action="Register" asp-controller="Account" class="cta-button">
+            <i class="fas fa-user-plus"></i> @SharedResource.JoinNow
+        </a>
+        <div class="footer-links">
+            <a asp-controller="Chat" asp-action="CustomerSupportChat">@SharedResource.contact</a>
+            <a href="terms.html">@SharedResource.terms</a>
+            <a href="privacy.html">@SharedResource.privacy</a>
+            <a href="cookies.html">@SharedResource.cookies</a>
         </div>
         <div class="footer-bottom">
-            <p> <span id="current-year">2025</span> TableTap. @SharedResource.allRightsReserved</p>
+            <p>&copy; <span id="current-year">2025</span> TrainingCenter. @SharedResource.allRightsReserved</p>
         </div>
     </div>
 </footer>
+
+<script>
+    document.getElementById('current-year').textContent = new Date().getFullYear();
+</script>

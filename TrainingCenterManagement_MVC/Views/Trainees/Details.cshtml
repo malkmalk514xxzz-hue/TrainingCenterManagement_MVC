@@ -19,11 +19,11 @@
         <dd class="col-sm-9">@Model.User?.BirthDate.ToShortDateString()</dd>
     </dl>
 </div>
-
+@if (User.IsInRole("Admin") ){
 <div class="mt-4">
     <a asp-action="Index" class="btn btn-secondary me-2">⬅ Back to List</a>
 </div>
-
+}
 <hr />
 
 <h4 class="mb-3">Trainee Actions</h4>

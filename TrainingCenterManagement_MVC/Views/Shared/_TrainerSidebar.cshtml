@@ -1,13 +1,12 @@
 ﻿@using System.Globalization
 @using TrainingCenterManagement_MVC.Resources
-@inject Microsoft.AspNetCore.Mvc.Rendering.IHtmlHelper HtmlHelper
 @{
     string currentPage = ViewContext.RouteData.Values["action"]?.ToString()?.ToLower();
 }
 
 <style>
     html[dir="rtl"] .sidebar-nav ul li a i {
-        margin-left: 8px; 
+        margin-left: 8px;
     }
 
     html[dir="ltr"] .sidebar-nav ul li a i {
@@ -60,7 +59,6 @@
             .language-dropdown li a:hover {
                 background-color: #f5f5f5;
             }
-
 </style>
 
 <aside class="sidebar">
@@ -76,65 +74,30 @@
     </div>
     <nav class="sidebar-nav">
         <ul>
-            <li class="@(currentPage == "dashboard" ? "active" : "")">
-                <a asp-action="Dashboard" asp-controller="Admin">
-                    <i class="fas fa-home"></i>
-                    <span>@SharedResource.Dashboard</span>
+          
+            <li class="@(currentPage == "lectures" ? "active" : "")">
+                <a asp-action="Index" asp-controller="Lectures">
+                    <i class="fas fa-chalkboard-teacher"></i>
+                    <span>@SharedResource.Lectures</span>
                 </a>
             </li>
-            <li class="@(currentPage == "restaurants" ? "active" : "")">
-            <li>
-                <a asp-controller="Chat" asp-action="AdminCustomerSupportChats">
-                    <i class="fas fa-building"></i>
-            <span>AdminContactUsChats</span>
+          
+            <li class="@(currentPage == "presences" ? "active" : "")">
+                <a asp-action="Index" asp-controller="Presences">
+                    <i class="fas fa-check-circle"></i>
+                    <span>@SharedResource.Attendance</span>
                 </a>
             </li>
-            <li class="@(currentPage == "users" ? "active" : "")">
-                <a asp-action="Users" asp-controller="Admin">
-                    <i class="fas fa-users"></i>
-                    <span>@SharedResource.Users</span>
+            <li class="@(currentPage == "certificates" ? "active" : "")">
+                <a asp-action="Index" asp-controller="Certificates">
+                    <i class="fas fa-certificate"></i>
+                    <span>@SharedResource.IssueCertificate</span>
                 </a>
             </li>
-            <li class="@(currentPage == "subscriptions" ? "active" : "")">
-                <a asp-action="Subscriptions" asp-controller="Admin">
-                    <i class="fas fa-credit-card"></i>
-                    <span>@SharedResource.Subscriptions</span>
-                </a>
-            </li>
-            <li class="@(currentPage == "paymentrequests" ? "active" : "")">
-                <a asp-action="PaymentRequests" asp-controller="Admin">
-                    <i class="fas fa-money-bill"></i>
-                    <span>@SharedResource.PaymentRequests</span>
-                </a>
-            </li>
-            <li class="@(currentPage == "analytics" ? "active" : "")">
-                <a asp-action="Analytics" asp-controller="Admin">
-                    <i class="fas fa-chart-bar"></i>
-                    <span>@SharedResource.Analytics</span>
-                </a>
-            </li>
-            <li class="@(currentPage == "citiesmenu" ? "active" : "")">
-                <a asp-action="CitiesMenu" asp-controller="City">
-                    <i class="fas fa-globe"></i>
-                    <span>@SharedResource.Cities</span>
-                </a>
-            </li>
-            <li class="@(currentPage == "paymentmethodsmenu" ? "active" : "")">
-                <a asp-action="PaymentMethodsMenu" asp-controller="PaymentMethod">
-                    <i class="fas fa-wallet"></i>
-                    <span>@SharedResource.PaymentMethods</span>
-                </a>
-            </li>
-            <li class="@(currentPage == "settings" ? "active" : "")">
-                <a asp-action="Settings" asp-controller="Admin">
-                    <i class="fas fa-cog"></i>
-                    <span>@SharedResource.Settings</span>
-                </a>
-            </li>
-            <li class="@(currentPage == "security" ? "active" : "")">
-                <a asp-action="Security" asp-controller="Admin">
-                    <i class="fas fa-shield-alt"></i>
-                    <span>@SharedResource.Security</span>
+            <li class="@(currentPage == "chat" ? "active" : "")">
+                <a asp-action="Index" asp-controller="Chat">
+                    <i class="fas fa-comments"></i>
+                    <span>@SharedResource.Chat</span>
                 </a>
             </li>
         </ul>
@@ -166,7 +129,6 @@
                 </li>
             </ul>
         </div>
-
     </div>
 </aside>
 

@@ -247,7 +247,7 @@ namespace TrainingCenterManagement_MVC.Controllers
                 return RedirectToAction("ViewLecture", "Lectures", new { id = latestLecture.LectureId });
             }
 
-            return View("CourseProgress", course); // صفحة افتراضية لعرض تقدم الدورة
+            return View("Resume", course); // صفحة افتراضية لعرض تقدم الدورة
         }
         [Authorize(Roles = "Trainee")]
         [HttpPost]

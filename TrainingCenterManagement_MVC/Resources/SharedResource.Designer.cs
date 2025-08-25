@@ -70,6 +70,15 @@ namespace TrainingCenterManagement_MVC.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Absent.
+        /// </summary>
+        internal static string Absent {
+            get {
+                return ResourceManager.GetString("Absent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Access to the menu.
         /// </summary>
         internal static string accessToMenu {
@@ -97,6 +106,15 @@ namespace TrainingCenterManagement_MVC.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Active Students.
+        /// </summary>
+        internal static string ActiveStudents {
+            get {
+                return ResourceManager.GetString("ActiveStudents", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Add Payment Method.
         /// </summary>
         internal static string add_payment_method_button {
@@ -120,6 +138,15 @@ namespace TrainingCenterManagement_MVC.Resources {
         internal static string AddNewMenu_Title {
             get {
                 return ResourceManager.GetString("AddNewMenu_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Add Payment.
+        /// </summary>
+        internal static string AddPayment {
+            get {
+                return ResourceManager.GetString("AddPayment", resourceCulture);
             }
         }
         
@@ -349,11 +376,83 @@ namespace TrainingCenterManagement_MVC.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Assign.
+        /// </summary>
+        internal static string Assign {
+            get {
+                return ResourceManager.GetString("Assign", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Attendance.
+        /// </summary>
+        internal static string Attendance {
+            get {
+                return ResourceManager.GetString("Attendance", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to AttendancePercentage.
+        /// </summary>
+        internal static string AttendancePercentage {
+            get {
+                return ResourceManager.GetString("AttendancePercentage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Attendance Report.
+        /// </summary>
+        internal static string AttendanceReport {
+            get {
+                return ResourceManager.GetString("AttendanceReport", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Attendance Reports.
+        /// </summary>
+        internal static string AttendanceReports {
+            get {
+                return ResourceManager.GetString("AttendanceReports", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Attended Lectures.
+        /// </summary>
+        internal static string AttendedLectures {
+            get {
+                return ResourceManager.GetString("AttendedLectures", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Only authorized administrators can access this panel..
         /// </summary>
         internal static string authorized {
             get {
                 return ResourceManager.GetString("authorized", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Availability.
+        /// </summary>
+        internal static string Availability {
+            get {
+                return ResourceManager.GetString("Availability", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Average Attendance.
+        /// </summary>
+        internal static string AverageAttendance {
+            get {
+                return ResourceManager.GetString("AverageAttendance", resourceCulture);
             }
         }
         
@@ -511,6 +610,15 @@ namespace TrainingCenterManagement_MVC.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Contact Trainees.
+        /// </summary>
+        internal static string ContactTrainees {
+            get {
+                return ResourceManager.GetString("ContactTrainees", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Contact us.
         /// </summary>
         internal static string contactUs {
@@ -534,6 +642,24 @@ namespace TrainingCenterManagement_MVC.Resources {
         internal static string costSavings {
             get {
                 return ResourceManager.GetString("costSavings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Course.
+        /// </summary>
+        internal static string Course {
+            get {
+                return ResourceManager.GetString("Course", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Course Details.
+        /// </summary>
+        internal static string CourseDetails {
+            get {
+                return ResourceManager.GetString("CourseDetails", resourceCulture);
             }
         }
         
@@ -588,6 +714,15 @@ namespace TrainingCenterManagement_MVC.Resources {
         internal static string ctaSectionHeading {
             get {
                 return ResourceManager.GetString("ctaSectionHeading", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Current Courses.
+        /// </summary>
+        internal static string CurrentCourses {
+            get {
+                return ResourceManager.GetString("CurrentCourses", resourceCulture);
             }
         }
         
@@ -655,6 +790,15 @@ namespace TrainingCenterManagement_MVC.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Date.
+        /// </summary>
+        internal static string Date {
+            get {
+                return ResourceManager.GetString("Date", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Debit Card.
         /// </summary>
         internal static string DebitCard {
@@ -691,11 +835,38 @@ namespace TrainingCenterManagement_MVC.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Download.
+        /// </summary>
+        internal static string Download {
+            get {
+                return ResourceManager.GetString("Download", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Download Certificate.
         /// </summary>
         internal static string DownloadCertificate {
             get {
                 return ResourceManager.GetString("DownloadCertificate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Download Certificate PDF.
+        /// </summary>
+        internal static string DownloadCertificatePDF {
+            get {
+                return ResourceManager.GetString("DownloadCertificatePDF", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Download Error.
+        /// </summary>
+        internal static string DownloadError {
+            get {
+                return ResourceManager.GetString("DownloadError", resourceCulture);
             }
         }
         
@@ -790,6 +961,15 @@ namespace TrainingCenterManagement_MVC.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Enrolled Students.
+        /// </summary>
+        internal static string EnrolledStudents {
+            get {
+                return ResourceManager.GetString("EnrolledStudents", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Enter admin email.
         /// </summary>
         internal static string Enter_admin_email {
@@ -826,11 +1006,38 @@ namespace TrainingCenterManagement_MVC.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Error_CourseOrTraineeNotFound.
+        /// </summary>
+        internal static string Error_CourseOrTraineeNotFound {
+            get {
+                return ResourceManager.GetString("Error_CourseOrTraineeNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error_FetchingAttendance.
+        /// </summary>
+        internal static string Error_FetchingAttendance {
+            get {
+                return ResourceManager.GetString("Error_FetchingAttendance", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Error Loading Data.
         /// </summary>
         internal static string Error_LoadingData {
             get {
                 return ResourceManager.GetString("Error_LoadingData", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error_Unauthorized.
+        /// </summary>
+        internal static string Error_Unauthorized {
+            get {
+                return ResourceManager.GetString("Error_Unauthorized", resourceCulture);
             }
         }
         
@@ -862,11 +1069,38 @@ namespace TrainingCenterManagement_MVC.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Exams.
+        /// </summary>
+        internal static string Exams {
+            get {
+                return ResourceManager.GetString("Exams", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Explore Styles.
         /// </summary>
         internal static string exploreStyles {
             get {
                 return ResourceManager.GetString("exploreStyles", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Export Attendance Report.
+        /// </summary>
+        internal static string ExportAttendanceReport {
+            get {
+                return ResourceManager.GetString("ExportAttendanceReport", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Export Payment Report.
+        /// </summary>
+        internal static string ExportPaymentReport {
+            get {
+                return ResourceManager.GetString("ExportPaymentReport", resourceCulture);
             }
         }
         
@@ -1159,6 +1393,15 @@ namespace TrainingCenterManagement_MVC.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Grade.
+        /// </summary>
+        internal static string Grade {
+            get {
+                return ResourceManager.GetString("Grade", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Monthly growth of restaurants, users, and revenue. .
         /// </summary>
         internal static string Growth_PlatformDescription {
@@ -1240,11 +1483,38 @@ namespace TrainingCenterManagement_MVC.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Invalid CertificateId Error.
+        /// </summary>
+        internal static string InvalidCertificateIdError {
+            get {
+                return ResourceManager.GetString("InvalidCertificateIdError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Invalid Login Credentials.
         /// </summary>
         internal static string InvalidLoginCredentials {
             get {
                 return ResourceManager.GetString("InvalidLoginCredentials", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Issue Certificate.
+        /// </summary>
+        internal static string IssueCertificate {
+            get {
+                return ResourceManager.GetString("IssueCertificate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to JoinNow.
+        /// </summary>
+        internal static string JoinNow {
+            get {
+                return ResourceManager.GetString("JoinNow", resourceCulture);
             }
         }
         
@@ -1281,6 +1551,24 @@ namespace TrainingCenterManagement_MVC.Resources {
         internal static string LearningAnalytics {
             get {
                 return ResourceManager.GetString("LearningAnalytics", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Lecture Id.
+        /// </summary>
+        internal static string LectureId {
+            get {
+                return ResourceManager.GetString("LectureId", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Lectures.
+        /// </summary>
+        internal static string Lectures {
+            get {
+                return ResourceManager.GetString("Lectures", resourceCulture);
             }
         }
         
@@ -1330,6 +1618,15 @@ namespace TrainingCenterManagement_MVC.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Manage.
+        /// </summary>
+        internal static string Manage {
+            get {
+                return ResourceManager.GetString("Manage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Manage Payment Methods.
         /// </summary>
         internal static string manage_payment_methods {
@@ -1371,6 +1668,15 @@ namespace TrainingCenterManagement_MVC.Resources {
         internal static string MobileWallet {
             get {
                 return ResourceManager.GetString("MobileWallet", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Monthly Revenue.
+        /// </summary>
+        internal static string MonthlyRevenue {
+            get {
+                return ResourceManager.GetString("MonthlyRevenue", resourceCulture);
             }
         }
         
@@ -1438,11 +1744,38 @@ namespace TrainingCenterManagement_MVC.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to No Attendance Data.
+        /// </summary>
+        internal static string NoAttendanceData {
+            get {
+                return ResourceManager.GetString("NoAttendanceData", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No Certificates Available.
+        /// </summary>
+        internal static string NoCertificatesAvailable {
+            get {
+                return ResourceManager.GetString("NoCertificatesAvailable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to No Courses Available.
         /// </summary>
         internal static string NoCoursesAvailable {
             get {
                 return ResourceManager.GetString("NoCoursesAvailable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Notes.
+        /// </summary>
+        internal static string Notes {
+            get {
+                return ResourceManager.GetString("Notes", resourceCulture);
             }
         }
         
@@ -1488,6 +1821,15 @@ namespace TrainingCenterManagement_MVC.Resources {
         internal static string PaymentMethods {
             get {
                 return ResourceManager.GetString("PaymentMethods", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Payment Reports.
+        /// </summary>
+        internal static string PaymentReports {
+            get {
+                return ResourceManager.GetString("PaymentReports", resourceCulture);
             }
         }
         
@@ -1564,6 +1906,15 @@ namespace TrainingCenterManagement_MVC.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Present.
+        /// </summary>
+        internal static string Present {
+            get {
+                return ResourceManager.GetString("Present", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Preview.
         /// </summary>
         internal static string Preview {
@@ -1618,6 +1969,33 @@ namespace TrainingCenterManagement_MVC.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Profile.
+        /// </summary>
+        internal static string Profile {
+            get {
+                return ResourceManager.GetString("Profile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Profile Picture.
+        /// </summary>
+        internal static string ProfilePicture {
+            get {
+                return ResourceManager.GetString("ProfilePicture", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Progress.
+        /// </summary>
+        internal static string Progress {
+            get {
+                return ResourceManager.GetString("Progress", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Receptionists Controll.
         /// </summary>
         internal static string ReceptionistsControll {
@@ -1645,11 +2023,29 @@ namespace TrainingCenterManagement_MVC.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Register Course.
+        /// </summary>
+        internal static string RegisterCourse {
+            get {
+                return ResourceManager.GetString("RegisterCourse", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Registered establishment.
         /// </summary>
         internal static string registeredEstablishment {
             get {
                 return ResourceManager.GetString("registeredEstablishment", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Register New Customer.
+        /// </summary>
+        internal static string RegisterNewCustomer {
+            get {
+                return ResourceManager.GetString("RegisterNewCustomer", resourceCulture);
             }
         }
         
@@ -1771,6 +2167,15 @@ namespace TrainingCenterManagement_MVC.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Schedule.
+        /// </summary>
+        internal static string Schedule {
+            get {
+                return ResourceManager.GetString("Schedule", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Search payment methods....
         /// </summary>
         internal static string search_payment_methods {
@@ -1807,11 +2212,47 @@ namespace TrainingCenterManagement_MVC.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Select Course.
+        /// </summary>
+        internal static string SelectCourse {
+            get {
+                return ResourceManager.GetString("SelectCourse", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Select Course Error.
+        /// </summary>
+        internal static string SelectCourseError {
+            get {
+                return ResourceManager.GetString("SelectCourseError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Select Language.
+        /// </summary>
+        internal static string SelectLanguage {
+            get {
+                return ResourceManager.GetString("SelectLanguage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Select Option.
         /// </summary>
         internal static string SelectOption {
             get {
                 return ResourceManager.GetString("SelectOption", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Select Trainee.
+        /// </summary>
+        internal static string SelectTrainee {
+            get {
+                return ResourceManager.GetString("SelectTrainee", resourceCulture);
             }
         }
         
@@ -1848,6 +2289,15 @@ namespace TrainingCenterManagement_MVC.Resources {
         internal static string specialApp {
             get {
                 return ResourceManager.GetString("specialApp", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Specialization.
+        /// </summary>
+        internal static string Specialization {
+            get {
+                return ResourceManager.GetString("Specialization", resourceCulture);
             }
         }
         
@@ -1978,6 +2428,15 @@ namespace TrainingCenterManagement_MVC.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Statistics.
+        /// </summary>
+        internal static string Statistics {
+            get {
+                return ResourceManager.GetString("Statistics", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Status.
         /// </summary>
         internal static string Status {
@@ -1992,6 +2451,33 @@ namespace TrainingCenterManagement_MVC.Resources {
         internal static string Stripe {
             get {
                 return ResourceManager.GetString("Stripe", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to StudentId.
+        /// </summary>
+        internal static string StudentId {
+            get {
+                return ResourceManager.GetString("StudentId", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Student Management.
+        /// </summary>
+        internal static string StudentManagement {
+            get {
+                return ResourceManager.GetString("StudentManagement", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Student Name.
+        /// </summary>
+        internal static string StudentName {
+            get {
+                return ResourceManager.GetString("StudentName", resourceCulture);
             }
         }
         
@@ -2194,11 +2680,38 @@ namespace TrainingCenterManagement_MVC.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Total Courses.
+        /// </summary>
+        internal static string TotalCourses {
+            get {
+                return ResourceManager.GetString("TotalCourses", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to TotalLectures.
+        /// </summary>
+        internal static string TotalLectures {
+            get {
+                return ResourceManager.GetString("TotalLectures", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Total Requests .
         /// </summary>
         internal static string TotalRequests {
             get {
                 return ResourceManager.GetString("TotalRequests", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Trainee.
+        /// </summary>
+        internal static string Trainee {
+            get {
+                return ResourceManager.GetString("Trainee", resourceCulture);
             }
         }
         
@@ -2221,6 +2734,15 @@ namespace TrainingCenterManagement_MVC.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Trainer Dashboard .
+        /// </summary>
+        internal static string TrainerDashboard_Title {
+            get {
+                return ResourceManager.GetString("TrainerDashboard_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Trainers Controll.
         /// </summary>
         internal static string TrainersControll {
@@ -2230,11 +2752,29 @@ namespace TrainingCenterManagement_MVC.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Our training center offers up-to-date programs and certified instructors to help you develop your skills and achieve your career goals quickly and effectively. Join today for an interactive learning experience and personalized support that ensures your success..
+        /// </summary>
+        internal static string TrainingCenterDescription {
+            get {
+                return ResourceManager.GetString("TrainingCenterDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Type.
         /// </summary>
         internal static string type {
             get {
                 return ResourceManager.GetString("type", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unregister Course.
+        /// </summary>
+        internal static string UnregisterCourse {
+            get {
+                return ResourceManager.GetString("UnregisterCourse", resourceCulture);
             }
         }
         

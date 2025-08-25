@@ -873,4 +873,184 @@
   <data name="Feedback" xml:space="preserve">
     <value>Feedback</value>
   </data>
+  <data name="Attendance" xml:space="preserve">
+    <value>Attendance</value>
+  </data>
+  <data name="Profile" xml:space="preserve">
+    <value>Profile</value>
+  </data>
+  <data name="SelectLanguage" xml:space="preserve">
+    <value>Select Language</value>
+  </data>
+  <data name="NoCertificatesAvailable" xml:space="preserve">
+    <value>No Certificates Available</value>
+  </data>
+  <data name="InvalidCertificateIdError" xml:space="preserve">
+    <value>Invalid CertificateId Error</value>
+  </data>
+  <data name="DownloadError" xml:space="preserve">
+    <value>Download Error</value>
+  </data>
+  <data name="Lectures" xml:space="preserve">
+    <value>Lectures</value>
+  </data>
+  <data name="Exams" xml:space="preserve">
+    <value>Exams</value>
+  </data>
+  <data name="IssueCertificate" xml:space="preserve">
+    <value>Issue Certificate</value>
+  </data>
+  <data name="TrainerDashboard_Title" xml:space="preserve">
+    <value>Trainer Dashboard </value>
+  </data>
+  <data name="ProfilePicture" xml:space="preserve">
+    <value>Profile Picture</value>
+  </data>
+  <data name="Specialization" xml:space="preserve">
+    <value>Specialization</value>
+  </data>
+  <data name="Availability" xml:space="preserve">
+    <value>Availability</value>
+  </data>
+  <data name="CurrentCourses" xml:space="preserve">
+    <value>Current Courses</value>
+  </data>
+  <data name="EnrolledStudents" xml:space="preserve">
+    <value>Enrolled Students</value>
+  </data>
+  <data name="AverageAttendance" xml:space="preserve">
+    <value>Average Attendance</value>
+  </data>
+  <data name="Schedule" xml:space="preserve">
+    <value>Schedule</value>
+  </data>
+  <data name="Course" xml:space="preserve">
+    <value>Course</value>
+  </data>
+  <data name="StudentName" xml:space="preserve">
+    <value>Student Name</value>
+  </data>
+  <data name="Grade" xml:space="preserve">
+    <value>Grade</value>
+  </data>
+  <data name="StudentManagement" xml:space="preserve">
+    <value>Student Management</value>
+  </data>
+  <data name="Manage" xml:space="preserve">
+    <value>Manage</value>
+  </data>
+  <data name="Assign" xml:space="preserve">
+    <value>Assign</value>
+  </data>
+  <data name="Download" xml:space="preserve">
+    <value>Download</value>
+  </data>
+  <data name="Present" xml:space="preserve">
+    <value>Present</value>
+  </data>
+  <data name="Absent" xml:space="preserve">
+    <value>Absent</value>
+  </data>
+  <data name="NoAttendanceData" xml:space="preserve">
+    <value>No Attendance Data</value>
+  </data>
+  <data name="DownloadCertificatePDF" xml:space="preserve">
+    <value>Download Certificate PDF</value>
+  </data>
+  <data name="LectureId" xml:space="preserve">
+    <value>Lecture Id</value>
+  </data>
+  <data name="Date" xml:space="preserve">
+    <value>Date</value>
+  </data>
+  <data name="StudentId" xml:space="preserve">
+    <value>StudentId</value>
+  </data>
+  <data name="Notes" xml:space="preserve">
+    <value>Notes</value>
+  </data>
+  <data name="Progress" xml:space="preserve">
+    <value>Progress</value>
+  </data>
+  <data name="AttendancePercentage" xml:space="preserve">
+    <value>AttendancePercentage</value>
+  </data>
+  <data name="TotalLectures" xml:space="preserve">
+    <value>TotalLectures</value>
+  </data>
+  <data name="Trainee" xml:space="preserve">
+    <value>Trainee</value>
+  </data>
+  <data name="AttendedLectures" xml:space="preserve">
+    <value>Attended Lectures</value>
+  </data>
+  <data name="AttendanceReport" xml:space="preserve">
+    <value>Attendance Report</value>
+  </data>
+  <data name="Error_FetchingAttendance" xml:space="preserve">
+    <value>Error_FetchingAttendance</value>
+  </data>
+  <data name="Error_CourseOrTraineeNotFound" xml:space="preserve">
+    <value>Error_CourseOrTraineeNotFound</value>
+  </data>
+  <data name="Error_Unauthorized" xml:space="preserve">
+    <value>Error_Unauthorized</value>
+  </data>
+  <data name="ContactTrainees" xml:space="preserve">
+    <value>Contact Trainees</value>
+  </data>
+  <data name="CourseDetails" xml:space="preserve">
+    <value>Course Details</value>
+  </data>
+  <data name="ExportAttendanceReport" xml:space="preserve">
+    <value>Export Attendance Report</value>
+  </data>
+  <data name="AttendanceReports" xml:space="preserve">
+    <value>Attendance Reports</value>
+  </data>
+  <data name="ExportPaymentReport" xml:space="preserve">
+    <value>Export Payment Report</value>
+  </data>
+  <data name="PaymentReports" xml:space="preserve">
+    <value>Payment Reports</value>
+  </data>
+  <data name="AddPayment" xml:space="preserve">
+    <value>Add Payment</value>
+  </data>
+  <data name="UnregisterCourse" xml:space="preserve">
+    <value>Unregister Course</value>
+  </data>
+  <data name="RegisterCourse" xml:space="preserve">
+    <value>Register Course</value>
+  </data>
+  <data name="RegisterNewCustomer" xml:space="preserve">
+    <value>Register New Customer</value>
+  </data>
+  <data name="SelectCourseError" xml:space="preserve">
+    <value>Select Course Error</value>
+  </data>
+  <data name="SelectCourse" xml:space="preserve">
+    <value>Select Course</value>
+  </data>
+  <data name="SelectTrainee" xml:space="preserve">
+    <value>Select Trainee</value>
+  </data>
+  <data name="TotalCourses" xml:space="preserve">
+    <value>Total Courses</value>
+  </data>
+  <data name="MonthlyRevenue" xml:space="preserve">
+    <value>Monthly Revenue</value>
+  </data>
+  <data name="ActiveStudents" xml:space="preserve">
+    <value>Active Students</value>
+  </data>
+  <data name="Statistics" xml:space="preserve">
+    <value>Statistics</value>
+  </data>
+  <data name="TrainingCenterDescription" xml:space="preserve">
+    <value>Our training center offers up-to-date programs and certified instructors to help you develop your skills and achieve your career goals quickly and effectively. Join today for an interactive learning experience and personalized support that ensures your success.</value>
+  </data>
+  <data name="JoinNow" xml:space="preserve">
+    <value>JoinNow</value>
+  </data>
 </root>

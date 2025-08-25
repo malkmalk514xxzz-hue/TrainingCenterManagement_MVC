@@ -138,10 +138,8 @@
 
             <nav class="desktop-nav">
                 <ul>
-                    <li><a asp-controller="ManageEstablishment" asp-action="ManageEstablishment">@SharedResource.pricing</a></li>
-                    <li><a asp-controller="City" asp-action="CitiesMenu">@SharedResource.Cities</a></li>
-                    <li><a href="faq.html">@SharedResource.faq</a></li>
-                    <li><a asp-controller="Chat" asp-action="CustomerSupportChat">@SharedResource.contact</a></li>
+                    
+                    
                 </ul>
             </nav>
 
@@ -164,12 +162,13 @@
                     </ul>
                 </div>
 
-                <button class="theme-toggle" aria-label="Toggle theme">
+                <button class="theme-toggle  btn btn-outline" aria-label="Toggle theme">
                     <i class="fas fa-sun light-icon"></i>
                     <i class="fas fa-moon dark-icon"></i>
                 </button>
 
                 <div class="header-actions desktop-nav d-flex align-items-center gap-3">
+                    <li><a asp-controller="Chat" asp-action="CustomerSupportChat" class="btn btn-outline">@SharedResource.contact</a></li>
                     @if (User.Identity.IsAuthenticated)
                     {
                         <a asp-controller="Chat" asp-action="Index" class="btn btn-outline">@SharedResource.Chat</a>
@@ -177,22 +176,20 @@
                                     <a asp-controller="Account" asp-action="Logout" >
                                         Logout
                                     </a>
-                               
-                                    <a asp-controller="Account" asp-action="ResetPassword" >
+
+                        <a asp-controller="Account" asp-action="ResetPassword" class="btn btn-outline">
                                         ResetPassword
                                     </a>
 
                         <a asp-controller="Dashboard" asp-action="Index" class="btn btn-outline">@SharedResource.Dashboard</a>
 
-                        <a asp-controller="Account" asp-action="Logout">
-                            Logout
-                        </a>
+                      
                                
                     }
                     else
                     {
                         <a asp-controller="Account" asp-action="Login" class="btn btn-outline">@SharedResource.login</a>
-                        <a asp-controller="Account" asp-action="Register" class="btn btn-primary">@SharedResource.signup</a>
+                       
                     }
                 </div>
 
@@ -203,34 +200,7 @@
             </button>
         </div>
 
-        <div class="mobile-menu">
-            <nav>
-                <ul>
-                    <li><a href="pricing.html">@SharedResource.pricing</a></li>
-                    <li><a href="cities.html">@SharedResource.Cities</a></li>
-                    <li><a href="faq.html">@SharedResource.faq</a></li>
-                    <li><a href="contact.html">@SharedResource.contact</a></li>
-                </ul>
-                <div class="mobile-actions">
-                    @if (User.Identity.IsAuthenticated)
-                    {
-                        @if (User.IsInRole("Admin"))
-                        {
-                            <a href="/Admin/Dashboard" class="btn btn-primary">@SharedResource.adminDashboard</a>
-                        }
-                        else
-                        {
-                            <a href="/User/Dashboard" class="btn btn-primary">@SharedResource.userDashboard</a>
-                        }
-                    }
-                    else
-                    {
-                    <a href="login.html" class="btn btn-outline btn-full">@SharedResource.login</a>
-                    <a href="signup.html" class="btn btn-primary btn-full">@SharedResource.signup</a>
-                    }
-                </div>
-            </nav>
-        </div>
+    
     </div>
 </header>
 
