@@ -30,20 +30,25 @@ namespace TrainingCenterManagement_MVC.Controllers
             // التحقق مما إذا كان المستخدم مصادقًا
             if (User.Identity.IsAuthenticated)
             {
+                
                 // إذا كان المستخدم مدربًا، إعادة توجيه إلى لوحة تحكم المدرب
                 if (User.IsInRole("Trainer"))
                 {
                     return RedirectToAction("TrainerDashboard", "Dashboard");
                 }
                 // إذا كان المستخدم طالبًا، إعادة توجيه إلى لوحة تحكم الطالب
-                else if (User.IsInRole("Student"))
+                else if (User.IsInRole("Trainee"))
                 {
-                    return RedirectToAction("StudentDashboard", "Dashboard");
+                    return RedirectToAction("TraineeDashboard", "Dashboard");
                 }
                 // إذا كان المستخدم مديرًا، إعادة توجيه إلى لوحة تحكم المدير
                 else if (User.IsInRole("Admin"))
                 {
                     return RedirectToAction("AdminDashboard", "Dashboard");
+                }
+                else if (User.IsInRole("Receptionist"))
+                {
+                    return RedirectToAction("ReceptionistDashboard", "Dashboard");
                 }
                 // إذا كان للمستخدم دور آخر أو لا ينتمي إلى أي من الأدوار المحددة
                 else
