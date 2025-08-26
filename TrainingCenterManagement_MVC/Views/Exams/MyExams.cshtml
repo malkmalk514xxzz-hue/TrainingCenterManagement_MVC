@@ -1,0 +1,40 @@
+﻿@model IEnumerable<TrainingCenterManagement_MVC.Models.Exam>
+
+@{
+    ViewData["Title"] = "My Exams";
+}
+
+<h1 class="mb-4">📋 My Exams</h1>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">لا يوجد امتحانات متاحة لك حاليًا.</div>
+}
+else
+{
+    <table class="table table-striped table-hover">
+        <thead class="table-dark">
+            <tr>
+                <th>Exam Name</th>
+                <th>Course</th>
+                <th>Exam Date</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var exam in Model)
+            {
+                <tr>
+                    <td>@exam.ExamName</td>
+                    <td>@exam.Course.CourseName</td>
+                    <td>@exam.ExamDate.ToString("dd/MM/yyyy")</td>
+                    <td>
+                        <a asp-action="TakeExam" asp-route-examId="@exam.ExamId" class="btn btn-sm btn-primary">
+                            Start Exam
+                        </a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

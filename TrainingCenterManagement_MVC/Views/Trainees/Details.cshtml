@@ -19,18 +19,21 @@
         <dd class="col-sm-9">@Model.User?.BirthDate.ToShortDateString()</dd>
     </dl>
 </div>
-@if (User.IsInRole("Admin") ){
-<div class="mt-4">
-    <a asp-action="Index" class="btn btn-secondary me-2">⬅ Back to List</a>
-</div>
+
+@if (User.IsInRole("Admin"))
+{
+    <div class="mt-4">
+        <a asp-action="Index" class="btn btn-secondary me-2">⬅ Back to List</a>
+    </div>
 }
+
 <hr />
 
 <h4 class="mb-3">Trainee Actions</h4>
 <div class="d-flex flex-wrap gap-2">
     <a asp-action="MyCertificates" class="btn btn-outline-primary">📜 My Certificates</a>
     <a asp-action="MyCourses" class="btn btn-outline-success">📚 My Courses</a>
+    <a asp-controller="Exams" asp-action="MyExams" class="btn btn-outline-danger">📝 My Exams</a>
     <a asp-action="Profile" class="btn btn-outline-info">👤 Profile</a>
     <a asp-action="TrackAttendance" class="btn btn-outline-warning">📅 Track Attendance</a>
-  
 </div>

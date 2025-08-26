@@ -1,0 +1,57 @@
+﻿@model TrainingCenterManagement_MVC.Models.Exam
+
+@{
+    ViewData["Title"] = "Edit Exam";
+}
+
+<div class="container mt-4">
+    <div class="card shadow-lg border-0 rounded-3">
+        <div class="card-header bg-primary text-white text-center">
+            <h3 class="mb-0">✏ Edit Exam</h3>
+        </div>
+        <div class="card-body p-4">
+            <form asp-action="Edit">
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                @* Hidden ID *@
+                <input type="hidden" asp-for="ExamId" />
+
+                <div class="mb-3">
+                    <label asp-for="ExamName" class="form-label fw-bold"></label>
+                    <input asp-for="ExamName" class="form-control" placeholder="Enter exam name" />
+                    <span asp-validation-for="ExamName" class="text-danger small"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="ExamDate" class="form-label fw-bold"></label>
+                    <input asp-for="ExamDate" type="date" class="form-control" />
+                    <span asp-validation-for="ExamDate" class="text-danger small"></span>
+                </div>
+
+                <div class="form-check mb-3">
+                    <input class="form-check-input" asp-for="IsDeleted" />
+                    <label class="form-check-label fw-bold" asp-for="IsDeleted"></label>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="CourseId" class="form-label fw-bold"></label>
+                    <select asp-for="CourseId" class="form-select" asp-items="ViewBag.CourseId">
+                        <option value="">-- Select Course --</option>
+                    </select>
+                    <span asp-validation-for="CourseId" class="text-danger small"></span>
+                </div>
+
+                <div class="d-flex justify-content-between">
+                    <a asp-action="Index" class="btn btn-secondary px-4">⬅ Back</a>
+                    <button type="submit" class="btn btn-success px-4">💾 Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

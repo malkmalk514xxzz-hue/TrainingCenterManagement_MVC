@@ -26,8 +26,8 @@
                 <div class="overall-progress">@Model.OverallProgress%</div>
             </div>
 
-            @* <!-- إحصائيات المتدرب -->
-            <div class="kpi-grid">
+             <!-- إحصائيات المتدرب -->
+            @* <div class="kpi-grid">
                 <div class="stat-card">
                     <h4>@SharedResource.EnrolledCourses</h4>
                     <div class="stat-value">@Model.Stats.EnrolledCourses</div>
@@ -44,7 +44,7 @@
                     <h4>@SharedResource.AttendanceRate</h4>
                     <div class="stat-value">@Model.Stats.AttendanceRate%</div>
                 </div>
-            </div> *@
+            </div>  *@
 
             <!-- المناسبات القادمة -->
             <div class="card">
@@ -112,6 +112,16 @@
                     }
                 </ul>
             </div>
+            <!-- الاختبارات -->
+            <div class="card">
+                <h3>My Exams</h3>
+                <p>View your upcoming and completed exams</p>
+                <a asp-controller="Exams" asp-action="MyExams" class="btn btn-outline-primary btn-sm">
+                    <i class="bi bi-journal-check"></i> My Exams
+                </a>
+            </div>
+
+
         </main>
     </div>
 

@@ -1,0 +1,71 @@
+﻿@model TrainingCenterManagement_MVC.Models.Exam
+
+@{
+    ViewData["Title"] = "Create Exam";
+}
+
+<div class="container mt-4">
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">Create New Exam</h4>
+        </div>
+        <div class="card-body">
+            <form asp-action="Create">
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                <div class="mb-3">
+                    <label asp-for="ExamName" class="form-label fw-bold"></label>
+                    <input asp-for="ExamName" class="form-control" placeholder="Enter exam name" />
+                    <span asp-validation-for="ExamName" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="ExamDate" class="form-label fw-bold"></label>
+                    <input asp-for="ExamDate" type="date" class="form-control" />
+                    <span asp-validation-for="ExamDate" class="text-danger"></span>
+                </div>
+
+                <div class="form-check mb-3">
+                    <input class="form-check-input" asp-for="IsDeleted" />
+                    <label class="form-check-label fw-bold" asp-for="IsDeleted"></label>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="CourseId" class="form-label fw-bold"></label>
+                    <select asp-for="CourseId" class="form-control select2" asp-items="ViewBag.CourseId">
+                        <option value="">-- Select Course --</option>
+                    </select>
+                    <span asp-validation-for="CourseId" class="text-danger"></span>
+                </div>
+
+                <div class="d-flex justify-content-between">
+                    <a asp-action="Index" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> Back to List
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-plus-circle"></i> Create
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <!-- إضافة مكتبة Select2 -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            $('.select2').select2({
+                placeholder: "Search or select a course",
+                allowClear: true
+            });
+        });
+    </script>
+}

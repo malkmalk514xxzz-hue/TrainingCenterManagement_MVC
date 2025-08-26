@@ -1,0 +1,59 @@
+﻿@model TrainingCenterManagement_MVC.Models.Exam
+
+@{
+    ViewData["Title"] = "Exam Details";
+}
+
+<div class="container mt-4">
+    <div class="card shadow-lg border-0 rounded-4">
+        <div class="card-header bg-primary text-white text-center rounded-top-4">
+            <h3 class="mb-0">📄 Exam Details</h3>
+        </div>
+        <div class="card-body">
+            <dl class="row mb-0">
+                <dt class="col-sm-3 fw-bold">
+                    @Html.DisplayNameFor(model => model.ExamName)
+                </dt>
+                <dd class="col-sm-9">
+                    @Html.DisplayFor(model => model.ExamName)
+                </dd>
+
+                <dt class="col-sm-3 fw-bold">
+                    @Html.DisplayNameFor(model => model.ExamDate)
+                </dt>
+                <dd class="col-sm-9">
+                    @Html.DisplayFor(model => model.ExamDate)
+                </dd>
+
+                <dt class="col-sm-3 fw-bold">
+                    @Html.DisplayNameFor(model => model.IsDeleted)
+                </dt>
+                <dd class="col-sm-9">
+                    @if (Model.IsDeleted)
+                    {
+                        <span class="badge bg-danger">Deleted</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-success">Active</span>
+                    }
+                </dd>
+
+                <dt class="col-sm-3 fw-bold">
+                    @Html.DisplayNameFor(model => model.Course)
+                </dt>
+                <dd class="col-sm-9">
+                    @Html.DisplayFor(model => model.Course.CourseName)
+                </dd>
+            </dl>
+        </div>
+        <div class="card-footer text-center bg-light rounded-bottom-4">
+            <a asp-action="Edit" asp-route-id="@Model?.ExamId" class="btn btn-warning me-2">
+                ✏ Edit
+            </a>
+            <a asp-action="Index" class="btn btn-secondary">
+                ⬅ Back to List
+            </a>
+        </div>
+    </div>
+</div>

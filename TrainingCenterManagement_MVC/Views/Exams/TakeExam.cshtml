@@ -1,0 +1,20 @@
+﻿@model TrainingCenterManagement_MVC.Models.Exam
+
+@{
+    ViewData["Title"] = "Take Exam";
+}
+
+<h1 class="mb-4">📝 Take Exam</h1>
+
+<div class="card p-4">
+    <h4>@Model.ExamName</h4>
+    <p><strong>Course:</strong> @Model.Course.CourseName</p>
+    <p><strong>Date:</strong> @Model.ExamDate.ToString("dd/MM/yyyy")</p>
+
+    <div class="alert alert-warning">
+        <strong>Note:</strong> This is just a placeholder for starting the exam process.
+    </div>
+
+    <a asp-action="MyExams" class="btn btn-secondary">Back to My Exams</a>
+    <button class="btn btn-success">Start Now</button>
+</div>
