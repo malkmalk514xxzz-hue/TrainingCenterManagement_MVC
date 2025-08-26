@@ -158,6 +158,9 @@
                     <button id="courses-btn" class="tab-btn" data-tab="courses">@SharedResource.Tab_Courses</button>
                     <button id="students-btn" class="tab-btn" data-tab="students">@SharedResource.Tab_Students</button>
                     <button id="revenue-btn" class="tab-btn" data-tab="revenue">@SharedResource.Tab_Revenue</button>
+                    <button id="featured-courses-btn" class="tab-btn" data-tab="featured-courses" 
+                        onclick="window.location.href='@Url.Action("ManageFeaturedCourses", "Admin")'">
+                        @SharedResource.FeaturedCourses</button>
                 </div>
                 <div class="tab-content active" id="overview">
                     <div class="card">
@@ -211,6 +214,34 @@
                         </div>
                     </div>
                 </div>
+                <div class="tab-content" id="featured-courses">
+    <div class="card">
+        <div class="card-header">
+            <h3>Manage Featured Courses</h3>
+            <p>Select courses to display on the home page.</p>
+        </div>
+        <div class="card-content">
+            <div class="loader" id="featured-courses-loader"></div>
+            <form id="featured-courses-form" asp-action="UpdateFeaturedCourses" asp-controller="Admin" method="post"> <!-- افترض كونترولر AdminController -->
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Select</th>
+                            <th>Course Name</th>
+                            <th>Description</th>
+                            <th>Duration (Weeks)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="courses-list">
+                        <!-- سيتم ملء هذا عبر JavaScript أو Razor -->
+                    </tbody>
+                </table>
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+            </form>
+            <p class="error-message" id="featured-courses-error" style="display: none; color: red;">Error loading data.</p>
+        </div>
+    </div>
+</div>
             </div>
         </main>
     </div>

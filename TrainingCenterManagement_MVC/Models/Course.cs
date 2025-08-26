@@ -41,7 +41,7 @@ namespace TrainingCenterManagement_MVC.Models
         // Admin who created the course
         public Guid AdminId { get; set; }
         public Admin Admin { get; set; }
-
+        public bool IsFeatured { get; set; } = false;
         public ICollection<CourseTrainee> CourseTrainees { get; set; } = new List<CourseTrainee>();
         public ICollection<CourseTrainer> CourseTrainers { get; set; } = new List<CourseTrainer>();
         public ICollection<Lecture> Lectures { get; set; } = new List<Lecture>();

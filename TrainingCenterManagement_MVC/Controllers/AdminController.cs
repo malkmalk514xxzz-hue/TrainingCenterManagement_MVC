@@ -203,6 +203,50 @@ namespace TrainingCenterManagement_MVC.Controllers
                 PageOrientation = Rotativa.AspNetCore.Options.Orientation.Portrait
             };
         }
+        [Authorize(Roles = "Admin")]
+        [HttpGet]
+        public async Task<IActionResult> ManageFeaturedCourses()
+        {
+            var courses = await _context.Courses
+                .Select(c => new CourseViewModel
+                {
+                    CourseId = c.CourseId,
+                    CourseName = c.CourseName,
+                    Description = c.Description,
+                   
+                    IsFeatured = c.IsFeatured
+                })
+                .ToListAsync();
+
+            var model = new FeaturedCoursesViewModel
+            {
+                Courses = courses
+            };
+
+            return View(model);
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ManageFeaturedCourses(FeaturedCoursesViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            var allCourses = await _context.Courses.ToListAsync();
+            foreach (var course in allCourses)
+            {
+
+                course.IsFeatured = model.Courses.Any(c => c.CourseId == course.CourseId && c.IsFeatured);
+            }
+
+            await _context.SaveChangesAsync();
+            TempData["SuccessMessage"] = SharedResource.FeaturedCourses;
+            return RedirectToAction("Dashboard");
+        }
 
 
     }

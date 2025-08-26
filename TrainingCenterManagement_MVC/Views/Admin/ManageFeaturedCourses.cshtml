@@ -1,0 +1,106 @@
+﻿
+@using TrainingCenterManagement_MVC.Resources
+@using TrainingCenterManagement_MVC.ViewModels
+@model FeaturedCoursesViewModel
+
+@{
+    ViewData["Title"] = SharedResource.ManageFeaturedCourses;
+}
+
+<div class="dashboard-wrapper">
+    @await Html.PartialAsync("_AdminSidebar")
+
+    <main class="dashboard-main" style="padding: 20px;">
+        <div class="dashboard-header">
+            <h1>@SharedResource.ManageFeaturedCourses</h1>
+            <p>@SharedResource.SelectCoursesForHomePage</p>
+        </div>
+
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success" role="alert">
+                @TempData["SuccessMessage"]
+            </div>
+        }
+
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger" role="alert">
+                @TempData["ErrorMessage"]
+            </div>
+        }
+
+        <div class="card">
+            <div class="card-content">
+                @if (Model.Courses.Any())
+                {
+                    <form asp-action="ManageFeaturedCourses" asp-controller="Admin" method="post">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>@SharedResource.Select</th>
+                                    <th>@SharedResource.CourseName</th>
+                                    <th>@SharedResource.Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @for (int i = 0; i < Model.Courses.Count; i++)
+                                {
+                                    <tr>
+                                        <td>
+                                            <input type="hidden" asp-for="Courses[i].CourseId" />
+                                            <input type="checkbox" asp-for="Courses[i].IsFeatured" class="featured-checkbox" />
+                                        </td>
+                                        <td>@Model.Courses[i].CourseName</td>
+                                        <td>@Model.Courses[i].Description</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                        <button type="submit" class="btn btn-primary">@SharedResource.SaveChanges</button>
+                        <a href="@Url.Action("Dashboard", "Admin")" class="btn btn-secondary">@SharedResource.cancel</a>
+                    </form>
+                }
+                else
+                {
+                    <p>@SharedResource.NoCoursesAvailable</p>
+                }
+            </div>
+        </div>
+    </main>
+</div>
+
+<style>
+    .dashboard-wrapper {
+        display: flex;
+        direction: @((System.Threading.Thread.CurrentThread.CurrentUICulture.TextInfo.IsRightToLeft ? "rtl" : "ltr"));
+    }
+
+    .dashboard-main {
+        flex-grow: 1;
+    }
+
+    .card {
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+    }
+</style>
+
+<script>
+    document.querySelector('form').addEventListener('submit', function (e) {
+        const checkedCount = document.querySelectorAll('.featured-checkbox:checked').length;
+        if (checkedCount > 3) {
+            e.preventDefault();
+            alert('MaxFeaturedCoursesExceeded');
+        } else if (checkedCount === 0) {
+            e.preventDefault();
+            alert('NoCoursesSelected');
+        } else {
+            if (!confirm('ConfirmSaveChanges')) {
+                e.preventDefault();
+            }
+        }
+    });
+</script>

@@ -736,6 +736,15 @@ namespace TrainingCenterManagement_MVC.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Course Name.
+        /// </summary>
+        internal static string CourseName {
+            get {
+                return ResourceManager.GetString("CourseName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Courses.
         /// </summary>
         internal static string Courses {
@@ -1465,6 +1474,15 @@ namespace TrainingCenterManagement_MVC.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Featured Courses.
+        /// </summary>
+        internal static string FeaturedCourses {
+            get {
+                return ResourceManager.GetString("FeaturedCourses", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Photo uploads for each dish.
         /// </summary>
         internal static string featureMenuItem1 {
@@ -2028,6 +2046,15 @@ namespace TrainingCenterManagement_MVC.Resources {
         internal static string manage_payment_methods {
             get {
                 return ResourceManager.GetString("manage_payment_methods", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Manage Featured Courses.
+        /// </summary>
+        internal static string ManageFeaturedCourses {
+            get {
+                return ResourceManager.GetString("ManageFeaturedCourses", resourceCulture);
             }
         }
         
@@ -2617,6 +2644,15 @@ namespace TrainingCenterManagement_MVC.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Save Changes.
+        /// </summary>
+        internal static string SaveChanges {
+            get {
+                return ResourceManager.GetString("SaveChanges", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Say goodbye to repetitive printing and save your establishment the periodic costs of lists..
         /// </summary>
         internal static string sayGoodbye {
@@ -2671,6 +2707,15 @@ namespace TrainingCenterManagement_MVC.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Select.
+        /// </summary>
+        internal static string Select {
+            get {
+                return ResourceManager.GetString("Select", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Select a type.
         /// </summary>
         internal static string select_type {
@@ -2694,6 +2739,15 @@ namespace TrainingCenterManagement_MVC.Resources {
         internal static string SelectCourseError {
             get {
                 return ResourceManager.GetString("SelectCourseError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Select Courses For HomePage.
+        /// </summary>
+        internal static string SelectCoursesForHomePage {
+            get {
+                return ResourceManager.GetString("SelectCoursesForHomePage", resourceCulture);
             }
         }
         
@@ -3202,7 +3256,7 @@ namespace TrainingCenterManagement_MVC.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Mario Silva.
+        ///   Looks up a localized string similar to Samer AlSamer.
         /// </summary>
         internal static string TestimonialAuthor1 {
             get {
@@ -3211,7 +3265,7 @@ namespace TrainingCenterManagement_MVC.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Petey Cruz.
+        ///   Looks up a localized string similar to Doha AlAhmad.
         /// </summary>
         internal static string TestimonialAuthor2 {
             get {
@@ -3220,7 +3274,7 @@ namespace TrainingCenterManagement_MVC.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Ana Souza.
+        ///   Looks up a localized string similar to Nour AlAhmad.
         /// </summary>
         internal static string TestimonialAuthor3 {
             get {

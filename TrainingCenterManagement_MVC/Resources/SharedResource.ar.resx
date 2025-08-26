@@ -1204,19 +1204,19 @@
     <value>مركزنا التعليمي</value>
   </data>
   <data name="TestimonialAuthor1" xml:space="preserve">
-    <value>ماريو سيلفا</value>
+    <value>سامر السامر</value>
   </data>
   <data name="Testimonial2" xml:space="preserve">
     <value>المشاريع والتحديات العملية في @SharedResource.TrainingCenter أعدتني للنجاح. كانت تجربة رائعة!</value>
   </data>
   <data name="TestimonialAuthor2" xml:space="preserve">
-    <value>بيتي كروز</value>
+    <value>ضحى الاحمد</value>
   </data>
   <data name="Testimonial3" xml:space="preserve">
     <value>لقد تطورت كثيرًا كمتعلم. المجتمع الداعم والمدرسون المهرة في @SharedResource.TrainingCenter صنعوا الفارق.</value>
   </data>
   <data name="TestimonialAuthor3" xml:space="preserve">
-    <value>آنا سوزا</value>
+    <value>نور الاحمد</value>
   </data>
   <data name="Testimonial4" xml:space="preserve">
     <value>إنه ليس مجرد مركز – إنه شبكة من المتعلمين. @SharedResource.TrainingCenter هو المكان الذي يزدهر فيه الابتكار والتعلم!</value>
@@ -1262,5 +1262,23 @@
   </data>
   <data name="Growth_PlatformDescription" xml:space="preserve">
     <value>انضم إلى منصة تعليمية تحويلية مصممة لتمكين نموك الأكاديمي والمهني.</value>
+  </data>
+  <data name="FeaturedCourses" xml:space="preserve">
+    <value>الكورسات المفضلة </value>
+  </data>
+  <data name="ManageFeaturedCourses" xml:space="preserve">
+    <value>إدارة الدورات المميزة</value>
+  </data>
+  <data name="SelectCoursesForHomePage" xml:space="preserve">
+    <value>اختر الدورات للصفحة الرئيسية</value>
+  </data>
+  <data name="Select" xml:space="preserve">
+    <value>اختر</value>
+  </data>
+  <data name="CourseName" xml:space="preserve">
+    <value>اسم الدورة</value>
+  </data>
+  <data name="SaveChanges" xml:space="preserve">
+    <value>احفظ</value>
   </data>
 </root>

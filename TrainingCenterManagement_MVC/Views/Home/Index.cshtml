@@ -1,5 +1,7 @@
 ﻿@using System.Globalization
 @using TrainingCenterManagement_MVC.Resources
+@using TrainingCenterManagement_MVC.ViewModels
+@model HomeViewModel
 <head>
  
     
@@ -397,7 +399,7 @@ c5.5,0,9.9,4.5,9.9,9.9V73.3z"></path>
                 <h3 class="title-style">@SharedResource.FindRightCourse</h3>
             </div>
             <div class="row justify-content-center">
-                @if (false)
+                @if (Model.Courses.Any())
                 {
                     foreach (var course in Model.Courses)
                     {
@@ -406,19 +408,19 @@ c5.5,0,9.9,4.5,9.9,9.9V73.3z"></path>
                                 <div class="grids5-info position-relative">
                                     <img src="@Url.Content("~/images/classrom.jpg")" alt="Course Image" class="img-fluid" />
                                     <div class="meta-list">
-                                        <span class="text-muted">@course.Name</span>
+                                        <span class="text-muted">@course.CourseName</span>
                                     </div>
                                 </div>
                                 <div class="content-main-top">
                                     <div class="content-top mb-4 mt-3">
                                         <ul class="list-unstyled d-flex align-items-center justify-content-between">
-                                            <li><i class="fas fa-clock"></i> @course.Duration @SharedResource.Weeks</li>
+                                            <li><i class="fas fa-clock"></i> @course.Description @SharedResource.Weeks</li>
                                         </ul>
                                     </div>
-                                    <h4><span class="text-muted">@course.Name</span></h4>
+                                    <h4><span class="text-muted">@course.CreatedDate</span></h4>
                                     <p>@course.Description</p>
                                     <div class="top-content-border d-flex align-items-center justify-content-between mt-4 pt-4">
-                                        <h6>@SharedResource.Free</h6>
+                                        <h6>@course.Price</h6>
                                         <span class="btn btn-style-primary disabled">@SharedResource.KnowDetails <i class="fas fa-arrow-right"></i></span>
                                     </div>
                                 </div>

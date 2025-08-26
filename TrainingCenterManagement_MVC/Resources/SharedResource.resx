@@ -1213,19 +1213,19 @@
     <value>TrainingCenter </value>
   </data>
   <data name="TestimonialAuthor1" xml:space="preserve">
-    <value>Mario Silva</value>
+    <value>Samer AlSamer</value>
   </data>
   <data name="Testimonial2" xml:space="preserve">
     <value>The projects and real-world challenges at @SharedResource.TrainingCenter prepared me for success. It’s been a phenomenal experience!</value>
   </data>
   <data name="TestimonialAuthor2" xml:space="preserve">
-    <value>Petey Cruz</value>
+    <value>Doha AlAhmad</value>
   </data>
   <data name="Testimonial3" xml:space="preserve">
     <value>I’ve grown so much as a learner. The supportive community and skilled mentors at @SharedResource.TrainingCenter made all the difference.</value>
   </data>
   <data name="TestimonialAuthor3" xml:space="preserve">
-    <value>Ana Souza</value>
+    <value>Nour AlAhmad</value>
   </data>
   <data name="Testimonial4" xml:space="preserve">
     <value>It’s not just a center – it’s a network of learners. @SharedResource.TrainingCenter is where innovation and learning thrive!</value>
@@ -1271,5 +1271,23 @@
   </data>
   <data name="Growth_PlatformDescription" xml:space="preserve">
     <value>Join a transformative learning platform designed to empower your academic and professional growth.</value>
+  </data>
+  <data name="FeaturedCourses" xml:space="preserve">
+    <value>Featured Courses</value>
+  </data>
+  <data name="ManageFeaturedCourses" xml:space="preserve">
+    <value>Manage Featured Courses</value>
+  </data>
+  <data name="SelectCoursesForHomePage" xml:space="preserve">
+    <value>Select Courses For HomePage</value>
+  </data>
+  <data name="Select" xml:space="preserve">
+    <value>Select</value>
+  </data>
+  <data name="CourseName" xml:space="preserve">
+    <value>Course Name</value>
+  </data>
+  <data name="SaveChanges" xml:space="preserve">
+    <value>Save Changes</value>
   </data>
 </root>
