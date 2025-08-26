@@ -35,52 +35,6 @@ namespace TrainingCenterManagement_MVC.Data
             await CreateUserIfNotExists("trainee@site.com", "Trainee123!", "Trainee User", RoleType.Trainee);
             await CreateUserIfNotExists("reception@site.com", "Reception123!", "Receptionist User", RoleType.Receptionist);
 
-            // ✅ إضافة بيانات افتراضية لـ Course
-            if (!_context.Courses.Any())
-            {
-                var admin = await _context.Admins
-                    .Include(a => a.User)
-                    .FirstOrDefaultAsync(a => a.User.Email == "admin@site.com");
-                if (admin == null)
-                {
-                    var adminUser = await _userManager.FindByEmailAsync("admin@site.com");
-                    admin = new Admin { UserId = adminUser.Id, User = adminUser };
-                    _context.Admins.Add(admin);
-                    await _context.SaveChangesAsync();
-                }
-
-                var courses = new List<Course>
-                {
-                    new Course
-                    {
-                        CourseName = "Python Basics",
-                        BatchNumber = 1,
-                        NumberOfLectures = 10,
-                        Price = 500,
-                        Description = "An introductory course to Python programming.",
-                        VideoUrl = "https://example.com/python-video",
-                        ThumbnailUrl = "https://example.com/python-thumbnail",
-                        ReleaseDate = DateTime.UtcNow,
-                        AdminId = admin.AdminId,
-                        CreatedDate = DateTime.UtcNow
-                    },
-                    new Course
-                    {
-                        CourseName = "Web Development",
-                        BatchNumber = 2,
-                        NumberOfLectures = 15,
-                        Price = 750,
-                        Description = "A comprehensive course on web development.",
-                        VideoUrl = "https://example.com/web-video",
-                        ThumbnailUrl = "https://example.com/web-thumbnail",
-                        ReleaseDate = DateTime.UtcNow,
-                        AdminId = admin.AdminId,
-                        CreatedDate = DateTime.UtcNow
-                    }
-                };
-                _context.Courses.AddRange(courses);
-                await _context.SaveChangesAsync();
-            }
 
             // ✅ ربط المستخدمين بالكورسات
             var trainee = await _context.Trainees
