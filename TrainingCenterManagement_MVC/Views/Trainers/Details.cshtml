@@ -11,7 +11,7 @@
     <hr />
     <dl class="row">
         <dt class="col-sm-3">@Html.DisplayNameFor(model => model.User)</dt>
-        <dd class="col-sm-9">@Html.DisplayFor(model => model.User.Id)</dd>
+        <dd class="col-sm-9">@Html.DisplayFor(model => model.User.FullName)</dd>
 
         <dt class="col-sm-3">@Html.DisplayNameFor(model => model.Specialty)</dt>
         <dd class="col-sm-9">@Html.DisplayFor(model => model.Specialty)</dd>
@@ -33,7 +33,14 @@
     </dl>
 </div>
 
-<div>
+<div class="mb-3">
     <a asp-action="Edit" asp-route-id="@Model.TrainerId" class="btn btn-primary me-2">Edit</a>
     <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+</div>
+
+<hr />
+<h4>Trainer Actions</h4>
+<div class="d-flex flex-wrap gap-2">
+    <a asp-action="MyCourses" class="btn btn-outline-primary">My Courses</a>
+    <a asp-action="MyCoursesAttendance" class="btn btn-outline-success">View Attendance</a>
 </div>

@@ -23,7 +23,7 @@ namespace TrainingCenterManagement_MVC.Controllers
         }
 
         // GET: Trainers
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin,Trainer")]
 
         public async Task<IActionResult> Index()
         {
@@ -32,7 +32,7 @@ namespace TrainingCenterManagement_MVC.Controllers
         }
 
         // GET: Trainers/Details/5
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin,Trainer")]
 
         public async Task<IActionResult> Details(Guid? id)
         {
@@ -54,7 +54,6 @@ namespace TrainingCenterManagement_MVC.Controllers
 
         // GET: Trainers/Create
         [Authorize(Roles = "Admin")]
-
         public IActionResult Create()
         {
             ViewData["UserId"] = new SelectList(_context.Users, "Id", "Id");
@@ -62,24 +61,21 @@ namespace TrainingCenterManagement_MVC.Controllers
         }
 
         // POST: Trainers/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Admin")]
-
-        public async Task<IActionResult> Create([Bind("TrainerId,UserId,Specialty,YearsOfExperience,BusinessLink")] Trainer trainer)
+        public async Task<IActionResult> Create([Bind("UserId,Specialty,YearsOfExperience,BusinessLink")] Trainer trainer)
         {
-            if (ModelState.IsValid)
-            {
-                trainer.TrainerId = Guid.NewGuid();
-                _context.Add(trainer);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
-            }
+           
+            trainer.TrainerId = Guid.NewGuid(); // يُولّد تلقائيًا
+            _context.Add(trainer);
+            await _context.SaveChangesAsync();
             ViewData["UserId"] = new SelectList(_context.Users, "Id", "Id", trainer.UserId);
-            return View(trainer);
+            return RedirectToAction(nameof(Index));
+            
+
         }
+
 
         // GET: Trainers/Edit/5
         [Authorize(Roles = "Admin")]
@@ -114,8 +110,6 @@ namespace TrainingCenterManagement_MVC.Controllers
                 return NotFound();
             }
 
-            if (ModelState.IsValid)
-            {
                 try
                 {
                     _context.Update(trainer);
@@ -132,10 +126,10 @@ namespace TrainingCenterManagement_MVC.Controllers
                         throw;
                     }
                 }
-                return RedirectToAction(nameof(Index));
-            }
             ViewData["UserId"] = new SelectList(_context.Users, "Id", "Id", trainer.UserId);
-            return View(trainer);
+            return RedirectToAction(nameof(Index));
+            
+           
         }
 
         // GET: Trainers/Delete/5
@@ -180,7 +174,7 @@ namespace TrainingCenterManagement_MVC.Controllers
         {
             return _context.Trainers.Any(e => e.TrainerId == id);
         }
-        [Authorize(Roles = "Trainer")]
+        [Authorize(Roles = "Trainer,Admin")]
         public async Task<IActionResult> MyCoursesAttendance()
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
