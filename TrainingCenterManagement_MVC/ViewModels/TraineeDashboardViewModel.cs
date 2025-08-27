@@ -18,6 +18,7 @@ namespace TrainingCenterManagement_MVC.ViewModels
         public List<UpcomingEvent> UpcomingEvents { get; set; } = new List<UpcomingEvent>();
         public List<CertificateViewModel> Certificates { get; set; } = new List<CertificateViewModel>();
         public Guid TraineeId { get; set; }
+        public List<Notification> Notifications { get; set; } = new List<Notification>();
     }
 
     public class DashboardStats

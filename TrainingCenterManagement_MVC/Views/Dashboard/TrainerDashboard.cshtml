@@ -58,7 +58,7 @@
             </div>
 
             <!-- الإشعارات -->
-            <div class="card">
+            @* <div class="card">
                 <h3>الإشعارات</h3>
                 <ul class="notification-list">
                     @foreach (var notif in Model.Notifications)
@@ -66,7 +66,7 @@
                         <li>@notif.Message - @notif.Time.ToString("MMM dd, yyyy HH:mm")</li>
                     }
                 </ul>
-            </div>
+            </div> *@
 
             <!-- التبويبات -->
             <div class="tabs">
@@ -77,7 +77,7 @@
                 <button id="analytics-btn" class="tab-btn">التحليلات والتقارير</button>
                 <!-- <button id="resources-btn" class="tab-btn">الموارد</button> -->
                 <button id="courses-btn" class="tab-btn">الدورات الحالية</button>
-                <button id="recommended-btn" class="tab-btn">الدورات الموصى بها</button>
+               @*  <button id="recommended-btn" class="tab-btn">الدورات الموصى بها</button> *@
                 <button id="certificates-btn" class="tab-btn">الشهادات المصدرة</button>
             </div>
 
@@ -196,7 +196,7 @@
                 </ul>
             </div>
 
-            <div id="recommended" class="tab-content card">
+           @*  <div id="recommended" class="tab-content card">
                 <h3>الدورات الموصى بها</h3>
                 <div class="recommended-courses">
                     @foreach (var course in Model.RecommendedCourses)
@@ -208,7 +208,7 @@
                         </div>
                     }
                 </div>
-            </div>
+            </div> *@
 
             <div id="certificates" class="tab-content card">
                 <h3>الشهادات المصدرة</h3>
@@ -486,10 +486,10 @@
             window.location.href = `/Courses/Details/${id}`;
         }
 
-        function assignCourse(id) {
-            console.log(`تعيين الدورة ${id}`);
-            window.location.href = `/Courses/Assign/${id}`;
-        }
+        // function assignCourse(id) {
+        //     console.log(`تعيين الدورة ${id}`);
+        //     window.location.href = `/Courses/Assign/${id}`;
+        // }
 
         function viewCertificate(id) {
             console.log(`عرض الشهادة ${id}`);

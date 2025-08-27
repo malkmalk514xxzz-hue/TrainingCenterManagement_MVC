@@ -1,7 +1,9 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using DocumentFormat.OpenXml.InkML;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using NuGet.Protocol.Plugins;
 using Rotativa.AspNetCore;
 using System;
 using System.Collections.Generic;
@@ -10,6 +12,7 @@ using System.Threading.Tasks;
 using TrainingCenterManagement_MVC.Data;
 using TrainingCenterManagement_MVC.Models;
 using TrainingCenterManagement_MVC.ViewModels;
+
 
 namespace TrainingCenterManagement_MVC.Controllers
 {
@@ -276,6 +279,18 @@ namespace TrainingCenterManagement_MVC.Controllers
         public async Task<IActionResult> SendMessageToTrainee(string email, string message)
         {
             TempData["SuccessMessage"] = $"تم إرسال الرسالة إلى {email}";
+            var Receiver = await _context.Users.FirstOrDefaultAsync(u => u.UserName == email);
+            var sender = await _context.Receptionists.FirstOrDefaultAsync();
+            _context.Messages.Add(new TrainingCenterManagement_MVC.Models.Message()
+            {
+                Content = message,
+                ReceiverId = Receiver.Id,
+                SenderId = sender.UserId,
+                Timestamp = DateTime.Now,
+
+
+            });
+            await _context.SaveChangesAsync();
             return RedirectToAction(nameof(ContactTrainees));
         }
     }

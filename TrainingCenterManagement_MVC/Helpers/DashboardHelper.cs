@@ -306,7 +306,8 @@ namespace TrainingCenterManagement_MVC.Helpers
                 CurrentCourses = await GetCurrentCoursesAsync(_traineeId),
                 RecommendedCourses = await GetRecommendedCoursesAsync(_traineeId),
                 UpcomingEvents = await GetUpcomingEventsAsync(_traineeId),
-                Certificates = await GetCertificatesAsync(_traineeId)
+                Certificates = await GetCertificatesAsync(_traineeId),
+                Notifications =  await GetNotificationsAsync(_traineeId)
             };
 
             return viewModel;
@@ -523,7 +524,7 @@ namespace TrainingCenterManagement_MVC.Helpers
                 Certificates = await GetTrainerIssuedCertificatesCountAsync(trainerId),
                 UpcomingEvents = await GetTrainerUpcomingEventsCountAsync(trainerId)
             };
-
+            //model.Notifications = await GetTrainerNotificationsAsync(trainerId);
             model.CurrentCourses = await GetTrainerCurrentCoursesAsync(trainerId);
             model.RecommendedCourses = await GetTrainerRecommendedCoursesAsync(trainerId);
             model.UpcomingEvents = await GetTrainerUpcomingEventsAsync(trainerId);
@@ -548,6 +549,31 @@ namespace TrainingCenterManagement_MVC.Helpers
             return model;
         }
 
+        private async Task<List<Notification>> GetNotificationsAsync(Guid userid)
+        {
+            var reciver = await context.Trainees.FirstOrDefaultAsync(t => t.TraineeId == userid);
+            List < Notification > notifications = new List < Notification >();
+            if (reciver != null)
+            {
+                var receptionistUserIds = await context.Receptionists
+                    .Select(r => r.UserId)
+                    .ToListAsync();
+
+                var messages = await context.Messages
+                    .Where(m => m.ReceiverId == reciver.UserId
+                                && receptionistUserIds.Contains(m.SenderId))
+                    .ToListAsync();
+
+                 notifications = messages.Select(m => new Notification
+                {
+                    Message = m.Content,
+                    Time = m.Timestamp
+                }).ToList();
+
+                return notifications;
+            }
+            return notifications;
+        }
         private async Task<int> GetTrainerOverallProgressAsync(Guid trainerId)
         {
             var courseIds = await context.CourseTrainers
