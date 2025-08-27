@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Policy;
 using TrainingCenterManagement_MVC.Data;
 using TrainingCenterManagement_MVC.Models;
 
@@ -546,43 +547,44 @@ namespace TrainingCenterManagement_MVC.Data
             // ----------------------------------
 
             // مدرب: Fahd alhasan => Python Basics, Web Development
-            var fahd = trainers.FirstOrDefault(t => t.User.UserName == "fahdalhasanTrainer");
+            var fahd = trainers.FirstOrDefault(t => t.User.UserName == "fahdalhasanTrainer@gmail.com");
             var fahdCourses = new[] { "Python Basics", "Web Development" };
-
+            var trainer = trainers.FirstOrDefault(t => t.User.UserName == "trainer@site.com");
+            var trainerCourses = new[] { "Python Basics", "Web Development" };
             // مدرب: Ali Robinson => Advanced JavaScript
-            var ali = trainers.FirstOrDefault(t => t.User.UserName == "alirobinsonTrainer");
+            var ali = trainers.FirstOrDefault(t => t.User.UserName == "alirobinsonTrainer@gmail.com");
             var aliCourses = new[] { "Advanced JavaScript" };
 
             // مدرب: Salem ali => SQL and Databases, Cybersecurity Essentials
-            var salem = trainers.FirstOrDefault(t => t.User.UserName == "salemaliTrainer");
+            var salem = trainers.FirstOrDefault(t => t.User.UserName == "salemaliTrainer@gmail.com");
             var salemCourses = new[] { "SQL and Databases", "Cybersecurity Essentials" };
 
             // مدرب: Malek Aslan => Machine Learning Basics
-            var malek = trainers.FirstOrDefault(t => t.User.UserName == "malekaslanTrainer");
+            var malek = trainers.FirstOrDefault(t => t.User.UserName == "malekaslanTrainer@gmail.com");
             var malekCourses = new[] { "Machine Learning Basics" };
 
             // مدرب: Fras Mohammed => Docker & Kubernetes, Web Development
-            var fras = trainers.FirstOrDefault(t => t.User.UserName == "frasmohammedTrainer");
+            var fras = trainers.FirstOrDefault(t => t.User.UserName == "frasmohammedTrainer@gmail.com");
             var frasCourses = new[] { "Docker & Kubernetes", "Web Development" };
 
             // مدرب: Rghad Shoriqee => Cybersecurity Essentials
-            var rghad = trainers.FirstOrDefault(t => t.User.UserName == "rghadshoriqeeTrainer");
+            var rghad = trainers.FirstOrDefault(t => t.User.UserName == "rghadshoriqeeTrainer@gmail.com");
             var rghadCourses = new[] { "Cybersecurity Essentials" };
 
             // مدرب: Waled Raslan => Python Basics, Advanced JavaScript
-            var waled = trainers.FirstOrDefault(t => t.User.UserName == "waledraslanTrainer");
+            var waled = trainers.FirstOrDefault(t => t.User.UserName == "waledraslanTrainer@gmail.com");
             var waledCourses = new[] { "Python Basics", "Advanced JavaScript" };
 
             // مدرب: Marem Haj => SQL and Databases
-            var marem = trainers.FirstOrDefault(t => t.User.UserName == "maremhajTrainer");
+            var marem = trainers.FirstOrDefault(t => t.User.UserName == "maremhajTrainer@gmail.com");
             var maremCourses = new[] { "SQL and Databases" };
 
             // مدرب: Hasan Hassene => Machine Learning Basics, Docker & Kubernetes
-            var hasan = trainers.FirstOrDefault(t => t.User.UserName == "hasanhasseneTrainer");
+            var hasan = trainers.FirstOrDefault(t => t.User.UserName == "hasanhasseneTrainer@gmail.com");
             var hasanCourses = new[] { "Machine Learning Basics", "Docker & Kubernetes" };
 
             // مدرب: Sara Yosef => Web Development, Cybersecurity Essentials
-            var sara = trainers.FirstOrDefault(t => t.User.UserName == "sarayosefTrainer");
+            var sara = trainers.FirstOrDefault(t => t.User.UserName == "sarayosefTrainer@gmail.com");
             var saraCourses = new[] { "Web Development", "Cybersecurity Essentials" };
 
 
@@ -592,26 +594,27 @@ namespace TrainingCenterManagement_MVC.Data
 
             var traineesCourseMap = new Dictionary<string, string[]>
     {
-        { "AhmedKhaledTrainee", new[] { "Python Basics", "Web Development" } },
-        { "SaraMahmoudTrainee", new[] { "Advanced JavaScript", "SQL and Databases" } },
-        { "OmarHassanTrainee", new[] { "Cybersecurity Essentials", "Docker & Kubernetes" } },
-        { "LaylaFathiTrainee", new[] { "Machine Learning Basics", "Python Basics" } },
-        { "YoussefNabilTrainee", new[] { "Web Development", "Advanced JavaScript" } },
-        { "FatimaAdelTrainee", new[] { "SQL and Databases", "Cybersecurity Essentials" } },
-        { "KhalidMostafaTrainee", new[] { "Docker & Kubernetes", "Machine Learning Basics" } },
-        { "AminaTarekTrainee", new[] { "Python Basics", "Advanced JavaScript" } },
-        { "HassanAliTrainee", new[] { "Web Development", "SQL and Databases" } },
-        { "RanaSamirTrainee", new[] { "Cybersecurity Essentials", "Machine Learning Basics" } },
-        { "TariqZakiTrainee", new[] { "Docker & Kubernetes", "Python Basics" } },
-        { "NoorHatemTrainee", new[] { "Advanced JavaScript", "Web Development" } },
-        { "BilalSaeedTrainee", new[] { "SQL and Databases", "Docker & Kubernetes" } },
-        { "MariamKamalTrainee", new[] { "Machine Learning Basics", "Python Basics" } },
-        { "ZiadSalemTrainee", new[] { "Web Development", "Advanced JavaScript" } },
-        { "DinaYasserTrainee", new[] { "Cybersecurity Essentials", "SQL and Databases" } },
-        { "AliJamalTrainee", new[] { "Docker & Kubernetes", "Machine Learning Basics" } },
-        { "LamaHusseinTrainee", new[] { "Python Basics", "Web Development" } },
-        { "MustafaFaridTrainee", new[] { "Advanced JavaScript", "SQL and Databases" } },
-        { "HudaAnwarTrainee", new[] { "Cybersecurity Essentials", "Docker & Kubernetes" } }
+        { "AhmedKhaledTrainee@gmail.com", new[] { "Python Basics", "Web Development" } },
+        { "SaraMahmoudTrainee@gmail.com", new[] { "Advanced JavaScript", "SQL and Databases" } },
+        { "OmarHassanTrainee@gmail.com", new[] { "Cybersecurity Essentials", "Docker & Kubernetes" } },
+        { "LaylaFathiTrainee@gmail.com", new[] { "Machine Learning Basics", "Python Basics" } },
+        { "YoussefNabilTrainee@gmail.com", new[] { "Web Development", "Advanced JavaScript" } },
+        { "FatimaAdelTrainee@gmail.com", new[] { "SQL and Databases", "Cybersecurity Essentials" } },
+        { "KhalidMostafaTrainee@gmail.com", new[] { "Docker & Kubernetes", "Machine Learning Basics" } },
+        { "AminaTarekTrainee@gmail.com", new[] { "Python Basics", "Advanced JavaScript" } },
+        { "HassanAliTrainee@gmail.com", new[] { "Web Development", "SQL and Databases" } },
+        { "RanaSamirTrainee@gmail.com", new[] { "Cybersecurity Essentials", "Machine Learning Basics" } },
+        { "TariqZakiTrainee@gmail.com", new[] { "Docker & Kubernetes", "Python Basics" } },
+        { "NoorHatemTraineev@gmail.com", new[] { "Advanced JavaScript", "Web Development" } },
+        { "BilalSaeedTrainee@gmail.com", new[] { "SQL and Databases", "Docker & Kubernetes" } },
+        { "MariamKamalTrainee@gmail.com", new[] { "Machine Learning Basics", "Python Basics" } },
+        { "ZiadSalemTrainee@gmail.com", new[] { "Web Development", "Advanced JavaScript" } },
+        { "DinaYasserTrainee@gmail.com", new[] { "Cybersecurity Essentials", "SQL and Databases" } },
+        { "AliJamalTrainee@gmail.com", new[] { "Docker & Kubernetes", "Machine Learning Basics" } },
+        { "LamaHusseinTrainee@gmail.com", new[] { "Python Basics", "Web Development" } },
+        { "MustafaFaridTrainee@gmail.com", new[] { "Advanced JavaScript", "SQL and Databases" } },
+        { "HudaAnwarTrainee@gmail.com", new[] { "Cybersecurity Essentials", "Docker & Kubernetes" } },
+        { "trainee@site.com", new[] { "Cybersecurity Essentials", "Docker & Kubernetes" }}
     };
 
 
@@ -658,6 +661,7 @@ namespace TrainingCenterManagement_MVC.Data
 
             // ربط المدربين
             AddTrainerCourses(fahd, fahdCourses);
+            AddTrainerCourses(trainer, trainerCourses);
             AddTrainerCourses(ali, aliCourses);
             AddTrainerCourses(salem, salemCourses);
             AddTrainerCourses(malek, malekCourses);
@@ -696,8 +700,11 @@ namespace TrainingCenterManagement_MVC.Data
             Guid GetCourseId(string courseName) =>
                 courses.First(c => c.CourseName == courseName).CourseId;
 
-            Guid GetTraineeId(string userName) =>
-                trainees.First(t => t.User.UserName == userName).TraineeId;
+            Guid GetTraineeId(string userName) {
+                var email = $"{userName}@gmail.com";
+               return trainees.First(t => t.User.UserName == email).TraineeId;
+            }
+               
 
             var payments = new List<Payment>
     {
@@ -767,11 +774,14 @@ namespace TrainingCenterManagement_MVC.Data
             var lectures = await _context.Lectures.ToListAsync();
 
             Guid GetLectureId(string lectureTitle) =>
-                lectures.First(l => l.Title == lectureTitle).LectureId;
+                lectures.First(l => l.Title.Trim() == lectureTitle).LectureId;
 
-            Guid GetTraineeId(string userName) =>
-                trainees.First(t => t.User.UserName == userName).TraineeId;
-
+           
+            Guid GetTraineeId(string userName)
+            {
+                var email = $"{userName}@gmail.com";
+                return trainees.First(t => t.User.UserName == email).TraineeId;
+            }
             var presences = new List<Presence>
     {
         // Ahmed Khaled - Python Basics
@@ -810,7 +820,7 @@ namespace TrainingCenterManagement_MVC.Data
 
         // Layla Fathi - Python Basics
         new Presence { LectureId = GetLectureId("Control Flow: if/else"), TraineeId = GetTraineeId("LaylaFathiTrainee"), IsPresent = true },
-        new Presence { LectureId = GetLectureId("Object-Oriented Python: Classes"), TraineeId = GetTraineeId("LaylaFathiTrainee"), IsPresent = true },
+        new Presence { LectureId = GetLectureId("Object‑Oriented Python: Classes"), TraineeId = GetTraineeId("LaylaFathiTrainee"), IsPresent = true },
 
         // Youssef Nabil - Web Development
         new Presence { LectureId = GetLectureId("Responsive Design: Media Queries & Flexbox"), TraineeId = GetTraineeId("YoussefNabilTrainee"), IsPresent = true },

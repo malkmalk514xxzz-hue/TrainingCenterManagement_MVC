@@ -15,10 +15,10 @@
         <h5 class="card-title mb-4">Trainee Information</h5>
         <dl class="row text-start">
             <dt class="col-sm-4 fw-bold">Username</dt>
-            <dd class="col-sm-8">@Model.User?.UserName ?? "Not Available"</dd>
+            <dd class="col-sm-8">@Model.User?.UserName</dd>
 
             <dt class="col-sm-4 fw-bold">Email</dt>
-            <dd class="col-sm-8">@Model.User?.Email ?? "Not Available"</dd>
+            <dd class="col-sm-8">@Model.User?.Email</dd>
 
             <dt class="col-sm-4 fw-bold">Date of Birth</dt>
             <dd class="col-sm-8">@Model.User.BirthDate.ToShortDateString()</dd>

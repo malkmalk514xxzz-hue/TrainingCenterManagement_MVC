@@ -45,12 +45,12 @@
                 </div>
                 <div class="stat-card">
                     <h4>متوسط الحضور</h4>
-                    <div class="stat-value">@Model.KPIs.AverageAttendance%</div>
+                    <div class="stat-value">@Model.KPIs.AverageAttendance.ToString("F2")%</div>
                 </div>
-                <div class="stat-card">
+                @* <div class="stat-card">
                     <h4>المهام غير المصححة</h4>
                     <div class="stat-value">@Model.KPIs.UngradedAssignments</div>
-                </div>
+                </div> *@
                 <div class="stat-card">
                     <h4>متوسط التقييم</h4>
                     <div class="stat-value">@Model.KPIs.AverageRating</div>

@@ -67,7 +67,7 @@
     <div class="sidebar-header">
         <div class="logo">
             <a href="/">
-                <span class="logo-text">TableTap</span>
+                <span class="logo-text">@SharedResource.TrainersControll</span>
             </a>
         </div>
         <button class="sidebar-toggle" aria-label="Toggle Sidebar">
@@ -77,7 +77,7 @@
     <nav class="sidebar-nav">
         <ul>
             <li class="@(currentPage == "dashboard" ? "active" : "")">
-                <a asp-action="Dashboard" asp-controller="Admin">
+                <a asp-action="AdminDashboard" asp-controller="Dashboard">
                     <i class="fas fa-home"></i>
                     <span>@SharedResource.Dashboard</span>
                 </a>
@@ -107,12 +107,12 @@
                     <span>@SharedResource.PaymentRequests</span>
                 </a>
             </li>
-            <li class="@(currentPage == "Presences" ? "active" : "")">
+            @* <li class="@(currentPage == "Presences" ? "active" : "")">
                 <a asp-action="Index" asp-controller="Presences">
                     <i class="fas fa-chart-bar"></i>
                     <span>@SharedResource.PresencesControll</span>
                 </a>
-            </li>
+            </li> *@
             <li class="@(currentPage == "Receptionists" ? "active" : "")">
                 <a asp-action="Index" asp-controller="Receptionists">
                     <i class="fas fa-globe"></i>

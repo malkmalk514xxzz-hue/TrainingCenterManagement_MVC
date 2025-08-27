@@ -2842,7 +2842,7 @@ namespace TrainingCenterManagement_MVC.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Active Institutes.
+        ///   Looks up a localized string similar to Active trsiner.
         /// </summary>
         internal static string Stat_ActiveInstitutes {
             get {
