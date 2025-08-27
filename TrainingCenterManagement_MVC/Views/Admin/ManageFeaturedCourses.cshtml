@@ -6,7 +6,28 @@
 @{
     ViewData["Title"] = SharedResource.ManageFeaturedCourses;
 }
+<style>
+   
+    .featured-checkbox {
+        appearance: checkbox !important; /* استعادة المظهر الافتراضي */
+        -webkit-appearance: checkbox !important; /* لـ Chrome وSafari */
+        -moz-appearance: checkbox !important; /* لـ Firefox */
+        width: auto !important;
+        height: auto !important;
+        background: none !important;
+        border: initial !important; /* إعادة ضبط الحدود */
+    }
 
+        .featured-checkbox:checked {
+            background: none !important; /* التأكد من أن الحالة المحددة لا تستخدم خلفية مخصصة */
+        }
+    .card {
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+    }
+</style>
 <div class="dashboard-wrapper">
     @await Html.PartialAsync("_AdminSidebar")
 
@@ -70,34 +91,75 @@
     </main>
 </div>
 
-<style>
-    .dashboard-wrapper {
-        display: flex;
-        direction: @((System.Threading.Thread.CurrentThread.CurrentUICulture.TextInfo.IsRightToLeft ? "rtl" : "ltr"));
-    }
 
-    .dashboard-main {
-        flex-grow: 1;
-    }
-
-    .card {
-        background: #fff;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        padding: 20px;
-    }
-</style>
 
 <script>
+    document.querySelectorAll('.featured-checkbox').forEach(checkbox => {
+        checkbox.addEventListener('change', function(e) {
+            e.stopImmediatePropagation(); // منع أي تداخل من مكتبات أخرى
+            const checkedCount = document.querySelectorAll('.featured-checkbox:checked').length;
+            if (checkedCount > 3) {
+                this.checked = false;
+                alert('MaxFeaturedCoursesExceeded');
+            }
+        }, true); // capturing phase للتجاوز
+    });
+
     document.querySelector('form').addEventListener('submit', function (e) {
         const checkedCount = document.querySelectorAll('.featured-checkbox:checked').length;
+        const errorMessage = document.getElementById('error-message') || document.createElement('div');
+        errorMessage.id = 'error-message';
+        errorMessage.className = 'alert alert-danger';
+        errorMessage.style.display = 'none';
+        this.prepend(errorMessage);
+
         if (checkedCount > 3) {
             e.preventDefault();
-            alert('MaxFeaturedCoursesExceeded');
+            errorMessage.textContent = 'MaxFeaturedCoursesExceeded';
+            errorMessage.style.display = 'block';
         } else if (checkedCount === 0) {
             e.preventDefault();
-            alert('NoCoursesSelected');
+            errorMessage.textContent = 'NoCoursesSelected';
+            errorMessage.style.display = 'block';
         } else {
+            errorMessage.style.display = 'none';
+            if (!confirm('ConfirmSaveChanges')) {
+                e.preventDefault();
+            }
+        }
+    });
+</script>
+<script>
+    // تجاوز أي سلوك حصري
+    document.querySelectorAll('.featured-checkbox').forEach(checkbox => {
+        checkbox.addEventListener('change', function(e) {
+            e.stopImmediatePropagation(); // منع التداخل من مكتبات أخرى
+            const checkedCount = document.querySelectorAll('.featured-checkbox:checked').length;
+            if (checkedCount > 3) {
+                this.checked = false;
+                alert('MaxFeaturedCoursesExceeded');
+            }
+        }, true); // مرحلة التقاط للتجاوز
+    });
+
+    document.querySelector('form').addEventListener('submit', function (e) {
+        const checkedCount = document.querySelectorAll('.featured-checkbox:checked').length;
+        const errorMessage = document.getElementById('error-message') || document.createElement('div');
+        errorMessage.id = 'error-message';
+        errorMessage.className = 'alert alert-danger';
+        errorMessage.style.display = 'none';
+        this.prepend(errorMessage);
+
+        if (checkedCount > 3) {
+            e.preventDefault();
+            errorMessage.textContent = 'MaxFeaturedCoursesExceeded';
+            errorMessage.style.display = 'block';
+        } else if (checkedCount === 0) {
+            e.preventDefault();
+            errorMessage.textContent = 'NoCoursesSelected';
+            errorMessage.style.display = 'block';
+        } else {
+            errorMessage.style.display = 'none';
             if (!confirm('ConfirmSaveChanges')) {
                 e.preventDefault();
             }
