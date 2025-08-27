@@ -236,14 +236,14 @@ namespace TrainingCenterManagement_MVC.Controllers
 
 
         // Displays the password reset page
-        [Authorize(Roles = "Receptionist,Admin")]
+        [Authorize(Roles = "Admin, Trainer, Trainee, Receptionist")]
         public IActionResult ResetPassword(string token)
         {
             return View();
         }
 
         // Processes the password reset request
-        [Authorize(Roles = "Receptionist,Admin")]
+        [Authorize(Roles = "Admin, Trainer, Trainee, Receptionist")]
         [HttpPost]
 
         public async Task<IActionResult> ResetPassword(ResetPasswordViewModel model)

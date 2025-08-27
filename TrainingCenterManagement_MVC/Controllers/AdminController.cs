@@ -244,7 +244,7 @@ namespace TrainingCenterManagement_MVC.Controllers
             }
 
             await _context.SaveChangesAsync();
-            //TempData["SuccessMessage"] = SharedResource.FeaturedCourses;
+            TempData["SuccessMessage"] = SharedResource.FeaturedCourses;
             return RedirectToAction("AdminDashboard", "Dashboard");
         }
 
