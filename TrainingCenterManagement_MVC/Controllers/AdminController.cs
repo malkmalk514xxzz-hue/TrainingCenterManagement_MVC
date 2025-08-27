@@ -240,12 +240,12 @@ namespace TrainingCenterManagement_MVC.Controllers
             foreach (var course in allCourses)
             {
 
-                course.IsFeatured = model.Courses.Any(c => c.CourseId == course.CourseId && c.IsFeatured);
+                course.IsFeatured = model.Courses.FirstOrDefault(c => c.CourseId == course.CourseId).IsFeatured;
             }
 
             await _context.SaveChangesAsync();
-            TempData["SuccessMessage"] = SharedResource.FeaturedCourses;
-            return RedirectToAction("Dashboard");
+            //TempData["SuccessMessage"] = SharedResource.FeaturedCourses;
+            return RedirectToAction("AdminDashboard", "Dashboard");
         }
 
 
