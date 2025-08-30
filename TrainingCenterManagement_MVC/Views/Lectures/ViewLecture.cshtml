@@ -1,4 +1,4 @@
-﻿@model TrainingCenterManagement_MVC.Models.Lecture
+﻿@* @model TrainingCenterManagement_MVC.Models.Lecture
 
 @{
     ViewData["Title"] = "View Lecture";
@@ -101,3 +101,358 @@ else
 }
 
 <a asp-action="MarkAttendance" asp-route-id="@Model.LectureId" class="btn btn-warning mt-3">Mark Attendance</a>
+ *@
+
+
+
+
+@model TrainingCenterManagement_MVC.Models.Lecture
+
+@{
+    ViewData["Title"] = "View Lecture";
+
+    string GetYoutubeVideoId(string url)
+    {
+        if (string.IsNullOrEmpty(url)) return "";
+
+        try
+        {
+            var uri = new Uri(url);
+            var query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query);
+            if (query.TryGetValue("v", out var videoId))
+            {
+                return videoId;
+            }
+            if (uri.Host.Contains("youtu.be"))
+            {
+                return uri.AbsolutePath.Trim('/');
+            }
+        }
+        catch { }
+
+        return "";
+    }
+
+    var videoId = GetYoutubeVideoId(Model.VideoUrl);
+    var thumbnailUrl = !string.IsNullOrEmpty(Model.ThumbnailUrl) ? Model.ThumbnailUrl : $"https://img.youtube.com/vi/{videoId}/maxresdefault.jpg";
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="" />
+    <link rel="stylesheet"
+          as="style"
+          onload="this.rel='stylesheet'"
+          href="https://fonts.googleapis.com/css2?display=swap&family=Inter%3Awght%40400%3B500%3B700%3B900&family=Noto+Sans%3Awght%40400%3B500%3B700%3B900" />
+    <title>@ViewData["Title"]</title>
+    <link rel="icon" type="image/x-icon" href="data:image/x-icon;base64," />
+
+    <style>
+        /* General Styles from Stitch Design */
+        body {
+            font-family: 'Inter', 'Noto Sans', sans-serif;
+            background-color: #ffffff;
+            color: #111418;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        .layout-container {
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            height: 100%;
+        }
+
+        .main-content {
+            display: flex;
+            flex-grow: 1;
+            justify-content: center;
+            padding: 1.25rem 2.5rem; /* Equivalent of px-40 flex flex-1 justify-center py-5 */
+        }
+
+        .content-container {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            max-width: 960px;
+            flex-grow: 1;
+        }
+
+        .section-padding {
+            padding: 1rem; /* Equivalent of p-4 */
+        }
+
+        .title-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            gap: 0.75rem; /* Equivalent of gap-3 */
+        }
+
+        .title-wrapper {
+            display: flex;
+            min-width: 18rem; /* Equivalent of min-w-72 */
+            flex-direction: column;
+            gap: 0.75rem; /* Equivalent of gap-3 */
+        }
+
+        .main-title {
+            color: #111418;
+            letter-spacing: -0.015em;
+            font-size: 2rem; /* Equivalent of text-[32px] */
+            font-weight: 700;
+            line-height: 1.25; /* Equivalent of leading-tight */
+        }
+
+        .description-text {
+            color: #60758a;
+            font-size: 0.875rem;
+            font-weight: 400;
+            line-height: 1.5;
+        }
+
+        .video-player-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #111418;
+            background-size: cover;
+            background-position: center;
+            aspect-ratio: 16/9;
+            border-radius: 0.5rem; /* Equivalent of rounded-lg */
+            padding: 1rem; /* Equivalent of p-4 */
+        }
+
+        .play-button {
+            display: flex;
+            flex-shrink: 0;
+            align-items: center;
+            justify-content: center;
+            border-radius: 9999px; /* Equivalent of rounded-full */
+            width: 4rem; /* Equivalent of size-16 */
+            height: 4rem;
+            background-color: rgba(0, 0, 0, 0.4);
+            color: #ffffff;
+            border: none;
+            cursor: pointer;
+        }
+
+        .attendance-title {
+            color: #111418;
+            font-size: 1.375rem; /* Equivalent of text-[22px] */
+            font-weight: 700;
+            line-height: 1.25;
+            letter-spacing: -0.015em;
+            padding-left: 1rem; /* Equivalent of px-4 */
+            padding-right: 1rem;
+            padding-bottom: 0.75rem; /* Equivalent of pb-3 */
+            padding-top: 1.25rem; /* Equivalent of pt-5 */
+        }
+
+        .attendance-list-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            background-color: #ffffff;
+            padding: 0.5rem 1rem;
+            min-height: 4.5rem; /* Equivalent of min-h-[72px] */
+            justify-content: space-between;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .user-avatar {
+            background-position: center;
+            background-repeat: no-repeat;
+            aspect-ratio: 1/1;
+            background-size: cover;
+            border-radius: 9999px;
+            height: 3.5rem; /* Equivalent of h-14 */
+            width: fit-content;
+        }
+
+        .user-details {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .user-name {
+            color: #111418;
+            font-size: 1rem;
+            font-weight: 500;
+            line-height: 1.5;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+
+        .attendance-status {
+            color: #60758a;
+            font-size: 0.875rem;
+            font-weight: 400;
+            line-height: 1.5;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
+
+        .status-dot-container {
+            flex-shrink: 0;
+            display: flex;
+            width: 1.75rem; /* Equivalent of size-7 */
+            height: 1.75rem;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .status-dot {
+            width: 0.75rem; /* Equivalent of size-3 */
+            height: 0.75rem;
+            border-radius: 9999px;
+        }
+
+        .bg-green {
+            background-color: #078838;
+        }
+
+        .bg-red {
+            background-color: #ff3333;
+        }
+
+        .buttons-container {
+            display: flex;
+            padding: 0.75rem 1rem; /* Equivalent of px-4 py-3 */
+            justify-content: flex-end;
+        }
+
+        .primary-button {
+            display: flex;
+            min-width: 84px;
+            max-width: 480px;
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            border-radius: 0.5rem;
+            height: 2.5rem; /* Equivalent of h-10 */
+            padding: 0 1rem; /* Equivalent of px-4 */
+            background-color: #f0f2f5;
+            color: #111418;
+            font-size: 0.875rem;
+            font-weight: 700;
+            line-height: 1.5;
+            letter-spacing: 0.015em;
+            border: none;
+        }
+
+        .truncate {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="relative flex size-full min-h-screen flex-col bg-white group/design-root overflow-x-hidden">
+        <div class="layout-container flex h-full grow flex-col">
+            @* يمكنك هنا إضافة رأس الصفحة (header) إذا أردت *@ 
+            
+            @Html.Partial("_LandingHeader") 
+
+            <main class="main-content">
+                <div class="layout-content-container content-container">
+                    <div class="section-padding">
+                        <div class="title-container">
+                            <div class="title-wrapper">
+                                <p class="main-title">Lecture: @Model.Title</p>
+                                <p class="description-text">
+                                    @Model.Description
+                                    <br>
+                                    Date: @Model.LectureDate.ToString("yyyy-MM-dd")
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(videoId))
+                    {
+                        <div class="section-padding">
+                            <div class="video-player-container" style='background-image: url("@thumbnailUrl");'>
+                                <button class="play-button" onclick="window.location.href = 'https://www.youtube.com/embed/@videoId?autoplay=1';">
+                                    <div class="text-inherit" data-icon="Play" data-size="24px" data-weight="fill">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
+                                            <path d="M240,128a15.74,15.74,0,0,1-7.6,13.51L88.32,229.65a16,16,0,0,1-16.2.3A15.86,15.86,0,0,1,64,216.13V39.87a15.86,15.86,0,0,1,8.12-13.82,16,16,0,0,1,16.2.3L232.4,114.49A15.74,15.74,0,0,1,240,128Z"></path>
+                                        </svg>
+                                    </div>
+                                </button>
+                                <iframe src="https://www.youtube.com/embed/@videoId"
+                                        title="YouTube video"
+                                        allowfullscreen
+                                        style="border: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1;">
+                                </iframe>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="section-padding">
+                            <p class="description-text">No video uploaded for this lecture yet.</p>
+                        </div>
+                    }
+
+                    <h2 class="attendance-title">Attendance</h2>
+
+                    @if (Model.Presences != null && Model.Presences.Any())
+                    {
+                        foreach (var presence in Model.Presences)
+                        {
+                            <div class="attendance-list-item">
+                                <div class="user-info">
+                                    <div class="user-avatar" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDRXacEhl-oE_Fa0Y6N1H_U5i4fnJNjYMUkiD58MGRr9sQO761cEnuq6E97ysAjvxMXfVyvexfBY2yVHnPkUvpHEAkZhoX2YuEV1MP71u9eKGJqQXeq1zkEK8aCatvwdcYsQ6v8Ibo3m3Xz-vUeAmK0LvHTXV_fy6nnrfZDw5HHFiowagphtR7z0ja2mBFdVggtGz8aXnbpkeBvwR48RwKHQrp25PQkzDAuBI7qDMZSgU-QHJF2F_8N2b5KLu3WIVkZ7kXiv-49kzk");'></div>
+                                    <div class="user-details">
+                                        <p class="user-name">@presence.Trainee.User.FullName</p>
+                                        <p class="attendance-status">@(presence.IsPresent ? "Present" : "Absent")</p>
+                                    </div>
+                                </div>
+                                <div class="status-dot-container">
+                                    <div class="status-dot @(presence.IsPresent ? "bg-green" : "bg-red")"></div>
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="section-padding">
+                            <p class="description-text">No attendance records available.</p>
+                        </div>
+                    }
+
+                    <div class="buttons-container">
+                        <a asp-action="MarkAttendance" asp-route-id="@Model.LectureId" class="primary-button">
+                            <span class="truncate">Mark Attendance</span>
+                        </a>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+</body>
+</html>

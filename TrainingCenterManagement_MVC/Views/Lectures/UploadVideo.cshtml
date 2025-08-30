@@ -1,4 +1,4 @@
-﻿@model TrainingCenterManagement_MVC.Models.Lecture
+﻿@* @model TrainingCenterManagement_MVC.Models.Lecture
 
 @{
     ViewData["Title"] = "Upload Video";
@@ -30,3 +30,223 @@
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
 }
+ *@
+
+
+
+
+@model TrainingCenterManagement_MVC.Models.Lecture
+
+@{
+    ViewData["Title"] = "Upload Video";
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="" />
+    <link rel="stylesheet"
+          as="style"
+          onload="this.rel='stylesheet'"
+          href="https://fonts.googleapis.com/css2?display=swap&family=Inter%3Awght%40400%3B500%3B700%3B900&family=Noto+Sans%3Awght%40400%3B500%3B700%3B900" />
+    <title>@ViewData["Title"]</title>
+    <link rel="icon" type="image/x-icon" href="data:image/x-icon;base64," />
+
+    <style>
+        /* General Styles from Stitch Design */
+        body {
+            font-family: 'Inter', 'Noto Sans', sans-serif;
+            background-color: #ffffff;
+            color: #111418;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        .layout-container {
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            height: 100%;
+        }
+
+        .main-content {
+            display: flex;
+            flex-grow: 1;
+            justify-content: center;
+            padding: 1.25rem 2.5rem; /* Equivalent of px-40 flex flex-1 justify-center py-5 */
+        }
+
+        .content-container {
+            display: flex;
+            flex-direction: column;
+            width: 512px;
+            max-width: 960px;
+            padding: 1.25rem 0; /* Equivalent of py-5 */
+            flex-grow: 1;
+        }
+
+        .page-title-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            gap: 0.75rem; /* Equivalent of gap-3 */
+            padding: 1rem; /* Equivalent of p-4 */
+        }
+
+        .page-title {
+            color: #111418;
+            letter-spacing: -0.015em;
+            font-size: 2rem; /* Equivalent of text-[32px] */
+            font-weight: 700;
+            line-height: 1.25; /* Equivalent of leading-tight */
+            min-width: 18rem; /* Equivalent of min-w-72 */
+        }
+
+        .form-field {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            gap: 1rem; /* Equivalent of gap-4 */
+            padding: 0.75rem 1rem; /* Equivalent of px-4 py-3 */
+            max-width: 480px;
+        }
+
+        .form-label {
+            display: flex;
+            flex-direction: column;
+            min-width: 10rem; /* Equivalent of min-w-40 */
+            flex-grow: 1;
+        }
+
+        .label-text {
+            color: #111418;
+            font-size: 1rem;
+            font-weight: 500;
+            line-height: 1.5;
+            padding-bottom: 0.5rem; /* Equivalent of pb-2 */
+        }
+
+        .form-input {
+            display: flex;
+            width: 100%;
+            min-width: 0;
+            flex-grow: 1;
+            resize: none;
+            overflow: hidden;
+            border-radius: 0.5rem; /* Equivalent of rounded-lg */
+            color: #111418;
+            border: 1px solid #dbe0e6;
+            background-color: #ffffff;
+            height: 3.5rem; /* Equivalent of h-14 */
+            padding: 0.9375rem; /* Equivalent of p-[15px] */
+            font-size: 1rem;
+            font-weight: 400;
+            line-height: 1.5;
+        }
+
+            .form-input::placeholder {
+                color: #60758a;
+            }
+
+            .form-input:focus {
+                outline: 2px solid transparent;
+                outline-offset: 2px;
+                border-color: #dbe0e6;
+            }
+
+        .buttons-container {
+            display: flex;
+            padding: 0.75rem 1rem; /* Equivalent of px-4 py-3 */
+            justify-content: flex-end;
+        }
+
+        .primary-button {
+            display: flex;
+            min-width: 84px;
+            max-width: 480px;
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            border-radius: 0.5rem;
+            height: 2.5rem; /* Equivalent of h-10 */
+            padding: 0 1rem; /* Equivalent of px-4 */
+            background-color: #0d80f2;
+            color: #ffffff;
+            font-size: 0.875rem;
+            font-weight: 700;
+            line-height: 1.5;
+            letter-spacing: 0.015em;
+            border: none;
+        }
+
+        .truncate {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .validation-text {
+            color: red;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+
+    </style>
+</head>
+
+<body>
+    <div class="relative flex size-full min-h-screen flex-col bg-white group/design-root overflow-x-hidden">
+        <div class="layout-container flex h-full grow flex-col">
+            @* يمكنك هنا إضافة رأس الصفحة (header) إذا أردت *@ @Html.Partial("_LandingHeader") 
+
+            <main class="main-content">
+                <div class="layout-content-container content-container">
+                    <div class="page-title-container">
+                        <p class="page-title">Upload Video for Lecture: @Model.Title</p>
+                    </div>
+                    <form asp-action="UploadVideo" method="post" novalidate>
+                        <input type="hidden" asp-for="LectureId" />
+
+                        <div class="form-field">
+                            <div asp-validation-summary="ModelOnly" class="validation-text"></div>
+                            <label asp-for="VideoUrl" class="form-label">
+                                <p class="label-text">YouTube Video URL</p>
+                                <input asp-for="VideoUrl" type="url" class="form-input" placeholder="e.g., https://www.youtube.com/watch?v=dQw4w9WgXcQ" required />
+                                <span asp-validation-for="VideoUrl" class="validation-text"></span>
+                            </label>
+                        </div>
+
+                        <div class="form-field">
+                            <label asp-for="ThumbnailUrl" class="form-label">
+                                <p class="label-text">Thumbnail URL (Optional)</p>
+                                <input asp-for="ThumbnailUrl" type="url" class="form-input" placeholder="e.g., https://example.com/thumbnail.jpg" />
+                                <span asp-validation-for="ThumbnailUrl" class="validation-text"></span>
+                            </label>
+                        </div>
+
+                        <div class="buttons-container">
+                            <button type="submit" class="primary-button">
+                                <span class="truncate">Upload</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    @section Scripts {
+        @{
+            await Html.RenderPartialAsync("_ValidationScriptsPartial");
+        }
+    }
+</body>
+</html>

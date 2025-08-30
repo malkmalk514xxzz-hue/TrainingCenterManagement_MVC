@@ -1,4 +1,4 @@
-﻿@model TrainingCenterManagement_MVC.Models.Course
+﻿@* @model TrainingCenterManagement_MVC.Models.Course
 
 @{
     ViewData["Title"] = "Course Details";
@@ -135,6 +135,505 @@
                     </a>
                     <a asp-controller="Payments" asp-action="ExportPaymentsPdf" asp-route-courseId="@Model.CourseId" class="btn btn-outline-danger">
                         🧾 Export Payments to PDF
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+ *@
+
+
+
+@model TrainingCenterManagement_MVC.Models.Course
+
+@{
+    ViewData["Title"] = "Course Details";
+}
+
+<style>
+    :root {
+        --color-primary: #f2c00d;
+        --color-background-light: #f5f4f0;
+        --color-text-dark: #181611;
+        --color-text-muted: #8a8160;
+        --color-border: #e6e4db;
+        --font-family-sans: Inter, "Noto Sans", sans-serif;
+    }
+
+    body {
+        font-family: var(--font-family-sans);
+        background-color: #fff;
+        color: var(--color-text-dark);
+        margin: 0;
+    }
+
+    .layout-container {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+        width: 100%;
+    }
+
+    .main-content {
+        flex: 1;
+        display: flex;
+        justify-content: center;
+        padding: 20px 0;
+        padding-left: 10rem;
+        padding-right: 10rem;
+    }
+
+    .content-wrapper {
+        display: flex;
+        flex-direction: column;
+        max-width: 960px;
+        flex: 1;
+    }
+
+    .header-container {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        gap: 0.75rem;
+        padding: 1rem;
+    }
+
+    .header-title {
+        color: var(--color-text-dark);
+        font-size: 32px;
+        font-weight: 700;
+        line-height: 1;
+        letter-spacing: -0.015em;
+        min-width: 18rem;
+    }
+
+    .info-section {
+        padding: 1rem;
+    }
+
+    .card-container {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        justify-content: flex-start;
+        border-radius: 0.5rem;
+    }
+
+        .card-container > .image {
+            width: 100%;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-size: cover;
+            aspect-ratio: 16 / 9;
+            border-radius: 0.5rem;
+        }
+
+        .card-container > .content {
+            display: flex;
+            width: 100%;
+            min-width: 18rem;
+            flex-grow: 1;
+            flex-direction: column;
+            align-items: stretch;
+            justify-content: center;
+            gap: 0.25rem;
+            padding: 1rem 0;
+        }
+
+        .card-container .title {
+            color: var(--color-text-dark);
+            font-size: 18px;
+            font-weight: 700;
+            line-height: 1.25;
+            letter-spacing: -0.015em;
+        }
+
+        .card-container .description {
+            color: var(--color-text-muted);
+            font-size: 16px;
+            font-weight: 400;
+            line-height: 1.5;
+        }
+
+    .details-grid {
+        padding: 1rem;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .detail-item {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+        border-top: 1px solid var(--color-border);
+        padding: 1rem 0;
+    }
+
+        .detail-item:nth-child(odd) {
+            padding-right: 0.5rem;
+        }
+
+        .detail-item:nth-child(even) {
+            padding-left: 0.5rem;
+        }
+
+    .detail-label {
+        color: var(--color-text-muted);
+        font-size: 14px;
+        font-weight: 400;
+        line-height: 1.5;
+    }
+
+    .detail-value {
+        color: var(--color-text-dark);
+        font-size: 14px;
+        font-weight: 400;
+        line-height: 1.5;
+    }
+
+    .section-title {
+        color: var(--color-text-dark);
+        font-size: 22px;
+        font-weight: 700;
+        line-height: 1.25;
+        letter-spacing: -0.015em;
+        padding: 1.25rem 1rem 0.75rem 1rem;
+    }
+
+    .profile-card {
+        padding: 1rem;
+    }
+
+    .profile-item {
+        display: flex;
+        align-items: stretch;
+        justify-content: space-between;
+        gap: 1rem;
+        border-radius: 0.5rem;
+    }
+
+        .profile-item .details {
+            display: flex;
+            flex-grow: 2;
+            flex-basis: 0;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+            .profile-item .details .name {
+                font-size: 16px;
+                font-weight: 700;
+                line-height: 1.25;
+                color: var(--color-text-dark);
+            }
+
+            .profile-item .details .specialty {
+                font-size: 14px;
+                font-weight: 400;
+                line-height: 1.5;
+                color: var(--color-text-muted);
+            }
+
+        .profile-item .image {
+            flex-grow: 1;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-size: cover;
+            aspect-ratio: 16 / 9;
+            border-radius: 0.5rem;
+        }
+
+    .empty-state {
+        display: flex;
+        flex-direction: column;
+        padding: 1rem;
+    }
+
+    .empty-state-content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1.5rem;
+        border: 2px dashed var(--color-border);
+        border-radius: 0.5rem;
+        padding: 3.5rem 1.5rem;
+    }
+
+    .empty-state-text {
+        display: flex;
+        max-width: 480px;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+        text-align: center;
+    }
+
+        .empty-state-text .title {
+            color: var(--color-text-dark);
+            font-size: 18px;
+            font-weight: 700;
+            line-height: 1.25;
+            letter-spacing: -0.015em;
+        }
+
+        .empty-state-text .description {
+            color: var(--color-text-dark);
+            font-size: 14px;
+            font-weight: 400;
+            line-height: 1.5;
+        }
+
+    .button-group {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        padding: 0.75rem 1rem;
+    }
+
+    .button-container {
+        padding: 0.75rem 1rem;
+    }
+
+    .button {
+        display: flex;
+        min-width: 84px;
+        max-width: 480px;
+        cursor: pointer;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        border-radius: 0.5rem;
+        height: 40px;
+        padding: 0 1rem;
+        background-color: var(--color-background-light);
+        color: var(--color-text-dark);
+        font-size: 14px;
+        font-weight: 700;
+        line-height: 1.5;
+        letter-spacing: 0.015em;
+        border: none;
+        white-space: nowrap;
+        text-decoration: none;
+    }
+
+    .button-secondary {
+        background-color: transparent;
+        border: 1px solid var(--color-background-light);
+    }
+
+    .button-primary {
+        background-color: var(--color-primary);
+    }
+
+    .profile-button {
+        display: flex;
+        min-width: 84px;
+        max-width: 480px;
+        cursor: pointer;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        border-radius: 0.5rem;
+        height: 32px;
+        padding: 0 1rem;
+        background-color: var(--color-background-light);
+        color: var(--color-text-dark);
+        font-size: 14px;
+        font-weight: 500;
+        line-height: 1.5;
+        border: none;
+        width: fit-content;
+        text-decoration: none;
+    }
+
+    .badge {
+        display: inline-block;
+        padding: 0.25em 0.4em;
+        font-size: 75%;
+        font-weight: 700;
+        line-height: 1;
+        text-align: center;
+        white-space: nowrap;
+        vertical-align: baseline;
+        border-radius: 0.25rem;
+        color: #fff;
+    }
+
+    .bg-success {
+        background-color: #28a745;
+    }
+
+    .bg-danger {
+        background-color: #dc3545;
+    }
+</style>
+<div class="layout-container">
+@Html.Partial("_LandingHeader")
+    <div class="main-content">
+        <div class="content-wrapper">
+            <div class="header-container">
+                <p class="header-title">Course Details</p>
+                <a class="button" href="@Url.Action("Index", "Courses")">
+                    <span class="truncate">Back to Courses</span>
+                </a>
+            </div>
+
+            <div class="info-section">
+                <div class="card-container">
+                    @if (!string.IsNullOrEmpty(Model.ThumbnailUrl))
+                    {
+                        <div class="image" style='background-image: url("@Model.ThumbnailUrl");'></div>
+                    }
+                    <div class="content">
+                        <p class="title">@Model.CourseName</p>
+                        <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 0.75rem;">
+                            <p class="description">@Model.Description</p>
+                            @if (User.IsInRole("Admin"))
+                            {
+                                <a class="profile-button button-primary" href="@Url.Action("Edit", "Courses", new { id = Model.CourseId })">
+                                    <span class="truncate">Edit Course</span>
+                                </a>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="details-grid">
+                <div class="detail-item">
+                    <p class="detail-label">Course ID</p>
+                    <p class="detail-value">@Model.CourseId</p>
+                </div>
+                <div class="detail-item">
+                    <p class="detail-label">Batch Number</p>
+                    <p class="detail-value">@Model.BatchNumber</p>
+                </div>
+                <div class="detail-item">
+                    <p class="detail-label">Duration</p>
+                    <p class="detail-value">@Model.NumberOfLectures Lectures</p>
+                </div>
+                <div class="detail-item">
+                    <p class="detail-label">Price</p>
+                    <p class="detail-value">@Model.Price.ToString("C")</p>
+                </div>
+                <div class="detail-item">
+                    <p class="detail-label">Status</p>
+                    <p class="detail-value">
+                        <span class="badge @(Model.IsDeleted ? "bg-danger" : "bg-success")">
+                            @(Model.IsDeleted ? "Deleted" : "Active")
+                        </span>
+                    </p>
+                </div>
+                <div class="detail-item">
+                    <p class="detail-label">Created Date</p>
+                    <p class="detail-value">@Model.CreatedDate.ToShortDateString()</p>
+                </div>
+                <div class="detail-item">
+                    <p class="detail-label">Release Date</p>
+                    <p class="detail-value">@Model.ReleaseDate.ToShortDateString()</p>
+                </div>
+                <div class="detail-item">
+                    <p class="detail-label">Admin</p>
+                    <p class="detail-value">@Model.Admin?.User?.FullName</p>
+                </div>
+            </div>
+
+            <h2 class="section-title">Trainers</h2>
+            <div class="profile-card">
+                @if (Model.CourseTrainers != null && Model.CourseTrainers.Any())
+                {
+                    @foreach (var ct in Model.CourseTrainers)
+                    {
+                        <div class="profile-item">
+                            <div class="details">
+                                <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                                    <p class="name">@ct.Trainer.User.FullName</p>
+                                    <p class="specialty">@ct.Trainer.Specialty</p>
+                                </div>
+                                @* <a class="profile-button" href="#">
+                                    <span class="truncate">View Profile</span>
+                                </a> *@
+                            </div>
+                            @* <div class="image" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBnc-QYzT7tDsDftfPWWMfQTae7AvEPxjFqu7Nm-R73pOMCJk0pqmQWeQQCH1l1FpAVKfTVuje0knjTY5lEP3w6FlFVq01qVsL8mxzz2fkMfihYv_pi_IkC7YfYiz2qeWX5QGIyvQtilqNU7j9NVarr9i6AuYogWbwE6jWhpVG7wbzlHKxZndTxrZRYKrC2oxv2Le4dl1suUfTgvGbCGeVailuqoYDiEt0SaePoDl8ixi-kqjXLmUSR33YLn5z54R5ufkedTISCGyA");'></div> *@
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="empty-state">
+                        <div class="empty-state-content">
+                            <div class="empty-state-text">
+                                <p class="title">No Trainers Assigned</p>
+                                <p class="description">Assign trainers to this course to manage and deliver the content.</p>
+                            </div>
+                            @if (User.IsInRole("Admin"))
+                            {
+                                <a class="button" href="@Url.Action("AssignTrainer", "Courses", new { id = Model.CourseId })">
+                                    <span class="truncate">Assign Trainer</span>
+                                </a>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <h2 class="section-title">Trainees</h2>
+            <div class="profile-card">
+                @if (Model.CourseTrainees != null && Model.CourseTrainees.Any())
+                {
+                    @foreach (var ct in Model.CourseTrainees)
+                    {
+                        <div class="profile-item">
+                            <div class="details">
+                                <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                                    <p class="name">@ct.Trainee.User.FullName</p>
+                                    <p class="specialty">Born on @ct.Trainee.User.BirthDate.ToShortDateString()</p>
+                                </div>
+                                @* <a class="profile-button" href="#">
+                                    <span class="truncate">View Profile</span>
+                                </a> *@
+                            </div>
+                            @* <div class="image" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAlfLVTF0_Ijdtk65YuPamcsOaOFN9truGmUMESFxJkSDRquGjF_ZSIaxbxs5kKr92ZAK7cQPpdU9iWPU0qU-tGhhCtJE_TSIjfoSHdvsraRYgyJl3CQGa4iVyLm0mwUGHzPHP7S3sUUKwPfrolB7ACem2gaE8MSTSzKTRREzLfuHfM8ArazQTUTlGlv1d07fsoIcV-oxzDQmJxzSWuUBEniV_2na-yI1s6elQIJTsutru5cT3Imj7J-TC9ZGXFkY7GKAkJJGX352o");'></div> *@
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="empty-state">
+                        <div class="empty-state-content">
+                            <div class="empty-state-text">
+                                <p class="title">No Trainees Assigned</p>
+                                <p class="description">Assign trainees to this course to track their progress and performance.</p>
+                            </div>
+                            @if (User.IsInRole("Admin"))
+                            {
+                                <a class="button" href="@Url.Action("AssignTrainees", "Courses", new { id = Model.CourseId })">
+                                    <span class="truncate">Assign Trainees</span>
+                                </a>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <h2 class="section-title">Analytics & Tools</h2>
+            <div class="button-container">
+                <div class="button-group">
+                    <a class="button" href="@Url.Action("CourseAttendance", "Courses", new { courseId = Model.CourseId })">
+                        <span class="truncate">Attendance Statistics</span>
+                    </a>
+                    <a class="button" href="@Url.Action("ViewLectures", "Trainees", new { courseId = Model.CourseId })">
+                        <span class="truncate">View Lectures</span>
+                    </a>
+                    <a class="button" href="@Url.Action("TrackAttendance", "Trainees", new { courseId = Model.CourseId })">
+                        <span class="truncate">Track Attendance</span>
+                    </a>
+                    <a class="button" href="@Url.Action("ViewPayments", "Trainees", new { courseId = Model.CourseId })">
+                        <span class="truncate">View Payments</span>
+                    </a>
+                    <a class="button" href="@Url.Action("ExportPaymentsPdf", "Payments", new { courseId = Model.CourseId })">
+                        <span class="truncate">Export Payments</span>
                     </a>
                 </div>
             </div>

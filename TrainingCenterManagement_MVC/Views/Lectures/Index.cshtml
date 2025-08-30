@@ -1,4 +1,4 @@
-﻿@model IEnumerable<TrainingCenterManagement_MVC.Models.Course>
+﻿@*  @model IEnumerable<TrainingCenterManagement_MVC.Models.Course>
 
 @{
     ViewData["Title"] = "Lectures List";
@@ -117,3 +117,1047 @@
         </div>
     </div>
 }
+  *@
+@* @model IEnumerable<TrainingCenterManagement_MVC.Models.Course>
+
+@{
+    ViewData["Title"] = "Lectures by Course";
+
+    string GetYoutubeThumbnailUrl(string videoUrl)
+    {
+        if (string.IsNullOrEmpty(videoUrl)) return "https://via.placeholder.com/640x360.png?text=No+Thumbnail";
+
+        try
+        {
+            var uri = new Uri(videoUrl);
+            var videoId = "";
+            if (uri.Host.Contains("youtube.com"))
+            {
+                var query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query);
+                if (query.TryGetValue("v", out var id))
+                {
+                    videoId = id;
+                }
+            }
+            else if (uri.Host.Contains("youtu.be"))
+            {
+                videoId = uri.AbsolutePath.Trim('/');
+            }
+            return !string.IsNullOrEmpty(videoId) ? $"https://img.youtube.com/vi/{videoId}/hqdefault.jpg" : "https://via.placeholder.com/640x360.png?text=No+Thumbnail";
+        }
+        catch
+        {
+            return "https://via.placeholder.com/640x360.png?text=No+Thumbnail";
+        }
+    }
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduStream</title>
+    <link rel="icon" type="image/x-icon" href="data:image/x-icon;base64," />
+
+    <style>
+        @@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&family=Noto+Sans:wght@400;500;700;900&display=swap');
+
+        /* Base styles */
+        body {
+            font-family: 'Inter', 'Noto Sans', sans-serif;
+            background-color: #ffffff;
+            color: #111418;
+            margin: 0;
+        }
+
+        /* Utility classes from Tailwind CSS */
+        .flex {
+            display: flex;
+        }
+
+        .flex-col {
+            flex-direction: column;
+        }
+
+        .flex-wrap {
+            flex-wrap: wrap;
+        }
+
+        .items-center {
+            align-items: center;
+        }
+
+        .justify-between {
+            justify-content: space-between;
+        }
+
+        .justify-center {
+            justify-content: center;
+        }
+
+        .justify-end {
+            justify-content: flex-end;
+        }
+
+        .justify-stretch {
+            justify-content: stretch;
+        }
+
+        .gap-3 {
+            gap: 0.75rem;
+        }
+
+        .gap-4 {
+            gap: 1rem;
+        }
+
+        .gap-8 {
+            gap: 2rem;
+        }
+
+        .gap-9 {
+            gap: 2.25rem;
+        }
+
+        .px-4 {
+            padding-left: 1rem;
+            padding-right: 1rem;
+        }
+
+        .py-3 {
+            padding-top: 0.75rem;
+            padding-bottom: 0.75rem;
+        }
+
+        .py-5 {
+            padding-top: 1.25rem;
+            padding-bottom: 1.25rem;
+        }
+
+        .px-10 {
+            padding-left: 2.5rem;
+            padding-right: 2.5rem;
+        }
+
+        .pb-3 {
+            padding-bottom: 0.75rem;
+        }
+
+        .size-4 {
+            width: 1rem;
+            height: 1rem;
+        }
+
+        .size-10 {
+            width: 2.5rem;
+            height: 2.5rem;
+        }
+
+        .h-8 {
+            height: 2rem;
+        }
+
+        .h-10 {
+            height: 2.5rem;
+        }
+
+        .h-full {
+            height: 100%;
+        }
+
+        .w-full {
+            width: 100%;
+        }
+
+        .min-h-screen {
+            min-height: 100vh;
+        }
+
+        .min-w-40 {
+            min-width: 10rem;
+        }
+
+        .min-w-72 {
+            min-width: 18rem;
+        }
+
+        .max-w-\[960px\] {
+            max-width: 960px;
+        }
+
+        .max-w-\[1200px\] {
+            max-width: 1200px;
+        }
+
+        .rounded-lg {
+            border-radius: 0.5rem;
+        }
+
+        .rounded-full {
+            border-radius: 9999px;
+        }
+
+        .aspect-video {
+            aspect-ratio: 16 / 9;
+        }
+
+        .bg-white {
+            background-color: #ffffff;
+        }
+
+        .bg-\[\#f0f2f5\] {
+            background-color: #f0f2f5;
+        }
+
+        .bg-\[\#0d80f2\] {
+            background-color: #0d80f2;
+        }
+
+        .bg-red-500 {
+            background-color: #ef4444;
+        }
+
+        .text-\[\#111418\] {
+            color: #111418;
+        }
+
+        .text-white {
+            color: #ffffff;
+        }
+
+        .text-\[\#60758a\] {
+            color: #60758a;
+        }
+
+        .text-lg {
+            font-size: 1.125rem;
+            line-height: 1.75rem;
+        }
+
+        .text-sm {
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+        }
+
+        .text-base {
+            font-size: 1rem;
+            line-height: 1.5rem;
+        }
+
+        .text-3xl {
+            font-size: 1.875rem;
+            line-height: 2.25rem;
+        }
+
+        .font-bold {
+            font-weight: 700;
+        }
+
+        .font-medium {
+            font-weight: 500;
+        }
+
+        .font-normal {
+            font-weight: 400;
+        }
+
+        .leading-tight {
+            line-height: 1.25;
+        }
+
+        .leading-normal {
+            line-height: 1.5;
+        }
+
+        .tracking-\[-0\.015em\] {
+            letter-spacing: -0.015em;
+        }
+
+        .tracking-\[0\.015em\] {
+            letter-spacing: 0.015em;
+        }
+
+        .cursor-pointer {
+            cursor: pointer;
+        }
+
+        .overflow-hidden {
+            overflow: hidden;
+        }
+
+        .truncate {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .relative {
+            position: relative;
+        }
+
+        .absolute {
+            position: absolute;
+        }
+
+        .inset-0 {
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+        }
+
+        .opacity-0 {
+            opacity: 0;
+        }
+
+        .transition-opacity {
+            transition-property: opacity;
+            transition-duration: 300ms;
+        }
+
+        .bg-center {
+            background-position: center;
+        }
+
+        .bg-no-repeat {
+            background-repeat: no-repeat;
+        }
+
+        .bg-cover {
+            background-size: cover;
+        }
+
+        .border-b {
+            border-bottom-width: 1px;
+        }
+
+        .border-solid {
+            border-style: solid;
+        }
+
+        .border-b-\[\#f0f2f5\] {
+            border-color: #f0f2f5;
+        }
+
+        .outline-0 {
+            outline: 2px solid transparent;
+            outline-offset: 2px;
+        }
+
+        .ring-0 {
+            --tw-ring-offset-shadow: 0 0 #0000;
+            --tw-ring-shadow: 0 0 #0000;
+        }
+
+        .border-none {
+            border-style: none;
+        }
+
+        .focus\:outline-0:focus {
+            outline: 2px solid transparent;
+            outline-offset: 2px;
+        }
+
+        .focus\:ring-0:focus {
+            --tw-ring-offset-shadow: 0 0 #0000;
+            --tw-ring-shadow: 0 0 #0000;
+        }
+
+        .focus\:border-none:focus {
+            border-style: none;
+        }
+
+        .placeholder\:text-\[\#60758a\]::placeholder {
+            color: #60758a;
+        }
+
+        .flex-1 {
+            flex: 1 1 0%;
+        }
+
+        .px-2\.5 {
+            padding-left: 0.625rem;
+            padding-right: 0.625rem;
+        }
+
+        .pl-4 {
+            padding-left: 1rem;
+        }
+
+        .pl-2 {
+            padding-left: 0.5rem;
+        }
+
+        .rounded-l-lg {
+            border-top-left-radius: 0.5rem;
+            border-bottom-left-radius: 0.5rem;
+        }
+
+        .rounded-l-none {
+            border-top-left-radius: 0px;
+            border-bottom-left-radius: 0px;
+        }
+
+        .border-r-0 {
+            border-right-width: 0px;
+        }
+
+        .border-l-0 {
+            border-left-width: 0px;
+        }
+
+        .whitespace-nowrap {
+            white-space: nowrap;
+        }
+
+        .min-w-0 {
+            min-width: 0px;
+        }
+
+        .pb-3 {
+            padding-bottom: 0.75rem;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        /* Grid setup */
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(158px, 1fr));
+            gap: 0.75rem;
+        }
+
+        /* Custom hover effect classes */
+        .lecture-card-image-container {
+            position: relative;
+        }
+
+        .lecture-card-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            opacity: 0;
+            transition: opacity 300ms ease-in-out;
+        }
+
+        .lecture-card-image-container:hover .lecture-card-overlay {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="relative flex size-full min-h-screen flex-col bg-white overflow-x-hidden">
+        @Html.Partial("_LandingHeader")
+        <div class="flex flex-1 justify-center py-5 px-10">
+            <div class="flex flex-col max-w-[960px] flex-1">
+                @foreach (var course in Model)
+                {
+                    <div class="flex flex-wrap justify-between gap-3 p-4">
+                        <p class="text-[#111418] tracking-light text-3xl font-bold leading-tight min-w-72">@course.CourseName</p>
+                    </div>
+
+                    <div class="grid-container p-4">
+                        @if (course.Lectures != null && course.Lectures.Any())
+                        {
+                            @foreach (var lecture in course.Lectures.OrderByDescending(l => l.LectureDate))
+                            {
+                                <div class="flex flex-col gap-3 pb-3">
+                                    <div class="w-full bg-center bg-no-repeat aspect-video bg-cover rounded-lg overflow-hidden lecture-card-image-container"
+                                         style='background-image: url("@GetYoutubeThumbnailUrl(lecture.VideoUrl)");'>
+
+                                        <div class="lecture-card-overlay">
+                                            <a href="@lecture.VideoUrl" target="_blank" class="flex cursor-pointer items-center justify-center overflow-hidden rounded-lg h-8 px-3 bg-[#0d80f2] text-white text-sm font-bold leading-normal">
+                                                <span class="truncate">مشاهدة المحاضرة</span>
+                                            </a>
+                                            <a asp-action="Edit" asp-route-id="@lecture.LectureId" class="flex cursor-pointer items-center justify-center overflow-hidden rounded-lg h-8 px-3 bg-[#f0f2f5] text-[#111418] text-sm font-bold leading-normal">
+                                                <span class="truncate">تعديل</span>
+                                            </a>
+                                            <a asp-action="Delete" asp-route-id="@lecture.LectureId" class="flex cursor-pointer items-center justify-center overflow-hidden rounded-lg h-8 px-3 bg-red-500 text-white text-sm font-bold leading-normal">
+                                                <span class="truncate">حذف</span>
+                                            </a>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <p class="text-[#111418] text-base font-medium leading-normal">@lecture.Title</p>
+                                        <p class="text-[#60758a] text-sm font-normal leading-normal">@lecture.Description</p>
+                                        <p class="text-[#60758a] text-sm font-normal leading-normal">@lecture.LectureDate.ToString("MMM dd, yyyy") • @(lecture.IsDeleted ? "Deleted" : "Active")</p>
+                                    </div>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <div class="p-4 text-center text-[#60758a]">No lectures available for this course.</div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</body>
+</html> *@
+
+@model IEnumerable<TrainingCenterManagement_MVC.Models.Course>
+
+@{
+    ViewData["Title"] = "Lectures by Course";
+
+    string GetYoutubeThumbnailUrl(string videoUrl)
+    {
+        if (string.IsNullOrEmpty(videoUrl)) return "https://via.placeholder.com/640x360.png?text=No+Thumbnail";
+
+        try
+        {
+            var uri = new Uri(videoUrl);
+            var videoId = "";
+            if (uri.Host.Contains("youtube.com"))
+            {
+                var query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query);
+                if (query.TryGetValue("v", out var id))
+                {
+                    videoId = id;
+                }
+            }
+            else if (uri.Host.Contains("youtu.be"))
+            {
+                videoId = uri.AbsolutePath.Trim('/');
+            }
+            return !string.IsNullOrEmpty(videoId) ? $"https://img.youtube.com/vi/{videoId}/hqdefault.jpg" : "https://via.placeholder.com/640x360.png?text=No+Thumbnail";
+        }
+        catch
+        {
+            return "https://via.placeholder.com/640x360.png?text=No+Thumbnail";
+        }
+    }
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduStream</title>
+    <link rel="icon" type="image/x-icon" href="data:image/x-icon;base64," />
+
+    <style>
+        @@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&family=Noto+Sans:wght@400;500;700;900&display=swap');
+
+        /* Base styles */
+        body {
+            font-family: 'Inter', 'Noto Sans', sans-serif;
+            background-color: #ffffff;
+            color: #111418;
+            margin: 0;
+        }
+
+        /* Utility classes from Tailwind CSS */
+        .flex {
+            display: flex;
+        }
+
+        .flex-col {
+            flex-direction: column;
+        }
+
+        .flex-wrap {
+            flex-wrap: wrap;
+        }
+
+        .items-center {
+            align-items: center;
+        }
+
+        .justify-between {
+            justify-content: space-between;
+        }
+
+        .justify-center {
+            justify-content: center;
+        }
+
+        .justify-end {
+            justify-content: flex-end;
+        }
+
+        .justify-stretch {
+            justify-content: stretch;
+        }
+
+        .gap-3 {
+            gap: 0.75rem;
+        }
+
+        .gap-4 {
+            gap: 1rem;
+        }
+
+        .gap-8 {
+            gap: 2rem;
+        }
+
+        .gap-9 {
+            gap: 2.25rem;
+        }
+
+        .px-4 {
+            padding-left: 1rem;
+            padding-right: 1rem;
+        }
+
+        .py-3 {
+            padding-top: 0.75rem;
+            padding-bottom: 0.75rem;
+        }
+
+        .py-5 {
+            padding-top: 1.25rem;
+            padding-bottom: 1.25rem;
+        }
+
+        .px-10 {
+            padding-left: 2.5rem;
+            padding-right: 2.5rem;
+        }
+
+        .pb-3 {
+            padding-bottom: 0.75rem;
+        }
+
+        .size-4 {
+            width: 1rem;
+            height: 1rem;
+        }
+
+        .size-10 {
+            width: 2.5rem;
+            height: 2.5rem;
+        }
+
+        .h-8 {
+            height: 2rem;
+        }
+
+        .h-10 {
+            height: 2.5rem;
+        }
+
+        .h-full {
+            height: 100%;
+        }
+
+        .w-full {
+            width: 100%;
+        }
+
+        .min-h-screen {
+            min-height: 100vh;
+        }
+
+        .min-w-40 {
+            min-width: 10rem;
+        }
+
+        .min-w-72 {
+            min-width: 18rem;
+        }
+
+        .max-w-\[960px\] {
+            max-width: 960px;
+        }
+
+        .max-w-\[1200px\] {
+            max-width: 1200px;
+        }
+
+        .rounded-lg {
+            border-radius: 0.5rem;
+        }
+
+        .rounded-full {
+            border-radius: 9999px;
+        }
+
+        .aspect-video {
+            aspect-ratio: 16 / 9;
+        }
+
+        .bg-white {
+            background-color: #ffffff;
+        }
+
+        .bg-\[\#f0f2f5\] {
+            background-color: #f0f2f5;
+        }
+
+        .bg-\[\#0d80f2\] {
+            background-color: #0d80f2;
+        }
+
+        .bg-red-500 {
+            background-color: #ef4444;
+        }
+
+        .bg-\[\#0d80f2\]\/50 {
+            background-color: rgba(13, 128, 242, 0.5);
+        }
+
+        .text-\[\#111418\] {
+            color: #111418;
+        }
+
+        .text-white {
+            color: #ffffff;
+        }
+
+        .text-\[\#60758a\] {
+            color: #60758a;
+        }
+
+        .text-lg {
+            font-size: 1.125rem;
+            line-height: 1.75rem;
+        }
+
+        .text-sm {
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+        }
+
+        .text-base {
+            font-size: 1rem;
+            line-height: 1.5rem;
+        }
+
+        .text-3xl {
+            font-size: 1.875rem;
+            line-height: 2.25rem;
+        }
+
+        .font-bold {
+            font-weight: 700;
+        }
+
+        .font-medium {
+            font-weight: 500;
+        }
+
+        .font-normal {
+            font-weight: 400;
+        }
+
+        .leading-tight {
+            line-height: 1.25;
+        }
+
+        .leading-normal {
+            line-height: 1.5;
+        }
+
+        .tracking-\[-0\.015em\] {
+            letter-spacing: -0.015em;
+        }
+
+        .tracking-\[0\.015em\] {
+            letter-spacing: 0.015em;
+        }
+
+        .cursor-pointer {
+            cursor: pointer;
+        }
+
+        .overflow-hidden {
+            overflow: hidden;
+        }
+
+        .truncate {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .relative {
+            position: relative;
+        }
+
+        .absolute {
+            position: absolute;
+        }
+
+        .inset-0 {
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+        }
+
+        .opacity-0 {
+            opacity: 0;
+        }
+
+        .transition-opacity {
+            transition-property: opacity;
+            transition-duration: 300ms;
+        }
+
+        .bg-center {
+            background-position: center;
+        }
+
+        .bg-no-repeat {
+            background-repeat: no-repeat;
+        }
+
+        .bg-cover {
+            background-size: cover;
+        }
+
+        .border-b {
+            border-bottom-width: 1px;
+        }
+
+        .border-solid {
+            border-style: solid;
+        }
+
+        .border-b-\[\#f0f2f5\] {
+            border-color: #f0f2f5;
+        }
+
+        .outline-0 {
+            outline: 2px solid transparent;
+            outline-offset: 2px;
+        }
+
+        .ring-0 {
+            --tw-ring-offset-shadow: 0 0 #0000;
+            --tw-ring-shadow: 0 0 #0000;
+        }
+
+        .border-none {
+            border-style: none;
+        }
+
+        .focus\:outline-0:focus {
+            outline: 2px solid transparent;
+            outline-offset: 2px;
+        }
+
+        .focus\:ring-0:focus {
+            --tw-ring-offset-shadow: 0 0 #0000;
+            --tw-ring-shadow: 0 0 #0000;
+        }
+
+        .focus\:border-none:focus {
+            border-style: none;
+        }
+
+        .placeholder\:text-\[\#60758a\]::placeholder {
+            color: #60758a;
+        }
+
+        .flex-1 {
+            flex: 1 1 0%;
+        }
+
+        .px-2\.5 {
+            padding-left: 0.625rem;
+            padding-right: 0.625rem;
+        }
+
+        .pl-4 {
+            padding-left: 1rem;
+        }
+
+        .pl-2 {
+            padding-left: 0.5rem;
+        }
+
+        .rounded-l-lg {
+            border-top-left-radius: 0.5rem;
+            border-bottom-left-radius: 0.5rem;
+        }
+
+        .rounded-l-none {
+            border-top-left-radius: 0px;
+            border-bottom-left-radius: 0px;
+        }
+
+        .border-r-0 {
+            border-right-width: 0px;
+        }
+
+        .border-l-0 {
+            border-left-width: 0px;
+        }
+
+        .whitespace-nowrap {
+            white-space: nowrap;
+        }
+
+        .min-w-0 {
+            min-width: 0px;
+        }
+
+        .pb-3 {
+            padding-bottom: 0.75rem;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        /* Grid setup */
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(158px, 1fr));
+            gap: 0.75rem;
+        }
+
+        /* Custom hover effect classes */
+        .lecture-card-image-container {
+            position: relative;
+        }
+
+        .lecture-card-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 300ms ease-in-out;
+        }
+
+        .lecture-card-image-container:hover .lecture-card-overlay {
+            opacity: 1;
+        }
+
+        /* New style for single button on hover */
+        .single-button-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: rgba(0, 0, 0, 0.5);
+            opacity: 0;
+            transition: opacity 300ms ease-in-out;
+        }
+
+        .lecture-card-image-container:hover .single-button-overlay {
+            opacity: 1;
+        }
+
+        /* Buttons container below image */
+        .lecture-buttons-container {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: flex-start;
+            padding-top: 0.5rem;
+        }
+
+        /* New button style for creating a new lecture */
+        .create-button {
+            display: flex;
+            min-width: 84px;
+            max-width: 480px;
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            border-radius: 0.5rem;
+            height: 2.5rem;
+            padding: 0 1rem;
+            font-size: 0.875rem;
+            font-weight: 700;
+            line-height: 1.5;
+            letter-spacing: 0.015em;
+            border: none;
+            background-color: #0d80f2;
+            color: #ffffff;
+            text-decoration: none; /* Remove underline for a clean look */
+        }
+    </style>
+</head>
+<body>
+    <div class="relative flex size-full min-h-screen flex-col bg-white overflow-x-hidden">
+        @Html.Partial("_LandingHeader")
+
+        <div class="flex flex-1 justify-center py-5 px-10">
+            <div class="flex flex-col max-w-[960px] flex-1">
+                @foreach (var course in Model)
+                {
+                    <div class="flex flex-wrap justify-between gap-3 p-4">
+                        <p class="text-[#111418] tracking-light text-3xl font-bold leading-tight min-w-72">@course.CourseName</p>
+                        <a asp-action="Create" asp-route-id="@course.CourseId" class="create-button">
+                            <span class="truncate">Create New Lecture</span>
+                        </a>
+                    </div>
+
+                    <div class="grid-container p-4">
+                        @if (course.Lectures != null && course.Lectures.Any())
+                        {
+                            @foreach (var lecture in course.Lectures.OrderByDescending(l => l.LectureDate))
+                            {
+                                <div class="flex flex-col gap-3 pb-3">
+                                    <div class="w-full bg-center bg-no-repeat aspect-video bg-cover rounded-lg overflow-hidden lecture-card-image-container"
+                                         style='background-image: url("@GetYoutubeThumbnailUrl(lecture.VideoUrl)");'>
+
+                                        <div class="single-button-overlay">
+                                            <a href="@lecture.VideoUrl" target="_blank" class="flex cursor-pointer items-center justify-center overflow-hidden rounded-lg h-8 px-3 bg-[#0d80f2] text-white text-sm font-bold leading-normal">
+                                                <span class="truncate">مشاهدة المحاضرة</span>
+                                            </a>
+                                        </div>
+                                    </div>
+                                    <div class="flex-col">
+                                        <p class="text-[#111418] text-base font-medium leading-normal">@lecture.Title</p>
+                                        <p class="text-[#60758a] text-sm font-normal leading-normal">@lecture.Description</p>
+                                        <p class="text-[#60758a] text-sm font-normal leading-normal">@lecture.LectureDate.ToString("MMM dd, yyyy") • @(lecture.IsDeleted ? "Deleted" : "Active")</p>
+                                    </div>
+                                    <div class="lecture-buttons-container">
+                                        <a asp-action="Edit" asp-route-id="@lecture.LectureId" class="flex max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-8 px-3 bg-[#f0f2f5] text-[#111418] text-sm font-bold leading-normal">
+                                            <span class="truncate">&#9998;</span>
+                                        </a>
+                                        <a asp-action="Details" asp-route-id="@lecture.LectureId" class="flex max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-8 px-3 bg-[#f0f2f5] text-[#111418] text-sm font-bold leading-normal">
+                                            <span class="truncate">&#9776;</span>
+                                        </a>
+                                        <a asp-action="Delete" asp-route-id="@lecture.LectureId" class="flex max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-8 px-3 bg-red-500 text-white text-sm font-bold leading-normal">
+                                            <span class="truncate">&#128465;</span>
+                                        </a>
+                                    </div>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <div class="p-4 text-center text-[#60758a]">No lectures available for this course.</div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    @Html.Partial("_LandingFooter")
+
+</body>
+</html>

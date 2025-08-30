@@ -1,4 +1,4 @@
-﻿@model TrainingCenterManagement_MVC.Models.Lecture
+﻿@* @model TrainingCenterManagement_MVC.Models.Lecture
 
 @{
     ViewData["Title"] = "Delete";
@@ -57,3 +57,260 @@
         <a asp-action="Index" class="btn btn-secondary ms-2">Back to List</a>
     </form>
 </div>
+ *@
+@model TrainingCenterManagement_MVC.Models.Lecture
+
+@{
+    ViewData["Title"] = "Delete";
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="" />
+    <link rel="stylesheet"
+          as="style"
+          onload="this.rel='stylesheet'"
+          href="https://fonts.googleapis.com/css2?display=swap&family=Inter%3Awght%40400%3B500%3B700%3B900&family=Noto+Sans%3Awght%40400%3B500%3B700%3B900" />
+    <title>Delete Lecture</title>
+    <link rel="icon" type="image/x-icon" href="data:image/x-icon;base64," />
+
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <style>
+        .layout-container {
+            display: flex;
+            height: 100%;
+            flex-grow: 1;
+            flex-direction: column;
+        }
+
+        .main-content {
+            padding-left: 10rem;
+            padding-right: 10rem;
+            display: flex;
+            flex-grow: 1;
+            justify-content: center;
+            padding-top: 1.25rem;
+            padding-bottom: 1.25rem;
+        }
+
+        .content-container {
+            display: flex;
+            flex-direction: column;
+            width: 512px;
+            max-width: 960px;
+            padding-top: 1.25rem;
+            padding-bottom: 1.25rem;
+            flex-grow: 1;
+        }
+
+        .section-title-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            gap: 0.75rem;
+            padding: 1rem;
+        }
+
+        .section-title {
+            display: flex;
+            min-width: 18rem;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .title-text {
+            color: #111418;
+            letter-spacing: -0.015em;
+            font-size: 2rem;
+            font-weight: 700;
+            line-height: 1.25;
+        }
+
+        .subtitle-text {
+            color: #60758a;
+            font-size: 0.875rem;
+            font-weight: 400;
+            line-height: 1.5;
+        }
+
+        .alert-container {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            background-color: #ffffff;
+            padding: 1rem;
+            min-height: 3.5rem;
+            justify-content: space-between;
+        }
+
+        .alert-icon-container {
+            color: #111418;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 0.5rem;
+            background-color: #f0f2f5;
+            flex-shrink: 0;
+            width: 2.5rem;
+            height: 2.5rem;
+        }
+
+        .alert-text {
+            color: #111418;
+            font-size: 1rem;
+            font-weight: 400;
+            line-height: 1.5;
+            flex-grow: 1;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+
+        .details-container {
+            padding: 1rem;
+        }
+
+        .details-card {
+            display: flex;
+            align-items: stretch;
+            justify-content: space-between;
+            gap: 1rem;
+            border-radius: 0.5rem;
+        }
+
+        .details-info {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+            flex: 2 2 0px;
+        }
+
+        .details-title {
+            color: #111418;
+            font-size: 1rem;
+            font-weight: 700;
+            line-height: 1.25;
+        }
+
+        .details-subtitle {
+            color: #60758a;
+            font-size: 0.875rem;
+            font-weight: 400;
+            line-height: 1.5;
+        }
+
+        .thumbnail-container {
+            width: 100%;
+            background-position: center;
+            background-repeat: no-repeat;
+            aspect-ratio: 16 / 9;
+            background-size: cover;
+            border-radius: 0.5rem;
+            flex: 1 1 0%;
+        }
+
+        .button-group {
+            display: flex;
+            justify-content: stretch;
+        }
+
+        .buttons-container {
+            display: flex;
+            flex-grow: 1;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            padding: 1rem;
+            justify-content: flex-end;
+        }
+
+        .primary-button, .secondary-button {
+            display: flex;
+            min-width: 84px;
+            max-width: 480px;
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            border-radius: 0.5rem;
+            height: 2.5rem;
+            padding: 0 1rem;
+            font-size: 0.875rem;
+            font-weight: 700;
+            line-height: 1.5;
+            letter-spacing: 0.015em;
+            border: none;
+            text-decoration: none;
+        }
+
+        .primary-button {
+            background-color: #ef4444; /* Red for delete */
+            color: #ffffff;
+        }
+
+        .secondary-button {
+            background-color: #f0f2f5;
+            color: #111418;
+        }
+
+        .truncate {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="relative flex size-full min-h-screen flex-col bg-white overflow-x-hidden">
+        @* Add your header partial view here if you have one *@
+        @* @Html.Partial("_LandingHeader") *@
+
+        <main class="main-content">
+            <div class="content-container">
+                <div class="section-title-container">
+                    <div class="section-title">
+                        <p class="title-text">Delete Lecture</p>
+                        <p class="subtitle-text">This action cannot be undone.</p>
+                    </div>
+                </div>
+
+                <div class="alert-container">
+                    <div class="flex items-center gap-4">
+                        <div class="alert-icon-container">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
+                                <path d="M236.8,188.09,149.35,36.22h0a24.76,24.76,0,0,0-42.7,0L19.2,188.09a23.51,23.51,0,0,0,0,23.72A24.35,24.35,0,0,0,40.55,224h174.9a24.35,24.35,0,0,0,21.33-12.19A23.51,23.51,0,0,0,236.8,188.09ZM222.93,203.8a8.5,8.5,0,0,1-7.48,4.2H40.55a8.5,8.5,0,0,1-7.48-4.2,7.59,7.59,0,0,1,0-7.72L120.52,44.21a8.75,8.75,0,0,1,15,0l87.45,151.87A7.59,7.59,0,0,1,222.93,203.8ZM120,144V104a8,8,0,0,1,16,0v40a8,8,0,0,1-16,0Zm20,36a12,12,0,1,1-12-12A12,12,0,0,1,140,180Z"></path>
+                            </svg>
+                        </div>
+                        <p class="alert-text">Are you sure you want to delete this lecture?</p>
+                    </div>
+                </div>
+
+                <div class="details-container">
+                    <div class="details-card">
+                        <div class="details-info">
+                            <p class="details-title">Lecture: @Model.Title</p>
+                            <p class="details-subtitle">Video URL: @Model.VideoUrl</p>
+                            <p class="details-subtitle">Description: @Model.Description</p>
+                        </div>
+                        <div class="thumbnail-container" style='background-image: url("@Model.ThumbnailUrl");'></div>
+                    </div>
+                </div>
+
+                <form asp-action="Delete" method="post" class="button-group">
+                    <input type="hidden" asp-for="LectureId" />
+                    <div class="buttons-container">
+                        <button type="submit" class="primary-button">
+                            <span class="truncate">Delete</span>
+                        </button>
+                        <a asp-action="Index" class="secondary-button">
+                            <span class="truncate">Back to List</span>
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </main>
+    </div>
+</body>
+</html>
+

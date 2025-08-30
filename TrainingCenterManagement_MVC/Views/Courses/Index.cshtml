@@ -1,4 +1,4 @@
-﻿@model IEnumerable<TrainingCenterManagement_MVC.Models.Course>
+﻿@* @model IEnumerable<TrainingCenterManagement_MVC.Models.Course>
 
 @{
     ViewData["Title"] = "Courses List";
@@ -85,4 +85,372 @@
             No courses available at the moment.
         </div>
     }
+</div>
+ *@
+
+
+
+@model IEnumerable<TrainingCenterManagement_MVC.Models.Course>
+
+@{
+    ViewData["Title"] = "Courses List";
+}
+
+<head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+    <style>
+        :root {
+            --color-text-primary: #111418;
+            --color-text-secondary: #60758a;
+            --color-bg-light: #f0f2f5;
+            --color-border-light: #dbe0e6;
+            --font-inter: "Inter", "Noto Sans", sans-serif;
+        }
+
+        body {
+            font-family: var(--font-inter);
+            background-color: #ffffff;
+            color: var(--color-text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .container-layout {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            white-space: nowrap;
+            border-bottom: 1px solid var(--color-border-light);
+            padding: 1.5rem 2.5rem;
+        }
+
+            .header .logo {
+                display: flex;
+                align-items: center;
+                gap: 1rem;
+            }
+
+            .header .logo-icon {
+                width: 1rem;
+                height: 1rem;
+                color: var(--color-text-primary);
+            }
+
+            .header .logo-text {
+                font-size: 1.125rem;
+                font-weight: bold;
+                line-height: 1.25;
+                letter-spacing: -0.015em;
+            }
+
+            .header .nav-links {
+                display: flex;
+                align-items: center;
+                gap: 2.25rem;
+            }
+
+            .header .nav-link {
+                font-size: 0.875rem;
+                font-weight: 500;
+                line-height: normal;
+                color: var(--color-text-primary);
+                text-decoration: none;
+            }
+
+            .header .actions {
+                display: flex;
+                flex: 1;
+                justify-content: flex-end;
+                gap: 2rem;
+                align-items: center;
+            }
+
+            .header .search-box {
+                display: flex;
+                width: 10rem;
+                height: 2.5rem;
+                max-width: 16rem;
+            }
+
+            .header .search-icon-container {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding-left: 1rem;
+                border: none;
+                background-color: var(--color-bg-light);
+                border-radius: 0.5rem 0 0 0.5rem;
+            }
+
+            .header .search-icon {
+                color: var(--color-text-secondary);
+                width: 1.5rem;
+                height: 1.5rem;
+            }
+
+            .header .search-input {
+                flex: 1;
+                min-width: 0;
+                resize: none;
+                border: none;
+                background-color: var(--color-bg-light);
+                border-radius: 0 0.5rem 0.5rem 0;
+                padding-left: 0.5rem;
+                padding-right: 1rem;
+                font-size: 1rem;
+                font-weight: normal;
+                line-height: normal;
+                color: var(--color-text-primary);
+            }
+
+                .header .search-input::placeholder {
+                    color: var(--color-text-secondary);
+                }
+
+            .header .button {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                height: 2.5rem;
+                padding: 0 0.625rem;
+                border-radius: 0.5rem;
+                background-color: var(--color-bg-light);
+                color: var(--color-text-primary);
+                font-size: 0.875rem;
+                font-weight: bold;
+                line-height: normal;
+                letter-spacing: 0.015em;
+                cursor: pointer;
+                text-decoration: none;
+                border: none;
+            }
+
+            .header .icon-button {
+                padding: 0 0.625rem;
+            }
+
+            .header .profile-picture {
+                width: 2.5rem;
+                height: 2.5rem;
+                border-radius: 9999px;
+                background-position: center;
+                background-size: cover;
+                background-repeat: no-repeat;
+                aspect-ratio: 1 / 1;
+            }
+
+        .content-area {
+            display: flex;
+            flex: 1;
+            justify-content: center;
+            padding: 1.25rem 0;
+        }
+
+        .content-wrapper {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            max-width: 960px;
+        }
+
+        .content-header {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            gap: 0.75rem;
+            padding: 1rem;
+        }
+
+            .content-header h1 {
+                color: var(--color-text-primary);
+                letter-spacing: -0.025em;
+                font-size: 2rem;
+                font-weight: bold;
+                line-height: 1.25;
+                min-width: 18rem;
+                margin: 0;
+            }
+
+            .content-header .create-button {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                height: 2rem;
+                padding: 0 1rem;
+                background-color: var(--color-bg-light);
+                color: var(--color-text-primary);
+                font-size: 0.875rem;
+                font-weight: 500;
+                line-height: normal;
+                border-radius: 0.5rem;
+                text-decoration: none;
+                cursor: pointer;
+            }
+
+        .course-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            padding: 1rem;
+        }
+
+        .course-card {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            padding-bottom: 0.75rem;
+            border-radius: 0.5rem;
+            border: 1px solid var(--color-border-light);
+            background-color: white;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+            .course-card:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            }
+
+            .course-card .thumbnail-wrapper {
+                position: relative;
+            }
+
+            .course-card .thumbnail-img {
+                width: 100%;
+                aspect-ratio: 16 / 9;
+                object-fit: cover;
+                border-top-left-radius: 0.5rem;
+                border-top-right-radius: 0.5rem;
+            }
+
+            .course-card .status-overlay {
+                position: absolute;
+                top: 0.5rem;
+                right: 0.5rem;
+                padding: 0.25rem 0.5rem;
+                border-radius: 0.25rem;
+                font-size: 0.75rem;
+                font-weight: 500;
+            }
+
+        .status-active {
+            background-color: rgba(67, 160, 71, 0.8);
+            color: white;
+        }
+
+        .status-deleted {
+            background-color: rgba(229, 57, 53, 0.8);
+            color: white;
+        }
+
+        .card-content {
+            padding: 0 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+            .card-content .course-name {
+                font-size: 1rem;
+                font-weight: 500;
+                line-height: normal;
+                color: var(--color-text-primary);
+                margin: 0;
+            }
+
+            .card-content .course-meta {
+                font-size: 0.875rem;
+                font-weight: normal;
+                line-height: normal;
+                color: var(--color-text-secondary);
+                margin: 0;
+            }
+
+        .card-actions {
+            padding: 0 1rem;
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.5rem;
+        }
+
+            .card-actions a {
+                color: var(--color-text-secondary);
+                font-size: 1rem;
+                text-decoration: none;
+                transition: color 0.2s;
+            }
+
+                .card-actions a:hover {
+                    color: var(--color-text-primary);
+                }
+    </style>
+</head>
+
+<div class="container-layout">
+    @Html.Partial("_LandingHeader")
+    <div class="content-area">
+        <div class="content-wrapper">
+            <div class="content-header">
+                <h1>Courses</h1>
+                <a asp-action="Create" class="create-button">➕ Create New Course</a>
+            </div>
+
+            @if (Model.Any())
+            {
+                <div class="course-grid">
+                    @foreach (var item in Model)
+                    {
+                        <div class="course-card">
+                            <div class="thumbnail-wrapper">
+                                @if (!string.IsNullOrEmpty(item.ThumbnailUrl))
+                                {
+                                    <img src="@item.ThumbnailUrl" alt="Thumbnail" class="thumbnail-img" />
+                                }
+                                else
+                                {
+                                    <div class="thumbnail-img" style="background-color: var(--color-bg-light);"></div>
+                                }
+                                @if (item.IsDeleted)
+                                {
+                                    <div class="status-overlay status-deleted">Deleted</div>
+                                }
+                                else
+                                {
+                                    <div class="status-overlay status-active">Published</div>
+                                }
+                            </div>
+                            <div class="card-content">
+                                <p class="course-name">@Html.DisplayFor(modelItem => item.CourseName)</p>
+                                <p class="course-meta">Batch: @Html.DisplayFor(modelItem => item.BatchNumber)</p>
+                                <p class="course-meta">Lectures: @Html.DisplayFor(modelItem => item.NumberOfLectures)</p>
+                            </div>
+                            <div class="card-actions">
+                                <a asp-action="Edit" asp-route-id="@item.CourseId" title="Edit">
+                                    <i class="fas fa-pencil-alt"></i>
+                                </a>
+                                <a asp-action="Details" asp-route-id="@item.CourseId" title="Details">
+                                    <i class="fas fa-bars"></i>
+                                </a>
+                                <a asp-action="Delete" asp-route-id="@item.CourseId" title="Delete">
+                                    <i class="fas fa-trash-alt"></i>
+                                </a>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div style="padding: 1rem; text-align: center; background-color: #fff3cd; color: #856404; border-radius: 0.5rem; margin-top: 1rem;">
+                    No courses available at the moment.
+                </div>
+            }
+        </div>
+    </div>
 </div>

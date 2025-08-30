@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace TrainingCenterManagement_MVC.Migrations
 {
     /// <inheritdoc />
-    public partial class Initial : Migration
+    public partial class i : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -331,7 +331,8 @@ namespace TrainingCenterManagement_MVC.Migrations
                     CreatedDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     ReleaseDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false),
-                    AdminId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                    AdminId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    IsFeatured = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {

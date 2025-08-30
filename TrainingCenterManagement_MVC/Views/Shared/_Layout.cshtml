@@ -38,12 +38,28 @@
     <link href="../../../css/styles.css" type="text/css" rel="stylesheet">
     <link href="../../../css/styles-menu.css" type="text/css" rel="stylesheet">
     <link href="~/css/chat.css" rel="stylesheet" />
-    
 
-   
+    
 </head>
 <body>
-
+    @* "Admin", "Trainer", "Trainee", "Receptionist"
+    @if (User.IsInRole("Admin") )
+    {
+        <p>@await Html.PartialAsync("_AdminSidebar")</p>
+    }
+    @if (User.IsInRole("Trainer"))
+    {
+        <p>@await Html.PartialAsync("_TrainerSidebar")</p>
+    }
+    @if (User.IsInRole("Trainee"))
+    {
+        <p>@await Html.PartialAsync("_TraineeSidebar")</p>
+    }
+    @if (User.IsInRole("Receptionist"))
+    {
+        <p>@await Html.PartialAsync("_ReceptionistSidebar")</p>
+    } *@
+    @* @Html.Partial("_LandingHeader") *@
     <div>
         @RenderBody()
 

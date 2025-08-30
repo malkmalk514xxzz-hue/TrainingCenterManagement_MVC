@@ -1,4 +1,4 @@
-﻿@model TrainingCenterManagement_MVC.Models.Lecture
+﻿@* @model TrainingCenterManagement_MVC.Models.Lecture
 
 @{
     ViewData["Title"] = "Create Lecture";
@@ -78,3 +78,407 @@
         });
     </script>
 }
+ *@
+
+@model TrainingCenterManagement_MVC.Models.Lecture
+@{
+    ViewData["Title"] = "Create Lecture";
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="" />
+    <link rel="stylesheet"
+          as="style"
+          onload="this.rel='stylesheet'"
+          href="https://fonts.googleapis.com/css2?display=swap&family=Inter%3Awght%40400%3B500%3B700%3B900&family=Noto+Sans%3Awght%40400%3B500%3B700%3B900" />
+    <title>@ViewData["Title"]</title>
+    <link rel="icon" type="image/x-icon" href="data:image/x-icon;base64," />
+
+    <style>
+        /* General Styles */
+        body {
+            font-family: 'Inter', 'Noto Sans', sans-serif;
+            background-color: #ffffff;
+            color: #111418;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        .layout-container {
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            height: 100%;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            white-space: nowrap;
+            border-bottom: 1px solid #f0f2f5;
+            padding: 0.75rem 2.5rem;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            color: #111418;
+        }
+
+        .logo-icon {
+            width: 2.5rem;
+            height: 2.5rem;
+            flex-shrink: 0;
+            border-radius: 9999px;
+            background-color: #f0f2f5;
+            color: #111418;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .logo-text {
+            font-size: 1.125rem;
+            font-weight: 700;
+            line-height: 1.25;
+            letter-spacing: -0.015em;
+            color: #111418;
+        }
+
+        .header-nav a {
+            color: #60758a;
+            font-size: 0.875rem;
+            font-weight: 500;
+            line-height: 1.25rem;
+        }
+
+        /* Main Content - Updated to reduce the space */
+        .main-content {
+            display: flex;
+            flex-grow: 1;
+            justify-content: center;
+            padding: 0.5rem 1.5rem; /* تم تقليل المسافة العلوية */
+        }
+
+        /* Content Container - Updated to reduce the space */
+        .content-container {
+            display: flex;
+            flex-direction: column;
+            width: 512px;
+            max-width: 960px;
+            padding: 0.5rem 0; /* تم تقليل المسافة العلوية */
+            flex-grow: 1;
+        }
+
+        .page-title {
+            color: #111418;
+            letter-spacing: -0.015em;
+            font-size: 2rem;
+            font-weight: 700;
+            line-height: 1.25;
+            min-width: 18rem;
+            padding: 0.25rem 1rem; /* تم تقليل المسافة العلوية والسفلية */
+        }
+
+        /* Form Elements - Updated to reduce the space */
+        .form-field {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            gap: 0.5rem;
+            padding: 0.25rem 1rem; /* تم تقليل المسافة الداخلية */
+            max-width: 480px;
+        }
+
+        .form-label {
+            display: flex;
+            flex-direction: column;
+            min-width: 10rem;
+            flex-grow: 1;
+        }
+
+        .label-text {
+            color: #111418;
+            font-size: 1rem;
+            font-weight: 500;
+            line-height: 1.5;
+            padding-bottom: 0.25rem;
+        }
+
+        .form-input, .form-textarea, .form-select {
+            display: flex;
+            width: 100%;
+            min-width: 0;
+            flex-grow: 1;
+            resize: none;
+            overflow: hidden;
+            border-radius: 0.5rem;
+            color: #111418;
+            border: 1px solid #dbe0e6;
+            background-color: #ffffff;
+            height: 3.5rem;
+            padding: 0.9375rem;
+            font-size: 1rem;
+            font-weight: 400;
+            line-height: 1.5;
+        }
+
+        .form-textarea {
+            min-height: 9rem;
+        }
+
+            .form-input::placeholder, .form-textarea::placeholder {
+                color: #60758a;
+            }
+
+            .form-input:focus, .form-textarea:focus, .form-select:focus {
+                outline: 2px solid transparent;
+                outline-offset: 2px;
+                border-color: #dbe0e6;
+            }
+
+        /* Toggle Switch */
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            background-color: #ffffff;
+            padding: 0.5rem 1rem;
+            min-height: 3.5rem;
+            justify-content: space-between;
+        }
+
+        .toggle-text {
+            color: #111418;
+            font-size: 1rem;
+            font-weight: 400;
+            line-height: 1.5;
+            flex-grow: 1;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+
+        .toggle-switch-wrapper {
+            flex-shrink: 0;
+        }
+
+        .toggle-switch-label {
+            position: relative;
+            display: flex;
+            height: 31px;
+            width: 51px;
+            cursor: pointer;
+            align-items: center;
+            border-radius: 9999px;
+            border: none;
+            background-color: #f0f2f5;
+            padding: 0.125rem;
+        }
+
+            .toggle-switch-label input:checked + .toggle-switch-slider {
+                background-color: #0d80f2;
+                justify-content: flex-end;
+            }
+
+        .toggle-switch-slider {
+            height: 100%;
+            width: 27px;
+            border-radius: 9999px;
+            background-color: white;
+            box-shadow: rgba(0, 0, 0, 0.15) 0px 3px 8px, rgba(0, 0, 0, 0.06) 0px 3px 1px;
+        }
+
+        .toggle-switch-label input {
+            visibility: hidden;
+            position: absolute;
+        }
+
+        /* Buttons */
+        .button-group {
+            display: flex;
+            justify-content: stretch;
+        }
+
+        .buttons-container {
+            display: flex;
+            flex-grow: 1;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            padding: 0.25rem 1rem;
+            justify-content: flex-end;
+            max-width: 480px;
+        }
+
+        .primary-button, .secondary-button {
+            display: flex;
+            min-width: 84px;
+            max-width: 480px;
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            border-radius: 0.5rem;
+            height: 2.5rem;
+            padding: 0 1rem;
+            font-size: 0.875rem;
+            font-weight: 700;
+            line-height: 1.5;
+            letter-spacing: 0.015em;
+            border: none;
+        }
+
+        .primary-button {
+            background-color: #0d80f2;
+            color: #ffffff;
+        }
+
+        .secondary-button {
+            background-color: #f0f2f5;
+            color: #111418;
+        }
+
+        .validation-text {
+            color: red;
+        }
+
+        /* Specific Select2 styling to override default */
+        .select2-container--default .select2-selection--single {
+            border-color: #dbe0e6 !important;
+            border-radius: 0.5rem !important;
+            height: 3.5rem !important;
+            padding: 0.9375rem !important;
+        }
+
+            .select2-container--default .select2-selection--single .select2-selection__arrow {
+                height: 3.5rem !important;
+            }
+    </style>
+</head>
+
+<body>
+    <div class="layout-container">
+        @Html.Partial("_LandingHeader")
+        <main class="main-content">
+            <div class="content-container">
+                <p class="page-title">Create Lecture Content</p>
+                <form asp-action="Create" method="post" class="form-container">
+                    <div asp-validation-summary="ModelOnly" class="validation-text"></div>
+
+                    <div class="form-field">
+                        <label asp-for="Title" class="form-label">
+                            <p class="label-text">Title</p>
+                            <input asp-for="Title" placeholder="Enter lecture title" class="form-input" />
+                            <span asp-validation-for="Title" class="validation-text"></span>
+                        </label>
+                    </div>
+
+                    <div class="form-field">
+                        <label asp-for="Description" class="form-label">
+                            <p class="label-text">Description</p>
+                            <textarea asp-for="Description" placeholder="Enter lecture description" class="form-textarea"></textarea>
+                            <span asp-validation-for="Description" class="validation-text"></span>
+                        </label>
+                    </div>
+
+                    <div class="form-field">
+                        <label asp-for="VideoUrl" class="form-label">
+                            <p class="label-text">VideoUrl</p>
+                            <input asp-for="VideoUrl" placeholder="Enter video URL" class="form-input" />
+                            <span asp-validation-for="VideoUrl" class="validation-text"></span>
+                        </label>
+                    </div>
+
+                    <div class="form-field">
+                        <label asp-for="ThumbnailUrl" class="form-label">
+                            <p class="label-text">ThumbnailUrl</p>
+                            <input asp-for="ThumbnailUrl" placeholder="Enter thumbnail URL" class="form-input" />
+                            <span asp-validation-for="ThumbnailUrl" class="validation-text"></span>
+                        </label>
+                    </div>
+
+                    <div class="form-field">
+                        <label asp-for="LectureDate" class="form-label">
+                            <p class="label-text">LectureDate</p>
+                            <input asp-for="LectureDate" type="date" class="form-input" />
+                            <span asp-validation-for="LectureDate" class="validation-text"></span>
+                        </label>
+                    </div>
+
+                    @* <div class="toggle-container">
+                        <p class="toggle-text">IsDeleted</p>
+                        <div class="toggle-switch-wrapper">
+                            <label class="toggle-switch-label">
+                                <input type="checkbox" asp-for="IsDeleted" />
+                                <div class="toggle-switch-slider"></div>
+                            </label>
+                        </div>
+                        <span asp-validation-for="IsDeleted" class="validation-text"></span>
+                    </div> *@
+
+                    <div class="form-field">
+                        <label asp-for="CourseId" class="form-label">
+                            <p class="label-text">CourseId</p>
+                            <select asp-for="CourseId" class="form-input select2" asp-items="ViewBag.CourseId">
+                                <option></option>
+                            </select>
+                            <span asp-validation-for="CourseId" class="validation-text"></span>
+                        </label>
+                    </div>
+
+                    <div class="button-group">
+                        <div class="buttons-container">
+                            <a asp-action="Index" class="secondary-button">
+                                <span class="truncate">Back to List</span>
+                            </a>
+                            <button type="submit" class="primary-button">
+                                <span class="truncate">Create</span>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </main>
+    </div>
+</body>
+
+@section Scripts {
+        @{
+                await Html.RenderPartialAsync("_ValidationScriptsPartial");
+        }
+
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            $('.select2').select2({
+                placeholder: "Select a course",
+                allowClear: true
+            });
+        });
+    </script>
+}
+</html>

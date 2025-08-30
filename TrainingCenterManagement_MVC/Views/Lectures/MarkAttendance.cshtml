@@ -1,4 +1,4 @@
-﻿@model List<TrainingCenterManagement_MVC.ViewModels.AttendanceViewModel>
+﻿@* @model List<TrainingCenterManagement_MVC.ViewModels.AttendanceViewModel>
 
 @{
     ViewData["Title"] = "Mark Attendance";
@@ -41,3 +41,240 @@
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
 }
+ *@
+
+
+
+@model List<TrainingCenterManagement_MVC.ViewModels.AttendanceViewModel>
+
+@{
+    ViewData["Title"] = "Mark Attendance";
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="" />
+    <link rel="stylesheet"
+          as="style"
+          onload="this.rel='stylesheet'"
+          href="https://fonts.googleapis.com/css2?display=swap&family=Inter%3Awght%40400%3B500%3B700%3B900&family=Noto+Sans%3Awght%40400%3B500%3B700%3B900" />
+    <title>@ViewData["Title"]</title>
+    <link rel="icon" type="image/x-icon" href="data:image/x-icon;base64," />
+
+    <style>
+        /* General Styles from Stitch Design */
+        body {
+            font-family: 'Inter', 'Noto Sans', sans-serif;
+            background-color: #ffffff;
+            color: #111418;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        .layout-container {
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            height: 100%;
+        }
+
+        .main-content {
+            display: flex;
+            flex-grow: 1;
+            justify-content: center;
+            padding: 1.25rem 2.5rem;
+        }
+
+        .content-container {
+            display: flex;
+            flex-direction: column;
+            max-width: 960px;
+            flex-grow: 1;
+        }
+
+        .page-title-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            gap: 0.75rem;
+            padding: 1rem;
+        }
+
+        .page-title {
+            color: #111418;
+            letter-spacing: -0.015em;
+            font-size: 2rem;
+            font-weight: 700;
+            line-height: 1.25;
+            min-width: 18rem;
+        }
+
+        .table-container {
+            padding: 0.75rem 1rem;
+            container-type: inline-size;
+        }
+
+        .table-wrapper {
+            display: flex;
+            overflow: hidden;
+            border-radius: 0.5rem;
+            border: 1px solid #dbe0e6;
+            background-color: #ffffff;
+        }
+
+        table {
+            flex-grow: 1;
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead tr {
+            background-color: #ffffff;
+        }
+
+        th {
+            padding: 0.75rem 1rem;
+            text-align: left;
+            color: #111418;
+            font-size: 0.875rem;
+            font-weight: 500;
+            line-height: 1.5;
+        }
+
+        tbody tr {
+            border-top: 1px solid #dbe0e6;
+        }
+
+        td {
+            padding: 0.5rem 1rem;
+            height: 4.5rem;
+            color: #111418;
+            font-size: 0.875rem;
+            font-weight: 400;
+            line-height: 1.5;
+        }
+
+        .buttons-container {
+            display: flex;
+            padding: 0.75rem 1rem;
+            justify-content: flex-end;
+        }
+
+        .primary-button {
+            display: flex;
+            min-width: 84px;
+            max-width: 480px;
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            border-radius: 0.5rem;
+            height: 2.5rem;
+            padding: 0 1rem;
+            background-color: #0d80f2;
+            color: #ffffff;
+            font-size: 0.875rem;
+            font-weight: 700;
+            line-height: 1.5;
+            letter-spacing: 0.015em;
+            border: none;
+        }
+
+        .truncate {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+        }
+
+        .checkbox-input {
+            width: 1rem;
+            height: 1rem;
+        }
+
+        
+    </style>
+</head>
+
+<body>
+    <div class="relative flex size-full min-h-screen flex-col bg-white group/design-root overflow-x-hidden">
+        <div class="layout-container flex h-full grow flex-col">
+            @* يمكنك هنا إضافة رأس الصفحة (header) إذا أردت *@
+
+            @Html.Partial("_LandingHeader") 
+
+            <main class="main-content">
+                <div class="layout-content-container content-container">
+                    <div class="page-title-container">
+                        <p class="page-title">Mark Attendance - @ViewBag.LectureTitle</p>
+                    </div>
+
+                    <form asp-action="MarkAttendance" method="post">
+                        <input type="hidden" name="lectureId" value="@ViewBag.LectureId" />
+
+                        <div class="table-container">
+                            <div class="table-wrapper">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th class="px-4 py-3 text-left text-[#111418] text-sm font-medium leading-normal full-name-col">
+                                                Student Name
+                                            </th>
+                                            <th class="px-4 py-3 text-left text-[#111418] text-sm font-medium leading-normal">
+                                                Is Present?
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @for (int i = 0; i < Model.Count; i++)
+                                        {
+                                            <tr class="border-t border-t-[#dbe0e6]">
+                                                <td class="h-[72px] px-4 py-2 text-[#111418] text-sm font-normal leading-normal full-name-col">
+                                                    @Model[i].FullName
+                                                    <input type="hidden" asp-for="@Model[i].FullName" />
+                                                    <input type="hidden" asp-for="@Model[i].TraineeId" />
+                                                </td>
+                                                <td class="h-[72px] px-4 py-2 text-sm font-normal leading-normal">
+                                                    <div class="checkbox-container">
+                                                        <input asp-for="@Model[i].IsPresent" type="checkbox" class="checkbox-input" />
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="buttons-container">
+                            <button type="submit" class="primary-button">
+                                <span class="truncate">Save Attendance</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    @section Scripts {
+        @{
+            await Html.RenderPartialAsync("_ValidationScriptsPartial");
+        }
+    }
+</body>
+</html>
