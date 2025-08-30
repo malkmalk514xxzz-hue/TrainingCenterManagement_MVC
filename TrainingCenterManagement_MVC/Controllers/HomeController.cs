@@ -17,7 +17,7 @@ namespace TrainingCenterManagement_MVC.Controllers
         public IActionResult Index()
         {
             // جلب الكورسات المميزة فقط
-            var featuredCourses = _context.Courses.Where(c => c.IsFeatured).ToList(); // أو من قاعدة البيانات: _db.Courses.Where(c => c.IsFeatured).ToList();
+            var featuredCourses = _context.Courses.ToList(); // أو من قاعدة البيانات: _db.Courses.Where(c => c.IsFeatured).ToList();
             var model = new HomeViewModel { Courses = featuredCourses }; // افترض نموذج HomeViewModel يحتوي على List<Course> Courses
             return View(model);
         }

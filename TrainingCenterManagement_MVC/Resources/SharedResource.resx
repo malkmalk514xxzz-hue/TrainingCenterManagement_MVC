@@ -618,9 +618,6 @@
   <data name="all_types_option" xml:space="preserve">
     <value>All Types</value>
   </data>
-  <data name="add_payment_method_button" xml:space="preserve">
-    <value>Add Payment Method</value>
-  </data>
   <data name="method_name_label" xml:space="preserve">
     <value>Method Name</value>
   </data>
@@ -1289,5 +1286,14 @@
   </data>
   <data name="SaveChanges" xml:space="preserve">
     <value>Save Changes</value>
+  </data>
+  <data name="add_payment_method_button" xml:space="preserve">
+    <value>Add Payment Method</value>
+  </data>
+  <data name="ReleaseDate" xml:space="preserve">
+    <value>ReleaseDate</value>
+  </data>
+  <data name="Batch" xml:space="preserve">
+    <value>Batch</value>
   </data>
 </root>

@@ -475,6 +475,15 @@ namespace TrainingCenterManagement_MVC.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Batch.
+        /// </summary>
+        internal static string Batch {
+            get {
+                return ResourceManager.GetString("Batch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Best Courses.
         /// </summary>
         internal static string BestCourses {
@@ -2550,6 +2559,15 @@ namespace TrainingCenterManagement_MVC.Resources {
         internal static string registration {
             get {
                 return ResourceManager.GetString("registration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ReleaseDate.
+        /// </summary>
+        internal static string ReleaseDate {
+            get {
+                return ResourceManager.GetString("ReleaseDate", resourceCulture);
             }
         }
         

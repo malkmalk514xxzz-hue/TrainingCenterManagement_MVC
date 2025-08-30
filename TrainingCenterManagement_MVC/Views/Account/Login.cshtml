@@ -1,7 +1,4 @@
-﻿@{
-    Layout = "_LayoutAccount";
-}
-
+﻿@* 
 @model TrainingCenterManagement_MVC.ViewModels.LoginViewModel
 @{
     ViewData["Title"] = "Login";
@@ -101,4 +98,329 @@
             }
         }
     </script>
+} *@
+
+@{
+    Layout = "_LayoutAccount";
+}
+
+@model TrainingCenterManagement_MVC.ViewModels.LoginViewModel
+@{
+    ViewData["Title"] = "Login";
+}
+
+<style>
+    /* CSS Variables for colors, fonts, etc. */
+    :root {
+        --color-primary: #f2c00d;
+        --color-background: #fff;
+        --color-background-light: #f5f4f0;
+        --color-text-dark: #181611;
+        --color-text-muted: #8a8160;
+        --color-border: #e6e4db;
+        --font-family-sans: Inter, "Noto Sans", sans-serif;
+    }
+
+    body {
+        font-family: var(--font-family-sans);
+        background-color: var(--color-background);
+        direction: rtl;
+    }
+
+    .layout-container {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+        width: 100%;
+        overflow-x: hidden;
+    }
+
+    .main-content {
+        flex: 1;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        padding-top: 5rem;
+        padding-bottom: 5rem;
+        padding-left: 2.5rem;
+        padding-right: 2.5rem;
+    }
+
+    .login-container {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        max-width: 512px;
+    }
+
+    .form-title {
+        color: var(--color-text-dark);
+        font-size: 1.75rem;
+        font-weight: 700;
+        line-height: 1.25;
+        text-align: center;
+        padding-top: 1.25rem;
+        padding-bottom: 0.75rem;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        padding: 0.75rem 0;
+    }
+
+    .form-label {
+        color: var(--color-text-dark);
+        font-size: 1rem;
+        font-weight: 500;
+        line-height: 1.5;
+        padding-bottom: 0.5rem;
+        display: block;
+    }
+
+    .input-wrapper {
+        display: flex;
+        width: 100%;
+        flex: 1;
+        align-items: stretch;
+        border-radius: 0.5rem;
+    }
+
+    .form-control {
+        flex: 1;
+        width: 100%;
+        min-width: 0;
+        resize: none;
+        overflow: hidden;
+        border: 1px solid var(--color-border);
+        background-color: #fff;
+        height: 3.5rem;
+        padding: 0.9375rem;
+        border-radius: 0.5rem 0 0 0.5rem;
+        border-right: none;
+        color: var(--color-text-dark);
+        font-size: 1rem;
+        font-weight: 400;
+        line-height: 1.5;
+        outline: none;
+        transition: border-color 0.2s;
+    }
+
+        .form-control::placeholder {
+            color: var(--color-text-muted);
+        }
+
+        .form-control:focus {
+            border-color: var(--color-border); /* Kept consistent with original */
+        }
+
+    .input-icon-wrapper {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding-right: 0.9375rem;
+        border: 1px solid var(--color-border);
+        background-color: #fff;
+        border-radius: 0 0.5rem 0.5rem 0;
+        border-left: none;
+        color: var(--color-text-muted);
+    }
+
+    .input-group-append {
+        border-top: 1px solid var(--color-border);
+        border-bottom: 1px solid var(--color-border);
+        border-right: 1px solid var(--color-border);
+        border-radius: 0 0.5rem 0.5rem 0;
+        background-color: #fff;
+        padding: 0 0.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+        .input-group-append button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+            color: var(--color-text-muted);
+        }
+
+    .form-check {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 0.75rem 0;
+        justify-content: space-between;
+    }
+
+    .form-check-label {
+        color: var(--color-text-dark);
+        font-size: 1rem;
+        font-weight: 400;
+        line-height: 1.5;
+        flex: 1;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .form-check-input {
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        height: 1.25rem;
+        width: 1.25rem;
+        border: 2px solid var(--color-border);
+        border-radius: 0.25rem;
+        cursor: pointer;
+        transition: background-color 0.2s, border-color 0.2s;
+        background-color: transparent;
+        position: relative;
+    }
+
+        .form-check-input:checked {
+            background-color: var(--color-primary);
+            border-color: var(--color-primary);
+            background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='%23181611' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: 100%;
+        }
+
+        .form-check-input:focus {
+            outline: none;
+            box-shadow: none;
+        }
+
+    .btn-submit11 {
+        display: flex;
+        min-width: 84px;
+        max-width: 480px;
+        cursor: pointer;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        border-radius: 0.5rem;
+        height: 2.5rem;
+        padding: 0 1rem;
+        flex: 1;
+        background-color: var(--color-primary);
+        color: var(--color-text-dark);
+        font-size: 0.875rem;
+        font-weight: 700;
+        line-height: 1.5;
+        letter-spacing: 0.015em;
+        border: none;
+        text-decoration: none;
+        transition: background-color 0.2s;
+    }
+
+        .btn-submit11:hover {
+            background-color: #e5b00c;
+        }
+
+    .forgot-password {
+        text-align: center;
+        color: var(--color-text-muted);
+        font-size: 0.875rem;
+        font-weight: 400;
+        line-height: 1.5;
+        padding-top: 0.25rem;
+        padding-bottom: 0.75rem;
+        text-decoration: underline;
+    }
+
+    /* Message styles */
+    .alert-message {
+        padding: 1rem;
+        border-radius: 0.5rem;
+        margin-bottom: 1rem;
+        text-align: center;
+    }
+
+    .alert-danger {
+        background-color: #fff0f0;
+        color: #d13232;
+        border: 1px solid #d13232;
+    }
+</style>
+
+<div class="layout-container">
+    <div class="main-content">
+        <div class="login-container">
+            <h2 class="form-title">
+                Welcome back
+            </h2>
+
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div class="alert-message alert-danger">
+                    <ul class="mb-0" style="list-style-type: none; padding: 0;">
+                        @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                        {
+                            <li style="margin-bottom: 0.25rem;">@error.ErrorMessage</li>
+                        }
+                    </ul>
+                </div>
+            }
+
+            <form method="post">
+                <div class="form-group">
+                    <label asp-for="Email" class="form-label">Email</label>
+                    <div class="input-wrapper">
+                        <input asp-for="Email" class="form-control" placeholder="Enter your email" />
+                        <div class="input-icon-wrapper">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
+                                <path d="M224,48H32a8,8,0,0,0-8,8V192a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V56A8,8,0,0,0,224,48Zm-96,85.15L52.57,64H203.43ZM98.71,128,40,181.81V74.19Zm11.84,10.85,12,11.05a8,8,0,0,0,10.82,0l12-11.05,58,53.15H52.57ZM157.29,128,216,74.18V181.82Z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <span asp-validation-for="Email" class="text-warning" style="color: #f2c00d; font-size: 0.875rem; margin-top: 0.5rem; display: block;"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Password" class="form-label">Password</label>
+                    <div class="input-wrapper">
+                        <input asp-for="Password" type="password" class="form-control" placeholder="Enter your password" id="passwordInput" />
+                        <div class="input-icon-wrapper">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256" id="toggleIcon">
+                                <path d="M247.31,124.76c-.35-.79-8.82-19.58-27.65-38.41C194.57,61.26,162.88,48,128,48S61.43,61.26,36.34,86.35C17.51,105.18,9,124,8.69,124.76a8,8,0,0,0,0,6.5c.35.79,8.82,19.57,27.65,38.4C61.43,194.74,93.12,208,128,208s66.57-13.26,91.66-38.34c18.83-18.83,27.3-37.61,27.65-38.4A8,8,0,0,0,247.31,124.76ZM128,192c-30.78,0-57.67-11.19-79.93-33.25A133.47,133.47,0,0,1,25,128,133.33,133.33,0,0,1,48.07,97.25C70.33,75.19,97.22,64,128,64s57.67,11.19,79.93,33.25A133.46,133.46,0,0,1,231.05,128C223.84,141.46,192.43,192,128,192Zm0-112a48,48,0,1,0,48,48A48.05,48.05,0,0,0,128,80Zm0,80a32,32,0,1,1,32-32A32,32,0,0,1,128,160Z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <span asp-validation-for="Password" class="text-warning" style="color: #f2c00d; font-size: 0.875rem; margin-top: 0.5rem; display: block;"></span>
+                </div>
+
+                <div class="form-check">
+                    <label asp-for="RememberMe" class="form-check-label">Remember Me</label>
+                    <input asp-for="RememberMe" type="checkbox" class="form-check-input" id="rememberMe" />
+                </div>
+
+                <div class="form-group" style="padding: 1rem 0;">
+                    <button type="submit" class="btn-submit11">
+                        <span class="truncate">Login</span>
+                    </button>
+                </div>
+
+                <div class="forgot-password">
+                    <a href="@Url.Action("ForgotPassword", "Account")" class="forgot-password-link">Forgot password?</a>
+                </div>
+
+                @if (ViewBag.Message != null)
+                {
+                    <div class="alert-message alert-success">
+                        <p>@ViewBag.Message</p>
+                    </div>
+                }
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 }

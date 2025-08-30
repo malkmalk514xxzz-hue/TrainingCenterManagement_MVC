@@ -1,4 +1,4 @@
-﻿@using System.Globalization
+﻿@*  @using System.Globalization
 @using TrainingCenterManagement_MVC.Resources
 
 <style>
@@ -218,4 +218,791 @@
             langWrapper.classList.remove("active");
         }
     });
+</script> 
+ *@
+
+
+
+
+
+@using System.Globalization
+@using TrainingCenterManagement_MVC.Resources
+
+<style>
+    /* CSS Variables for colors, fonts, etc. */
+    :root {
+        --color-primary: #f2c00d;
+        --color-background-light: #f5f4f0;
+        --color-text-dark: #181611;
+        --color-text-muted: #8a8160;
+        --color-border: #f0f2f5;
+        --font-family-sans: Inter, "Noto Sans", sans-serif;
+    }
+
+    [data-theme="dark"] {
+        --color-background-light: #2d2d2d;
+        --color-text-dark: #ffffff;
+        --color-text-muted: #a0a0a0;
+        --color-border: #404040;
+    }
+
+    /* Basic Page Styles */
+    body {
+        font-family: var(--font-family-sans);
+        background-color: #fff;
+        color: var(--color-text-dark);
+        margin: 0;
+        direction: @(System.Threading.Thread.CurrentThread.CurrentUICulture.TextInfo.IsRightToLeft ? "rtl" : "ltr");
+        transition: background-color 0.3s, color 0.3s;
+    }
+
+    .header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        white-space: nowrap;
+        border-bottom: 1px solid var(--color-border);
+        padding: 0.75rem 2.5rem;
+        background-color: #fff;
+        transition: background-color 0.3s, border-color 0.3s;
+        position: relative;
+        z-index: 100;
+    }
+
+    [data-theme="dark"] .header {
+        background-color: #1a1a1a;
+    }
+
+    .header-group {
+        display: flex;
+        align-items: center;
+        gap: 2rem;
+    }
+
+    .logo-container {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        color: var(--color-text-dark);
+        text-decoration: none;
+    }
+
+    .logo-icon {
+        width: 1.5rem;
+        height: 1.5rem;
+    }
+
+    .desktop-nav ul {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    .desktop-nav a {
+        text-decoration: none;
+        color: var(--color-text-dark);
+        font-size: 0.875rem;
+        font-weight: 500;
+        line-height: 1.5;
+        transition: color 0.2s;
+    }
+
+    .header-actions {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .button {
+        display: flex;
+        min-width: 84px;
+        max-width: 480px;
+        cursor: pointer;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        border-radius: 0.5rem;
+        height: 2.5rem;
+        padding: 0 1rem;
+        background-color: var(--color-background-light);
+        color: var(--color-text-dark);
+        font-size: 0.875rem;
+        font-weight: 700;
+        line-height: 1.5;
+        letter-spacing: 0.015em;
+        border: none;
+        white-space: nowrap;
+        text-decoration: none;
+        transition: background-color 0.2s, color 0.2s;
+    }
+
+    .button-outline {
+        background-color: transparent;
+        border: 1px solid var(--color-border);
+    }
+
+    .button-primary {
+        background-color: var(--color-primary);
+        color: var(--color-text-dark);
+    }
+
+    .icon-button {
+        min-width: 0;
+        width: 2.5rem;
+        padding: 0;
+        justify-content: center;
+    }
+
+    .profile-image {
+        background-position: center;
+        background-repeat: no-repeat;
+        background-size: cover;
+        aspect-ratio: 1 / 1;
+        border-radius: 9999px;
+        width: 2.5rem;
+        height: 2.5rem;
+    }
+
+    /* Language dropdown styles - Updated */
+    .language-dropdown {
+        position: relative;
+    }
+
+    .dropdown-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: transparent;
+        z-index: 998;
+    }
+
+    .language-dropdown.active .dropdown-overlay {
+        display: block;
+    }
+
+    .dropdown-container {
+        display: none;
+        position: fixed;
+        top: 70px;
+        background-color: #fff;
+        border: 1px solid var(--color-border);
+        border-radius: 12px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        z-index: 999;
+        min-width: 280px;
+        padding: 1rem;
+        transform-origin: top;
+        animation: dropdownFadeIn 0.2s ease-out;
+    }
+
+    /* Position based on language direction */
+    body[dir="ltr"] .dropdown-container {
+        right: 20px;
+        left: auto;
+    }
+
+    body[dir="rtl"] .dropdown-container {
+        left: 20px;
+        right: auto;
+    }
+
+    [data-theme="dark"] .dropdown-container {
+        background-color: #2d2d2d;
+        border-color: #404040;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+    }
+
+    .language-dropdown.active .dropdown-container {
+        display: block;
+    }
+
+    .dropdown-header {
+        display: flex;
+        align-items: center;
+        padding: 0.5rem 0;
+        margin-bottom: 0.5rem;
+        border-bottom: 1px solid var(--color-border);
+    }
+
+    .dropdown-header-icon {
+        margin-right: 0.75rem;
+        width: 20px;
+        height: 20px;
+        fill: currentColor;
+    }
+
+    body[dir="rtl"] .dropdown-header-icon {
+        margin-right: 0;
+        margin-left: 0.75rem;
+    }
+
+    .dropdown-title {
+        font-weight: 600;
+        font-size: 1rem;
+        color: var(--color-text-dark);
+    }
+
+    .dropdown-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .dropdown-item {
+        margin: 0.25rem 0;
+    }
+
+    .dropdown-link {
+        display: flex;
+        align-items: center;
+        padding: 0.75rem 1rem;
+        text-decoration: none;
+        color: var(--color-text-dark);
+        font-weight: 500;
+        border-radius: 8px;
+        transition: background-color 0.2s, color 0.2s;
+    }
+
+        .dropdown-link:hover {
+            background-color: var(--color-background-light);
+        }
+
+    .dropdown-link-icon {
+        margin-right: 0.75rem;
+        width: 20px;
+        height: 20px;
+    }
+
+    body[dir="rtl"] .dropdown-link-icon {
+        margin-right: 0;
+        margin-left: 0.75rem;
+    }
+
+    /* Mobile menu styles - Updated */
+    .mobile-menu-button {
+        display: none;
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: var(--color-text-dark);
+        width: 2.5rem;
+        height: 2.5rem;
+        justify-content: center;
+        align-items: center;
+        border-radius: 0.5rem;
+        transition: background-color 0.2s;
+        flex-direction: column;
+        padding: 0;
+    }
+
+        .mobile-menu-button:hover {
+            background-color: var(--color-background-light);
+        }
+
+    /* Hamburger icon styles */
+    .hamburger-icon {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        width: 20px;
+        height: 16px;
+    }
+
+        .hamburger-icon span {
+            display: block;
+            height: 2px;
+            width: 100%;
+            background-color: var(--color-text-dark);
+            border-radius: 2px;
+            transition: all 0.3s ease;
+        }
+
+    .mobile-menu-button.active .hamburger-icon span:nth-child(1) {
+        transform: translateY(7px) rotate(45deg);
+    }
+
+    .mobile-menu-button.active .hamburger-icon span:nth-child(2) {
+        opacity: 0;
+    }
+
+    .mobile-menu-button.active .hamburger-icon span:nth-child(3) {
+        transform: translateY(-7px) rotate(-45deg);
+    }
+
+    /* Updated mobile nav to be floating */
+    .mobile-nav {
+        display: none;
+        flex-direction: column;
+        padding: 2rem;
+        background-color: #fff;
+        position: fixed;
+        top: 20%; /* تبدأ من 20% من أعلى الشاشة */
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 1000;
+        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+        border-radius: 20px 20px 0 0;
+        overflow-y: auto;
+    }
+
+    [data-theme="dark"] .mobile-nav {
+        background-color: #1a1a1a;
+        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.4);
+    }
+
+    .mobile-nav.active {
+        display: flex;
+        animation: mobileNavSlideIn 0.4s ease-out;
+    }
+
+    .mobile-nav ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 1.25rem;
+    }
+
+    .mobile-nav li {
+        margin: 0;
+    }
+
+    .mobile-nav a {
+        display: flex;
+        padding: 1rem 1.25rem;
+        text-decoration: none;
+        color: var(--color-text-dark);
+        font-weight: 500;
+        border-radius: 12px;
+        transition: all 0.3s ease;
+        font-size: 1.1rem;
+        align-items: center;
+    }
+
+        .mobile-nav a:hover {
+            background-color: var(--color-background-light);
+            transform: translateX(5px);
+        }
+
+    .mobile-nav-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        margin-top: 2rem;
+        padding-top: 2rem;
+        border-top: 1px solid var(--color-border);
+    }
+
+    .mobile-nav-button {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 1rem 1.25rem;
+        border-radius: 12px;
+        background-color: var(--color-background-light);
+        color: var(--color-text-dark);
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        font-size: 1.1rem;
+    }
+
+        .mobile-nav-button:hover {
+            background-color: var(--color-primary);
+            transform: translateX(5px);
+        }
+
+    /* Close button for mobile nav */
+    .mobile-nav-close {
+        position: absolute;
+        top: 1rem;
+        right: 1.5rem;
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        color: var(--color-text-dark);
+        cursor: pointer;
+        z-index: 1001;
+    }
+
+    body[dir="rtl"] .mobile-nav-close {
+        right: auto;
+        left: 1.5rem;
+    }
+
+    /* Overlay for mobile nav */
+    .mobile-nav-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 999;
+    }
+
+        .mobile-nav-overlay.active {
+            display: block;
+            animation: overlayFadeIn 0.3s ease-out;
+        }
+
+    /* Earth icon styles */
+    .earth-icon {
+        width: 20px;
+        height: 20px;
+        fill: currentColor;
+    }
+
+    /* Animation */
+    @@keyframes dropdownFadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(-10px) scale(0.95);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
+
+    @@keyframes mobileNavSlideIn {
+        from {
+            transform: translateY(100%);
+        }
+
+        to {
+            transform: translateY(0);
+        }
+    }
+
+    @@keyframes overlayFadeIn {
+        from {
+            opacity: 0;
+        }
+
+        to {
+            opacity: 1;
+        }
+    }
+
+    /* Responsive styles */
+    @@media (max-width: 1024px) {
+        .header {
+            padding: 0.75rem 1rem;
+        }
+
+        .desktop-nav {
+            display: none !important;
+        }
+
+        .mobile-menu-button {
+            display: flex;
+        }
+
+        .header-actions .button:not(.icon-button) {
+            display: none;
+        }
+
+        .header-group {
+            gap: 1rem;
+        }
+
+        .dropdown-container {
+            top: 60px;
+            min-width: unset;
+        }
+
+        body[dir="ltr"] .dropdown-container {
+            right: 10px;
+            left: 10px;
+        }
+
+        body[dir="rtl"] .dropdown-container {
+            left: 10px;
+            right: 10px;
+        }
+    }
+
+    /* Theme transition */
+    .theme-transition {
+        transition: color 0.3s, background-color 0.3s, border-color 0.3s;
+    }
+</style>
+
+<header class="header theme-transition">
+    <div class="header-group">
+        <a asp-controller="Home" asp-action="index" class="logo-container">
+            <h3 class="theme-transition">Training Center</h3>
+        </a>
+    </div>
+
+    <div class="header-actions">
+        <!-- Navigation links moved to the right side -->
+        <nav class="desktop-nav">
+            <ul>
+                <li>
+                    <a asp-controller="Home" asp-action="Index">Home</a>
+                </li>
+                <li>
+                    <a asp-controller="Courses" asp-action="Index">@SharedResource.Courses</a>
+                </li>
+                @if (User.Identity.IsAuthenticated)
+                {
+                    <li>
+                        <a asp-controller="Dashboard" asp-action="Index">@SharedResource.Dashboard</a>
+                    </li>
+                }
+                <li>
+                    <a asp-controller="Chat" asp-action="CustomerSupportChat">@SharedResource.contact</a>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- User actions -->
+        @if (User.Identity.IsAuthenticated)
+        {
+            <a asp-controller="Chat" asp-action="Index" class="button button-outline theme-transition">@SharedResource.Chat</a>
+            <a asp-controller="Account" asp-action="ResetPassword" class="button button-outline theme-transition">Reset Password</a>
+            <a asp-controller="Account" asp-action="Logout" class="button button-outline theme-transition">Logout</a>
+        }
+        else
+        {
+            <a asp-controller="Account" asp-action="Login" class="button button-outline theme-transition">@SharedResource.login</a>
+        }
+
+        <!-- Language and theme toggles -->
+        <div class="header-group">
+            <div class="language-dropdown" id="languageDropdownWrapper">
+                <button class="button icon-button theme-transition" id="languageToggle" aria-label="Toggle language">
+                    <!-- Earth icon SVG -->
+                    <svg class="earth-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z" />
+                    </svg>
+                </button>
+
+                <!-- Overlay to close dropdown when clicking outside -->
+                <div class="dropdown-overlay" id="dropdownOverlay"></div>
+
+                <!-- Updated dropdown container -->
+                <div class="dropdown-container theme-transition">
+                    <div class="dropdown-header">
+                        <svg class="dropdown-header-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z" />
+                        </svg>
+                        <div class="dropdown-title">@SharedResource.SelectLanguage</div>
+                    </div>
+
+                    <ul class="dropdown-list">
+                        <li class="dropdown-item">
+                            <a class="dropdown-link theme-transition" asp-controller="Language" asp-action="ChangeLanguage" asp-route-lang="en">
+                                <svg class="dropdown-link-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z" />
+                                </svg>
+                                English
+                            </a>
+                        </li>
+                        <li class="dropdown-item">
+                            <a class="dropdown-link theme-transition" asp-controller="Language" asp-action="ChangeLanguage" asp-route-lang="ar">
+                                <svg class="dropdown-link-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z" />
+                                </svg>
+                                العربية
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <button class="button icon-button theme-transition" id="themeToggle" aria-label="Toggle theme">
+                <i class="fas fa-sun light-icon"></i>
+                <i class="fas fa-moon dark-icon" style="display: none;"></i>
+            </button>
+
+            @if (User.Identity.IsAuthenticated)
+            {
+                <div class="profile-image" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBGR41_Y1ar3ud_fe_2QJslfpr4I12Sdirzpwj9ncVYB-eE_oMY6pWLrZnTqLjS5rJ-aM97srqXNN3ZmZf4DQ1p254Q6AmI7XQz5Sd2vxtaTfVQcVmKeoqeo9k6YxJLYU_PxUAk9v-eyjlD6Q-mDccTZbmAko1c_I1Znim1CwlDCo67eIO63pzPiqCp2r4bd0i7EcLTLCvekZ4NEMzIEO4s6gbBieLhkfd1x_Dc-XyGJhrlUe3xRgkCyS5z2cwTxSB9bkAfb1ujdCc");'></div>
+            }
+        </div>
+    </div>
+
+    <button class="mobile-menu-button" id="mobileMenuButton" aria-label="Toggle Menu">
+        <div class="hamburger-icon">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+    </button>
+</header>
+
+<!-- Mobile nav overlay -->
+<div class="mobile-nav-overlay" id="mobileNavOverlay"></div>
+
+<!-- Updated mobile nav -->
+<nav class="mobile-nav theme-transition" id="mobileNav">
+    <button class="mobile-nav-close" id="mobileNavClose" aria-label="Close menu">
+        <i class="fas fa-times"></i>
+    </button>
+
+    <ul>
+        <li>
+            <a asp-controller="Home" asp-action="Index">
+                <i class="fas fa-home" style="margin-right: 12px;"></i> Home
+            </a>
+        </li>
+        <li>
+            <a asp-controller="Courses" asp-action="Index">
+                <i class="fas fa-book" style="margin-right: 12px;"></i> @SharedResource.Courses
+            </a>
+        </li>
+        @if (User.Identity.IsAuthenticated)
+        {
+            <li>
+                <a asp-controller="Dashboard" asp-action="Index">
+                    <i class="fas fa-tachometer-alt" style="margin-right: 12px;"></i> @SharedResource.Dashboard
+                </a>
+            </li>
+            <li>
+                <a asp-controller="Chat" asp-action="Index">
+                    <i class="fas fa-comments" style="margin-right: 12px;"></i> @SharedResource.Chat
+                </a>
+            </li>
+        }
+        <li>
+            <a asp-controller="Chat" asp-action="CustomerSupportChat">
+                <i class="fas fa-envelope" style="margin-right: 12px;"></i> @SharedResource.contact
+            </a>
+        </li>
+    </ul>
+
+    <div class="mobile-nav-actions">
+        @if (User.Identity.IsAuthenticated)
+        {
+            <a asp-controller="Account" asp-action="ResetPassword" class="mobile-nav-button">
+                <i class="fas fa-key" style="margin-right: 12px;"></i> Reset Password
+            </a>
+            <a asp-controller="Account" asp-action="Logout" class="mobile-nav-button">
+                <i class="fas fa-sign-out-alt" style="margin-right: 12px;"></i> Logout
+            </a>
+        }
+        else
+        {
+            <a asp-controller="Account" asp-action="Login" class="mobile-nav-button">
+                <i class="fas fa-sign-in-alt" style="margin-right: 12px;"></i> @SharedResource.login
+            </a>
+        }
+    </div>
+</nav>
+
+<script>
+    // Language dropdown functionality
+    const langToggle = document.getElementById("languageToggle");
+    const langWrapper = document.getElementById("languageDropdownWrapper");
+    const dropdownOverlay = document.getElementById("dropdownOverlay");
+
+    langToggle.addEventListener("click", function (e) {
+        e.stopPropagation();
+        langWrapper.classList.toggle("active");
+    });
+
+    dropdownOverlay.addEventListener("click", function () {
+        langWrapper.classList.remove("active");
+    });
+
+    document.addEventListener("click", function (e) {
+        if (!langWrapper.contains(e.target)) {
+            langWrapper.classList.remove("active");
+        }
+    });
+
+    // Mobile menu functionality
+    const mobileMenuButton = document.getElementById("mobileMenuButton");
+    const mobileNav = document.getElementById("mobileNav");
+    const mobileNavOverlay = document.getElementById("mobileNavOverlay");
+    const mobileNavClose = document.getElementById("mobileNavClose");
+
+    function openMobileNav() {
+        mobileNav.classList.add("active");
+        mobileNavOverlay.classList.add("active");
+        mobileMenuButton.classList.add("active");
+        document.body.style.overflow = 'hidden'; // Prevent scrolling when menu is open
+    }
+
+    function closeMobileNav() {
+        mobileNav.classList.remove("active");
+        mobileNavOverlay.classList.remove("active");
+        mobileMenuButton.classList.remove("active");
+        document.body.style.overflow = ''; // Re-enable scrolling
+    }
+
+    mobileMenuButton.addEventListener("click", openMobileNav);
+    mobileNavOverlay.addEventListener("click", closeMobileNav);
+    mobileNavClose.addEventListener("click", closeMobileNav);
+
+    // Close mobile menu when clicking on links
+    const mobileNavLinks = mobileNav.querySelectorAll('a');
+    mobileNavLinks.forEach(link => {
+        link.addEventListener('click', closeMobileNav);
+    });
+
+    // Theme toggle functionality
+    const themeToggle = document.getElementById("themeToggle");
+    const lightIcon = themeToggle.querySelector('.light-icon');
+    const darkIcon = themeToggle.querySelector('.dark-icon');
+
+    // Check for saved theme preference or respect OS preference
+    const savedTheme = localStorage.getItem('theme');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+    // Set initial theme
+    if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        lightIcon.style.display = 'none';
+        darkIcon.style.display = 'inline-block';
+    } else {
+        document.documentElement.setAttribute('data-theme', 'light');
+        lightIcon.style.display = 'inline-block';
+        darkIcon.style.display = 'none';
+    }
+
+    themeToggle.addEventListener('click', function() {
+        const currentTheme = document.documentElement.getAttribute('data-theme');
+        if (currentTheme === 'light') {
+            document.documentElement.setAttribute('data-theme', 'dark');
+            localStorage.setItem('theme', 'dark');
+            lightIcon.style.display = 'none';
+            darkIcon.style.display = 'inline-block';
+        } else {
+            document.documentElement.setAttribute('data-theme', 'light');
+            localStorage.setItem('theme', 'light');
+            lightIcon.style.display = 'inline-block';
+            darkIcon.style.display = 'none';
+        }
+    });
+
+    // Update dropdown position based on language direction
+    function updateDropdownPosition() {
+        const isRtl = document.documentElement.dir === 'rtl';
+        const dropdownContainer = document.querySelector('.dropdown-container');
+
+        if (isRtl) {
+            dropdownContainer.style.left = '20px';
+            dropdownContainer.style.right = 'auto';
+        } else {
+            dropdownContainer.style.right = '20px';
+            dropdownContainer.style.left = 'auto';
+        }
+    }
+
+    // Initial update
+    updateDropdownPosition();
 </script>

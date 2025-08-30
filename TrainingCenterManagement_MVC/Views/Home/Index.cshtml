@@ -1,4 +1,4 @@
-﻿@using System.Globalization
+﻿@* @using System.Globalization
 @using TrainingCenterManagement_MVC.Resources
 @using TrainingCenterManagement_MVC.ViewModels
 @model HomeViewModel
@@ -605,4 +605,810 @@ c5.5,0,9.9,4.5,9.9,9.9V73.3z"></path>
     <script class="u-script" type="text/javascript" src="~/js/jquery.js" defer=""></script>
     <script class="u-script" type="text/javascript" src="~/js/nicepage.js" defer=""></script>
 </body>
- 
+  *@
+
+
+
+
+@using System.Globalization
+@using TrainingCenterManagement_MVC.Resources
+@using TrainingCenterManagement_MVC.ViewModels
+@model HomeViewModel
+@{
+    Layout = null; // remove if you want to use your _Layout
+    var dir = (CultureInfo.CurrentUICulture.TextInfo.IsRightToLeft) ? "rtl" : "ltr";
+}
+<!DOCTYPE html>
+<html lang="@CultureInfo.CurrentUICulture.TwoLetterISOLanguageName" dir="@dir">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@SharedResource.EmpowerFuture</title>
+    <!-- No external libraries; all styling below -->
+    <style>
+        :root {
+            --bg: #ffffff;
+            --text: #111418;
+            --muted: #60758a;
+            --line: #dbe0e6;
+            --soft: #f0f2f5;
+            --brand: #0d80f2;
+            --brand-600: #0b70d3;
+            --radius: 16px;
+            --radius-lg: 20px;
+            --shadow: 0 6px 24px rgba(17,20,24,0.08);
+            --shadow-lg: 0 18px 60px rgba(17,20,24,0.12);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+        }
+
+        body {
+            margin: 0;
+            font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans", "Helvetica Neue", Arial, "Apple Color Emoji", "Segoe UI Emoji";
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1120px;
+            margin-inline: auto;
+            padding-inline: 16px;
+        }
+
+        header.site-header {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            background: rgba(255,255,255,.85);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid #f0f2f5;
+            padding: 12px 20px;
+        }
+
+        .nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+        }
+
+        .dot {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--text);
+            display: inline-block;
+        }
+
+        .menu {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .search {
+            display: flex;
+            align-items: center;
+            height: 40px;
+            background: var(--soft);
+            border-radius: 12px;
+            padding: 0 12px;
+            min-width: 220px;
+        }
+
+            .search input {
+                border: 0;
+                outline: 0;
+                background: transparent;
+                font-size: 14px;
+                width: 180px;
+                color: var(--text);
+            }
+
+        .icon-btn {
+            height: 40px;
+            min-width: 40px;
+            display: grid;
+            place-items: center;
+            background: var(--soft);
+            border: 0;
+            border-radius: 12px;
+            cursor: pointer;
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #ccc url('~/images/avatar-placeholder.png') center/cover no-repeat;
+        }
+
+        /* hero */
+        .hero {
+            position: relative;
+            min-height: 58vh;
+            display: flex;
+            align-items: flex-end;
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow-lg);
+        }
+
+            .hero::before {
+                content: "";
+                position: absolute;
+                inset: 0;
+                background: linear-gradient(180deg, rgba(0,0,0,.12), rgba(0,0,0,.55));
+            }
+
+            .hero .bg {
+                position: absolute;
+                inset: 0;
+               /*  background: url('~/images/banner.jpg') center/cover no-repeat; */
+                transform: scale(1.02);
+            }
+
+            .hero .content {
+                position: relative;
+                z-index: 1;
+                padding: 28px 28px 40px;
+                max-width: 720px;
+                color: #fff;
+            }
+
+            .hero h1 {
+                margin: 0 0 8px;
+                font-size: clamp(28px, 4vw, 44px);
+                line-height: 1.1;
+                font-weight: 900;
+                letter-spacing: -.02em;
+            }
+
+            .hero p {
+                margin: 0 0 18px;
+                font-size: clamp(14px, 2vw, 18px);
+                opacity: .95;
+            }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            height: 44px;
+            padding: 0 16px;
+            border-radius: 12px;
+            font-weight: 800;
+            border: 0;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background: var(--brand);
+            color: #fff;
+            box-shadow: 0 6px 16px rgba(13,128,242,.35);
+        }
+
+            .btn-primary:hover {
+                background: var(--brand-600);
+            }
+
+        /* sections */
+        section {
+            padding: 48px 0;
+        }
+
+        .stack {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .section-title {
+            font-size: clamp(24px, 3vw, 32px);
+            font-weight: 900;
+            letter-spacing: -.02em;
+            margin: 0;
+        }
+
+        .section-sub {
+            color: var(--muted);
+            margin: 0;
+            max-width: 720px;
+        }
+
+        /* feature cards */
+        .grid {
+            display: grid;
+            gap: 12px;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        }
+
+        .card {
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            background: #fff;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            box-shadow: var(--shadow);
+        }
+
+            .card .ico {
+                width: 28px;
+                height: 28px;
+                color: var(--text);
+                opacity: .9;
+            }
+
+            .card h3 {
+                font-size: 16px;
+                margin: 0;
+            }
+
+            .card p {
+                font-size: 14px;
+                margin: 0;
+                color: var(--muted);
+            }
+
+        /* courses */
+        .courses {
+            display: grid;
+            gap: 12px;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        }
+
+        .course {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .thumb {
+            aspect-ratio: 1 / 1;
+            width: 100%;
+            border-radius: 16px;
+            background: #e6ebf1 center/cover no-repeat;
+            box-shadow: var(--shadow);
+        }
+
+        .course h4 {
+            margin: 0;
+            font-weight: 700;
+        }
+
+        .course p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        /* testimonials horizontal scroll */
+        .scroll-x {
+            display: flex;
+            overflow: auto;
+            gap: 12px;
+            padding: 12px 0;
+            scroll-snap-type: x mandatory;
+        }
+
+        .testi {
+            min-width: 260px;
+            scroll-snap-align: start;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        /* FAQ (accordion) */
+        .faq {
+            border-top: 1px solid var(--line);
+        }
+
+        .faq-item {
+            border-bottom: 1px solid var(--line);
+        }
+
+        .faq-btn {
+            width: 100%;
+            text-align: inherit;
+            background: #fff;
+            border: 0;
+            padding: 16px;
+            font: inherit;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+        }
+
+        .faq-panel {
+            display: grid;
+            grid-template-rows: 0fr;
+            transition: grid-template-rows .3s ease;
+        }
+
+            .faq-panel.open {
+                grid-template-rows: 1fr;
+            }
+
+        .faq-inner {
+            overflow: hidden;
+            padding: 0 16px 16px;
+            color: var(--muted);
+        }
+
+        .chev {
+            transition: transform .25s ease;
+        }
+
+        .faq-panel.open + .chev, .faq-btn[aria-expanded="true"] .chev {
+            transform: rotate(180deg);
+        }
+
+        /* responsive helpers */
+        .pad {
+            padding-inline: 16px;
+        }
+
+        /* RTL tweaks */
+        [dir="rtl"] .menu {
+            flex-direction: row-reverse;
+        }
+
+        [dir="rtl"] .right {
+            flex-direction: row-reverse;
+        }
+
+        [dir="rtl"] .faq-btn {
+            text-align: right;
+        }
+
+
+        .courses { display:grid; gap:12px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+.course { display:flex; flex-direction:column; gap:12px; border:1px solid var(--line); border-radius:16px; padding:12px; background:#fff; box-shadow:var(--shadow); transition:transform .2s ease; }
+.course:hover { transform:translateY(-4px); box-shadow:var(--shadow-lg); }
+.thumb { aspect-ratio: 16/9; width:100%; border-radius:12px; background:#e6ebf1 center/cover no-repeat; }
+.course h4 { margin:0; font-weight:700; font-size:16px; }
+.course p { margin:0; color:var(--muted); font-size:14px; line-height:1.4; }
+.price { font-weight:800; color:var(--brand); font-size:14px; }
+
+
+
+.testimonial-container { position:relative; width:100%; max-width:600px; margin:auto; overflow:hidden; }
+.testi { opacity:0; transform:translateY(20px); transition:all .6s ease; position:absolute; top:0; left:0; right:0; display:flex; flex-direction:column; gap:12px; border:1px solid var(--line); border-radius:16px; background:#fff; padding:20px; box-shadow:var(--shadow-lg); align-items:center; text-align:center; }
+.testi.active { opacity:1; transform:translateY(0); position:relative; }
+.testi .thumb { width:90px; height:90px; border-radius:50%; background:#e6ebf1 center/cover no-repeat; }
+.testi p { margin:0; font-size:15px; line-height:1.6; }
+.testi .name { color:var(--muted); font-size:14px; }
+.stars { color:#f5b50a; font-size:18px; }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    @Html.Partial("_LandingHeader")
+
+    <main id="home" class="container pad" style="padding-top:24px;">
+        <!-- HERO -->
+        <section>
+            @{
+
+                var imagePath = Url.Content($"~/images/banner.jpg");
+            }
+            <div class="hero" style="background-image:url('@imagePath')">
+                <div class="bg" aria-hidden="true" style="background-image:url('@imagePath')"></div>
+                <div class="content">
+                    <h1>@SharedResource.EmpowerFuture</h1>
+                    <p>@SharedResource.TransformativeJourney</p>
+                    <button class="btn btn-primary" onclick="location.href='#courses'">@SharedResource.getStarted</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- UNLOCK SECTION -->
+        <section class="stack">
+            <h2 class="section-title">@SharedResource.UnlockPotential</h2>
+            <p class="section-sub">@SharedResource.DynamicCurriculum</p>
+            <div>
+                <button class="btn btn-primary" onclick="location.href='#contact'">@SharedResource.contact</button>
+            </div>
+        </section>
+
+        <!-- FEATURES GRID -->
+        <section class="stack">
+            <div class="grid">
+                <article class="card">
+                    <svg class="ico" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M216,40H136V24a8,8,0,0,0-16,0V40H40A16,16,0,0,0,24,56V176a16,16,0,0,0,16,16H79.36L57.75,219a8,8,0,0,0,12.5,10l29.59-37h56.32l29.59,37a8,8,0,1,0,12.5-10l-21.61-27H216a16,16,0,0,0,16-16V56A16,16,0,0,0,216,40Zm0,136H40V56H216V176Z"></path></svg>
+                    <h3>@SharedResource.HandsOnWorkshops</h3>
+                    <p>@SharedResource.EngagingSessions</p>
+                </article>
+                <article class="card">
+                    <svg class="ico" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M220.27,158.54a8,8,0,0,0-7.7-.46,20,20,0,1,1,0-36.16A8,8,0,0,0,224,114.69V72a16,16,0,0,0-16-16H171.78a35.36,35.36,0,0,0,.22-4,36.11,36.11,0,0,0-11.36-26.24,36,36,0,0,0-60.55,23.62,36.56,36.56,0,0,0,.14,6.62H64A16,16,0,0,0,48,72v32.22a35.36,35.36,0,0,0-4-.22,36.12,36.12,0,0,0-26.24,11.36,35.7,35.7,0,0,0-9.69,27,36.08,36.08,0,0,0,33.31,33.6,35.68,35.68,0,0,0,6.62-.14V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V165.31A8,8,0,0,0,220.27,158.54Z"></path></svg>
+                    <h3>@SharedResource.InnovativeTeaching</h3>
+                    <p>@SharedResource.ModernMethods</p>
+                </article>
+                <article class="card">
+                    <svg class="ico" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M244.8,150.4a8,8,0,0,1-11.2-1.6A51.6,51.6,0,0,0,192,128a8,8,0,0,1-7.37-4.89,8,8,0,0,1,0-6.22A8,8,0,0,1,192,112a24,24,0,1,0-23.24-30,8,8,0,1,1-15.5-4A40,40,0,1,1,219,117.51a67.94,67.94,0,0,1,27.43,21.68A8,8,0,0,1,244.8,150.4ZM190.92,212a8,8,0,1,1-13.84,8,57,57,0,0,0-98.16,0,8,8,0,1,1-13.84-8,72.06,72.06,0,0,1,33.74-29.92,48,48,0,1,1,58.36,0A72.06,72.06,0,0,1,190.92,212Z"></path></svg>
+                    <h3>@SharedResource.DiverseCourses</h3>
+                    <p>@SharedResource.ComprehensivePrograms</p>
+                </article>
+            </div
+           
+        </section>
+
+        <!-- COURSES -->
+        
+        @* <section id="courses" class="stack">
+            <h2 class="section-title">@SharedResource.CuttingEdgePrograms</h2>
+            <div class="courses">
+                <article class="course">
+                    <div class="thumb" style="background-image:url('~/images/course-math.jpg');"></div>
+                    <h4>@SharedResource.MathematicsExcellence</h4>
+                    <p>@SharedResource.MasterFundamentals</p>
+                </article>
+                <article class="course">
+                    <div class="thumb" style="background-image:url('~/images/course-science.jpg');"></div>
+                    <h4>@SharedResource.ScienceDiscovery</h4>
+                    <p>@SharedResource.EngagingSessions</p>
+                </article>
+                <article class="course">
+                    <div class="thumb" style="background-image:url('~/images/course-language.jpg');"></div>
+                    <h4>@SharedResource.LanguageMastery</h4>
+                    <p>@SharedResource.CustomizedPath</p>
+                </article>
+                <article class="course">
+                    <div class="thumb" style="background-image:url('~/images/course-coding.jpg');"></div>
+                    <h4>@SharedResource.CodingAcademy</h4>
+                    <p>@SharedResource.EssentialSkills</p>
+                </article>
+                <article class="course">
+                    <div class="thumb" style="background-image:url('~/images/course-thinking.jpg');"></div>
+                    <h4>@SharedResource.CriticalThinking</h4>
+                    <p>@SharedResource.TailoredCourses</p>
+                </article>
+                <article class="course">
+                    <div class="thumb" style="background-image:url('~/images/course-arts.jpg');"></div>
+                    <h4>@SharedResource.CreativeArts</h4>
+                    <p>@SharedResource.LifelongLearning</p>
+                </article>
+            </div>
+        </section> *@
+        <!-- COURSES -->
+        <section id="courses" class="stack">
+            <h2 class="section-title">@SharedResource.CuttingEdgePrograms</h2>
+            <div class="courses">
+                @foreach (var course in Model.Courses.Where(c => c != null ).OrderByDescending(c => c.CreatedDate).Take(6))
+                {
+                    <article class="course">
+                        <div class="thumb" style="background-image:url('@(string.IsNullOrEmpty(course.ThumbnailUrl) ? Url.Content("~/images/course-placeholder.jpg") : course.ThumbnailUrl)');"></div>
+                        <h4>@(string.IsNullOrEmpty(course.CourseName) ? SharedResource.DiverseCourses : course.CourseName)</h4>
+                        <p>@(string.IsNullOrWhiteSpace(course.Description) ? SharedResource.LifelongLearning : course.Description)</p>
+                        <span class="price">@(course.Price > 0 ? "$" + course.Price.ToString("F2") : SharedResource.Free)</span>
+                        <div class="meta">
+                            @if(course.BatchNumber > 0){<span>@SharedResource.Batch: @course.BatchNumber</span>}<br />
+                            @if(course.NumberOfLectures > 0){<span>@SharedResource.Lectures: @course.NumberOfLectures</span>}<br />
+                            @if(course.ReleaseDate != default(DateTime)){<span>@SharedResource.ReleaseDate: @course.ReleaseDate.ToShortDateString()</span>}
+                        </div>
+                    </article>
+                }
+            </div>
+        </section>
+        <!-- TESTIMONIALS (dummy copy; replace with your resources if you have) -->
+       
+
+        <section class="stack">
+        <h2 class="section-title">@SharedResource.ElevateSkills</h2>
+        <div class="testimonial-container">
+        @* <div class="testi active">
+        <div class="thumb" style="background-image:url('@Url.Content("~/images/profile/1.png")');"></div>
+        <p>"هذا الموقع رائع جدًا! ساعدني أتعلم بسرعة وبسهولة. المحتوى منظم والتمارين العملية مفيدة جدًا لتثبيت المعلومات."</p>
+        <div class="stars">★★★★★</div>
+        <p class="name">أحمد • متدرب برمجة</p>
+        </div> *@
+
+
+        <div class="testi active">
+            <div class="thumb" style="background-image:url('@Url.Content("~/images/profile/1.png")');"></div>
+            @if (CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "ar")
+            {
+                <p>"هذا الموقع رائع جدًا! ساعدني أتعلم بسرعة وبسهولة. المحتوى منظم والتمارين العملية مفيدة جدًا لتثبيت المعلومات."</p>
+                <div class="stars">★★★★★</div>
+                <p class="name">أحمد • متدرب برمجة</p>
+            }
+            else
+            {
+                <p>"This website is absolutely amazing! It helped me learn quickly and easily. The content is organized and the exercises are very useful to reinforce knowledge."</p>
+                <div class="stars">★★★★★</div>
+                <p class="name">Ahmed • Programming Trainee</p>
+            }
+        </div>
+
+        <div class="testi">
+            <div class="thumb" style="background-image:url('@Url.Content("~/images/profile/2.png")');"></div>
+            @if (CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "ar")
+            {
+                <p>"المحتوى منظم والمدربين ممتازين. التجربة التعليمية هنا أعطتني ثقة أكبر بمهاراتي وخلتني أبدأ بمشاريع شخصية."</p>
+                <div class="stars">★★★★★</div>
+                <p class="name">خالد • دورة تصميم</p>
+            }
+            else
+            {
+                <p>"The content is well-organized and the trainers are excellent. The learning experience here gave me more confidence in my skills and allowed me to start personal projects."</p>
+                <div class="stars">★★★★★</div>
+                <p class="name">Khalid • Design Course</p>
+            }
+        </div>
+
+        <div class="testi">
+            <div class="thumb" style="background-image:url('@Url.Content("~/images/profile/3.png")');"></div>
+            @if (CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "ar")
+            {
+                <p>"الدورات هنا فعلاً غيرت مساري المهني. المنهج متكامل والدعم الفني سريع وفعال. شكراً لكم!"</p>
+                <div class="stars">★★★★☆</div>
+                <p class="name">محمد • دورة إدارة أعمال</p>
+            }
+            else
+            {
+                <p>"The courses here truly changed my career path. The curriculum is comprehensive and technical support is fast and effective. Thank you!"</p>
+                <div class="stars">★★★★☆</div>
+                <p class="name">Mohammed • Business Management Course</p>
+            }
+        </div>
+
+        <div class="testi">
+            <div class="thumb" style="background-image:url('@Url.Content("~/images/profile/4.png")');"></div>
+            @if (CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "ar")
+            {
+                <p>"أجواء التعلم ممتعة والتفاعل رائع. حسيت إني جزء من فريق حقيقي. أنصح أي شخص يبحث عن تجربة تعليمية مميزة."</p>
+                <div class="stars">★★★★★</div>
+                <p class="name">سارة • دورة لغة إنجليزية</p>
+            }
+            else
+            {
+                <p>"The learning atmosphere is enjoyable and the interaction is great. I felt like part of a real team. I recommend it to anyone looking for a distinctive educational experience."</p>
+                <div class="stars">★★★★★</div>
+                <p class="name">Sarah • English Language Course</p>
+            }
+        </div>
+
+        <div class="testi">
+            <div class="thumb" style="background-image:url('@Url.Content("~/images/profile/5.png")');"></div>
+            @if (CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "ar")
+            {
+                <p>"الدعم الفني سريع والموقع سهل الاستخدام. قدرت أتعلم مهارات جديدة بسهولة وأطبقها مباشرة بشغلي."</p>
+                <div class="stars">★★★★☆</div>
+                <p class="name">ليلى • دورة علوم البيانات</p>
+            }
+            else
+            {
+                <p>"Technical support is fast and the website is easy to use. I was able to learn new skills easily and apply them directly in my work."</p>
+                <div class="stars">★★★★☆</div>
+                <p class="name">Layla • Data Science Course</p>
+            }
+        </div>
+
+        <div class="testi">
+            <div class="thumb" style="background-image:url('@Url.Content("~/images/profile/6.png")');"></div>
+            @if (CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "ar")
+            {
+                <p>"الموقع قدم لي فرص تعلم جديدة طورت مستواي بشكل ملحوظ. تجربة ممتازة بتستحق كل دقيقة."</p>
+                <div class="stars">★★★★★</div>
+                <p class="name">ريم • دورة تسويق رقمي</p>
+            }
+            else
+            {
+                <p>"The website provided me with new learning opportunities that significantly improved my level. An excellent experience worth every minute."</p>
+                <div class="stars">★★★★★</div>
+                <p class="name">Reem • Digital Marketing Course</p>
+            }
+        </div>
+        </div>  </section>
+        <script>
+                // Auto switch testimonials every 5s with animation
+                const testimonials = document.querySelectorAll('.testi');
+                let current = 0;
+                setInterval(() => {
+                    testimonials[current].classList.remove('active');
+                    current = (current + 1) % testimonials.length;
+                    testimonials[current].classList.add('active');
+                    }, 5000);
+        </script>
+
+
+        <script>
+// Auto switch testimonials every 5s
+const testimonials = document.querySelectorAll('.testi');
+let current = 0;
+setInterval(() => {
+testimonials[current].classList.remove('active');
+current = (current + 1) % testimonials.length;
+testimonials[current].classList.add('active');
+}, 5000);
+</script>
+
+        <!-- WHY CHOOSE US -->
+        <section id="why" class="stack">
+            <h2 class="section-title">@SharedResource.WhyChooseUs</h2>
+            <p class="section-sub">@SharedResource.EmpoweringLearners</p>
+            <div class="grid">
+                <article class="card">
+                    <svg class="ico" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M117.25,157.92a60,60,0,1,0-66.5,0A95.83,95.83,0,0,0,3.53,195.63a8,8,0,1,0,13.4,8.74,80,80,0,0,1,134.14,0,8,8,0,0,0,13.4-8.74A95.83,95.83,0,0,0,117.25,157.92ZM40,108a44,44,0,1,1,44,44A44.05,44.05,0,0,1,40,108Z"></path></svg>
+                    <h3>@SharedResource.ExpertMentors</h3>
+                    <p>@SharedResource.ProfessionalGuidance</p>
+                </article>
+                <article class="card">
+                    <svg class="ico" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M240,208H224V96a16,16,0,0,0-16-16H144V32a16,16,0,0,0-24.88-13.32L39.12,72A16,16,0,0,0,32,85.34V208H16a8,8,0,0,0,0,16H240a8,8,0,0,0,0-16ZM208,96V208H144V96ZM48,85.34,128,32V208H48Z"></path></svg>
+                    <h3>@SharedResource.InspiringSpaces</h3>
+                    <p>@SharedResource.CollaborativeEnvironment</p>
+                </article>
+                <article class="card">
+                    <svg class="ico" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M176,232a8,8,0,0,1-8,8H88a8,8,0,0,1,0-16h80A8,8,0,0,1,176,232Zm40-128a87.55,87.55,0,0,1-33.64,69.21A16.24,16.24,0,0,0,176,186v6a16,16,0,0,1-16,16H96a16,16,0,0,1-16-16v-6a16,16,0,0,0-6.23-12.66A87.59,87.59,0,0,1,40,104.49C39.74,56.83,72.63,24,112,24s72.26,32.83,72,72.49c-.24,38.1-22.21,57.31-32.77,67.05A16.06,16.06,0,0,0,144,177.94V184a16,16,0,0,1-16,16H128a16,16,0,0,1-16-16v-6a16.06,16.06,0,0,0-7.23-13.46C94.21,153.8,72.24,134.59,72,96.49,71.74,56.83,104.63,24,144,24S216.26,56.83,216,96.49Z"></path></svg>
+                    <h3>@SharedResource.InnovativeTeaching</h3>
+                    <p>@SharedResource.ModernMethods</p>
+                </article>
+            </div>
+        </section>
+
+        <!-- FAQ -->
+        <section class="stack">
+            <h2 class="section-title">FAQ</h2>
+            <div class="faq" id="faq">
+                <div class="faq-item">
+                    <button class="faq-btn" aria-expanded="false">
+                        <span>1. @SharedResource.FAQ1Question?</span>
+                        <svg class="chev" width="20" height="20" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M5 8l5 5 5-5H5z" /></svg>
+                    </button>
+                    <div class="faq-panel"><div class="faq-inner"><p>@SharedResource.FAQ1Answer.</p></div></div>
+                </div>
+                <div class="faq-item">
+                    <button class="faq-btn" aria-expanded="false">
+                        <span>2. @SharedResource.FAQ2Question?</span>
+                        <svg class="chev" width="20" height="20" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M5 8l5 5 5-5H5z" /></svg>
+                    </button>
+                    <div class="faq-panel"><div class="faq-inner"><p>@SharedResource.FAQ2Answer.</p></div></div>
+                </div>
+                <div class="faq-item">
+                    <button class="faq-btn" aria-expanded="false">
+                        <span>3. @SharedResource.FAQ3Question?</span>
+                        <svg class="chev" width="20" height="20" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M5 8l5 5 5-5H5z" /></svg>
+                    </button>
+                    <div class="faq-panel"><div class="faq-inner"><p>@SharedResource.FAQ3Answer.</p></div></div>
+                </div>
+                <div class="faq-item">
+                    <button class="faq-btn" aria-expanded="false">
+                        <span>4. @SharedResource.FAQ4Question?</span>
+                        <svg class="chev" width="20" height="20" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M5 8l5 5 5-5H5z" /></svg>
+                    </button>
+                    <div class="faq-panel"><div class="faq-inner"><p>@SharedResource.FAQ4Answer</p></div></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CONTACT (anchor only) -->
+        <section id="contact" style="padding-bottom: 80px;">
+            <div class="stack">
+                <h2 class="section-title">@SharedResource.contact</h2>
+                <p class="section-sub">@SharedResource.TransformativeJourney</p>
+                <form class="grid" method="post" action="#">
+                    <input aria-label="name" name="name" placeholder="Your name" style="height:46px; padding:0 12px; border:1px solid var(--line); border-radius:12px;" />
+                    <input aria-label="email" name="email" type="email" placeholder="Your email" style="height:46px; padding:0 12px; border:1px solid var(--line); border-radius:12px;" />
+                    <textarea aria-label="message" name="message" placeholder="Message" rows="4" style="padding:12px; border:1px solid var(--line); border-radius:12px; grid-column: 1 / -1;"></textarea>
+                    <div>
+                        <button type="submit" class="btn btn-primary">@SharedResource.getStarted</button>
+                    </div>
+                </form>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // simple accordion
+        document.querySelectorAll('.faq-btn').forEach(function(btn){
+            btn.addEventListener('click', function(){
+                var expanded = this.getAttribute('aria-expanded') === 'true';
+                this.setAttribute('aria-expanded', String(!expanded));
+                var panel = this.parentElement.querySelector('.faq-panel');
+                panel.classList.toggle('open');
+            });
+        });
+   
+    
+    </script>
+
+
+   
+    <section class="u-backlink u-clearfix u-grey-80"></section>
+    <script>
+        document.getElementById('current-year').textContent = new Date().getFullYear();
+
+        const mobileMenuButton = document.querySelector('.mobile-menu-button');
+        const mobileMenu = document.querySelector('.mobile-menu');
+
+        mobileMenuButton.addEventListener('click', () => {
+          mobileMenu.classList.toggle('active');
+          if (mobileMenu.classList.contains('active')) {
+            mobileMenuButton.innerHTML = '<i class="fas fa-times"></i>';
+          } else {
+            mobileMenuButton.innerHTML = '<i class="fas fa-bars"></i>';
+          }
+        });
+
+        const themeToggle = document.querySelector('.theme-toggle');
+        const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
+
+        const currentTheme = localStorage.getItem('theme') || (prefersDarkScheme.matches ? 'dark' : 'light');
+
+        if (currentTheme === 'dark') {
+          document.body.classList.add('dark-theme');
+        }
+
+        themeToggle.addEventListener('click', () => {
+          document.body.classList.toggle('dark-theme');
+          const theme = document.body.classList.contains('dark-theme') ? 'dark' : 'light';
+          localStorage.setItem('theme', theme);
+        });
+    </script>
+    @section Scripts {
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <script>
+            const connection = new signalR.HubConnectionBuilder()
+                .withUrl("/chatHub")
+                .build();
+
+
+
+            connection.start()
+                .then(() => console.log("SignalR Connected"))
+                .catch(err => {
+                    console.error("SignalR Connection Error:", err);
+                    $("#status").text("Failed to connect to chat server");
+                });
+                                // معالج استقبال الإشعارات للرسائل الخاصة
+                connection.on("ReceiveNotification", (sender, message) => {
+                    if (Notification.permission === "granted") {
+                        new Notification(`رسالة جديدة من ${sender}`, {
+                            body: message,
+                                icon: 'success' // استبدل بمسار أيقونة فعلي
+                        });
+                    }
+                });
+
+        </script>
+    }
+    </script>
+    <script class="u-script" type="text/javascript" src="~/js/jquery.js" defer=""></script>
+    <script class="u-script" type="text/javascript" src="~/js/nicepage.js" defer=""></script>
+</body>
+</html>
+@Html.Partial("_LandingFooter")

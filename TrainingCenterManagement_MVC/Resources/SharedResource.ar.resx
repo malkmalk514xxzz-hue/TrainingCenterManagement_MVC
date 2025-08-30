@@ -618,9 +618,6 @@
   <data name="all_types_option" xml:space="preserve">
     <value>جميع الأنواع</value>
   </data>
-  <data name="add_payment_method_button" xml:space="preserve">
-    <value>إضافة طريقة دفع</value>
-  </data>
   <data name="method_name_label" xml:space="preserve">
     <value>اسم الطريقة</value>
   </data>
@@ -1280,5 +1277,14 @@
   </data>
   <data name="SaveChanges" xml:space="preserve">
     <value>احفظ</value>
+  </data>
+  <data name="add_payment_method_button" xml:space="preserve">
+    <value>إضافة طريقة دفع</value>
+  </data>
+  <data name="ReleaseDate" xml:space="preserve">
+    <value>تاريخ البداية</value>
+  </data>
+  <data name="Batch" xml:space="preserve">
+    <value>الدفعة</value>
   </data>
 </root>

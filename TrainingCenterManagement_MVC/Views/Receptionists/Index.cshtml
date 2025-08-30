@@ -1,4 +1,4 @@
-﻿@model IEnumerable<TrainingCenterManagement_MVC.Models.Receptionist>
+﻿@* @model IEnumerable<TrainingCenterManagement_MVC.Models.Receptionist>
 
 @{
     ViewData["Title"] = "Receptionists List";
@@ -50,3 +50,260 @@
         </tbody>
     </table>
 </div>
+ *@
+
+
+@model IEnumerable<TrainingCenterManagement_MVC.Models.Receptionist>
+
+@{
+    ViewData["Title"] = "Receptionists List";
+}
+
+<style>
+    :root {
+        --color-background: #fff;
+        --color-header-border: #f0f2f4;
+        --color-text-dark: #111418;
+        --color-text-muted: #617589;
+        --font-family-sans: Inter, "Noto Sans", sans-serif;
+    }
+
+    body {
+        font-family: var(--font-family-sans);
+        background-color: var(--color-background);
+        margin: 0;
+        direction: rtl;
+    }
+
+    .layout-container {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+        width: 100%;
+        overflow-x: hidden;
+    }
+
+    .header-style {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        white-space: nowrap;
+        border-bottom: 1px solid var(--color-header-border);
+        padding: 0.75rem 2.5rem;
+    }
+
+    .header-logo-section {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        color: var(--color-text-dark);
+    }
+
+    .header-logo-svg {
+        width: 1rem;
+        height: 1rem;
+    }
+
+    .header-title {
+        color: var(--color-text-dark);
+        font-size: 1.125rem;
+        font-weight: 700;
+        line-height: 1.25;
+        letter-spacing: -0.015em;
+    }
+
+    .header-links-section {
+        display: flex;
+        flex: 1;
+        justify-content: flex-end;
+        gap: 2rem;
+    }
+
+    .nav-links {
+        display: flex;
+        align-items: center;
+        gap: 2.25rem;
+    }
+
+    .nav-link {
+        color: var(--color-text-dark);
+        font-size: 0.875rem;
+        font-weight: 500;
+        line-height: 1.5;
+        text-decoration: none;
+    }
+
+    .profile-picture {
+        width: 2.5rem;
+        height: 2.5rem;
+        border-radius: 50%;
+        background-position: center;
+        background-repeat: no-repeat;
+        background-size: cover;
+    }
+
+    .main-content {
+        flex: 1;
+        display: flex;
+        justify-content: center;
+        padding-top: 1.25rem;
+        padding-bottom: 1.25rem;
+        padding-left: 10rem;
+        padding-right: 10rem;
+    }
+
+    .content-container {
+        display: flex;
+        flex-direction: column;
+        max-width: 960px;
+        flex: 1;
+    }
+
+    .header-controls {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        gap: 0.75rem;
+        padding: 1rem;
+    }
+
+    .page-title {
+        color: var(--color-text-dark);
+        font-size: 2rem;
+        font-weight: 700;
+        line-height: 1.25;
+        min-width: 18rem;
+    }
+
+    .create-button {
+        display: flex;
+        min-width: 84px;
+        max-width: 480px;
+        cursor: pointer;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        border-radius: 0.5rem;
+        height: 2rem;
+        padding: 0 1rem;
+        background-color: var(--color-header-border);
+        color: var(--color-text-dark);
+        font-size: 0.875rem;
+        font-weight: 500;
+        line-height: 1.5;
+        border: none;
+        text-decoration: none;
+        transition: background-color 0.2s;
+    }
+
+    .create-button:hover {
+        background-color: #e2e6e9;
+    }
+
+    .grid-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(158px, 1fr));
+        gap: 0.75rem;
+        padding: 1rem;
+    }
+
+    .receptionist-card {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        text-align: center;
+        padding-bottom: 0.75rem;
+    }
+
+    .receptionist-image-wrapper {
+        padding: 0 1rem;
+    }
+
+    .receptionist-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        aspect-ratio: 1 / 1;
+        background-position: center;
+        background-repeat: no-repeat;
+        background-size: cover;
+        border-radius: 9999px;
+    }
+
+    .receptionist-name {
+        color: var(--color-text-dark);
+        font-size: 1rem;
+        font-weight: 500;
+        line-height: 1.5;
+    }
+
+    .no-data-message {
+        text-align: center;
+        color: var(--color-text-muted);
+        padding: 2rem;
+        grid-column: 1 / -1;
+    }
+
+    .card-actions a {
+        color: #617589;
+        font-weight: bold;
+        text-decoration: none;
+        margin: 0 0.25rem;
+    }
+</style>
+
+<div class="layout-container" style="background-color:white">
+
+    @Html.Partial("_LandingHeader")
+    <div class="main-content">
+        <div class="content-container">
+            <div class="header-controls">
+                <p class="page-title">Receptionists</p>
+                <a asp-action="Create" class="create-button">
+                    <span class="truncate">Create New Receptionist</span>
+                </a>
+            </div>
+            <div class="grid-container">
+                @if (!Model.Any())
+                {
+                    <div class="no-data-message">
+                        No receptionists found.
+                    </div>
+                }
+                else
+                {
+                
+                     var random = new Random();
+
+
+                    @foreach (var item in Model)
+                    {
+                        var randomImageNumber = random.Next(1, 4);
+                        var imagePath = Url.Content($"~/images/profile/mel/{randomImageNumber}.png");
+
+                        <div class="receptionist-card">
+                            <div class="receptionist-image-wrapper">
+                                <div class="receptionist-image" style="background-image: url('@imagePath');"></div>
+                            </div>
+                            <p class="receptionist-name">
+                                @if (item.User != null)
+                                {
+                                    @(item.User.FullName)
+                                }
+                                else
+                                {
+                                    <span style="color: var(--color-text-muted);">No User Linked</span>
+                                }
+                            </p>
+                            <div class="card-actions">
+                                <a asp-action="Details" asp-route-id="@item.ReceptionistId">Details</a>
+                                |
+                                <a asp-action="Delete" asp-route-id="@item.ReceptionistId">Delete</a>
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+</div>@Html.Partial("_LandingFooter")

@@ -1,4 +1,4 @@
-﻿@model IEnumerable<TrainingCenterManagement_MVC.Models.Trainer>
+﻿@* @model IEnumerable<TrainingCenterManagement_MVC.Models.Trainer>
 
 @{
     ViewData["Title"] = "Index";
@@ -42,3 +42,288 @@
         }
     </tbody>
 </table>
+ *@
+
+
+@model IEnumerable<TrainingCenterManagement_MVC.Models.Trainer>
+
+@{
+    ViewData["Title"] = "Trainers List";
+}
+
+<style>
+    :root {
+        --color-background: #fff;
+        --color-header-border: #f0f2f4;
+        --color-text-dark: #111418;
+        --color-text-muted: #617589;
+        --font-family-sans: Inter, "Noto Sans", sans-serif;
+    }
+
+    body {
+        font-family: var(--font-family-sans);
+        background-color: var(--color-background);
+        margin: 0;
+        direction: rtl;
+    }
+
+    .layout-container {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+        width: 100%;
+        overflow-x: hidden;
+    }
+
+    .header-style {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        white-space: nowrap;
+        border-bottom: 1px solid var(--color-header-border);
+        padding: 0.75rem 2.5rem;
+    }
+
+    .header-logo-section {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        color: var(--color-text-dark);
+    }
+
+    .header-logo-svg {
+        width: 1rem;
+        height: 1rem;
+    }
+
+    .header-title {
+        color: var(--color-text-dark);
+        font-size: 1.125rem;
+        font-weight: 700;
+        line-height: 1.25;
+        letter-spacing: -0.015em;
+    }
+
+    .header-links-section {
+        display: flex;
+        flex: 1;
+        justify-content: flex-end;
+        gap: 2rem;
+    }
+
+    .nav-links {
+        display: flex;
+        align-items: center;
+        gap: 2.25rem;
+    }
+
+    .nav-link {
+        color: var(--color-text-dark);
+        font-size: 0.875rem;
+        font-weight: 500;
+        line-height: 1.5;
+        text-decoration: none;
+    }
+
+    .profile-picture {
+        width: 2.5rem;
+        height: 2.5rem;
+        border-radius: 50%;
+        background-position: center;
+        background-repeat: no-repeat;
+        background-size: cover;
+    }
+
+    .main-content {
+        flex: 1;
+        display: flex;
+        justify-content: center;
+        padding-top: 1.25rem;
+        padding-bottom: 1.25rem;
+        padding-left: 6rem;
+        padding-right: 6rem;
+    }
+
+    .content-container {
+        display: flex;
+        flex-direction: column;
+        max-width: 960px;
+        flex: 1;
+    }
+
+    .header-controls {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        gap: 0.75rem;
+        padding: 1rem;
+    }
+
+    .page-title {
+        color: var(--color-text-dark);
+        font-size: 2rem;
+        font-weight: 700;
+        line-height: 1.25;
+        min-width: 18rem;
+    }
+
+    .create-button {
+        display: flex;
+        min-width: 84px;
+        max-width: 480px;
+        cursor: pointer;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        border-radius: 0.5rem;
+        height: 2rem;
+        padding: 0 1rem;
+        background-color: var(--color-header-border);
+        color: var(--color-text-dark);
+        font-size: 0.875rem;
+        font-weight: 500;
+        line-height: 1.5;
+        border: none;
+        text-decoration: none;
+        transition: background-color 0.2s;
+    }
+
+        .create-button:hover {
+            background-color: #e2e6e9;
+        }
+
+    .grid-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        padding: 1rem;
+    }
+
+    .trainer-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 1.5rem;
+        background-color: #ffffff; /* Card background is now white */
+        border-radius: 0.5rem;
+        border: 1px solid #e0e0e0;
+        text-align: center;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+
+    .trainer-image {
+        width: 96px;
+        height: 96px;
+        object-fit: cover;
+        border-radius: 50%;
+        margin-bottom: 1rem;
+        border: 2px solid #ccc;
+    }
+
+    .trainer-name {
+        font-size: 1.125rem;
+        font-weight: 700;
+        color: var(--color-text-dark);
+        margin-bottom: 0.25rem;
+    }
+
+    .trainer-info {
+        font-size: 0.75rem;
+        color: var(--color-text-muted);
+        line-height: 1.4;
+        margin-bottom: 1rem;
+        word-wrap: break-word;
+        white-space: normal;
+    }
+
+    .card-actions {
+        display: flex;
+        gap: 0.2rem; /* Reduced gap between buttons */
+        justify-content: center;
+    }
+
+        .card-actions a {
+            padding: 0.2rem 0.5rem; /* Reduced padding */
+            border-radius: 0.25rem;
+            font-size: 0.875rem;
+            text-decoration: none;
+            font-weight: 500;
+            background-color: #fff; /* Button background is now white */
+            border-width: 1px;
+            border-style: solid;
+        }
+
+    .edit-btn {
+        color: #1a73e8; /* Blue text color */
+        border-color: #1a73e8;
+    }
+
+    .details-btn {
+        color: #617589; /* Gray text color */
+        border-color: #617589;
+    }
+
+    .delete-btn {
+        color: #d9534f; /* Red text color */
+        border-color: #d9534f;
+    }
+
+    .no-data-message {
+        text-align: center;
+        color: var(--color-text-muted);
+        padding: 2rem;
+        grid-column: 1 / -1;
+    }
+</style>
+
+<div class="layout-container" style="background-color:white">
+    @Html.Partial("_LandingHeader")
+    <div class="main-content">
+        <div class="content-container">
+            <div class="header-controls">
+                <p class="page-title">Trainers</p>
+                <a asp-action="Create" class="create-button">
+                    <span class="truncate">Create New Trainer</span>
+                </a>
+            </div>
+            <div class="grid-container">
+                @if (!Model.Any())
+                {
+                    <div class="no-data-message">
+                        No trainers found.
+                    </div>
+                }
+                else
+                {
+                    var random = new Random();
+                    foreach (var item in Model)
+                    {
+                        var randomImageNumber = random.Next(1, 7);
+                        var imagePath = Url.Content($"~/images/profile/{randomImageNumber}.png");
+
+                        <div class="trainer-card">
+                            <img src="@imagePath" class="trainer-image" alt="Trainer Profile Picture" />
+                            <p class="trainer-name">@item.User?.FullName</p>
+                            <div class="trainer-info">
+                                <p>@item.Specialty</p>
+                                <p>@item.YearsOfExperience years</p>
+                                @if (!string.IsNullOrEmpty(item.BusinessLink))
+                                {
+                                    <p>
+                                        Business Link: <a href="@item.BusinessLink" target="_blank">View Profile</a>
+                                    </p>
+                                }
+                            </div>
+                            <div class="card-actions">
+                                <a asp-action="Edit" asp-route-id="@item.TrainerId" class="edit-btn">Edit</a>
+                                <a asp-action="Details" asp-route-id="@item.TrainerId" class="details-btn">Details</a>
+                                <a asp-action="Delete" asp-route-id="@item.TrainerId" class="delete-btn">Delete</a>
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+    @Html.Partial("_LandingFooter")
+</div>
