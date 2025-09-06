@@ -71,6 +71,18 @@ namespace TrainingCenterManagement_MVC.Data
                 }
 
                 await _context.SaveChangesAsync();
+
+            // Seed default JwtKey setting if not exists
+            var jwtSetting = await _context.AppSettings.FirstOrDefaultAsync(s => s.Key == "JwtKey");
+            if (jwtSetting == null)
+            {
+                _context.AppSettings.Add(new Models.AppSetting
+                {
+                    Key = "JwtKey",
+                    Value = "VerySecretKey12345VerySecretKey12345" // default 32-char key for development
+                });
+                await _context.SaveChangesAsync();
+            }
             }
         }
 

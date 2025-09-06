@@ -238,16 +238,19 @@ namespace TrainingCenterManagement_MVC.Controllers
 
             // إعادة توجيه إلى أحدث محاضرة أو صفحة تقدم الدورة
             var latestLecture = course.Lectures
-                .Where(l => !l.IsDeleted && l.LectureDate <= DateTime.UtcNow)
-                .OrderByDescending(l => l.LectureDate)
-                .FirstOrDefault();
+        .Where(l => !l.IsDeleted && l.LectureDate <= DateTime.UtcNow)
+        .Where(l => !_context.Presences.Any(p => p.LectureId == l.LectureId && p.TraineeId == trainee.TraineeId))
+        .OrderByDescending(l => l.LectureDate)
+        .FirstOrDefault();
+
+
 
             if (latestLecture != null)
             {
                 return RedirectToAction("ViewLecture", "Lectures", new { id = latestLecture.LectureId });
             }
 
-            return View("Resume", course); // صفحة افتراضية لعرض تقدم الدورة
+            return View("Resume", course); // صفحة  لعرض تقدم الدورة
         }
         [Authorize(Roles = "Trainee")]
         [HttpPost]

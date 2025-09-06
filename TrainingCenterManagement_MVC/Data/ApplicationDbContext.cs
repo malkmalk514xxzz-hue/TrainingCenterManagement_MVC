@@ -26,6 +26,8 @@ namespace TrainingCenterManagement_MVC.Data
         public DbSet<GusetMessage> GusetMessages { get; set; }
         public DbSet<ContactUs> ContactUs { get; set; }
         public DbSet<UserConnection> UserConnections { get; set; }
+        public DbSet<QrLoginToken> QrLoginTokens { get; set; }
+        public DbSet<Models.AppSetting> AppSettings { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
