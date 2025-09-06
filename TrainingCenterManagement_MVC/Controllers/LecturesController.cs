@@ -268,18 +268,67 @@ namespace TrainingCenterManagement_MVC.Controllers
         // GET: Lectures/ViewLecture/5
         public async Task<IActionResult> ViewLecture(Guid? id)
         {
+
             if (id == null) return NotFound();
 
             var lecture = await _context.Lectures
-                .Include(l => l.Course)
-                .Include(l => l.Presences)
-                    .ThenInclude(p => p.Trainee)
-                    .ThenInclude(t => t.User)
-                .FirstOrDefaultAsync(l => l.LectureId == id);
+                  .Include(l => l.Course)
+                  .Include(l => l.Presences)
+                      .ThenInclude(p => p.Trainee)
+                      .ThenInclude(t => t.User)
+                  .FirstOrDefaultAsync(l => l.LectureId == id);
 
             if (lecture == null) return NotFound();
 
-            return View(lecture);
+            // تسجيل حضور الطالب تلقائيًا إذا كان Trainee
+            if (User.IsInRole("Trainee"))
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                // تحقق أولاً من أن الـ Trainee موجود فعلاً
+                // جلب المتدرب المرتبط بالمستخدم الحالي
+                var trainee = await _context.Trainees.FirstOrDefaultAsync(t => t.UserId == userId);
+                if (trainee == null)
+                {
+                    return BadRequest("Trainee record not found for this user.");
+                }
+
+                var traineeId = trainee.TraineeId;
+
+                var nextLecture = await _context.Lectures
+                      .Where(l => l.CourseId == lecture.CourseId && l.LectureDate > lecture.LectureDate)
+                      .OrderBy(l => l.LectureDate)
+                      .FirstOrDefaultAsync();
+
+                var alreadyPresent = await _context.Presences
+                    .AnyAsync(p => p.TraineeId == traineeId && p.LectureId == lecture.LectureId);
+
+
+                if (!alreadyPresent )
+                {
+                    var presence = new Presence
+                    {
+                        PresenceId = Guid.NewGuid(),
+                        LectureId = lecture.LectureId,
+                        TraineeId = traineeId,
+                        IsPresent = true
+                    };
+
+                    _context.Presences.Add(presence);
+                    await _context.SaveChangesAsync();
+                }
+            }
+            if (id == null) return NotFound();
+
+
+            var lecture2 = await _context.Lectures
+                  .Include(l => l.Course)
+                  .Include(l => l.Presences)
+                      .ThenInclude(p => p.Trainee)
+                      .ThenInclude(t => t.User)
+                  .FirstOrDefaultAsync(l => l.LectureId == id);
+            if (lecture2 == null) return NotFound();
+
+            return View(lecture2);
         }
 
 
