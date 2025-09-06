@@ -397,8 +397,11 @@
     <div class="content-area">
         <div class="content-wrapper">
             <div class="content-header">
-                <h1>Courses</h1>
+                <h1>Courses</h1>@if (User.Identity.IsAuthenticated && !User.IsInRole("Trainee"))
+                {
+                    
                 <a asp-action="Create" class="create-button">➕ Create New Course</a>
+                }
             </div>
 
             @if (Model.Any())
@@ -430,17 +433,24 @@
                                 <p class="course-meta">Batch: @Html.DisplayFor(modelItem => item.BatchNumber)</p>
                                 <p class="course-meta">Lectures: @Html.DisplayFor(modelItem => item.NumberOfLectures)</p>
                             </div>
-                            <div class="card-actions">
-                                <a asp-action="Edit" asp-route-id="@item.CourseId" title="Edit">
-                                    <i class="fas fa-pencil-alt"></i>
-                                </a>
-                                <a asp-action="Details" asp-route-id="@item.CourseId" title="Details">
-                                    <i class="fas fa-bars"></i>
-                                </a>
-                                <a asp-action="Delete" asp-route-id="@item.CourseId" title="Delete">
-                                    <i class="fas fa-trash-alt"></i>
-                                </a>
-                            </div>
+
+                            @if (User.Identity.IsAuthenticated && !User.IsInRole("Trainee"))
+                            {
+                                <div class="card-actions">
+                                    <a asp-action="Edit" asp-route-id="@item.CourseId" title="Edit">
+                                        <i class="fas fa-pencil-alt"></i>
+                                    </a>
+                                    <a asp-action="Details" asp-route-id="@item.CourseId" title="Details">
+                                        <i class="fas fa-bars"></i>
+                                    </a>
+                                    <a asp-action="Delete" asp-route-id="@item.CourseId" title="Delete">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </a>
+                                </div>
+                            }
+                                
+
+
                         </div>
                     }
                 </div>

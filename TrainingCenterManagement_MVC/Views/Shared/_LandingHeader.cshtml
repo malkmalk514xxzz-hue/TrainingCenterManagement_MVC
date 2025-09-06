@@ -753,11 +753,11 @@
                 <li>
                     <a asp-controller="Home" asp-action="Index">Home</a>
                 </li>
+                @if (User.Identity.IsAuthenticated)
+                {
                 <li>
                     <a asp-controller="Courses" asp-action="Index">@SharedResource.Courses</a>
                 </li>
-                @if (User.Identity.IsAuthenticated)
-                {
                     <li>
                         <a asp-controller="Dashboard" asp-action="Index">@SharedResource.Dashboard</a>
                     </li>
@@ -859,13 +859,13 @@
                 <i class="fas fa-home" style="margin-right: 12px;"></i> Home
             </a>
         </li>
+        @if (User.Identity.IsAuthenticated)
+        {
         <li>
             <a asp-controller="Courses" asp-action="Index">
                 <i class="fas fa-book" style="margin-right: 12px;"></i> @SharedResource.Courses
             </a>
         </li>
-        @if (User.Identity.IsAuthenticated)
-        {
             <li>
                 <a asp-controller="Dashboard" asp-action="Index">
                     <i class="fas fa-tachometer-alt" style="margin-right: 12px;"></i> @SharedResource.Dashboard

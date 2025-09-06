@@ -279,7 +279,7 @@
                     @foreach (var item in Model)
                     {
                         var randomImageNumber = random.Next(1, 4);
-                        var imagePath = Url.Content($"~/images/profile/mel/{randomImageNumber}.png");
+                        var imagePath = Url.Content($"~/images/profile/{randomImageNumber}.png");
 
                         <div class="receptionist-card">
                             <div class="receptionist-image-wrapper">
