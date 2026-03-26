@@ -2,6 +2,7 @@
 @{
     ViewData["Title"] = "Group Chat";
     Guid courseId = ViewBag.CourseId;
+    string senderId = ViewBag.userId;
 }
 
 <div class="chat-container">
@@ -32,7 +33,7 @@
              .withUrl("/chatHub")
              .build();
 
-         connection.on("ReceiveGroupMessage", (user, message, timestamp) => {
+        connection.on("ReceiveGroupMessage", (senderId,user, message, timestamp) => {
              console.log(`Received message from ${user}: ${message} at ${timestamp}`);
              const chatBox = document.getElementById("chatBox");
              const msg = document.createElement("div");
@@ -73,7 +74,7 @@
                      if (response.success) {
                          $("#messageInput").val("");
                          $("#status").text("");
-                         connection.invoke("SendGroupMessage", "@courseId", "@User.Identity.Name", message)
+                         connection.invoke("SendGroupMessage", "@courseId","@senderId", "@User.Identity.Name", message)
                              .catch(err => console.error(err));
                      } else {
                          $("#status").text(response.message);

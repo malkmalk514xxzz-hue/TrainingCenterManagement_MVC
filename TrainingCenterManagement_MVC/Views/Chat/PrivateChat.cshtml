@@ -4,6 +4,7 @@
     var receiverId = ViewBag.ReceiverId;
     string receiverUsername = ViewBag.ReceiverUsername;
     string senderUsername = User.Identity.Name;
+    string senderId =ViewBag.userId;
 }
 
 <div class="chat-container">
@@ -34,7 +35,7 @@
             .withUrl("/chatHub")
             .build();
 
-        connection.on("ReceivePrivateMessage", (sender, message, timestamp) => {
+        connection.on("ReceivePrivateMessage", (senderId,sender, message, timestamp) => {
             console.log(`استلام رسالة من ${sender}: ${message} في ${timestamp}`);
             const chatBox = document.getElementById("chatBox");
             const msg = document.createElement("div");
@@ -90,7 +91,7 @@
                         `;
                         chatBox.appendChild(msg);
                         chatBox.scrollTop = chatBox.scrollHeight;
-                        connection.invoke("SendPrivateMessage", "@receiverId", "@senderUsername", message)
+                        connection.invoke("SendPrivateMessage", "@receiverId", "@senderId", "@senderUsername", message)
                             .catch(err => {
                                 console.error("خطأ في استدعاء SignalR:", err);
                                 $("#status").text("خطأ في إشعار المستقبل");

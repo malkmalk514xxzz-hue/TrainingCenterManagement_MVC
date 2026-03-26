@@ -6,6 +6,10 @@ using System.Security.Claims;
 using System.Text;
 using TrainingCenterManagement_MVC.Models;
 using TrainingCenterManagement_MVC.ViewModels;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
+using TrainingCenterManagement_MVC.Data;
+using Microsoft.Extensions.Logging;
 
 namespace TrainingCenterManagement_MVC.Controllers.Api
 {
@@ -17,14 +21,20 @@ namespace TrainingCenterManagement_MVC.Controllers.Api
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly IConfiguration _configuration;
         private readonly Helpers.ISettingsService _settingsService;
+        private readonly ApplicationDbContext _context;
+        private readonly ILogger<AuthApiController> _logger;
 
-        public AuthApiController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, IConfiguration configuration, Helpers.ISettingsService settingsService)
+        public AuthApiController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, IConfiguration configuration, Helpers.ISettingsService settingsService
+            , ApplicationDbContext context, ILogger<AuthApiController> logger)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _configuration = configuration;
             _settingsService = settingsService;
+            _context = context;
+            _logger = logger;
         }
+       
 
         [HttpPost("token")]
         [Consumes("application/json")]
@@ -157,5 +167,92 @@ namespace TrainingCenterManagement_MVC.Controllers.Api
             var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
             return Ok(new { access_token = tokenString, token_type = "Bearer", expires_in = TimeSpan.FromMinutes(expiresInMinutes).TotalSeconds });
         }
+
+        // ------------------ QR Login Endpoints ------------------
+        // POST: api/AuthApi/generate-qr
+        // Generates a short-lived QR login token. Caller must be authenticated (web user creating QR).
+        [HttpPost("generate-qr")]
+        [Authorize]
+        public async Task<IActionResult> GenerateQrToken([FromBody] GenerateQrRequest req)
+        {
+            // create token
+            var token = Guid.NewGuid().ToString("N");
+            var expires = DateTime.UtcNow.AddMinutes(req?.ExpiresMinutes > 0 ? req.ExpiresMinutes.Value : 5);
+
+            var currentUser = await _userManager.GetUserAsync(User);
+
+            var qr = new QrLoginToken
+            {
+                Token = token,
+                TeacherUserId = currentUser?.Id,
+                CourseId = req?.CourseId,
+                ExpiresAt = expires,
+                Used = false
+            };
+
+            try
+            {
+                // Save
+                _context.QrLoginTokens.Add(qr);
+                await _context.SaveChangesAsync();
+
+                return Ok(new GenerateQrResponse(token, expires));
+            }
+            catch (Exception ex)
+            {
+                return Problem(detail: ex.Message);
+            }
+        }
+
+        // POST: api/AuthApi/qr/scan
+        // Mobile client scans QR and calls this endpoint to mark token scanned by this mobile user
+        [HttpPost("qr/scan")]
+        [Authorize]
+        public async Task<IActionResult> ScanQr([FromBody] ScanQrRequest req)
+        {
+            if (req == null || string.IsNullOrWhiteSpace(req.Token)) return BadRequest(new { message = "Token is required." });
+
+            var qr = await _context.QrLoginTokens.FirstOrDefaultAsync(q => q.Token == req.Token);
+            if (qr == null) return NotFound(new { message = "Token not found." });
+            if (qr.Used) return BadRequest(new { message = "Token already used." });
+            if (qr.ExpiresAt < DateTime.UtcNow) return BadRequest(new { message = "Token expired." });
+
+            // set scanner user
+            var mobileUser = await _userManager.GetUserAsync(User);
+            if (mobileUser == null) return Unauthorized();
+
+            qr.ScannerUserId = mobileUser.Id;
+            qr.Used = true;
+            await _context.SaveChangesAsync();
+
+            return Ok(new { success = true });
+        }
+
+        // GET: api/AuthApi/qr/status/{token}
+        // Web UI can poll this endpoint to detect that a mobile user scanned the QR
+        [HttpGet("qr/status/{token}")]
+        public async Task<IActionResult> QrStatus(string token)
+        {
+            if (string.IsNullOrWhiteSpace(token)) return BadRequest();
+            var qr = await _context.QrLoginTokens.FirstOrDefaultAsync(q => q.Token == token);
+            if (qr == null) return NotFound();
+
+            if (qr.Used && !string.IsNullOrEmpty(qr.ScannerUserId))
+            {
+                var user = await _userManager.FindByIdAsync(qr.ScannerUserId);
+                if (user != null)
+                {
+                    return Ok(new QrStatusResponse(true, qr.ScannerUserId, user.UserName));
+                }
+            }
+
+            return Ok(new QrStatusResponse(qr.Used, qr.ScannerUserId, null, qr.ExpiresAt));
+        }
     }
+
+    // DTOs for QR endpoints
+    public record GenerateQrRequest(int? ExpiresMinutes = 5, Guid? CourseId = null);
+    public record GenerateQrResponse(string Token, DateTime ExpiresAt);
+    public record ScanQrRequest(string Token);
+    public record QrStatusResponse(bool Used, string? ScannerUserId = null, string? ScannerUserName = null, DateTime? ExpiresAt = null);
 }

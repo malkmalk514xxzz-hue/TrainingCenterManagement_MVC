@@ -13,6 +13,7 @@ namespace TrainingCenterManagement_MVC.Models
 
         public string? TeacherUserId { get; set; }
         public Guid? CourseId { get; set; }
+        public string? ScannerUserId { get; set; }
         public DateTime ExpiresAt { get; set; }
         public bool Used { get; set; } = false;
     }

@@ -21,6 +21,7 @@ namespace TrainingCenterManagement_MVC.Models
         [Required]
         public Guid CourseId { get; set; }
         public Course Course { get; set; }
+        
 
         public ICollection<Certificate> Certificates { get; set; } = new List<Certificate>();
     }

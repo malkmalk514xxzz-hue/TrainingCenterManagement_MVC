@@ -122,6 +122,7 @@ namespace TrainingCenterManagement_MVC.Controllers
                 .OrderBy(m => m.Timestamp)
                 .ToListAsync();
             ViewBag.CourseId = courseId;
+            ViewBag.user   = await _context.Users.FindAsync(await GetUserIdAsync());
             return View(messages);
         }
 

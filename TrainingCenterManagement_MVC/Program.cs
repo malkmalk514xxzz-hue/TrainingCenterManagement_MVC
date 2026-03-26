@@ -1,41 +1,43 @@
-﻿using System.Globalization;
-using Messaging_Chat_Application_MahmoudHakim.Hubs;
+﻿using Messaging_Chat_Application_MahmoudHakim.Hubs;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using Rotativa.AspNetCore;
+using System.Globalization;
+using System.Reflection;
+using System.Security.Claims;
+using System.Text;
 using TrainingCenterManagement_MVC.Data;
 using TrainingCenterManagement_MVC.Helpers;
 using TrainingCenterManagement_MVC.Models;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Http;
-using Microsoft.OpenApi.Models;
-using System.Reflection;
-using System.IO;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services
+// ====================== Basic Services ======================
 builder.Services.AddControllersWithViews()
     .AddJsonOptions(options =>
     {
-        // Avoid cycles when serializing entity graphs (prevents Swagger generation errors)
         options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
         options.JsonSerializerOptions.MaxDepth = 64;
     });
 
-// Add DbContext
+// DbContext
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// Session
 builder.Services.AddSession(options =>
 {
     options.IdleTimeout = TimeSpan.FromMinutes(240);
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
 });
-// Identity using string Role (not Guid)
+
+// Identity
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 {
     options.Password.RequireDigit = true;
@@ -47,59 +49,94 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 .AddEntityFrameworkStores<ApplicationDbContext>()
 .AddDefaultTokenProviders();
 
-// JWT Bearer for mobile/API clients (Android)
-// Ensure key is at least 256 bits (32 bytes) for HS256
-var jwtKey = builder.Configuration["Jwt:Key"];
+// ====================== JWT Configuration ======================
+var jwtSection = builder.Configuration.GetSection("Jwt");
+var jwtKey = jwtSection["Key"];
+
 if (string.IsNullOrWhiteSpace(jwtKey) || Encoding.UTF8.GetByteCount(jwtKey) < 32)
 {
-    // default to a sufficiently long key for development. Replace in production via configuration.
-    jwtKey = "VerySecretKey12345VerySecretKey12345"; // 32 chars -> 256 bits
+    jwtKey = "SuperSecretKeyForDevelopmentOnly1234567890ABCDEF1234567890";
+    Console.WriteLine("⚠️ Using fallback JWT development key - Change this in production!");
 }
-var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "TrainingCenter";
-var jwtAudience = builder.Configuration["Jwt:Audience"] ?? "TrainingCenterAudience";
-builder.Services.AddAuthentication()
-    .AddJwtBearer(options =>
+else
+{
+    Console.WriteLine($"✅ JWT Key loaded successfully. Length: {jwtKey.Length} characters");
+}
+
+var jwtIssuer = jwtSection["Issuer"] ?? "TrainingCenter";
+var jwtAudience = jwtSection["Audience"] ?? "TrainingCenterAudience";
+
+// ====================== Authentication Configuration ======================
+// في ملف Program.cs - ابحث عن هذا الجزء وقم بتعديله
+builder.Services.AddAuthentication(options =>
+{
+    // التعديل: اجعل المخطط الذكي هو الافتراضي
+    options.DefaultAuthenticateScheme = "SmartScheme";
+    options.DefaultChallengeScheme = "SmartScheme";
+})
+
+// مخطط ذكي للتمييز بين JWT و Cookie
+// في ملف Program.cs
+.AddPolicyScheme("SmartScheme", "JWT or Cookie", options =>
+{
+    options.ForwardDefaultSelector = context =>
     {
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
-            ValidIssuer = jwtIssuer,
-            ValidAudience = jwtAudience,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
-        };
+        // 1. ابحث عن توكن في الـ Header أو في الرابط (Query String)
+        var authHeader = context.Request.Headers["Authorization"].FirstOrDefault();
+        var accessToken = context.Request.Query["access_token"].FirstOrDefault();
 
-        // Allow JWT to be passed in query string for SignalR
-        options.Events = new JwtBearerEvents
+        // 2. إذا وجدنا توكن، استخدم JWT (للأندرويد والـ API)
+        if (!string.IsNullOrEmpty(authHeader) || !string.IsNullOrEmpty(accessToken))
         {
-            OnMessageReceived = context =>
-            {
-                var accessToken = context.Request.Query["access_token"];
-                var path = context.HttpContext.Request.Path;
-                if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/ChatHub"))
-                {
-                    context.Token = accessToken;
-                }
-                return Task.CompletedTask;
-            }
-        };
-    });
+            return JwtBearerDefaults.AuthenticationScheme;
+        }
 
+        // 3. إذا لم نجد توكن، استخدم Cookies (للمتصفح)
+        return IdentityConstants.ApplicationScheme;
+    };
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = jwtIssuer,
+        ValidAudience = jwtAudience,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
+        NameClaimType = ClaimTypes.NameIdentifier,
+        RoleClaimType = ClaimTypes.Role
+    };
+
+    //options.Events = new JwtBearerEvents
+    //{
+    //    OnMessageReceived = context =>
+    //    {
+    //        var accessToken = context.Request.Query["access_token"];
+    //        if (!string.IsNullOrEmpty(accessToken) &&
+    //            context.Request.Path.StartsWithSegments("/ChatHub"))
+    //        {
+    //            context.Token = accessToken;
+    //            Console.WriteLine("[SignalR] Token received from query string");
+    //        }
+    //        return Task.CompletedTask;
+    //    }
+    //};
+});
+
+// Cookie Configuration
 builder.Services.ConfigureApplicationCookie(options =>
 {
     options.LoginPath = "/Account/Login";
     options.AccessDeniedPath = "/Account/AccessDenied";
 
-    // For API calls (paths starting with /api) return 401/403 instead of redirecting to HTML login page.
     options.Events = new CookieAuthenticationEvents
     {
         OnRedirectToLogin = ctx =>
         {
-            var request = ctx.Request;
-            var isApi = request.Path.StartsWithSegments("/api") || request.Headers["Accept"].Any(h => h.Contains("application/json")) || request.Headers["X-Requested-With"] == "XMLHttpRequest";
-            if (isApi)
+            if (IsApiRequest(ctx.Request))
             {
                 ctx.Response.StatusCode = StatusCodes.Status401Unauthorized;
                 return Task.CompletedTask;
@@ -109,9 +146,7 @@ builder.Services.ConfigureApplicationCookie(options =>
         },
         OnRedirectToAccessDenied = ctx =>
         {
-            var request = ctx.Request;
-            var isApi = request.Path.StartsWithSegments("/api") || request.Headers["Accept"].Any(h => h.Contains("application/json")) || request.Headers["X-Requested-With"] == "XMLHttpRequest";
-            if (isApi)
+            if (IsApiRequest(ctx.Request))
             {
                 ctx.Response.StatusCode = StatusCodes.Status403Forbidden;
                 return Task.CompletedTask;
@@ -121,6 +156,8 @@ builder.Services.ConfigureApplicationCookie(options =>
         }
     };
 });
+
+// CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", builder =>
@@ -130,25 +167,35 @@ builder.Services.AddCors(options =>
                .AllowAnyHeader()
                .WithExposedHeaders("Content-Disposition");
     });
+
+    options.AddPolicy("MobileClientPolicy", policy =>
+    {
+        policy.WithOrigins(
+                "https://10.0.2.2:7284",
+                "http://10.0.2.2:5272",
+                "https://localhost:7284",
+                "http://localhost:5272",
+                "https://192.168.1.100:7284"
+            )
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .WithExposedHeaders("Content-Disposition");
+    });
 });
 
-
+// SignalR
 builder.Services.AddSignalR(options =>
 {
     options.KeepAliveInterval = TimeSpan.FromSeconds(15);
     options.ClientTimeoutInterval = TimeSpan.FromSeconds(30);
-    options.HandshakeTimeout = TimeSpan.FromSeconds(15);
-}).AddJsonProtocol(options =>
-{
-    options.PayloadSerializerOptions.PropertyNamingPolicy = null;
-});
-// Swagger / OpenAPI for APIs
+}).AddJsonProtocol(options => options.PayloadSerializerOptions.PropertyNamingPolicy = null);
+
+// Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "TrainingCenter API", Version = "v1" });
 
-    // JWT Bearer auth for Swagger
     var securityScheme = new OpenApiSecurityScheme
     {
         Name = "Authorization",
@@ -156,53 +203,37 @@ builder.Services.AddSwaggerGen(c =>
         Scheme = "bearer",
         BearerFormat = "JWT",
         In = ParameterLocation.Header,
-        Description = "Enter 'Bearer' [space] and then your valid token in the text input below."
+        Description = "Enter 'Bearer' [space] and then your valid token."
     };
-    c.AddSecurityDefinition("Bearer", securityScheme);
-    c.AddSecurityRequirement(new OpenApiSecurityRequirement
-    {
-        { securityScheme, new string[] { } }
-    });
 
-    // Include XML comments if present
-    var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
-    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
-    if (File.Exists(xmlPath)) c.IncludeXmlComments(xmlPath);
+    c.AddSecurityDefinition("Bearer", securityScheme);
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement { { securityScheme, Array.Empty<string>() } });
 });
-builder.Services.ConfigureApplicationCookie(options =>
-{
-    options.LoginPath = "/Account/Login";
-    options.AccessDeniedPath = "/Account/AccessDenied";
-});
-// Inject UserHelper 
+
+// Custom Services
+builder.Services.AddScoped<ISettingsService, SettingsService>();
 builder.Services.AddScoped<DashboardHelper>();
 builder.Services.AddScoped<IUserHelper, UserHelper>();
-// Settings service (persisted in DB)
-builder.Services.AddScoped<TrainingCenterManagement_MVC.Helpers.ISettingsService, TrainingCenterManagement_MVC.Helpers.SettingsService>();
-// Add Role Initializer
 builder.Services.AddScoped<RoleInitializer>();
-//builder.Services.AddSignalR().AddJsonProtocol(options =>
-//{
-//    options.PayloadSerializerOptions.PropertyNamingPolicy = null; // íÍÇÝÙ Úáì ÃÓãÇÁ ÇáÎÕÇÆÕ ßãÇ åí (ãËá Id ÈÏáÇð ãä id)
-//});
+
+// ====================== Build App ======================
 var app = builder.Build();
 
-// Seed roles
+// Seed Data
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     var context = services.GetRequiredService<ApplicationDbContext>();
-    // تحقق من وجود أي رولات أو بيانات أساسية
-    if (!context.Roles.Any() || !context.Courses.Any() || !context.Users.Any())
+
+    if (!context.Roles.Any() || !context.Users.Any())
     {
         var roleInitializer = services.GetRequiredService<RoleInitializer>();
         await roleInitializer.SeedRolesAsync();
+
         var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
         var seeder = new SeedDataInitializer(context, userManager);
         await seeder.SeedAllAsync();
     }
-     
-
 }
 
 if (!app.Environment.IsDevelopment())
@@ -211,48 +242,47 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-// Enable Swagger in all environments (you can restrict to Development if desired)
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "TrainingCenter API v1");
-    c.RoutePrefix = "swagger"; // accessible at /swagger
+    c.RoutePrefix = "swagger";
 });
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-app.UseRotativa(); // ÈÚÏ UseStaticFiles
-app.UseStatusCodePages(context =>
+app.UseRotativa();
+
+app.UseStatusCodePages(async context =>
 {
-    if (context.HttpContext.Response.StatusCode == 403)
+    var response = context.HttpContext.Response;
+    if (response.StatusCode == 403)
+        response.Redirect("/Account/AccessDenied");
+    else if (response.StatusCode == 404)
+        response.Redirect("/Home/Error404");
+});
+
+// Middleware خاص بـ SignalR (نقل التوكن)
+app.Use(async (context, next) =>
+{
+    if (context.Request.Path.StartsWithSegments("/ChatHub"))
     {
-        context.HttpContext.Response.Redirect("/Account/AccessDenied");
+        var accessToken = context.Request.Query["access_token"];
+        if (!string.IsNullOrEmpty(accessToken))
+        {
+            context.Request.Headers["Authorization"] = $"Bearer {accessToken}";
+            Console.WriteLine("[SignalR Middleware] Token moved from query to header");
+        }
     }
-    if (context.HttpContext.Response.StatusCode == 404)
-    {
-        context.HttpContext.Response.Redirect("/Home/Error404");
-    }
-    return Task.CompletedTask;
+    await next();
 });
 
 app.UseRouting();
+
+// CORS يجب أن يكون قبل Authentication
 app.UseCors("AllowAll");
+
 app.UseWebSockets();
-app.Use(async (context, next) =>
-{
-    string cookie = string.Empty;
-    if (context.Request.Cookies.TryGetValue("Language", out cookie))
-    {
-        Thread.CurrentThread.CurrentCulture = new CultureInfo("en");
-        Thread.CurrentThread.CurrentUICulture = new CultureInfo(cookie);
-    }
-    else
-    {
-        Thread.CurrentThread.CurrentCulture = new CultureInfo("en");
-        Thread.CurrentThread.CurrentUICulture = new CultureInfo("en");
-    }
-    await next.Invoke();
-});
 app.UseSession();
 app.UseAuthentication();
 app.UseAuthorization();
@@ -260,5 +290,15 @@ app.UseAuthorization();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+
 app.MapHub<ChatHub>("/ChatHub");
+
 app.Run();
+
+// ====================== Helper ======================
+static bool IsApiRequest(HttpRequest request)
+{
+    return request.Path.StartsWithSegments("/api") ||
+           request.Headers["Accept"].Any(h => h?.Contains("application/json") == true) ||
+           request.Headers["X-Requested-With"] == "XMLHttpRequest";
+}
