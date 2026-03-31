@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -33,6 +34,18 @@ namespace TrainingCenterManagement_MVC.Controllers.Api
             return Ok(data);
         }
 
+        [HttpGet("/{courseId}")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+
+        public async Task<IActionResult> GetLectures(string courseId)
+        {
+            var data = await _context.Courses.Where(c=>c.CourseId == Guid.Parse(courseId))
+                .Include(c => c.Lectures)
+                .OrderBy(c => c.CourseName)
+                .ToListAsync();
+            return Ok(data);
+        }
+
         [HttpGet("{id:guid}")]
         public async Task<IActionResult> GetLecture(Guid id)
         {
@@ -45,7 +58,7 @@ namespace TrainingCenterManagement_MVC.Controllers.Api
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin,Trainer")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Trainer,Admin")]
         public async Task<ActionResult<Lecture>> CreateLecture([FromBody] Lecture lecture)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
@@ -58,7 +71,7 @@ namespace TrainingCenterManagement_MVC.Controllers.Api
         }
 
         [HttpPut("{id:guid}")]
-        [Authorize(Roles = "Admin,Trainer")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Trainer,Admin")]
         public async Task<IActionResult> UpdateLecture(Guid id, [FromBody] Lecture lecture)
         {
             if (id != lecture.LectureId) return BadRequest();
@@ -81,7 +94,7 @@ namespace TrainingCenterManagement_MVC.Controllers.Api
         }
 
         [HttpDelete("{id:guid}")]
-        [Authorize(Roles = "Admin,Trainer")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Trainer,Admin")]
         public async Task<IActionResult> DeleteLecture(Guid id)
         {
             var lecture = await _context.Lectures.FindAsync(id);
@@ -93,6 +106,7 @@ namespace TrainingCenterManagement_MVC.Controllers.Api
         }
 
         [Authorize(Roles = "Trainee")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Trainee")]
         [HttpGet("ViewLecture/{id:guid}")]
         public async Task<IActionResult> ViewLecture(Guid id)
         {

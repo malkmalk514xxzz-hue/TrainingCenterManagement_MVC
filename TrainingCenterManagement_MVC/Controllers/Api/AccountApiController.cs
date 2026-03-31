@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
@@ -112,14 +113,14 @@ namespace TrainingCenterManagement_MVC.Controllers.Api
 
 
         [HttpPost("Logout")]
-        [Authorize]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         public async Task<IActionResult> Logout()
         {
             await _userHelper.LogoutAsync();
             return Ok(new { message = "Logged out successfully" });
         }
 
-        [Authorize(Roles = "Receptionist,Admin")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Receptionist,Admin")]
         [HttpPost("Register")]
         public async Task<IActionResult> Register([FromBody] RegisterNewUserViewModel model)
         {

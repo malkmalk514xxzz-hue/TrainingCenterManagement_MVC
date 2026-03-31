@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
@@ -11,7 +12,7 @@ namespace TrainingCenterManagement_MVC.Controllers.Api
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     public class DashboardApiController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
@@ -34,7 +35,7 @@ namespace TrainingCenterManagement_MVC.Controllers.Api
             return BadRequest(new { message = "دور المستخدم غير مدعوم." });
         }
 
-        [Authorize(Roles = "Admin")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
         [HttpGet("AdminDashboard")]
         public IActionResult GetAdminDashboard()
         {
@@ -46,11 +47,12 @@ namespace TrainingCenterManagement_MVC.Controllers.Api
             return Ok(model);
         }
 
-        [Authorize(Roles = "Trainee")]
-        [HttpGet("TraineeDashboard")]
-        public async Task<IActionResult> GetTraineeDashboard()
+        
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Trainee")]
+        [HttpGet("TraineeDashboard/{userId}")]
+        public async Task<IActionResult> GetTraineeDashboard(string userId)
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            
             var trainee = await _context.Trainees.FirstOrDefaultAsync(t => t.UserId == userId);
             if (trainee == null) return Unauthorized();
 
@@ -58,11 +60,12 @@ namespace TrainingCenterManagement_MVC.Controllers.Api
             return Ok(model);
         }
 
-        [Authorize(Roles = "Trainer")]
-        [HttpGet("TrainerDashboard")]
-        public async Task<IActionResult> GetTrainerDashboard()
+        
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Trainer")]
+        [HttpGet("TrainerDashboard/{userId}")]
+        public async Task<IActionResult> GetTrainerDashboard(string userId)
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+           
             var trainer = await _context.Trainers.FirstOrDefaultAsync(t => t.UserId == userId);
             if (trainer == null) return NotFound(new { message = "Trainer not found" });
 
@@ -73,7 +76,8 @@ namespace TrainingCenterManagement_MVC.Controllers.Api
             return Ok(model);
         }
 
-        [Authorize(Roles = "Receptionist")]
+        
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Receptionist")]
         [HttpGet("ReceptionistDashboard")]
         public IActionResult GetReceptionistDashboard()
         {

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -46,8 +47,8 @@ namespace TrainingCenterManagement_MVC.Controllers.Api
             }
 
             [HttpPost]
-            [Authorize(Roles = "Admin")]
-            public async Task<ActionResult<Exam>> CreateExam([FromBody] Exam exam)
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
+        public async Task<ActionResult<Exam>> CreateExam([FromBody] Exam exam)
             {
                 if (!ModelState.IsValid) return BadRequest(ModelState);
 
@@ -59,8 +60,8 @@ namespace TrainingCenterManagement_MVC.Controllers.Api
             }
 
             [HttpPut("{id:guid}")]
-            [Authorize(Roles = "Admin")]
-            public async Task<IActionResult> UpdateExam(Guid id, [FromBody] Exam exam)
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
+        public async Task<IActionResult> UpdateExam(Guid id, [FromBody] Exam exam)
             {
                 if (id != exam.ExamId) return BadRequest();
 
@@ -82,8 +83,8 @@ namespace TrainingCenterManagement_MVC.Controllers.Api
             }
 
             [HttpDelete("{id:guid}")]
-            [Authorize(Roles = "Admin")]
-            public async Task<IActionResult> DeleteExam(Guid id)
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
+        public async Task<IActionResult> DeleteExam(Guid id)
             {
                 var exam = await _context.Exams.FindAsync(id);
                 if (exam == null) return NotFound();
@@ -93,8 +94,9 @@ namespace TrainingCenterManagement_MVC.Controllers.Api
                 return NoContent();
             }
 
-            [Authorize(Roles = "Trainee,Admin")]
-            [HttpGet("MyExams")]
+            
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Trainee,Admin")]
+        [HttpGet("MyExams")]
             public async Task<ActionResult<IEnumerable<Exam>>> GetMyExams()
             {
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -110,8 +112,8 @@ namespace TrainingCenterManagement_MVC.Controllers.Api
                 return Ok(exams);
             }
 
-            [Authorize(Roles = "Trainee,Admin")]
-            [HttpGet("TakeExam/{examId:guid}")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Trainee,Admin")]
+        [HttpGet("TakeExam/{examId:guid}")]
             public async Task<IActionResult> TakeExam(Guid examId)
             {
                 var exam = await _context.Exams

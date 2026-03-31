@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -53,7 +54,7 @@ namespace TrainingCenterManagement_MVC.Controllers.Api
         }
 
         // GET: api/Certificates/create (lookup data)
-        [Authorize(Roles = "Admin")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
         [HttpGet("create")]
         public async Task<IActionResult> Create()
         {
@@ -65,7 +66,7 @@ namespace TrainingCenterManagement_MVC.Controllers.Api
         }
 
         // POST: api/Certificates
-        [Authorize(Roles = "Admin")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] Certificate certificate)
         {
@@ -76,7 +77,7 @@ namespace TrainingCenterManagement_MVC.Controllers.Api
         }
 
         // GET: api/Certificates/{id}/edit
-        [Authorize(Roles = "Admin")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
         [HttpGet("{id:guid}/edit")]
         public async Task<IActionResult> Edit(Guid id)
         {
@@ -92,7 +93,7 @@ namespace TrainingCenterManagement_MVC.Controllers.Api
         }
 
         // PUT: api/Certificates/{id}
-        [Authorize(Roles = "Admin")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
         [HttpPut("{id:guid}")]
         public async Task<IActionResult> Edit(Guid id, [FromBody] Certificate certificate)
         {
@@ -111,7 +112,7 @@ namespace TrainingCenterManagement_MVC.Controllers.Api
         }
 
         // GET: api/Certificates/{id}/delete
-        [Authorize(Roles = "Admin")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
         [HttpGet("{id:guid}/delete")]
         public async Task<IActionResult> Delete(Guid id)
         {
@@ -126,7 +127,7 @@ namespace TrainingCenterManagement_MVC.Controllers.Api
         }
 
         // DELETE: api/Certificates/{id}
-        [Authorize(Roles = "Admin")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
         [HttpDelete("{id:guid}")]
         public async Task<IActionResult> DeleteConfirmed(Guid id)
         {

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -32,7 +33,7 @@ namespace TrainingCenterManagement_MVC.Controllers.Api
         }
 
         [HttpGet("Dashboard")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme,Roles = "Admin")]
         public IActionResult Dashboard()
         {
             return Ok(new { message = "Admin dashboard endpoint - Use frontend to consume data" });
@@ -63,7 +64,7 @@ namespace TrainingCenterManagement_MVC.Controllers.Api
             return Unauthorized(new { error = "Invalid credentials" });
         }
 
-        [Authorize]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         [HttpPost("Logout")]
         public async Task<IActionResult> Logout()
         {
@@ -71,7 +72,7 @@ namespace TrainingCenterManagement_MVC.Controllers.Api
             return Ok(new { message = "Logged out successfully" });
         }
 
-        [Authorize(Roles = "Admin")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
         [HttpPost("IssueCertificate")]
         public async Task<IActionResult> IssueCertificate([FromBody] IssueCertificateDto dto)
         {
@@ -110,7 +111,7 @@ namespace TrainingCenterManagement_MVC.Controllers.Api
             });
         }
 
-        [Authorize(Roles = "Admin")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
         [HttpGet("SearchCertificates")]
         public async Task<IActionResult> SearchCertificates(Guid? courseId, Guid? traineeId)
         {

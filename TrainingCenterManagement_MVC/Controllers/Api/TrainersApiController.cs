@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -23,7 +24,7 @@ namespace TrainingCenterManagement_MVC.Controllers.Api
             _context = context;
         }
 
-        [Authorize(Roles = "Admin")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Trainer>>> GetTrainers()
         {
@@ -42,7 +43,7 @@ namespace TrainingCenterManagement_MVC.Controllers.Api
             return Ok(trainer);
         }
 
-        [Authorize(Roles = "Admin")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
         [HttpPost]
         public async Task<ActionResult<Trainer>> CreateTrainer([FromBody] Trainer trainer)
         {
@@ -53,7 +54,7 @@ namespace TrainingCenterManagement_MVC.Controllers.Api
             return CreatedAtAction(nameof(GetTrainer), new { id = trainer.TrainerId }, trainer);
         }
 
-        [Authorize(Roles = "Admin")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
         [HttpPut("{id:guid}")]
         public async Task<IActionResult> UpdateTrainer(Guid id, [FromBody] Trainer trainer)
         {
@@ -74,7 +75,7 @@ namespace TrainingCenterManagement_MVC.Controllers.Api
             return NoContent();
         }
 
-        [Authorize(Roles = "Admin")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
         [HttpDelete("{id:guid}")]
         public async Task<IActionResult> DeleteTrainer(Guid id)
         {
@@ -86,7 +87,7 @@ namespace TrainingCenterManagement_MVC.Controllers.Api
             return NoContent();
         }
 
-        [Authorize(Roles = "Trainer,Admin")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Trainer,Admin")]
         [HttpGet("MyCourses")]
         public async Task<ActionResult<IEnumerable<Course>>> GetMyCourses()
         {
@@ -102,7 +103,7 @@ namespace TrainingCenterManagement_MVC.Controllers.Api
             return Ok(courses);
         }
 
-        [Authorize(Roles = "Trainer")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Trainer")]
         [HttpGet("ViewTrainees/{courseId:guid}")]
         public async Task<ActionResult<IEnumerable<Trainee>>> ViewTrainees(Guid courseId)
         {

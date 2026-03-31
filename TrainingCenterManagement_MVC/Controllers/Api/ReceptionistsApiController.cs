@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -32,7 +33,8 @@ namespace TrainingCenterManagement_MVC.Controllers.Api
             return Ok(receptionists);
         }
 
-        [Authorize(Roles = "Receptionist,Admin")]
+        
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Receptionist,Admin")]
         [HttpPost("RegisterTraineeToCourse")]
         public async Task<IActionResult> RegisterTraineeToCourse([FromBody] RegisterToCourseDto dto)
         {
@@ -58,7 +60,7 @@ namespace TrainingCenterManagement_MVC.Controllers.Api
             return Ok(new { message = "تم تسجيل الطالب في الدورة بنجاح." });
         }
 
-        [Authorize(Roles = "Receptionist,Admin")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Receptionist,Admin")]
         [HttpPost("UnregisterTraineeFromCourse")]
         public async Task<IActionResult> UnregisterTraineeFromCourse([FromBody] RegisterToCourseDto dto)
         {
@@ -74,7 +76,7 @@ namespace TrainingCenterManagement_MVC.Controllers.Api
             return Ok(new { message = "تم إلغاء تسجيل الطالب من الدورة بنجاح." });
         }
 
-        [Authorize(Roles = "Receptionist,Admin")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Receptionist,Admin")]
         [HttpGet("PaymentReports")]
         public async Task<IActionResult> GetPaymentReports()
         {
@@ -86,7 +88,7 @@ namespace TrainingCenterManagement_MVC.Controllers.Api
             return Ok(payments);
         }
 
-        [Authorize(Roles = "Receptionist,Admin")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Receptionist,Admin")]
         [HttpGet("AttendanceReports")]
         public async Task<IActionResult> GetAttendanceReports()
         {

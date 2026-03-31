@@ -81,17 +81,28 @@ builder.Services.AddAuthentication(options =>
 {
     options.ForwardDefaultSelector = context =>
     {
-        // 1. ابحث عن توكن في الـ Header أو في الرابط (Query String)
         var authHeader = context.Request.Headers["Authorization"].FirstOrDefault();
-        var accessToken = context.Request.Query["access_token"].FirstOrDefault();
+        var accessTokenQuery = context.Request.Query["access_token"].FirstOrDefault();
 
-        // 2. إذا وجدنا توكن، استخدم JWT (للأندرويد والـ API)
-        if (!string.IsNullOrEmpty(authHeader) || !string.IsNullOrEmpty(accessToken))
+        // Logging للتشخيص (ستراه في Output أو Console)
+        Console.WriteLine($"[SmartScheme] Path: {context.Request.Path}");
+        Console.WriteLine($"[SmartScheme] Authorization Header: '{authHeader}'");
+        Console.WriteLine($"[SmartScheme] Query access_token: '{accessTokenQuery}'");
+
+        if (!string.IsNullOrEmpty(authHeader) &&
+            authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
         {
+            Console.WriteLine("[SmartScheme] → Forwarding to JwtBearer");
             return JwtBearerDefaults.AuthenticationScheme;
         }
 
-        // 3. إذا لم نجد توكن، استخدم Cookies (للمتصفح)
+        if (!string.IsNullOrEmpty(accessTokenQuery))
+        {
+            Console.WriteLine("[SmartScheme] → Forwarding to JwtBearer (from Query)");
+            return JwtBearerDefaults.AuthenticationScheme;
+        }
+
+        Console.WriteLine("[SmartScheme] → Forwarding to Cookie (default)");
         return IdentityConstants.ApplicationScheme;
     };
 })
@@ -190,24 +201,19 @@ builder.Services.AddSignalR(options =>
     options.ClientTimeoutInterval = TimeSpan.FromSeconds(30);
 }).AddJsonProtocol(options => options.PayloadSerializerOptions.PropertyNamingPolicy = null);
 
+
 // Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "TrainingCenter API", Version = "v1" });
-
-    var securityScheme = new OpenApiSecurityScheme
+    c.SwaggerDoc("v1", new OpenApiInfo
     {
-        Name = "Authorization",
-        Type = SecuritySchemeType.Http,
-        Scheme = "bearer",
-        BearerFormat = "JWT",
-        In = ParameterLocation.Header,
-        Description = "Enter 'Bearer' [space] and then your valid token."
-    };
+        Title = "TrainingCenter Management API",
+        Version = "v1"
+    });
 
-    c.AddSecurityDefinition("Bearer", securityScheme);
-    c.AddSecurityRequirement(new OpenApiSecurityRequirement { { securityScheme, Array.Empty<string>() } });
+    // أضف DocumentFilter الجديد
+    c.DocumentFilter<JwtBearerDocumentFilter>();
 });
 
 // Custom Services
@@ -260,6 +266,20 @@ app.UseStatusCodePages(async context =>
         response.Redirect("/Account/AccessDenied");
     else if (response.StatusCode == 404)
         response.Redirect("/Home/Error404");
+});
+app.Use(async (context, next) =>
+{
+    if (context.Request.Cookies.TryGetValue("Language", out var langCookie))
+    {
+        Thread.CurrentThread.CurrentCulture = new CultureInfo(langCookie);
+        Thread.CurrentThread.CurrentUICulture = new CultureInfo(langCookie);
+    }
+    else
+    {
+        Thread.CurrentThread.CurrentCulture = new CultureInfo("en");
+        Thread.CurrentThread.CurrentUICulture = new CultureInfo("en");
+    }
+    await next();
 });
 
 // Middleware خاص بـ SignalR (نقل التوكن)

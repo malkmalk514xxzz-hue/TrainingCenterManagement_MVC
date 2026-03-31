@@ -1,11 +1,12 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using TrainingCenterManagement_MVC.Helpers;
 using System.Threading.Tasks;
+using TrainingCenterManagement_MVC.Helpers;
 
 namespace TrainingCenterManagement_MVC.Controllers.Api
 {
-    [Authorize(Roles = "Admin")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
     public class SettingsController : Controller
     {
         private readonly ISettingsService _settingsService;

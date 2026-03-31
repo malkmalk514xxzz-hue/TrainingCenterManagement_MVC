@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -45,7 +46,7 @@ namespace TrainingCenterManagement_MVC.Controllers.Api
         }
 
         [HttpPost]
-        [Authorize(Roles = "Receptionist,Admin")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Receptionist,Admin")]
         public async Task<ActionResult<Payment>> CreatePayment([FromBody] Payment payment)
         {
             // منطق التحقق من المبلغ المتبقي موجود في الكود الأصلي
@@ -70,7 +71,7 @@ namespace TrainingCenterManagement_MVC.Controllers.Api
             return CreatedAtAction(nameof(GetPayment), new { id = payment.PaymentId }, payment);
         }
 
-        [Authorize(Roles = "Receptionist,Admin")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Receptionist,Admin")]
         [HttpDelete("{id:guid}")]
         public async Task<IActionResult> DeletePayment(Guid id)
         {
