@@ -10,5 +10,10 @@
         public string Content { get; set; }
         public bool IsRead { get; set; }
         public DateTime Timestamp { get; set; }
+        // الملفات المرفقة بالرسالة
+        public ICollection<MediaFile> MediaFiles { get; set; } = new List<MediaFile>();
+
+        // للتوافق مع الرسائل النصية فقط (اختياري)
+        public string? MediaUrl { get; set; }   // إذا كان ملف واحد فقط
     }
 }

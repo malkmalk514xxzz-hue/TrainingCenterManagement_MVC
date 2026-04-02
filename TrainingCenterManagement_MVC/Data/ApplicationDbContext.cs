@@ -11,6 +11,7 @@ namespace TrainingCenterManagement_MVC.Data
 
         public DbSet<Trainer> Trainers { get; set; }
         public DbSet<Trainee> Trainees { get; set; }
+        public DbSet<MediaFile> mediaFiles { get; set; }
         public DbSet<Admin> Admins { get; set; }
         public DbSet<Receptionist> Receptionists { get; set; }
         public DbSet<Course> Courses { get; set; }

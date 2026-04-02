@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TrainingCenterManagement_MVC.Data;
 
@@ -11,9 +12,11 @@ using TrainingCenterManagement_MVC.Data;
 namespace TrainingCenterManagement_MVC.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260402100515_addmediaFiles")]
+    partial class addmediaFiles
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -244,10 +247,6 @@ namespace TrainingCenterManagement_MVC.Migrations
 
                     b.Property<bool>("PhoneNumberConfirmed")
                         .HasColumnType("bit");
-
-                    b.Property<string>("ProfilePictureUrl")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("Role")
                         .HasColumnType("int");
@@ -562,13 +561,6 @@ namespace TrainingCenterManagement_MVC.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("EntityId")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("EntityType")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<long>("FileSize")
                         .HasColumnType("bigint");
 
@@ -576,7 +568,7 @@ namespace TrainingCenterManagement_MVC.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("MessageId")
+                    b.Property<int>("MessageId")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("UploadedAt")
@@ -1014,7 +1006,9 @@ namespace TrainingCenterManagement_MVC.Migrations
                 {
                     b.HasOne("TrainingCenterManagement_MVC.Models.Message", "Message")
                         .WithMany("MediaFiles")
-                        .HasForeignKey("MessageId");
+                        .HasForeignKey("MessageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("TrainingCenterManagement_MVC.Models.ApplicationUser", "User")
                         .WithMany()

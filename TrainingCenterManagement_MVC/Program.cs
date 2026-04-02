@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Rotativa.AspNetCore;
@@ -24,6 +25,10 @@ builder.Services.AddControllersWithViews()
         options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
         options.JsonSerializerOptions.MaxDepth = 64;
     });
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.Limits.MaxRequestBodySize = 1024 * 1024 * 1024; // 1 جيجا
+});
 
 // DbContext
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -223,7 +228,15 @@ builder.Services.AddScoped<IUserHelper, UserHelper>();
 builder.Services.AddScoped<RoleInitializer>();
 
 // ====================== Build App ======================
+
 var app = builder.Build();
+
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(Path.Combine(app.Environment.WebRootPath, "uploads")),
+    RequestPath = "/uploads",
+    OnPrepareResponse = ctx => ctx.Context.Response.Headers.Append("Cache-Control", "private, max-age=3600")
+});
 
 // Seed Data
 using (var scope = app.Services.CreateScope())
