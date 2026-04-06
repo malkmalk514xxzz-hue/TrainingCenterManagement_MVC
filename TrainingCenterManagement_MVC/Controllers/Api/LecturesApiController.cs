@@ -59,26 +59,46 @@ namespace TrainingCenterManagement_MVC.Controllers.Api
 
         [HttpPost]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Trainer,Admin")]
-        public async Task<ActionResult<Lecture>> CreateLecture([FromBody] Lecture lecture)
+        public async Task<ActionResult<Lecture>> CreateLecture([FromBody] LectureViewModel lecture)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            lecture.LectureId = Guid.NewGuid();
-            _context.Lectures.Add(lecture);
+            // lecture.LectureId = Guid.NewGuid();
+            Lecture newlecture = new Lecture
+            {
+                LectureId = Guid.NewGuid(),
+                CourseId = Guid.Parse(lecture.CourseId),
+                Title = lecture.Title,
+                Description = lecture.Description,
+                VideoUrl = lecture.VideoUrl,
+                LectureDate = lecture.LectureDate,
+                ThumbnailUrl = lecture.ThumbnailUrl
+
+
+            };
+
+            _context.Lectures.Add(newlecture);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetLecture), new { id = lecture.LectureId }, lecture);
+            return CreatedAtAction(nameof(GetLecture), new { id = newlecture.LectureId }, lecture);
         }
 
         [HttpPut("{id:guid}")]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Trainer,Admin")]
-        public async Task<IActionResult> UpdateLecture(Guid id, [FromBody] Lecture lecture)
+        public async Task<IActionResult> UpdateLecture(Guid id, [FromBody] LectureViewModel lecture)
         {
-            if (id != lecture.LectureId) return BadRequest();
+          var lect = await _context.Lectures.FirstOrDefaultAsync(l => l.LectureId == id);
+            if (lect == null) return NotFound();
+
+            lect.Title = lecture.Title;
+            lect.Description = lecture.Description;
+            lect.VideoUrl = lecture.VideoUrl;
+            lect.LectureDate = lecture.LectureDate;
+            lect.ThumbnailUrl = lecture.ThumbnailUrl;
 
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            _context.Entry(lecture).State = EntityState.Modified;
+         //   _context.Entry(lecture).State = EntityState.Modified;
 
             try
             {

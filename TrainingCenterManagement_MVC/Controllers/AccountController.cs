@@ -1,7 +1,10 @@
-﻿using DocumentFormat.OpenXml.InkML;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 using TrainingCenterManagement_MVC.Data;
 using TrainingCenterManagement_MVC.Helpers;
 using TrainingCenterManagement_MVC.Models;
@@ -13,35 +16,39 @@ namespace TrainingCenterManagement_MVC.Controllers
     {
         private readonly IUserHelper _userHelper;
         private readonly ApplicationDbContext context;
-
-        //private readonly IMailHelper _mailHelper;
         private readonly IConfiguration _configuration;
+        private readonly UserManager<ApplicationUser> _userManager;
 
         public AccountController(
             IUserHelper userHelper,
-           // IMailHelper mailHelper,
-           ApplicationDbContext context ,
-            IConfiguration configuration)
+            ApplicationDbContext context,
+            IConfiguration configuration,
+            UserManager<ApplicationUser> userManager)
         {
             _userHelper = userHelper;
             this.context = context;
-            //_mailHelper = mailHelper;
             _configuration = configuration;
+            _userManager = userManager;
         }
 
         // Displays the login page
-        public IActionResult Login()
+        public IActionResult Login(string returnUrl = null)
         {
             if (User.Identity.IsAuthenticated)
             {
+                if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+                {
+                    return Redirect(returnUrl);
+                }
                 return RedirectToAction("Index", "Home");
             }
+            ViewData["ReturnUrl"] = returnUrl;
             return View();
         }
 
         // Processes the login
         [HttpPost]
-        public async Task<IActionResult> Login(LoginViewModel model)
+        public async Task<IActionResult> Login(LoginViewModel model, string returnUrl = null)
         {
             if (ModelState.IsValid)
             {
@@ -49,12 +56,19 @@ namespace TrainingCenterManagement_MVC.Controllers
 
                 if (result.Succeeded)
                 {
-                    // Check the user's role to determine the redirection
                     var user = await _userHelper.GetUserByEmailAsync(model.Email);
-                    var userRole = await _userHelper.GetRoleAsync(user);
+
                     // Store user info in session
                     HttpContext.Session.SetString("Username", user.Email);
                     HttpContext.Session.SetString("UserId", user.Id);
+
+                    // Handle ReturnUrl
+                    if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+                    {
+                        return Redirect(returnUrl);
+                    }
+
+                    var userRole = await _userHelper.GetRoleAsync(user);
                     switch (userRole)
                     {
                         case "Admin":
@@ -72,9 +86,9 @@ namespace TrainingCenterManagement_MVC.Controllers
             }
 
             ModelState.AddModelError(string.Empty, "Failed to log in.");
+            ViewData["ReturnUrl"] = returnUrl;
             return View(model);
         }
-
 
         // Logs out the user
         public async Task<IActionResult> Logout()

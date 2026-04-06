@@ -1,4 +1,5 @@
 ﻿using Messaging_Chat_Application_MahmoudHakim.Hubs;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
@@ -22,6 +23,7 @@ namespace TrainingCenterManagement_MVC.Controllers
             _userManager = userManager;
             _hubContext = hubContext;
         }
+        
 
         public async Task<IActionResult> Index()
         {

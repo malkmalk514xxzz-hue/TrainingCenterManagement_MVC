@@ -9,6 +9,7 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using TrainingCenterManagement_MVC.Data;
 using TrainingCenterManagement_MVC.Models;
+using TrainingCenterManagement_MVC.ViewModels;
 
 namespace TrainingCenterManagement_MVC.Controllers.Api
 {
@@ -48,28 +49,51 @@ namespace TrainingCenterManagement_MVC.Controllers.Api
 
         [HttpPost]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
-        public async Task<ActionResult<Course>> CreateCourse([FromBody] Course course)
+        public async Task<ActionResult<Course>> CreateCourse([FromBody] CourseViewModel2 course)
         {
             var exists = await _context.Courses
                 .AnyAsync(c => c.CourseName == course.CourseName && c.BatchNumber == course.BatchNumber);
 
             if (exists)
                 return BadRequest(new { message = "Course with the same name and batch number already exists." });
-
-            course.CourseId = Guid.NewGuid();
-            _context.Courses.Add(course);
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var admin = await _context.Admins.FirstOrDefaultAsync(a => a.UserId == userId);
+            Course course1 = new Course
+            {
+                CourseName = course.CourseName,
+                BatchNumber = course.BatchNumber,
+                NumberOfLectures = course.NumberOfLectures,
+                Price = course.Price,
+                Description = course.Description,
+                VideoUrl = course.VideoUrl,
+                ThumbnailUrl = course.ThumbnailUrl,
+                CreatedDate = course.CreatedDate,
+                ReleaseDate = course.ReleaseDate,
+                AdminId = admin.AdminId
+            };
+            
+            _context.Courses.Add(course1);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetCourse), new { id = course.CourseId }, course);
+            return CreatedAtAction(nameof(GetCourse), new { id = course1.CourseId }, course);
         }
 
         [HttpPut("{id:guid}")]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
-        public async Task<IActionResult> UpdateCourse(Guid id, [FromBody] Course course)
+        public async Task<IActionResult> UpdateCourse(Guid id, [FromBody] CourseViewModel2 course)
         {
-            if (id != course.CourseId) return BadRequest();
+            Course Localcourse = await _context.Courses.FirstOrDefaultAsync(c => c.CourseId == id);
+            if (course == null) return NotFound();
 
-            _context.Entry(course).State = EntityState.Modified;
+            Localcourse.CourseName = course.CourseName;
+            Localcourse.BatchNumber = course.BatchNumber;
+            Localcourse.NumberOfLectures = course.NumberOfLectures;
+            Localcourse.Price = course.Price;
+            Localcourse.Description = course.Description;
+            Localcourse.VideoUrl = course.VideoUrl;
+            Localcourse.ThumbnailUrl = course.ThumbnailUrl;
+            Localcourse.CreatedDate = course.CreatedDate;
+            Localcourse.ReleaseDate = course.ReleaseDate;
 
             try
             {
@@ -96,21 +120,22 @@ namespace TrainingCenterManagement_MVC.Controllers.Api
             return NoContent();
         }
 
-        [Authorize(Roles = "Trainee")]
-        [HttpPost("{id:guid}/Enroll")]
-        public async Task<IActionResult> Enroll(Guid id)
+        
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        [HttpPost("courseId/{courseId:guid}/traineeId/{userId:guid}/Enroll")]
+        public async Task<IActionResult> Enroll(Guid courseId,string userId)
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var trainee = await _context.Trainees.FirstOrDefaultAsync(t => t.UserId == userId);
+           var trainee = await _context.Trainees.FirstOrDefaultAsync(t => t.UserId == userId);
+           
             if (trainee == null) return NotFound(new { message = "Trainee not found" });
 
             var alreadyEnrolled = await _context.CourseTrainees
-                .AnyAsync(ct => ct.CourseId == id && ct.TraineeId == trainee.TraineeId);
+                .AnyAsync(ct => ct.CourseId == courseId && ct.TraineeId == trainee.TraineeId);
 
             if (alreadyEnrolled)
                 return BadRequest(new { message = "أنت مسجل بالفعل في هذه الدورة." });
 
-            _context.CourseTrainees.Add(new CourseTrainee { CourseId = id, TraineeId = trainee.TraineeId });
+            _context.CourseTrainees.Add(new CourseTrainee { CourseId = courseId, TraineeId = trainee.TraineeId });
             await _context.SaveChangesAsync();
 
             return Ok(new { message = "تم التسجيل في الدورة بنجاح." });

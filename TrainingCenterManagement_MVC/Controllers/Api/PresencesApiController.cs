@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using TrainingCenterManagement_MVC.Data;
 using TrainingCenterManagement_MVC.Models;
@@ -30,8 +31,7 @@ namespace TrainingCenterManagement_MVC.Controllers.Api
         {
             var lecture = await _context.Lectures.FindAsync(model.LectureId);
             if (lecture == null) return NotFound();
-            
-            
+          
 
             foreach (var item in model.Trainees)
             {
@@ -60,9 +60,18 @@ namespace TrainingCenterManagement_MVC.Controllers.Api
 
             if (!Guid.TryParse(traineeId, out Guid traineeGuid))
                 return BadRequest("Invalid Trainee ID format");
-            var TraineeId = _context.Trainees.FirstOrDefaultAsync(t => t.UserId == traineeId.ToString()).Result.TraineeId;
-            // 2. جلب المحاضرات + معلومات الحضور للطالب في نفس الاستعلام (Left Join)
-            var result = await _context.Lectures
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+
+            if (user == null) return NotFound(new { message = "User not found" });
+            var trainee = await _context.Trainees.FirstOrDefaultAsync(t => t.UserId == userId);
+
+            if (trainee == null) return NotFound(new { message = "Trainee not found" });
+
+            // var TraineeId = _context.Trainees.FirstOrDefaultAsync(t => t.UserId == traineeId.ToString()).Result.TraineeId;
+            var TraineeId = trainee.TraineeId;
+             // 2. جلب المحاضرات + معلومات الحضور للطالب في نفس الاستعلام (Left Join)
+             var result = await _context.Lectures
                 .Where(l => l.CourseId == courseGuid)
                 .OrderBy(l => l.LectureDate)           // أو حسب التاريخ إذا كان موجود
                 .Select(l => new TraineeLectureAttendanceDto

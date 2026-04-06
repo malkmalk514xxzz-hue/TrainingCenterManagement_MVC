@@ -20,8 +20,8 @@ namespace TrainingCenterManagement_MVC.Controllers.Api
         public async Task<IActionResult> Edit()
         {
             var key = await _settingsService.GetAsync("JwtKey");
-            ViewBag.JwtKey = key ?? string.Empty;
-            return View();
+            
+            return Ok(key);
         }
 
         [HttpPost]
@@ -30,14 +30,19 @@ namespace TrainingCenterManagement_MVC.Controllers.Api
         {
             if (string.IsNullOrWhiteSpace(JwtKey) || System.Text.Encoding.UTF8.GetByteCount(JwtKey) < 32)
             {
-                ModelState.AddModelError("JwtKey", "The JWT key must be at least 32 bytes long.");
-                ViewBag.JwtKey = JwtKey;
-                return View();
+                
+                
+                return BadRequest("The JWT key must be at least 32 bytes long.");
             }
 
             await _settingsService.SetAsync("JwtKey", JwtKey);
             TempData["SuccessMessage"] = "JWT key updated successfully. Restart may be required for Bearer validation depending on configuration.";
-            return RedirectToAction("Edit");
+            return Ok(new
+            {
+                message = "JWT key updated successfully. Restart may be required for Bearer validation depending on configuration."
+                ,
+                JwtKey = JwtKey
+            });
         }
     }
 }
