@@ -10,9 +10,7 @@ using TrainingCenterManagement_MVC.Data;
 using TrainingCenterManagement_MVC.Models;
 using TrainingCenterManagement_MVC.ViewModels;
 using ClosedXML.Excel;
-using DocumentFormat.OpenXml.InkML;
 using System.Security.Claims;
-
 
 namespace TrainingCenterManagement_MVC.Controllers
 {
@@ -28,247 +26,288 @@ namespace TrainingCenterManagement_MVC.Controllers
         // GET: Courses
         public async Task<IActionResult> Index()
         {
-            var applicationDbContext = _context.Courses
+            // FIX: Filter out soft-deleted courses
+            var courses = await _context.Courses
+                .Where(c => !c.IsDeleted)
                 .Include(c => c.Admin)
-                    .ThenInclude(a => a.User); // لجلب بيانات المستخدم المرتبطة بالأدمن
+                    .ThenInclude(a => a.User)
+                .ToListAsync();
 
-            return View(await applicationDbContext.ToListAsync());
+            return View(courses);
         }
-
 
         // GET: Courses/Details/5
         public async Task<IActionResult> Details(Guid? id)
         {
             if (id == null)
-            {
                 return NotFound();
-            }
 
             var course = await _context.Courses
                 .Include(c => c.Admin)
                 .Include(c => c.CourseTrainers).ThenInclude(ct => ct.Trainer).ThenInclude(t => t.User)
                 .Include(c => c.CourseTrainees).ThenInclude(ct => ct.Trainee).ThenInclude(t => t.User)
-                .FirstOrDefaultAsync(m => m.CourseId == id);
+                .FirstOrDefaultAsync(m => m.CourseId == id && !m.IsDeleted);
 
             if (course == null)
-            {
                 return NotFound();
-            }
 
             return View(course);
         }
 
-
         // GET: Courses/Create
+        [Authorize(Roles = "Admin")]
         public IActionResult Create()
         {
             ViewData["AdminId"] = new SelectList(
-                _context.Admins
-                    .Include(a => a.User), // جلب بيانات المستخدم المرتبط
+                _context.Admins.Include(a => a.User),
                 "AdminId",
-                "User.FullName" // عرض الاسم الكامل بدل الـ UserId
+                "User.FullName"
             );
             return View();
         }
 
-
         // POST: Courses/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Create([Bind("CourseId,CourseName,BatchNumber,NumberOfLectures,Price,Description,VideoUrl,ThumbnailUrl,CreatedDate,ReleaseDate,IsDeleted,AdminId")] Course course)
         {
-            // Check if course with same name and batch exists
             var courseExists = await _context.Courses
                 .AnyAsync(c => c.CourseName == course.CourseName && c.BatchNumber == course.BatchNumber);
 
             if (courseExists)
             {
-                ModelState.AddModelError("", "Course with the same name and batch number already exists.");
-                ViewData["AdminId"] = new SelectList(_context.Admins, "AdminId", "UserId", course.AdminId);
+                ModelState.AddModelError("", "A course with the same name and batch number already exists.");
+                ViewData["AdminId"] = new SelectList(_context.Admins.Include(a => a.User), "AdminId", "User.FullName", course.AdminId);
                 return View(course);
             }
 
-            // Assign new ID and add course
             course.CourseId = Guid.NewGuid();
+            course.CreatedDate = DateTime.UtcNow;
             _context.Add(course);
             await _context.SaveChangesAsync();
-
-            // Redirect to Index after successful creation
             return RedirectToAction(nameof(Index));
         }
 
-
         // GET: Courses/Edit/5
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Edit(Guid? id)
         {
             if (id == null)
-            {
                 return NotFound();
-            }
 
             var course = await _context.Courses.FindAsync(id);
             if (course == null)
-            {
                 return NotFound();
-            }
 
             ViewData["AdminId"] = new SelectList(
-                _context.Admins.Include(a => a.User), // لجلب بيانات المستخدم
+                _context.Admins.Include(a => a.User),
                 "AdminId",
-                "User.FullName", // عرض الاسم الكامل
+                "User.FullName",
                 course.AdminId
             );
-
             return View(course);
         }
 
-
         // POST: Courses/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Edit(Guid id, [Bind("CourseId,CourseName,BatchNumber,NumberOfLectures,Price,Description,VideoUrl,ThumbnailUrl,CreatedDate,ReleaseDate,IsDeleted,AdminId")] Course course)
         {
             if (id != course.CourseId)
-            {
                 return NotFound();
+
+            try
+            {
+                _context.Update(course);
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!CourseExists(course.CourseId))
+                    return NotFound();
+                else
+                    throw;
             }
 
-           
-                try
-                {
-                    _context.Update(course);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!CourseExists(course.CourseId))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-            ViewData["AdminId"] = new SelectList(_context.Admins, "AdminId", "UserId", course.AdminId);
+            ViewData["AdminId"] = new SelectList(_context.Admins.Include(a => a.User), "AdminId", "User.FullName", course.AdminId);
             return RedirectToAction(nameof(Index));
-
         }
 
         // GET: Courses/Delete/5
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(Guid? id)
         {
             if (id == null)
-            {
                 return NotFound();
-            }
 
             var course = await _context.Courses
                 .Include(c => c.Admin)
-                .ThenInclude(a => a.User) // لجلب بيانات المستخدم المرتبطة بالإدمن
+                    .ThenInclude(a => a.User)
                 .FirstOrDefaultAsync(m => m.CourseId == id);
 
             if (course == null)
-            {
                 return NotFound();
-            }
 
             return View(course);
         }
 
-
-        // POST: Courses/Delete/5
+        // POST: Courses/Delete/5 — Soft Delete
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteConfirmed(Guid id)
         {
             var course = await _context.Courses.FindAsync(id);
             if (course != null)
             {
-                _context.Courses.Remove(course);
+                // Soft delete instead of hard delete to preserve related data
+                course.IsDeleted = true;
+                _context.Courses.Update(course);
             }
 
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
-        private bool CourseExists(Guid id)
-        {
-            return _context.Courses.Any(e => e.CourseId == id);
-        }
         // GET: Courses/AssignTrainer/5
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> AssignTrainer(Guid? id)
         {
-            if (id == null) return NotFound();
+            if (id == null)
+                return NotFound();
 
             var course = await _context.Courses.FindAsync(id);
-            if (course == null) return NotFound();
-
-            var trainers = await _context.Trainers
-                   .Include(t => t.User)
-                   .ToListAsync();
-            ViewBag.Trainers = new SelectList(_context.Trainers.Include(t => t.User), "TrainerId", "User.FullName");
-            ViewBag.CourseId = course.CourseId;
-            return View(course.CourseId);
-        }
-        [Authorize(Roles = "Trainee")]
-        [HttpGet]
-        public async Task<IActionResult> Resume(Guid id)
-        {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var trainee = await _context.Trainees.FirstOrDefaultAsync(t => t.UserId == userId);
-            if (trainee == null)
-            {
-                return NotFound("المتدرب غير موجود.");
-            }
-
-            var course = await _context.Courses
-                .Include(c => c.Lectures)
-                .Include(c => c.CourseTrainees)
-                .FirstOrDefaultAsync(c => c.CourseId == id && c.CourseTrainees.Any(ct => ct.TraineeId == trainee.TraineeId));
-
             if (course == null)
-            {
-                return NotFound("الدورة غير موجودة أو أنت غير مسجل فيها.");
-            }
+                return NotFound();
 
-            // إعادة توجيه إلى أحدث محاضرة أو صفحة تقدم الدورة
-            var latestLecture = course.Lectures
-        .Where(l => !l.IsDeleted && l.LectureDate <= DateTime.UtcNow)
-        .Where(l => !_context.Presences.Any(p => p.LectureId == l.LectureId && p.TraineeId == trainee.TraineeId))
-        .OrderByDescending(l => l.LectureDate)
-        .FirstOrDefault();
-
-
-
-            if (latestLecture != null)
-            {
-                return RedirectToAction("ViewLecture", "Lectures", new { id = latestLecture.LectureId });
-            }
-
-            return View("Resume", course); // صفحة  لعرض تقدم الدورة
+            ViewData["TrainerId"] = new SelectList(
+                _context.Trainers.Include(t => t.User),
+                "TrainerId",
+                "User.FullName"
+            );
+            ViewBag.CourseId = id;
+            return View(course);
         }
-        [Authorize(Roles = "Trainee")]
+
+        // POST: Assign Trainer to Course
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Enroll(Guid id)
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> AssignTrainer(Guid courseId, Guid trainerId)
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var trainee = await _context.Trainees.FirstOrDefaultAsync(t => t.UserId == userId);
-            if (trainee == null)
+            bool alreadyAssigned = await _context.CourseTrainers
+                .AnyAsync(ct => ct.CourseId == courseId && ct.TrainerId == trainerId);
+
+            if (!alreadyAssigned)
             {
-                return NotFound("المتدرب غير موجود.");
+                var courseTrainer = new CourseTrainer
+                {
+                    CourseId = courseId,
+                    TrainerId = trainerId
+                };
+                _context.CourseTrainers.Add(courseTrainer);
+                await _context.SaveChangesAsync();
             }
+
+            return RedirectToAction(nameof(Details), new { id = courseId });
+        }
+
+        // GET: Courses/AssignTrainees/5
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> AssignTrainees(Guid? id)
+        {
+            if (id == null)
+                return NotFound();
 
             var course = await _context.Courses.FindAsync(id);
             if (course == null)
+                return NotFound();
+
+            ViewData["TraineeId"] = new SelectList(
+                _context.Trainees.Include(t => t.User),
+                "TraineeId",
+                "User.FullName"
+            );
+            ViewBag.CourseId = id;
+            return View(course);
+        }
+
+        // POST: Assign Trainee to Course (Admin)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> AssignTrainees(Guid courseId, Guid traineeId)
+        {
+            bool alreadyAssigned = await _context.CourseTrainees
+                .AnyAsync(ct => ct.CourseId == courseId && ct.TraineeId == traineeId);
+
+            if (!alreadyAssigned)
             {
-                return NotFound("الدورة غير موجودة.");
+                var courseTrainee = new CourseTrainee
+                {
+                    CourseId = courseId,
+                    TraineeId = traineeId
+                };
+                _context.CourseTrainees.Add(courseTrainee);
+                await _context.SaveChangesAsync();
             }
+
+            return RedirectToAction(nameof(Details), new { id = courseId });
+        }
+
+        // POST: Trainee self-enrolls in a course
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Trainee")]
+        public async Task<IActionResult> AssignTraineeToCourse(Guid courseId)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized();
+
+            // FIX: null check before accessing TraineeId
+            var trainee = await _context.Trainees.FirstOrDefaultAsync(t => t.UserId == userId);
+            if (trainee == null)
+                return Unauthorized();
+
+            bool alreadyAssigned = await _context.CourseTrainees
+                .AnyAsync(ct => ct.CourseId == courseId && ct.TraineeId == trainee.TraineeId);
+
+            if (!alreadyAssigned)
+            {
+                // FIX: Was incorrectly adding to CourseTrainers — now correctly adds to CourseTrainees
+                var courseTrainee = new CourseTrainee
+                {
+                    CourseId = courseId,
+                    TraineeId = trainee.TraineeId
+                };
+                _context.CourseTrainees.Add(courseTrainee);
+                await _context.SaveChangesAsync();
+            }
+
+            TempData["SuccessMessage"] = "تم التسجيل في الدورة بنجاح.";
+            return RedirectToAction("TraineeDashboard", "Dashboard");
+        }
+
+        // GET: Enroll a trainee in a course (from course list)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Trainee")]
+        public async Task<IActionResult> EnrollInCourse(Guid id)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized();
+
+            var trainee = await _context.Trainees.FirstOrDefaultAsync(t => t.UserId == userId);
+            if (trainee == null)
+                return Unauthorized();
+
+            var course = await _context.Courses.FindAsync(id);
+            if (course == null)
+                return NotFound("الدورة غير موجودة.");
 
             var alreadyEnrolled = await _context.CourseTrainees
                 .AnyAsync(ct => ct.CourseId == id && ct.TraineeId == trainee.TraineeId);
@@ -283,7 +322,6 @@ namespace TrainingCenterManagement_MVC.Controllers
             {
                 CourseId = id,
                 TraineeId = trainee.TraineeId,
-              
             };
 
             _context.CourseTrainees.Add(courseTrainee);
@@ -292,6 +330,8 @@ namespace TrainingCenterManagement_MVC.Controllers
             TempData["SuccessMessage"] = "تم التسجيل في الدورة بنجاح.";
             return RedirectToAction("TraineeDashboard", "Dashboard");
         }
+
+        // GET: Course Preview (public)
         [AllowAnonymous]
         [HttpGet]
         public async Task<IActionResult> Preview(Guid id)
@@ -301,123 +341,32 @@ namespace TrainingCenterManagement_MVC.Controllers
                 .FirstOrDefaultAsync(c => c.CourseId == id && !c.IsDeleted);
 
             if (course == null)
-            {
                 return NotFound("الدورة غير موجودة.");
-            }
 
-            return View("Preview", course); // صفحة معاينة الدورة
-        }
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> AssignTraineeToCourse(Guid courseId)
-        {
-            var userid = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var traineeId = _context.Trainees.FirstOrDefault(t => t.UserId == userid).TraineeId;
-            // تحقق أولاً إن كان الطالب مُسند مسبقاً لنفس الكورس
-            bool alreadyAssigned = await _context.CourseTrainees
-                .AnyAsync(ct => ct.CourseId == courseId && ct.TraineeId == traineeId);
-
-            if (!alreadyAssigned)
-            {
-                var courseTrainer = new CourseTrainer
-                {
-                    CourseId = courseId,
-                    TrainerId = traineeId
-                };
-
-                _context.CourseTrainers.Add(courseTrainer);
-                await _context.SaveChangesAsync();
-            }
-
-            return RedirectToAction("TraineeDashboard", "Dashboard");
-        }
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> AssignTrainer(Guid courseId, Guid trainerId)
-        {
-            // تحقق أولاً إن كان المعلم مُسند مسبقاً لنفس الكورس
-            bool alreadyAssigned = await _context.CourseTrainers
-                .AnyAsync(ct => ct.CourseId == courseId && ct.TrainerId == trainerId);
-
-            if (!alreadyAssigned)
-            {
-                var courseTrainer = new CourseTrainer
-                {
-                    CourseId = courseId,
-                    TrainerId = trainerId
-                };
-
-                _context.CourseTrainers.Add(courseTrainer);
-                await _context.SaveChangesAsync();
-            }
-
-            return RedirectToAction(nameof(Details), new { id = courseId });
-        }
-        // GET: Courses/AssignTrainees/5
-        public async Task<IActionResult> AssignTrainees(Guid? id)
-        {
-            if (id == null) return NotFound();
-
-            var course = await _context.Courses.FindAsync(id);
-            if (course == null) return NotFound();
-
-            var trainees = await _context.Trainees
-                .Include(t => t.User)
-                .ToListAsync();
-
-            ViewBag.Trainees = new MultiSelectList(trainees, "TraineeId", "User.FullName");
-            ViewBag.CourseId = course.CourseId;
-
-            return View(course.CourseId);
+            return View("Preview", course);
         }
 
-
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> AssignTrainees(Guid courseId, List<Guid> traineeIds)
-        {
-            foreach (var traineeId in traineeIds)
-            {
-                bool alreadyAssigned = await _context.CourseTrainees
-                    .AnyAsync(ct => ct.CourseId == courseId && ct.TraineeId == traineeId);
-
-                if (!alreadyAssigned)
-                {
-                    var courseTrainee = new CourseTrainee
-                    {
-                        CourseId = courseId,
-                        TraineeId = traineeId
-                    };
-
-                    _context.CourseTrainees.Add(courseTrainee);
-                }
-            }
-
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Details), new { id = courseId });
-        }
-
-
-        [Authorize(Roles = "Trainer")]
+        // GET: Course Attendance Report
+        [Authorize(Roles = "Admin,Trainer")]
         public async Task<IActionResult> CourseAttendance(Guid courseId, double? min, double? max)
         {
             var course = await _context.Courses
-                .Include(c => c.Lectures)
+                .Include(c => c.Lectures.Where(l => !l.IsDeleted))
                     .ThenInclude(l => l.Presences)
                 .Include(c => c.CourseTrainees)
                     .ThenInclude(ct => ct.Trainee)
                         .ThenInclude(t => t.User)
-                .FirstOrDefaultAsync(c => c.CourseId == courseId);
+                .FirstOrDefaultAsync(c => c.CourseId == courseId && !c.IsDeleted);
 
-            if (course == null) return NotFound();
+            if (course == null)
+                return NotFound();
 
             var totalLectures = course.Lectures.Count;
+
             var attendanceList = course.CourseTrainees.Select(ct =>
             {
                 var attended = course.Lectures.Count(l =>
                     l.Presences.Any(p => p.TraineeId == ct.TraineeId && p.IsPresent));
-
                 var percent = totalLectures > 0 ? (attended * 100.0 / totalLectures) : 0;
 
                 return new TraineeAttendanceViewModel
@@ -426,24 +375,27 @@ namespace TrainingCenterManagement_MVC.Controllers
                     TotalLectures = totalLectures,
                     AttendedLectures = attended,
                     FullName = ct.Trainee.User.FullName,
-                    AttendancePercentage = percent
+                    AttendancePercentage = Math.Round(percent, 2),
+                    
                 };
-            });
+            }).AsQueryable();
 
             if (min.HasValue)
                 attendanceList = attendanceList.Where(x => x.AttendancePercentage >= min.Value);
             if (max.HasValue)
                 attendanceList = attendanceList.Where(x => x.AttendancePercentage <= max.Value);
 
-            ViewBag.CourseId = course.CourseId; // Pass the course ID to the view
+            ViewBag.CourseId = course.CourseId;
             ViewBag.CourseName = course.CourseName;
             return View(attendanceList.ToList());
         }
-        [Authorize(Roles = "Trainer")]
+
+        // GET: Export Attendance to Excel
+        [Authorize(Roles = "Admin,Trainer")]
         public async Task<IActionResult> ExportExcel(Guid courseId)
         {
             var course = await _context.Courses
-                .Include(c => c.Lectures)
+                .Include(c => c.Lectures.Where(l => !l.IsDeleted))
                     .ThenInclude(l => l.Presences)
                 .Include(c => c.CourseTrainees)
                     .ThenInclude(ct => ct.Trainee)
@@ -464,23 +416,19 @@ namespace TrainingCenterManagement_MVC.Controllers
                     Name = ct.Trainee.User.FullName,
                     Attended = attended,
                     Total = totalLectures,
-                    Percentage = totalLectures > 0 ? Math.Round((attended * 100.0 / totalLectures), 2) : 0
+                    Percentage = totalLectures > 0 ? Math.Round(attended * 100.0 / totalLectures, 2) : 0
                 };
             }).ToList();
 
             var stream = new MemoryStream();
-
-            using (var workbook = new ClosedXML.Excel.XLWorkbook())
+            using (var workbook = new XLWorkbook())
             {
                 var ws = workbook.Worksheets.Add("Attendance");
-
-                // رأس الجدول
                 ws.Cell(1, 1).Value = "Student";
                 ws.Cell(1, 2).Value = "Attended";
                 ws.Cell(1, 3).Value = "Total";
                 ws.Cell(1, 4).Value = "Percentage";
 
-                // بيانات الطلاب
                 for (int i = 0; i < data.Count; i++)
                 {
                     ws.Cell(i + 2, 1).Value = data[i].Name;
@@ -488,33 +436,22 @@ namespace TrainingCenterManagement_MVC.Controllers
                     ws.Cell(i + 2, 3).Value = data[i].Total;
                     ws.Cell(i + 2, 4).Value = data[i].Percentage;
                 }
-
                 workbook.SaveAs(stream);
             }
 
-            stream.Position = 0; // مهم جدًا قبل الإرجاع
-
-            return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "CourseAttendance.xlsx");
+            stream.Position = 0;
+            return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{course.CourseName}_Attendance.xlsx");
         }
 
-
-
-
-
-
-
-
-        [Authorize(Roles = "Trainer")]
+        // GET: Export Attendance to PDF
+        [Authorize(Roles = "Admin,Trainer")]
         public async Task<IActionResult> ExportPdf(Guid courseId)
         {
             var result = await CourseAttendance(courseId, null, null);
             var viewResult = result as ViewResult;
 
             if (viewResult == null)
-            {
-                // هنا يمكن أن ترجع رسالة واضحة أو PDF فارغ أو Redirect
                 return NotFound($"Course with ID {courseId} was not found.");
-            }
 
             return new Rotativa.AspNetCore.ViewAsPdf("CourseAttendance", viewResult.Model)
             {
@@ -523,7 +460,9 @@ namespace TrainingCenterManagement_MVC.Controllers
             };
         }
 
-
-
+        private bool CourseExists(Guid id)
+        {
+            return _context.Courses.Any(e => e.CourseId == id);
+        }
     }
 }

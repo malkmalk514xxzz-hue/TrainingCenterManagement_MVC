@@ -9,67 +9,77 @@ using TrainingCenterManagement_MVC.Models;
 using TrainingCenterManagement_MVC.Resources;
 using TrainingCenterManagement_MVC.ViewModels;
 
-
 namespace TrainingCenterManagement_MVC.Controllers
 {
+    [Authorize(Roles = "Admin")]
     public class AdminController : Controller
     {
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ApplicationDbContext _context;
 
-        public AdminController(SignInManager<ApplicationUser> signInManager, UserManager<ApplicationUser> userManager
-            , ApplicationDbContext context
-            )
+        public AdminController(
+            SignInManager<ApplicationUser> signInManager,
+            UserManager<ApplicationUser> userManager,
+            ApplicationDbContext context)
         {
             _signInManager = signInManager;
             _userManager = userManager;
             _context = context;
         }
+
+        // ── Dashboard ─────────────────────────────────────────────────────────
+
+        // FIX: Added [Authorize(Roles = "Admin")] via class-level attribute.
+        // Previously this action had no authorization at all.
         public IActionResult Dashboard()
         {
-            return View();
+            return RedirectToAction("AdminDashboard", "Dashboard");
         }
+
+        // ── Admin Auth (separate login page for admin panel) ──────────────────
+
+        [AllowAnonymous]
         [HttpGet]
         public IActionResult AdminAuth()
         {
             if (User.Identity.IsAuthenticated)
-            {
                 return RedirectToAction("Dashboard", "Admin");
-            }
+
             return View();
         }
 
+        [AllowAnonymous]
         [HttpPost]
         public async Task<IActionResult> AdminAuth(LoginViewModel model)
         {
             if (!ModelState.IsValid)
-            {
                 return View(model);
-            }
 
             if (User.Identity.IsAuthenticated)
-            {
                 return RedirectToAction("Dashboard", "Admin");
-            }
 
             var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, false, false);
 
             if (result.Succeeded)
             {
                 var user = await _userManager.FindByEmailAsync(model.Email);
-                if (user != null)
+                if (user != null && await _userManager.IsInRoleAsync(user, "Admin"))
                 {
                     HttpContext.Session.SetString("UserId", user.Id);
                     return RedirectToAction("Dashboard", "Admin");
                 }
+
+                // User authenticated but not admin — sign out
+                await _signInManager.SignOutAsync();
+                ModelState.AddModelError(string.Empty, "Access denied. Admin role required.");
+                return View(model);
             }
 
             ModelState.AddModelError(string.Empty, SharedResource.InvalidLoginCredentials);
             return View(model);
         }
 
-        [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Logout()
@@ -79,47 +89,102 @@ namespace TrainingCenterManagement_MVC.Controllers
             return RedirectToAction("Login", "Account");
         }
 
-        public IActionResult AccessDenied()
+        // ── Users Management ──────────────────────────────────────────────────
+
+        public async Task<IActionResult> GetUsers()
         {
-            return View();
+            var users = await _context.Users.ToListAsync();
+            return View(users);
         }
 
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> IssueCertificate(Guid traineeId, Guid courseId)
+        public async Task<IActionResult> EditUser(string id)
         {
-            var trainee = await _context.Trainees
-                .Include(t => t.User)
-                .FirstOrDefaultAsync(t => t.TraineeId == traineeId);
+            if (string.IsNullOrEmpty(id))
+                return NotFound();
+
+            var user = await _userManager.FindByIdAsync(id);
+            if (user == null)
+                return NotFound();
+
+            return View(user);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditUser(ApplicationUser model)
+        {
+            var user = await _userManager.FindByIdAsync(model.Id);
+            if (user == null)
+                return NotFound();
+
+            user.FullName = model.FullName;
+            user.PhoneNumber = model.PhoneNumber;
+            user.BirthDate = model.BirthDate;
+
+            var result = await _userManager.UpdateAsync(user);
+            if (result.Succeeded)
+                return RedirectToAction("GetUsers");
+
+            foreach (var error in result.Errors)
+                ModelState.AddModelError(string.Empty, error.Description);
+
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteUser(string id)
+        {
+            if (string.IsNullOrEmpty(id))
+                return NotFound();
+
+            var user = await _userManager.FindByIdAsync(id);
+            if (user == null)
+                return NotFound();
+
+            await _userManager.DeleteAsync(user);
+            return RedirectToAction("GetUsers");
+        }
+
+        // ── Course Trainees Management ────────────────────────────────────────
+
+        public async Task<IActionResult> CourseTrainees(Guid courseId)
+        {
             var course = await _context.Courses
-                .Include(c => c.Exam)
-                .Include(c => c.CourseTrainers)
+                .Include(c => c.CourseTrainees)
+                    .ThenInclude(ct => ct.Trainee)
+                        .ThenInclude(t => t.User)
                 .FirstOrDefaultAsync(c => c.CourseId == courseId);
 
-            if (trainee == null || course == null) return NotFound();
+            if (course == null)
+                return NotFound();
 
-            var trainerId = course.CourseTrainers.FirstOrDefault()?.TrainerId;
+            ViewBag.CourseId = courseId;
+            ViewBag.CourseName = course.CourseName;
+            return View(course.CourseTrainees.ToList());
+        }
 
-            var certificate = new Certificate
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RemoveTraineeFromCourse(Guid courseId, Guid traineeId)
+        {
+            var entry = await _context.CourseTrainees
+                .FirstOrDefaultAsync(ct => ct.CourseId == courseId && ct.TraineeId == traineeId);
+
+            if (entry != null)
             {
-                CertificateId = Guid.NewGuid(),
-                Average = 100, // أو احسب من نتيجة الامتحان
-                Url = "", // لاحقاً رابط الشهادة PDF
-                CourseId = courseId,
-                TraineeId = traineeId,
-                TrainerId = (Guid)trainerId,
-                ExamId = course.Exam.ExamId
-            };
+                _context.CourseTrainees.Remove(entry);
+                await _context.SaveChangesAsync();
+            }
 
-            _context.Certificates.Add(certificate);
-            await _context.SaveChangesAsync();
-
-            TempData["SuccessMessage"] = "Certificate has been issued successfully.";
             return RedirectToAction("CourseTrainees", new { courseId });
         }
-        [Authorize(Roles = "Admin")]
+
+        // ── Certificates ──────────────────────────────────────────────────────
+
         public async Task<IActionResult> SearchCertificates(Guid? courseId, Guid? traineeId)
         {
-            var courses = await _context.Courses.ToListAsync();
+            var courses = await _context.Courses.Where(c => !c.IsDeleted).ToListAsync();
             var trainees = await _context.Trainees.Include(t => t.User).ToListAsync();
 
             var query = _context.Certificates
@@ -140,7 +205,6 @@ namespace TrainingCenterManagement_MVC.Controllers
             return View(await query.ToListAsync());
         }
 
-        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> ExportCertificatesToPdf()
         {
             var certificates = await _context.Certificates
@@ -156,15 +220,14 @@ namespace TrainingCenterManagement_MVC.Controllers
                 PageOrientation = Rotativa.AspNetCore.Options.Orientation.Landscape
             };
         }
-        [Authorize(Roles = "Admin, Trainee")]
+
+        [Authorize(Roles = "Admin,Trainee")]
         public async Task<IActionResult> GenerateCertificatePdf(Guid certificateId)
         {
             var cert = await _context.Certificates
-                .Include(c => c.Trainee)
-                    .ThenInclude(t => t.User)
+                .Include(c => c.Trainee).ThenInclude(t => t.User)
                 .Include(c => c.Course)
-                .Include(c => c.Trainer)
-                    .ThenInclude(t => t.User)
+                .Include(c => c.Trainer).ThenInclude(t => t.User)
                 .FirstOrDefaultAsync(c => c.CertificateId == certificateId);
 
             if (cert == null)
@@ -175,7 +238,7 @@ namespace TrainingCenterManagement_MVC.Controllers
             var isOwner = cert.Trainee.UserId == currentUserId;
 
             if (!isAdmin && !isOwner)
-                return Forbid(); // منع الوصول في حال عدم التوافق مع الدور أو الملكية
+                return Forbid();
 
             return new Rotativa.AspNetCore.ViewAsPdf("CertificateTemplate", cert)
             {
@@ -185,8 +248,6 @@ namespace TrainingCenterManagement_MVC.Controllers
             };
         }
 
-
-        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DownloadAllCertificatesPdf(Guid courseId)
         {
             var certificates = await _context.Certificates
@@ -203,44 +264,40 @@ namespace TrainingCenterManagement_MVC.Controllers
                 PageOrientation = Rotativa.AspNetCore.Options.Orientation.Portrait
             };
         }
-        [Authorize(Roles = "Admin")]
+
+        // ── Featured Courses ──────────────────────────────────────────────────
+
         [HttpGet]
         public async Task<IActionResult> ManageFeaturedCourses()
         {
             var courses = await _context.Courses
+                .Where(c => !c.IsDeleted)
                 .Select(c => new CourseViewModel
                 {
                     CourseId = c.CourseId,
                     CourseName = c.CourseName,
                     Description = c.Description,
-                   
                     IsFeatured = c.IsFeatured
                 })
                 .ToListAsync();
 
-            var model = new FeaturedCoursesViewModel
-            {
-                Courses = courses
-            };
-
+            var model = new FeaturedCoursesViewModel { Courses = courses };
             return View(model);
         }
 
-        [Authorize(Roles = "Admin")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ManageFeaturedCourses(FeaturedCoursesViewModel model)
         {
             if (!ModelState.IsValid)
-            {
                 return View(model);
-            }
 
-            var allCourses = await _context.Courses.ToListAsync();
+            var allCourses = await _context.Courses.Where(c => !c.IsDeleted).ToListAsync();
             foreach (var course in allCourses)
             {
-
-                course.IsFeatured = model.Courses.FirstOrDefault(c => c.CourseId == course.CourseId).IsFeatured;
+                var vm = model.Courses.FirstOrDefault(c => c.CourseId == course.CourseId);
+                if (vm != null)
+                    course.IsFeatured = vm.IsFeatured;
             }
 
             await _context.SaveChangesAsync();
@@ -248,6 +305,41 @@ namespace TrainingCenterManagement_MVC.Controllers
             return RedirectToAction("AdminDashboard", "Dashboard");
         }
 
+        // FIX: Added missing UpdateFeaturedCourses action that AdminDashboard view calls.
+        // The view form posts to Admin/UpdateFeaturedCourses, so this action is required.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateFeaturedCourses(List<Guid> selectedCourseIds)
+        {
+            var allCourses = await _context.Courses.Where(c => !c.IsDeleted).ToListAsync();
+            foreach (var course in allCourses)
+            {
+                course.IsFeatured = selectedCourseIds != null && selectedCourseIds.Contains(course.CourseId);
+            }
 
+            await _context.SaveChangesAsync();
+            TempData["SuccessMessage"] = "Featured courses updated successfully.";
+            return RedirectToAction("AdminDashboard", "Dashboard");
+        }
+
+        // ── JSON Helpers (for AdminDashboard JS) ──────────────────────────────
+
+        [HttpGet]
+        public async Task<IActionResult> GetCoursesJson()
+        {
+            var courses = await _context.Courses
+                .Where(c => !c.IsDeleted)
+                .Select(c => new
+                {
+                    c.CourseId,
+                    c.CourseName,
+                    c.Description,
+                    DurationWeeks = c.NumberOfLectures / 5,
+                    c.IsFeatured
+                })
+                .ToListAsync();
+
+            return Json(courses);
+        }
     }
 }

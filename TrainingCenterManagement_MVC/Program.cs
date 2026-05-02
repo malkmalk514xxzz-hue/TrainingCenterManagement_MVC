@@ -9,7 +9,6 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Rotativa.AspNetCore;
 using System.Globalization;
-using System.Reflection;
 using System.Security.Claims;
 using System.Text;
 using TrainingCenterManagement_MVC.Data;
@@ -25,9 +24,10 @@ builder.Services.AddControllersWithViews()
         options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
         options.JsonSerializerOptions.MaxDepth = 64;
     });
+
 builder.WebHost.ConfigureKestrel(options =>
 {
-    options.Limits.MaxRequestBodySize = 1024 * 1024 * 1024; // 1 جيجا
+    options.Limits.MaxRequestBodySize = 1024 * 1024 * 1024; // 1 GB
 });
 
 // DbContext
@@ -72,16 +72,11 @@ var jwtIssuer = jwtSection["Issuer"] ?? "TrainingCenter";
 var jwtAudience = jwtSection["Audience"] ?? "TrainingCenterAudience";
 
 // ====================== Authentication Configuration ======================
-// في ملف Program.cs - ابحث عن هذا الجزء وقم بتعديله
 builder.Services.AddAuthentication(options =>
 {
-    // التعديل: اجعل المخطط الذكي هو الافتراضي
     options.DefaultAuthenticateScheme = "SmartScheme";
     options.DefaultChallengeScheme = "SmartScheme";
 })
-
-// مخطط ذكي للتمييز بين JWT و Cookie
-// في ملف Program.cs
 .AddPolicyScheme("SmartScheme", "JWT or Cookie", options =>
 {
     options.ForwardDefaultSelector = context =>
@@ -89,25 +84,17 @@ builder.Services.AddAuthentication(options =>
         var authHeader = context.Request.Headers["Authorization"].FirstOrDefault();
         var accessTokenQuery = context.Request.Query["access_token"].FirstOrDefault();
 
-        // Logging للتشخيص (ستراه في Output أو Console)
-        Console.WriteLine($"[SmartScheme] Path: {context.Request.Path}");
-        Console.WriteLine($"[SmartScheme] Authorization Header: '{authHeader}'");
-        Console.WriteLine($"[SmartScheme] Query access_token: '{accessTokenQuery}'");
-
         if (!string.IsNullOrEmpty(authHeader) &&
             authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
         {
-            Console.WriteLine("[SmartScheme] → Forwarding to JwtBearer");
             return JwtBearerDefaults.AuthenticationScheme;
         }
 
         if (!string.IsNullOrEmpty(accessTokenQuery))
         {
-            Console.WriteLine("[SmartScheme] → Forwarding to JwtBearer (from Query)");
             return JwtBearerDefaults.AuthenticationScheme;
         }
 
-        Console.WriteLine("[SmartScheme] → Forwarding to Cookie (default)");
         return IdentityConstants.ApplicationScheme;
     };
 })
@@ -125,21 +112,6 @@ builder.Services.AddAuthentication(options =>
         NameClaimType = ClaimTypes.NameIdentifier,
         RoleClaimType = ClaimTypes.Role
     };
-
-    //options.Events = new JwtBearerEvents
-    //{
-    //    OnMessageReceived = context =>
-    //    {
-    //        var accessToken = context.Request.Query["access_token"];
-    //        if (!string.IsNullOrEmpty(accessToken) &&
-    //            context.Request.Path.StartsWithSegments("/ChatHub"))
-    //        {
-    //            context.Token = accessToken;
-    //            Console.WriteLine("[SignalR] Token received from query string");
-    //        }
-    //        return Task.CompletedTask;
-    //    }
-    //};
 });
 
 // Cookie Configuration
@@ -173,15 +145,18 @@ builder.Services.ConfigureApplicationCookie(options =>
     };
 });
 
-// CORS
+// ====================== CORS ======================
+// FIX: Separated into two non-conflicting policies.
+// "AllowAll" does NOT use AllowCredentials (incompatible with AllowAnyOrigin).
+// "MobileClientPolicy" uses specific origins + AllowCredentials.
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll", builder =>
+    options.AddPolicy("AllowAll", policy =>
     {
-        builder.AllowAnyOrigin()
-               .AllowAnyMethod()
-               .AllowAnyHeader()
-               .WithExposedHeaders("Content-Disposition");
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader()
+              .WithExposedHeaders("Content-Disposition");
     });
 
     options.AddPolicy("MobileClientPolicy", policy =>
@@ -195,6 +170,7 @@ builder.Services.AddCors(options =>
             )
             .AllowAnyHeader()
             .AllowAnyMethod()
+            .AllowCredentials()
             .WithExposedHeaders("Content-Disposition");
     });
 });
@@ -206,7 +182,6 @@ builder.Services.AddSignalR(options =>
     options.ClientTimeoutInterval = TimeSpan.FromSeconds(30);
 }).AddJsonProtocol(options => options.PayloadSerializerOptions.PropertyNamingPolicy = null);
 
-
 // Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
@@ -216,8 +191,6 @@ builder.Services.AddSwaggerGen(c =>
         Title = "TrainingCenter Management API",
         Version = "v1"
     });
-
-    // أضف DocumentFilter الجديد
     c.DocumentFilter<JwtBearerDocumentFilter>();
 });
 
@@ -228,9 +201,9 @@ builder.Services.AddScoped<IUserHelper, UserHelper>();
 builder.Services.AddScoped<RoleInitializer>();
 
 // ====================== Build App ======================
-
 var app = builder.Build();
 
+// Static files for uploads folder
 app.UseStaticFiles(new StaticFileOptions
 {
     FileProvider = new PhysicalFileProvider(Path.Combine(app.Environment.WebRootPath, "uploads")),
@@ -272,14 +245,8 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRotativa();
 
-app.UseStatusCodePages(async context =>
-{
-    var response = context.HttpContext.Response;
-    if (response.StatusCode == 403)
-        response.Redirect("/Account/AccessDenied");
-    else if (response.StatusCode == 404)
-        response.Redirect("/Home/Error404");
-});
+// FIX: Language middleware moved BEFORE UseRouting so culture is set
+// for all subsequent middleware including routing and controllers.
 app.Use(async (context, next) =>
 {
     if (context.Request.Cookies.TryGetValue("Language", out var langCookie))
@@ -295,7 +262,16 @@ app.Use(async (context, next) =>
     await next();
 });
 
-// Middleware خاص بـ SignalR (نقل التوكن)
+app.UseStatusCodePages(async context =>
+{
+    var response = context.HttpContext.Response;
+    if (response.StatusCode == 403)
+        response.Redirect("/Account/AccessDenied");
+    else if (response.StatusCode == 404)
+        response.Redirect("/Home/Error404");
+});
+
+// SignalR token middleware
 app.Use(async (context, next) =>
 {
     if (context.Request.Path.StartsWithSegments("/ChatHub"))
@@ -304,7 +280,6 @@ app.Use(async (context, next) =>
         if (!string.IsNullOrEmpty(accessToken))
         {
             context.Request.Headers["Authorization"] = $"Bearer {accessToken}";
-            Console.WriteLine("[SignalR Middleware] Token moved from query to header");
         }
     }
     await next();
@@ -312,7 +287,7 @@ app.Use(async (context, next) =>
 
 app.UseRouting();
 
-// CORS يجب أن يكون قبل Authentication
+// FIX: CORS must come after UseRouting and before UseAuthentication
 app.UseCors("AllowAll");
 
 app.UseWebSockets();
