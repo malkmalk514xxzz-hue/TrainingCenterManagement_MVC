@@ -1,6 +1,8 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Messaging_Chat_Application_MahmoudHakim.Hubs;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -18,10 +20,12 @@ namespace TrainingCenterManagement_MVC.Controllers
     public class LecturesController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly IHubContext<ChatHub> _hubContext;
 
-        public LecturesController(ApplicationDbContext context)
+        public LecturesController(ApplicationDbContext context, IHubContext<ChatHub> hubContext)
         {
             _context = context;
+            _hubContext = hubContext;
         }
 
         // GET: Lectures
@@ -51,8 +55,6 @@ namespace TrainingCenterManagement_MVC.Controllers
             if (User.IsInRole("Trainee"))
             {
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                // تحقق أولاً من أن الـ Trainee موجود فعلاً
-                // جلب المتدرب المرتبط بالمستخدم الحالي
                 var trainee = await _context.Trainees.FirstOrDefaultAsync(t => t.UserId == userId);
                 if (trainee == null)
                 {
@@ -97,19 +99,63 @@ namespace TrainingCenterManagement_MVC.Controllers
         }
 
         // POST: Lectures/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("LectureId,Title,Description,VideoUrl,ThumbnailUrl,LectureDate,IsDeleted,CourseId")] Lecture lecture)
         {
-           
-                lecture.LectureId = Guid.NewGuid();
-                _context.Add(lecture);
-                await _context.SaveChangesAsync();
-            
+            lecture.LectureId = Guid.NewGuid();
+            _context.Add(lecture);
+            await _context.SaveChangesAsync();
+
+            await SendLectureNotificationsAsync(lecture);
+
             ViewData["CourseId"] = new SelectList(_context.Courses, "CourseId", "CourseName", lecture.CourseId);
             return RedirectToAction(nameof(Index));
+        }
+
+        private async Task SendLectureNotificationsAsync(Lecture lecture)
+        {
+            var course = await _context.Courses.FindAsync(lecture.CourseId);
+            if (course == null) return;
+
+            var enrolledTrainees = await _context.CourseTrainees
+                .Where(ct => ct.CourseId == lecture.CourseId)
+                .Include(ct => ct.Trainee)
+                .ToListAsync();
+
+            var notifications = enrolledTrainees.Select(ct => new UserNotification
+            {
+                NotificationId = Guid.NewGuid(),
+                UserId = ct.Trainee.UserId,
+                Title = "محاضرة جديدة",
+                Message = $"تمت إضافة محاضرة جديدة '{lecture.Title}' في دورة {course.CourseName}",
+                Type = NotificationType.LectureAdded,
+                IsRead = false,
+                CreatedAt = DateTime.UtcNow,
+                RelatedId = lecture.LectureId.ToString()
+            }).ToList();
+
+            if (notifications.Any())
+            {
+                _context.Notifications.AddRange(notifications);
+                await _context.SaveChangesAsync();
+
+                foreach (var trainee in enrolledTrainees)
+                {
+                    var connections = await _context.UserConnections
+                        .Where(c => c.UserId == trainee.Trainee.UserId && c.IsConnected)
+                        .Select(c => c.ConnectionId)
+                        .ToListAsync();
+
+                    foreach (var connId in connections)
+                    {
+                        await _hubContext.Clients.Client(connId).SendAsync(
+                            "ReceiveSystemNotification",
+                            "محاضرة جديدة",
+                            $"تمت إضافة محاضرة جديدة '{lecture.Title}' في دورة {course.CourseName}");
+                    }
+                }
+            }
         }
 
         // GET: Lectures/Edit/5
@@ -130,8 +176,6 @@ namespace TrainingCenterManagement_MVC.Controllers
         }
 
         // POST: Lectures/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(Guid id, [Bind("LectureId,Title,Description,VideoUrl,ThumbnailUrl,LectureDate,IsDeleted,CourseId")] Lecture lecture)
@@ -141,27 +185,25 @@ namespace TrainingCenterManagement_MVC.Controllers
                 return NotFound();
             }
 
-          
-                try
+            try
+            {
+                _context.Update(lecture);
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!LectureExists(lecture.LectureId))
                 {
-                    _context.Update(lecture);
-                    await _context.SaveChangesAsync();
+                    return NotFound();
                 }
-                catch (DbUpdateConcurrencyException)
+                else
                 {
-                    if (!LectureExists(lecture.LectureId))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
+                    throw;
                 }
+            }
             ViewData["CourseId"] = new SelectList(_context.Courses, "CourseId", "CourseName", lecture.CourseId);
 
             return RedirectToAction(nameof(Index));
-            
         }
 
         // GET: Lectures/Delete/5
@@ -216,7 +258,6 @@ namespace TrainingCenterManagement_MVC.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [HttpPost]
         public async Task<IActionResult> UploadVideo(Guid id, string videoUrl, string thumbnailUrl)
         {
             var lecture = await _context.Lectures.FindAsync(id);
@@ -226,10 +267,10 @@ namespace TrainingCenterManagement_MVC.Controllers
             if (string.IsNullOrEmpty(videoId))
             {
                 ModelState.AddModelError("", "Invalid YouTube URL");
-                return View(lecture); // تأكد أنك تعرض رسالة الخطأ في الـView
+                return View(lecture);
             }
 
-            lecture.VideoUrl = videoId; // تخزين فقط ID للفيديو
+            lecture.VideoUrl = videoId;
             lecture.ThumbnailUrl = thumbnailUrl;
 
             await _context.SaveChangesAsync();
@@ -259,7 +300,6 @@ namespace TrainingCenterManagement_MVC.Controllers
             }
             catch
             {
-                // تجاهل أي استثناء وارجع null
             }
 
             return null;
@@ -268,7 +308,6 @@ namespace TrainingCenterManagement_MVC.Controllers
         // GET: Lectures/ViewLecture/5
         public async Task<IActionResult> ViewLecture(Guid? id)
         {
-
             if (id == null) return NotFound();
 
             var lecture = await _context.Lectures
@@ -280,12 +319,9 @@ namespace TrainingCenterManagement_MVC.Controllers
 
             if (lecture == null) return NotFound();
 
-            // تسجيل حضور الطالب تلقائيًا إذا كان Trainee
             if (User.IsInRole("Trainee"))
             {
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                // تحقق أولاً من أن الـ Trainee موجود فعلاً
-                // جلب المتدرب المرتبط بالمستخدم الحالي
                 var trainee = await _context.Trainees.FirstOrDefaultAsync(t => t.UserId == userId);
                 if (trainee == null)
                 {
@@ -294,16 +330,10 @@ namespace TrainingCenterManagement_MVC.Controllers
 
                 var traineeId = trainee.TraineeId;
 
-                var nextLecture = await _context.Lectures
-                      .Where(l => l.CourseId == lecture.CourseId && l.LectureDate > lecture.LectureDate)
-                      .OrderBy(l => l.LectureDate)
-                      .FirstOrDefaultAsync();
-
                 var alreadyPresent = await _context.Presences
                     .AnyAsync(p => p.TraineeId == traineeId && p.LectureId == lecture.LectureId);
 
-
-                if (!alreadyPresent )
+                if (!alreadyPresent)
                 {
                     var presence = new Presence
                     {
@@ -317,8 +347,6 @@ namespace TrainingCenterManagement_MVC.Controllers
                     await _context.SaveChangesAsync();
                 }
             }
-            if (id == null) return NotFound();
-
 
             var lecture2 = await _context.Lectures
                   .Include(l => l.Course)
@@ -374,7 +402,6 @@ namespace TrainingCenterManagement_MVC.Controllers
                 .Where(p => p.LectureId == lectureId)
                 .ToListAsync();
 
-            // حذف السجلات القديمة (اختياري: للحفاظ على التحديث الكامل)
             _context.Presences.RemoveRange(existingPresences);
 
             foreach (var record in attendanceList)
@@ -392,7 +419,5 @@ namespace TrainingCenterManagement_MVC.Controllers
             TempData["SuccessMessage"] = "Attendance has been saved successfully.";
             return RedirectToAction(nameof(ViewLecture), new { id = lectureId });
         }
-
-
     }
 }

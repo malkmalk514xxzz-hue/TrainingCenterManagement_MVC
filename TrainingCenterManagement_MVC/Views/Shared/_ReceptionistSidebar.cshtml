@@ -141,7 +141,13 @@
                     <span>@SharedResource.ContactTrainees</span>
                 </a>
             </li>
-        </ul>
+                    <li class="@(currentPage == "index" && ViewContext.RouteData.Values["controller"]?.ToString() == "Notifications" ? "active" : "")">
+                <a asp-action="Index" asp-controller="Notifications">
+                    <i class="fas fa-bell"></i>
+                    <span>Notifications</span>
+                </a>
+            </li>
+</ul>
     </nav>
     <div class="sidebar-footer">
         <div class="user-info">

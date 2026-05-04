@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(Get-ChildItem -Path \"d:\\\\Asp.Net Core API\\\\Forth Year Final Project\\\\TrainingCenterManagement_MVC\" -Force | Select-Object Name, @{Name=\"Type\";Expression={if\\($_.PSIsContainer\\){\"Dir\"}else{\"File\"}}} | Format-Table -AutoSize)",
+      "PowerShell(Get-ChildItem -Path \"d:\\\\Asp.Net Core API\\\\Forth Year Final Project\\\\TrainingCenterManagement_MVC\\\\TrainingCenterManagement_MVC\" -Force | Select-Object Name, @{Name=\"Type\";Expression={if\\($_.PSIsContainer\\){\"Dir\"}else{\"File\"}}} | Format-Table -AutoSize)",
+      "Bash(Get-ChildItem -Path \"d:\\\\Asp.Net Core API\\\\Forth Year Final Project\\\\TrainingCenterManagement_MVC\\\\TrainingCenterManagement_MVC\\\\Controllers\\\\Api\" -Name)",
+      "Bash(Remove-Item -Recurse -Force \"d:\\\\Asp.Net Core API\\\\Forth Year Final Project\\\\TrainingCenterManagement_MVC\\\\TrainingCenterManagement_MVC\\\\Controllers\\\\Api\" -ErrorAction SilentlyContinue)",
+      "Bash(Remove-Item -Force \"d:\\\\Asp.Net Core API\\\\Forth Year Final Project\\\\TrainingCenterManagement_MVC\\\\TrainingCenterManagement_MVC\\\\JwtBearerDocumentFilter.cs\" -ErrorAction SilentlyContinue)",
+      "PowerShell(dotnet tool install --global dotnet-ef --version 8.0.18 2>&1)"
+    ]
+  }
+}

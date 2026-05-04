@@ -376,7 +376,9 @@ namespace TrainingCenterManagement_MVC.Controllers
 
                 var senderName = $"ضيف_ {guestId.ToString().Substring(0, 4)}";
                 await _hubContext.Clients.User(targetReceiverId).SendAsync("ReceivePrivateMessage", senderName, content, DateTime.Now);
-                //await _hubContext.Clients.User(guestId.ToString()).SendAsync("ReceivePrivateMessage", senderName, content, DateTime.Now);
+
+                // إشعار الأدمن بالرسالة الجديدة
+                await SendAdminMessageNotificationAsync(targetReceiverId, senderName, content);
 
                 return Json(new { success = true });
             }
@@ -450,6 +452,35 @@ namespace TrainingCenterManagement_MVC.Controllers
             return user == null || false;
         }
 
+        private async Task SendAdminMessageNotificationAsync(string adminUserId, string senderName, string content)
+        {
+            var preview = content.Length > 50 ? content.Substring(0, 50) + "..." : content;
+            var notification = new UserNotification
+            {
+                NotificationId = Guid.NewGuid(),
+                UserId = adminUserId,
+                Title = "رسالة جديدة",
+                Message = $"رسالة من {senderName}: {preview}",
+                Type = NotificationType.MessageReceived,
+                IsRead = false,
+                CreatedAt = DateTime.UtcNow
+            };
 
+            _context.Notifications.Add(notification);
+            await _context.SaveChangesAsync();
+
+            var connections = await _context.UserConnections
+                .Where(c => c.UserId == adminUserId && c.IsConnected)
+                .Select(c => c.ConnectionId)
+                .ToListAsync();
+
+            foreach (var connId in connections)
+            {
+                await _hubContext.Clients.Client(connId).SendAsync(
+                    "ReceiveSystemNotification",
+                    "رسالة جديدة",
+                    $"رسالة من {senderName}: {preview}");
+            }
+        }
     }
 }

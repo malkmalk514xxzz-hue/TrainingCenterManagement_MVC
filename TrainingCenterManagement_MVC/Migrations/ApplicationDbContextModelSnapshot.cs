@@ -789,6 +789,43 @@ namespace TrainingCenterManagement_MVC.Migrations
                     b.ToTable("Trainers");
                 });
 
+            modelBuilder.Entity("TrainingCenterManagement_MVC.Models.UserNotification", b =>
+                {
+                    b.Property<Guid>("NotificationId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RelatedId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("NotificationId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Notifications");
+                });
+
             modelBuilder.Entity("TrainingCenterManagement_MVC.Models.UserConnection", b =>
                 {
                     b.Property<int>("Id")
@@ -1082,6 +1119,17 @@ namespace TrainingCenterManagement_MVC.Migrations
                     b.Navigation("Lecture");
 
                     b.Navigation("Trainee");
+                });
+
+            modelBuilder.Entity("TrainingCenterManagement_MVC.Models.UserNotification", b =>
+                {
+                    b.HasOne("TrainingCenterManagement_MVC.Models.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("TrainingCenterManagement_MVC.Models.Receptionist", b =>

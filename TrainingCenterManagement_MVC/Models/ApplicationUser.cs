@@ -18,6 +18,7 @@ namespace TrainingCenterManagement_MVC.Models
         public Admin Admin { get; set; }
         public Receptionist Receptionist { get; set; }
         public ICollection<Message> Messages { get; set; } = new List<Message>();
+        public ICollection<UserNotification> Notifications { get; set; } = new List<UserNotification>();
     }
 
     public enum RoleType
@@ -28,3 +29,4 @@ namespace TrainingCenterManagement_MVC.Models
         Receptionist = 4
     }
 }
+

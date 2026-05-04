@@ -1,11 +1,13 @@
-﻿using System;
+using Messaging_Chat_Application_MahmoudHakim.Hubs;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.SignalR;
+using Microsoft.EntityFrameworkCore;
+using Rotativa.AspNetCore;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
-using Rotativa.AspNetCore;
 using TrainingCenterManagement_MVC.Data;
 using TrainingCenterManagement_MVC.Models;
 
@@ -14,10 +16,12 @@ namespace TrainingCenterManagement_MVC.Controllers
     public class PaymentsController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly IHubContext<ChatHub> _hubContext;
 
-        public PaymentsController(ApplicationDbContext context)
+        public PaymentsController(ApplicationDbContext context, IHubContext<ChatHub> hubContext)
         {
             _context = context;
+            _hubContext = hubContext;
         }
 
         // GET: Payments
@@ -29,7 +33,6 @@ namespace TrainingCenterManagement_MVC.Controllers
                     .ThenInclude(t => t.User)
                 .ToListAsync();
 
-            // تجميع الدفعات حسب السنة والشهر
             var groupedPayments = payments
                 .GroupBy(p => new { p.CreatedDate.Year, p.CreatedDate.Month })
                 .OrderByDescending(g => g.Key.Year)
@@ -38,8 +41,6 @@ namespace TrainingCenterManagement_MVC.Controllers
 
             return View(groupedPayments);
         }
-
-
 
         // GET: Payments/Details/5
         public async Task<IActionResult> Details(Guid? id)
@@ -66,20 +67,16 @@ namespace TrainingCenterManagement_MVC.Controllers
         {
             ViewData["CourseId"] = new SelectList(_context.Courses, "CourseId", "CourseName");
 
-            // استخدام FullName بدل UserId
             ViewData["TraineeId"] = new SelectList(
                 _context.Trainees.Include(t => t.User).ToList(),
                 "TraineeId",
-                "User.FullName" // عرض FullName في القائمة
+                "User.FullName"
             );
 
             return View();
         }
 
-
         // POST: Payments/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Payment payment)
@@ -88,31 +85,32 @@ namespace TrainingCenterManagement_MVC.Controllers
             var trianeePayments = await _context.Payments
                 .Where(p => p.TraineeId == payment.TraineeId && p.CourseId == payment.CourseId)
                 .ToListAsync();
-         
-            
-             decimal totalAmount = trianeePayments.Count > 0? trianeePayments.Sum(p => p.TotalAmount): 0;
-            // if AmountCourse bigger than TotalAmount
+
+            decimal totalAmount = trianeePayments.Count > 0 ? trianeePayments.Sum(p => p.TotalAmount) : 0;
+
             if (totalAmount == course.Price)
             {
-             
                 TempData["ErrorMessage"] = "The total amount to Course is Complete";
                 return View(payment);
-
             }
+
             var modifiedAmount = course.Price - totalAmount;
-            // if Payment Amount bigger than Course Price
+
             if (modifiedAmount < payment.TotalAmount)
             {
-               
                 TempData["ErrorMessage"] = "The modifiedAmount less than Payment.";
                 return View(payment);
             }
-            if(payment.TotalAmount +totalAmount<=course.Price)
+
+            if (payment.TotalAmount + totalAmount <= course.Price)
             {
                 try
                 {
                     _context.Add(payment);
                     await _context.SaveChangesAsync();
+
+                    await SendPaymentNotificationsAsync(payment, course);
+
                     TempData["SuccessMessage"] = "Payment created successfully.";
                     return RedirectToAction(nameof(Index));
                 }
@@ -120,16 +118,61 @@ namespace TrainingCenterManagement_MVC.Controllers
                 {
                     TempData["ErrorMessage"] = "An error occurred while creating the payment.";
                     return View(payment);
-
                 }
-
             }
             else
             {
                 TempData["ErrorMessage"] = "The total amount Big than modified";
                 return View(payment);
             }
+        }
 
+        private async Task SendPaymentNotificationsAsync(Payment payment, Course course)
+        {
+            var trainee = await _context.Trainees
+                .Include(t => t.User)
+                .FirstOrDefaultAsync(t => t.TraineeId == payment.TraineeId);
+
+            var traineeName = trainee?.User?.FullName ?? "متدرب";
+            var notificationMessage = $"تم استلام دفعة بقيمة {payment.TotalAmount} ريال من {traineeName} لدورة {course.CourseName}";
+
+            var adminUsers = await _context.Users
+                .Where(u => u.Role == RoleType.Admin)
+                .ToListAsync();
+
+            var notifications = adminUsers.Select(admin => new UserNotification
+            {
+                NotificationId = Guid.NewGuid(),
+                UserId = admin.Id,
+                Title = "دفعة جديدة",
+                Message = notificationMessage,
+                Type = NotificationType.PaymentReceived,
+                IsRead = false,
+                CreatedAt = DateTime.UtcNow,
+                RelatedId = payment.PaymentId.ToString()
+            }).ToList();
+
+            if (notifications.Any())
+            {
+                _context.Notifications.AddRange(notifications);
+                await _context.SaveChangesAsync();
+
+                foreach (var admin in adminUsers)
+                {
+                    var connections = await _context.UserConnections
+                        .Where(c => c.UserId == admin.Id && c.IsConnected)
+                        .Select(c => c.ConnectionId)
+                        .ToListAsync();
+
+                    foreach (var connId in connections)
+                    {
+                        await _hubContext.Clients.Client(connId).SendAsync(
+                            "ReceiveSystemNotification",
+                            "دفعة جديدة",
+                            notificationMessage);
+                    }
+                }
+            }
         }
 
         // GET: Payments/Delete/5
@@ -187,6 +230,7 @@ namespace TrainingCenterManagement_MVC.Controllers
 
             return View("CoursePayments", payments);
         }
+
         public async Task<IActionResult> ExportPaymentsPdf(Guid courseId)
         {
             var course = await _context.Courses.FirstOrDefaultAsync(c => c.CourseId == courseId);

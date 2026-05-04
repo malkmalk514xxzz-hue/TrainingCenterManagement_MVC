@@ -29,6 +29,7 @@ namespace TrainingCenterManagement_MVC.Data
         public DbSet<UserConnection> UserConnections { get; set; }
         public DbSet<QrLoginToken> QrLoginTokens { get; set; }
         public DbSet<Models.AppSetting> AppSettings { get; set; }
+        public DbSet<UserNotification> Notifications { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -169,12 +170,24 @@ namespace TrainingCenterManagement_MVC.Data
       .HasForeignKey(gm => gm.CourseId)
       .OnDelete(DeleteBehavior.Restrict);
 
-        //    builder.Entity<UserConnection>()
-        //.HasOne(uc => uc.User)
-        // .WithMany()
-        // .HasForeignKey(uc => uc.UserId)
-        // .OnDelete(DeleteBehavior.Restrict);
+        builder.Entity<UserNotification>()
+            .HasKey(n => n.NotificationId);
+        builder.Entity<UserNotification>()
+            .ToTable("Notifications");
+        builder.Entity<UserNotification>()
+            .Property(n => n.Title)
+            .HasMaxLength(200);
+        builder.Entity<UserNotification>()
+            .Property(n => n.Message)
+            .HasMaxLength(1000);
+        builder.Entity<UserNotification>()
+            .HasOne(n => n.User)
+            .WithMany(u => u.Notifications)
+            .HasForeignKey(n => n.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         }
     }
 }
+
+

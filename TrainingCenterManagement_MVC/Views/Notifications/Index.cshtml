@@ -1,0 +1,55 @@
+﻿@model IReadOnlyList<TrainingCenterManagement_MVC.Models.UserNotification>
+@{
+    ViewData["Title"] = "Notifications";
+    var unreadCount = Model.Count(n => !n.IsRead);
+}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+        <div>
+            <h2 class="mb-1">Notifications</h2>
+            <p class="text-muted mb-0">Unread count: @unreadCount</p>
+        </div>
+        @if (Model.Any(n => !n.IsRead))
+        {
+            <form asp-action="MarkAllAsRead" method="post">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-primary">Mark all as read</button>
+            </form>
+        }
+    </div>
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info">No notifications found.</div>
+    }
+    else
+    {
+        <div class="list-group shadow-sm">
+            @foreach (var notification in Model)
+            {
+                <div class="list-group-item list-group-item-action @(notification.IsRead ? string.Empty : "list-group-item-warning")">
+                    <div class="d-flex justify-content-between align-items-start gap-3">
+                        <div class="flex-grow-1">
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <h5 class="mb-0">@notification.Title</h5>
+                                @if (!notification.IsRead)
+                                {
+                                    <span class="badge bg-danger">New</span>
+                                }
+                            </div>
+                            <p class="mb-2">@notification.Message</p>
+                            <small class="text-muted">@notification.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd hh:mm tt")</small>
+                        </div>
+                        @if (!notification.IsRead)
+                        {
+                            <form asp-action="MarkAsRead" method="post">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@notification.NotificationId" />
+                                <button type="submit" class="btn btn-outline-secondary btn-sm">Mark as read</button>
+                            </form>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
