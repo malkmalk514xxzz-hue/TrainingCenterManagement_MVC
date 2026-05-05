@@ -3,52 +3,95 @@
     ViewData["Title"] = "Chat";
 }
 
-<div class="container">
-    <div class="sidebar">
-        <h2 style="padding: 15px; color: #00897b;">Chats</h2>
-        <div class="chat-list">
-            <h3>Recent Contacts</h3>
-            <div id="recentContacts">
-                @foreach (var contact in Model.RecentContacts)
-                {
-                    <div class="chat-item" data-id="@contact.UserId" onclick="location.href='@Url.Action(contact.IsGroup ? "GroupChat" : "PrivateChat", "Chat", contact.IsGroup ? new { courseId = contact.UserId } : new { receiverId = contact.UserId })'">
-                        @if (!contact.IsGroup)
-                        {
-                            <div class="status offline" data-id="@contact.UserId"></div>
-                        }
-                        <div class="chat-info">
-                            <div class="chat-name">@contact.Username</div>
-                            <div class="chat-preview">@contact.LastMessage</div>
-                        </div>
-                        <div class="chat-time">@contact.LastMessageTime.ToString("hh:mm tt")</div>
-                    </div>
-                }
+<link rel="stylesheet" href="~/css/chat.css" asp-append-version="true" />
+
+<div class="wa-directory">
+    <div class="wa-directory-shell">
+        <aside class="wa-directory-sidebar">
+            <div class="wa-directory-header">
+                <div>
+                    <div class="wa-directory-kicker">Messaging</div>
+                    <h1>Chats</h1>
+                </div>
 
             </div>
-            <h3>Course Groups</h3>
-            @foreach (var course in Model.Courses)
-            {
-                <div class="chat-item" data-id="@course.CourseId" onclick="location.href='@Url.Action("GroupChat", "Chat", new { courseId = course.CourseId })'">
-                    <div class="chat-info">
-                        <div class="chat-name">@course.CourseName</div>
-                        <div class="chat-preview">Group chat for course</div>
+
+            <div class="wa-directory-search">
+                <i class="fas fa-search"></i>
+                <input type="search" id="chatSearch" placeholder="ابحث عن محادثة أو مستخدم أو دورة" />
+            </div>
+
+            <div class="wa-directory-sections">
+                <section class="wa-directory-section">
+                    <div class="wa-directory-section-title">آخر المحادثات</div>
+                    <div id="recentContacts" class="wa-directory-list">
+                        @foreach (var contact in Model.RecentContacts)
+                        {
+                            <div class="wa-contact-card" data-search="@($"{contact.Username} {contact.LastMessage}".ToLowerInvariant())" onclick="location.href='@Url.Action(contact.IsGroup ? "GroupChat" : "PrivateChat", "Chat", contact.IsGroup ? new { courseId = contact.UserId } : new { receiverId = contact.UserId })'">
+                                <div class="wa-contact-avatar @(contact.IsGroup ? "group" : string.Empty)">@(contact.IsGroup ? "#" : contact.Username.Substring(0, 1).ToUpperInvariant())</div>
+                                @if (!contact.IsGroup)
+                                {
+                                    <div class="status offline wa-contact-status" data-id="@contact.UserId"></div>
+                                }
+                                <div class="wa-contact-main">
+                                    <div class="wa-contact-row">
+                                        <div class="wa-contact-name">@contact.Username</div>
+                                        <div class="wa-contact-time">@contact.LastMessageTime.ToString("hh:mm tt")</div>
+                                    </div>
+                                    <div class="wa-contact-preview">@contact.LastMessage</div>
+                                </div>
+                            </div>
+                        }
                     </div>
-                </div>
-            }
-          
-            <h3>All Users</h3>
-            @foreach (var user in Model.AllUsers)
-            {
-                <div class="chat-item" onclick="location.href='@Url.Action("PrivateChat", "Chat", new { receiverId = user.Id })'">
-                    <div class="status offline" data-id="@user.Id"></div>
-                    <div class="chat-info">
-                        <div class="chat-name">@user.UserName</div>
-                        <div class="chat-preview">@user.UserName</div>
+                </section>
+
+                <section class="wa-directory-section">
+                    <div class="wa-directory-section-title">مجموعات الدورات</div>
+                    <div class="wa-directory-list" id="courseGroups">
+                        @foreach (var course in Model.Courses)
+                        {
+                            <div class="wa-contact-card" data-search="@course.CourseName.ToLowerInvariant()" onclick="location.href='@Url.Action("GroupChat", "Chat", new { courseId = course.CourseId })'">
+                                <div class="wa-contact-avatar group">#</div>
+                                <div class="wa-contact-main">
+                                    <div class="wa-contact-row">
+                                        <div class="wa-contact-name">@course.CourseName</div>
+                                    </div>
+                                    <div class="wa-contact-preview">محادثة جماعية للدورة</div>
+                                </div>
+                            </div>
+                        }
                     </div>
-                    <div class="chat-time">@DateTime.Now.ToString("hh:mm tt")</div>
-                </div>
-            }
-        </div>
+                </section>
+
+                <section class="wa-directory-section">
+                    <div class="wa-directory-section-title">كل المستخدمين</div>
+                    <div class="wa-directory-list" id="allUsersList">
+                        @foreach (var user in Model.AllUsers)
+                        {
+                            <div class="wa-contact-card" data-search="@user.UserName.ToLowerInvariant()" onclick="location.href='@Url.Action("PrivateChat", "Chat", new { receiverId = user.Id })'">
+                                <div class="wa-contact-avatar">@user.UserName.Substring(0, 1).ToUpperInvariant()</div>
+                                <div class="status offline wa-contact-status" data-id="@user.Id"></div>
+                                <div class="wa-contact-main">
+                                    <div class="wa-contact-row">
+                                        <div class="wa-contact-name">@user.UserName</div>
+                                        <div class="wa-contact-time">ابدأ الآن</div>
+                                    </div>
+                                    <div class="wa-contact-preview">افتح محادثة خاصة</div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </section>
+            </div>
+        </aside>
+
+        <section class="wa-directory-stage">
+            <div class="wa-stage-card">
+                <div class="wa-stage-icon"><i class="fas fa-comments"></i></div>
+                <h2>اختر محادثة للبدء</h2>
+                <p>القائمة الآن محدثة بأسلوب أقرب لواتساب، مع المحادثات الحديثة، المجموعات، وحالة الاتصال المباشرة.</p>
+            </div>
+        </section>
     </div>
 </div>
 
@@ -56,92 +99,102 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
-         // قائمة معرفات الدورات من النموذج
-        const courseIds = @Html.Raw(Json.Serialize(Model.Courses?.Select(c => c.CourseId.ToString()) ?? new List<string>()));
+        (() => {
+            const courseIds = @Html.Raw(Json.Serialize(Model.Courses?.Select(c => c.CourseId.ToString()) ?? new List<string>()));
+            const recentContactsDiv = document.getElementById('recentContacts');
+            const chatSearch = document.getElementById('chatSearch');
 
+            const connection = new signalR.HubConnectionBuilder()
+                .withUrl('/chatHub')
+                .withAutomaticReconnect()
+                .build();
 
-        const connection = new signalR.HubConnectionBuilder()
-            .withUrl("/chatHub")
-            .withAutomaticReconnect()
-            .build();
-
-        connection.on("UserStatusChanged", (userId, isOnline) => {
-            const statusElements = document.querySelectorAll(`.status[data-id='${userId}']`);
-            statusElements.forEach(el => {
-                el.classList.remove("online", "offline");
-                el.classList.add(isOnline ? "online" : "offline");
+            connection.on('UserStatusChanged', (userId, isOnline) => {
+                const statusElements = document.querySelectorAll(`.status[data-id='${userId}']`);
+                statusElements.forEach(el => {
+                    el.classList.remove('online', 'offline');
+                    el.classList.add(isOnline ? 'online' : 'offline');
+                });
             });
-        });
 
-        connection.on("UpdateRecentContacts", (contacts) => {
-            console.log("Received UpdateRecentContacts - Contacts:", JSON.stringify(contacts));
-            const recentContactsDiv = document.getElementById("recentContacts");
+            connection.on('UpdateRecentContacts', (contacts) => {
+                recentContactsDiv.innerHTML = '';
+                (contacts || []).forEach(contact => {
+                    if (!contact.Id) return;
 
-            // مسح المحادثات القديمة
-            recentContactsDiv.innerHTML = "";
+                    const dataId = String(contact.Id).trim();
+                    const isGroup = !!contact.IsGroup;
+                    const displayName = contact.DisplayName || 'Unknown';
+                    const preview = normalizePreview(contact.LastMessage || '');
+                    const time = contact.LastMessageTime ? new Date(contact.LastMessageTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+                    const searchText = `${displayName} ${preview}`.toLowerCase();
+                    const encodedId = encodeURIComponent(dataId);
+                    const href = isGroup ? `/Chat/GroupChat?courseId=${encodedId}` : `/Chat/PrivateChat?receiverId=${encodedId}`;
 
-            // إعادة بناء قائمة المحادثات
-            contacts.forEach(contact => {
-               // console.log(contact);
-                if (!contact.Id) { // تعديل من contact.id إلى contact.Id
-                    console.error("Error: contact.Id is undefined or empty", contact);
-                    return;
-                }
-                
-                const dataId = contact.Id.trim();
-               // console.log(contact);
-              //  console.log(dataId);
-                const contactHtml = contact.IsGroup ?
-                    `<div class="chat-item" data-id="${dataId}" onclick="location.href='/Chat/GroupChat?courseId=${dataId}'">
-                        <div class="chat-info">
-                            <div class="chat-name">${contact.DisplayName}</div>
-                            <div class="chat-preview">${contact.LastMessage}</div>
+                    const item = document.createElement('div');
+                    item.className = 'wa-contact-card';
+                    item.dataset.search = searchText;
+                    item.onclick = () => location.href = href;
+                    item.innerHTML = `
+                        <div class="wa-contact-avatar ${isGroup ? 'group' : ''}">${isGroup ? '#' : escapeHtml(displayName.charAt(0).toUpperCase())}</div>
+                        ${isGroup ? '' : `<div class="status offline wa-contact-status" data-id="${escapeAttr(dataId)}"></div>`}
+                        <div class="wa-contact-main">
+                            <div class="wa-contact-row">
+                                <div class="wa-contact-name">${escapeHtml(displayName)}</div>
+                                <div class="wa-contact-time">${escapeHtml(time)}</div>
+                            </div>
+                            <div class="wa-contact-preview">${escapeHtml(preview)}</div>
                         </div>
-                        <div class="chat-time">${new Date(contact.LastMessageTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
-                    </div>` :
-                    `<div class="chat-item" data-id="${CSS.escape(dataId)}" onclick="location.href='/Chat/PrivateChat?receiverId=${CSS.escape(dataId)}'">
-                        <div class="status offline" data-id="${CSS.escape(dataId)}"></div>
-                        <div class="chat-info">
-                            <div class="chat-name">${contact.DisplayName}</div>
-                            <div class="chat-preview">${contact.LastMessage}</div>
-                        </div>
-                        <div class="chat-time">${new Date(contact.LastMessageTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
-                    </div>`;
+                    `;
+                    recentContactsDiv.appendChild(item);
+                });
 
-                recentContactsDiv.insertAdjacentHTML("beforeend", contactHtml);
+                applySearch();
             });
-        });
 
-        connection.start()
-            .then(() => {
-                console.log("تم الاتصال بـ SignalR بنجاح");
-                console.log("courseIds:", courseIds);
-                // التأكد من أن courseIds يحتوي على $values وهي مصفوفة
-                const ids = courseIds.$values && Array.isArray(courseIds.$values) ? courseIds.$values : [];
-                if (ids.length > 0) {
-                    ids.forEach(courseId => {
-                        console.log(`الانضمام إلى المجموعة Course_${courseId}`);
-                        connection.invoke("JoinCourseGroup", courseId)
-                            .then(() => console.log(`تم الانضمام إلى المجموعة Course_${courseId} بنجاح`))
-                            .catch(err => console.error(`خطأ في الانضمام إلى المجموعة Course_${courseId}:`, err));
-                    });
-                } else {
-                    console.warn("لا توجد دورات للانضمام إليها:", courseIds);
+            connection.start()
+                .then(() => {
+                    const ids = courseIds.$values && Array.isArray(courseIds.$values) ? courseIds.$values : [];
+                    ids.forEach(courseId => connection.invoke('JoinCourseGroup', courseId).catch(() => {}));
+                })
+                .catch(err => console.error('SignalR connection failed:', err));
+
+            chatSearch.addEventListener('input', applySearch);
+
+            function applySearch() {
+                const query = (chatSearch.value || '').trim().toLowerCase();
+                document.querySelectorAll('.wa-contact-card').forEach(card => {
+                    const haystack = card.dataset.search || '';
+                    card.style.display = !query || haystack.includes(query) ? '' : 'none';
+                });
+            }
+
+            function normalizePreview(value) {
+                const mediaMatch = value.match(/^\[media:(image|video|audio):(.+)\]$/i);
+                if (mediaMatch) {
+                    const type = mediaMatch[1].toLowerCase();
+                    if (type === 'image') return 'صورة';
+                    if (type === 'video') return 'فيديو';
+                    if (type === 'audio') return 'رسالة صوتية';
                 }
-            })
-            .catch(err => console.error("فشل الاتصال بـ SignalR: ", err));
+                if (value === '[image message]') return 'صورة';
+                if (value === '[video message]') return 'فيديو';
+                if (value === '[audio message]') return 'رسالة صوتية';
+                return value;
+            }
 
+            function escapeHtml(value) {
+                return String(value)
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#39;');
+            }
 
-        connection.onreconnecting(err => {
-            console.warn("SignalR reconnecting: ", err);
-        });
-
-        connection.onreconnected(() => {
-            console.log("SignalR reconnected successfully");
-        });
-
-        connection.onclose(err => {
-            console.error("SignalR connection closed: ", err);
-        });
+            function escapeAttr(value) {
+                return escapeHtml(value);
+            }
+        })();
     </script>
 }

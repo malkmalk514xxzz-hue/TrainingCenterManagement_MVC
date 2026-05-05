@@ -117,13 +117,14 @@
                     <span>@SharedResource.Chat</span>
                 </a>
             </li>
-                    <li class="@(currentPage == "index" && ViewContext.RouteData.Values["controller"]?.ToString() == "Notifications" ? "active" : "")">
-                <a asp-action="Index" asp-controller="Notifications">
+            <li class="@(currentPage == "index" && ViewContext.RouteData.Values["controller"]?.ToString() == "Notifications" ? "active" : "")">
+                <a asp-action="Index" asp-controller="Notifications" style="position:relative;">
                     <i class="fas fa-bell"></i>
-                    <span>Notifications</span>
+                    <span class="sn-badge" data-hidden="true" aria-label="إشعارات غير مقروءة">0</span>
+                    <span>الإشعارات</span>
                 </a>
             </li>
-</ul>
+        </ul>
     </nav>
     <div class="sidebar-footer">
         <div class="user-info">
@@ -154,3 +155,4 @@
         </div>
     </div>
 </aside>
+@await Html.PartialAsync("_NotificationsScript")

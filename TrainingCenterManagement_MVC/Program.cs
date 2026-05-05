@@ -1,5 +1,6 @@
 using Messaging_Chat_Application_MahmoudHakim.Hubs;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 using Rotativa.AspNetCore;
@@ -82,11 +83,19 @@ builder.Services.AddScoped<RoleInitializer>();
 // ====================== Build App ======================
 var app = builder.Build();
 
-// Static files for uploads folder
+// Static files for uploads folder with correct MIME types for audio/video
+var uploadsContentTypeProvider = new FileExtensionContentTypeProvider();
+uploadsContentTypeProvider.Mappings[".webm"] = "audio/webm";
+uploadsContentTypeProvider.Mappings[".ogg"]  = "audio/ogg";
+uploadsContentTypeProvider.Mappings[".mp3"]  = "audio/mpeg";
+uploadsContentTypeProvider.Mappings[".wav"]  = "audio/wav";
+uploadsContentTypeProvider.Mappings[".mp4"]  = "video/mp4";
+
 app.UseStaticFiles(new StaticFileOptions
 {
     FileProvider = new PhysicalFileProvider(Path.Combine(app.Environment.WebRootPath, "uploads")),
     RequestPath = "/uploads",
+    ContentTypeProvider = uploadsContentTypeProvider,
     OnPrepareResponse = ctx => ctx.Context.Response.Headers.Append("Cache-Control", "private, max-age=3600")
 });
 

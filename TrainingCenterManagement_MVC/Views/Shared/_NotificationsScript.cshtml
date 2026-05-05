@@ -1,0 +1,377 @@
+@* Shared notification widget — آمن للتضمين في Layout أو Sidebar *@
+@{
+    var _isAuth = User.Identity?.IsAuthenticated == true;
+    if (ViewData["__notifWidgetInjected"] != null) { return; }
+    ViewData["__notifWidgetInjected"] = true;
+}
+
+<style id="__notif-css">
+    /* ── Stack container ── */
+    #systemNotificationStack {
+        position: fixed !important;
+        top: 1.25rem !important;
+        right: 1.25rem !important;
+        z-index: 999999 !important;
+        display: flex !important;
+        flex-direction: column;
+        gap: .65rem;
+        width: min(400px, calc(100vw - 2rem));
+        pointer-events: none;
+    }
+    html[dir="rtl"] #systemNotificationStack {
+        right: auto !important;
+        left: 1.25rem !important;
+    }
+
+    /* ── Toast ── */
+    .sn-toast {
+        pointer-events: auto;
+        display: flex;
+        align-items: flex-start;
+        gap: .9rem;
+        padding: 1rem 1.15rem 1.05rem;
+        border-radius: 16px;
+        background: linear-gradient(145deg, #16213e 0%, #0f3460 100%);
+        color: #fff;
+        box-shadow: 0 24px 64px rgba(0,0,0,.5), 0 0 0 1px rgba(255,255,255,.08);
+        border-left: 4px solid #f2c00d;
+        transform: translateX(110%);
+        opacity: 0;
+        transition: transform .35s cubic-bezier(.17,.84,.44,1), opacity .35s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    html[dir="rtl"] .sn-toast {
+        border-left: none;
+        border-right: 4px solid #f2c00d;
+        transform: translateX(-110%);
+    }
+    .sn-toast.sn-show { transform: translateX(0) !important; opacity: 1 !important; }
+
+    /* نوع الإشعار */
+    .sn-toast.sn-msg     { border-color: #6366f1; }
+    .sn-toast.sn-lecture { border-color: #10b981; }
+    .sn-toast.sn-payment { border-color: #f59e0b; }
+    .sn-toast.sn-system  { border-color: #f2c00d; }
+
+    /* shimmer */
+    .sn-toast::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, rgba(255,255,255,.06) 0%, transparent 55%);
+        pointer-events: none;
+    }
+
+    /* أيقونة */
+    .sn-ic {
+        width: 2.6rem;
+        height: 2.6rem;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.05rem;
+        flex-shrink: 0;
+        margin-top: .05rem;
+    }
+    .sn-toast.sn-msg     .sn-ic { background: rgba(99,102,241,.25);  color: #a5b4fc; }
+    .sn-toast.sn-lecture .sn-ic { background: rgba(16,185,129,.25);  color: #6ee7b7; }
+    .sn-toast.sn-payment .sn-ic { background: rgba(245,158,11,.25);  color: #fcd34d; }
+    .sn-toast.sn-system  .sn-ic { background: rgba(242,192,13,.22);  color: #fde68a; }
+
+    /* نص */
+    .sn-body  { flex: 1; min-width: 0; }
+    .sn-title {
+        font-size: .93rem;
+        font-weight: 700;
+        margin: 0 0 .18rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .sn-msg-text {
+        font-size: .84rem;
+        margin: 0;
+        color: rgba(255,255,255,.75);
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        line-height: 1.45;
+    }
+    .sn-time {
+        font-size: .72rem;
+        color: rgba(255,255,255,.4);
+        margin-top: .2rem;
+        display: block;
+    }
+
+    /* زر الإغلاق */
+    .sn-close {
+        background: transparent;
+        border: 0;
+        color: rgba(255,255,255,.45);
+        cursor: pointer;
+        padding: 0;
+        width: 1.5rem;
+        height: 1.5rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        flex-shrink: 0;
+        transition: background .15s, color .15s;
+    }
+    .sn-close:hover { background: rgba(255,255,255,.14); color: #fff; }
+
+    /* شريط التقدم */
+    .sn-bar {
+        position: absolute;
+        bottom: 0; left: 0; right: 0;
+        height: 3px;
+        background: rgba(255,255,255,.18);
+        transform-origin: left;
+        animation: __snBar 5.5s linear forwards;
+    }
+    html[dir="rtl"] .sn-bar { transform-origin: right; }
+    @@keyframes __snBar {
+        from { transform: scaleX(1); }
+        to   { transform: scaleX(0); }
+    }
+
+    /* ── Badge عداد الإشعارات ── */
+    .sn-badge {
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        min-width: 1.25rem;
+        height: 1.25rem;
+        padding: 0 .32rem;
+        border-radius: 999px;
+        background: #ef4444 !important;
+        color: #fff !important;
+        font-size: .67rem !important;
+        font-weight: 700 !important;
+        line-height: 1;
+        margin-inline-start: .4rem;
+        vertical-align: middle;
+        box-shadow: 0 2px 6px rgba(239,68,68,.5);
+        transition: transform .2s;
+    }
+    .sn-badge[data-hidden="true"] { display: none !important; }
+    .sn-badge.sn-pop { animation: __snPop .5s ease; }
+    @@keyframes __snPop {
+        0%  { transform: scale(1); }
+        45% { transform: scale(1.6); }
+        100%{ transform: scale(1); }
+    }
+
+    /* ── جرس عائم (للصفحات بدون sidebar) ── */
+    #sn-float-bell {
+        position: fixed;
+        bottom: 1.5rem;
+        right: 1.5rem;
+        z-index: 99998;
+        width: 3rem;
+        height: 3rem;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #6366f1, #4f46e5);
+        color: #fff;
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.15rem;
+        box-shadow: 0 6px 24px rgba(99,102,241,.5);
+        text-decoration: none;
+        transition: transform .2s, box-shadow .2s;
+    }
+    html[dir="rtl"] #sn-float-bell { right: auto; left: 1.5rem; }
+    #sn-float-bell:hover { transform: scale(1.1); box-shadow: 0 8px 28px rgba(99,102,241,.6); }
+    #sn-float-bell .sn-badge { position: absolute; top: -.2rem; right: -.2rem; }
+    html[dir="rtl"] #sn-float-bell .sn-badge { right: auto; left: -.2rem; }
+</style>
+
+<script>
+(function () {
+    if (window.__snLoaded) return;
+    window.__snLoaded = true;
+
+    var isAuth = @(_isAuth ? "true" : "false");
+
+    /* ── Container ──────────────────────────────────────────────────────────── */
+    var stack = document.getElementById('systemNotificationStack');
+    if (!stack) {
+        stack = document.createElement('div');
+        stack.id = 'systemNotificationStack';
+        document.body.appendChild(stack);
+    }
+
+    /* ── Badges ─────────────────────────────────────────────────────────────── */
+    window.__snCount = window.__snCount || 0;
+
+    function allBadges() {
+        return document.querySelectorAll('.sn-badge');
+    }
+
+    function setBadge(n) {
+        n = Math.max(0, n);
+        window.__snCount = n;
+        var txt = n > 99 ? '99+' : String(n);
+        allBadges().forEach(function (b) {
+            if (n > 0) {
+                b.textContent = txt;
+                b.removeAttribute('data-hidden');
+            } else {
+                b.setAttribute('data-hidden', 'true');
+            }
+        });
+        // عنوان الصفحة
+        var base = document.title.replace(/^\(\d+\+?\)\s*/, '');
+        document.title = n > 0 ? '(' + txt + ') ' + base : base;
+    }
+
+    function incBadge() {
+        setBadge(window.__snCount + 1);
+        allBadges().forEach(function (b) {
+            b.classList.remove('sn-pop');
+            void b.offsetWidth;
+            b.classList.add('sn-pop');
+        });
+    }
+
+    window.setNotifBadge  = setBadge;
+    window.incNotifBadge  = incBadge;
+
+    /* ── Toast ──────────────────────────────────────────────────────────────── */
+    var seen = {};
+    var ICONS = { msg: 'fa-comment-dots', lecture: 'fa-play-circle', payment: 'fa-credit-card', system: 'fa-bell' };
+
+    function pad2(n) { return n < 10 ? '0' + n : n; }
+    function nowStr() {
+        var d = new Date();
+        var h = d.getHours(), m = d.getMinutes();
+        return (h % 12 || 12) + ':' + pad2(m) + ' ' + (h >= 12 ? 'م' : 'ص');
+    }
+
+    function showNotification(title, msg, type) {
+        type = type || 'system';
+        if (!title) return;
+
+        var key = type + '|' + title + '|' + (msg || '');
+        var now = Date.now();
+        if (seen[key] && now - seen[key] < 3000) return;
+        seen[key] = now;
+
+        var iconClass = ICONS[type] || ICONS.system;
+        var toast = document.createElement('div');
+        toast.className = 'sn-toast sn-' + type;
+        toast.setAttribute('role', 'alert');
+        toast.innerHTML =
+            '<div class="sn-ic"><i class="fas ' + iconClass + '"></i></div>' +
+            '<div class="sn-body">' +
+                '<p class="sn-title"></p>' +
+                '<p class="sn-msg-text"></p>' +
+                '<span class="sn-time">' + nowStr() + '</span>' +
+            '</div>' +
+            '<button class="sn-close" type="button" aria-label="إغلاق"><i class="fas fa-times"></i></button>' +
+            '<div class="sn-bar"></div>';
+
+        toast.querySelector('.sn-title').textContent = title;
+        toast.querySelector('.sn-msg-text').textContent = msg || '';
+
+        var gone = false;
+        function dismiss() {
+            if (gone) return; gone = true;
+            toast.classList.remove('sn-show');
+            setTimeout(function () { if (toast.parentNode) toast.remove(); }, 380);
+        }
+        toast.querySelector('.sn-close').addEventListener('click', dismiss);
+
+        stack.appendChild(toast);
+        // double rAF ضروري ليعمل CSS transition
+        requestAnimationFrame(function () {
+            requestAnimationFrame(function () {
+                toast.classList.add('sn-show');
+            });
+        });
+        setTimeout(dismiss, 5800);
+        incBadge();
+    }
+
+    /* واجهة عامة */
+    window.showTopNotification       = showNotification;
+    window.showTopSystemNotification = showNotification;
+
+    /* ── Fetch عدد غير المقروءة ────────────────────────────────────────────── */
+    if (isAuth) {
+        fetch('/Notifications/GetLatest?take=1', { credentials: 'same-origin' })
+            .then(function (r) { return r.ok ? r.json() : null; })
+            .then(function (d) {
+                if (d && typeof d.unreadCount === 'number') setBadge(d.unreadCount);
+            })
+            .catch(function () {});
+    }
+
+    /* ── جرس عائم للصفحات بدون sidebar ─────────────────────────────────────── */
+    // Do not show floating notification bell on chat pages (it obstructs the UI)
+    if (isAuth) {
+        var isChatPage = document.body.classList.contains('wa-chat-page') || document.querySelector('.wa-chat-page') !== null;
+        if (isChatPage) {
+            var existing = document.getElementById('sn-float-bell'); if (existing) existing.remove();
+        } else {
+            var hasSidebar = document.querySelector('.sidebar') !== null;
+            if (!hasSidebar) {
+                var bell = document.createElement('a');
+                bell.id   = 'sn-float-bell';
+                bell.href = '/Notifications';
+                bell.title = 'الإشعارات';
+                bell.innerHTML = '<i class="fas fa-bell"></i><span class="sn-badge" data-hidden="true" style="position:absolute;top:-.2rem;right:-.2rem;">0</span>';
+                document.body.appendChild(bell);
+            }
+        }
+    }
+
+    /* ── SignalR ─────────────────────────────────────────────────────────────── */
+    if (!isAuth) return;
+
+    function setupSignalR() {
+        if (window.__snConn) return;
+
+        var conn = new signalR.HubConnectionBuilder()
+            .withUrl('/ChatHub')
+            .withAutomaticReconnect([0, 2000, 5000, 10000, 30000])
+            .configureLogging(signalR.LogLevel.Warning)
+            .build();
+
+        conn.on('ReceiveNotification', function (senderName, message) {
+            showNotification(senderName, message, 'msg');
+        });
+
+        conn.on('ReceiveSystemNotification', function (title, message) {
+            var type = 'system';
+            if (title && (title.includes('محاضرة') || title.toLowerCase().includes('lecture'))) type = 'lecture';
+            if (title && (title.includes('دفع')    || title.toLowerCase().includes('payment')))  type = 'payment';
+            showNotification(title, message, type);
+        });
+
+        (function startConn() {
+            conn.start()
+                .then(function () { window.__snConn = conn; })
+                .catch(function () { setTimeout(startConn, 5000); });
+        })();
+    }
+
+    if (typeof signalR !== 'undefined') {
+        setupSignalR();
+    } else {
+        var sc = document.createElement('script');
+        sc.src = 'https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js';
+        sc.onload = setupSignalR;
+        document.head.appendChild(sc);
+    }
+
+})();
+</script>

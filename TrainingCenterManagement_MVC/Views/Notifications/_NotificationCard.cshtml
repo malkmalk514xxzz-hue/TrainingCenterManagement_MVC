@@ -1,0 +1,68 @@
+@model TrainingCenterManagement_MVC.Models.UserNotification
+@using TrainingCenterManagement_MVC.Models
+@{
+    string typeClass, tagClass, tagLabel, iconFa;
+
+    switch (Model.Type)
+    {
+        case NotificationType.MessageReceived:
+            typeClass = "ic-msg";      iconFa = "fa-comment-dots";
+            tagClass  = "tag-msg";     tagLabel = "رسالة";
+            break;
+        case NotificationType.LectureAdded:
+            typeClass = "ic-lecture";  iconFa = "fa-play-circle";
+            tagClass  = "tag-lecture"; tagLabel = "محاضرة";
+            break;
+        case NotificationType.PaymentReceived:
+            typeClass = "ic-payment";  iconFa = "fa-credit-card";
+            tagClass  = "tag-payment"; tagLabel = "دفعة";
+            break;
+        default:
+            typeClass = "ic-system";   iconFa = "fa-bell";
+            tagClass  = "tag-system";  tagLabel = "إشعار";
+            break;
+    }
+
+    var localTime = Model.CreatedAt.ToLocalTime();
+    var now       = DateTime.Now;
+    string timeLabel;
+    var diff = now - localTime;
+    if (diff.TotalMinutes < 1)        timeLabel = "الآن";
+    else if (diff.TotalMinutes < 60)  timeLabel = (int)diff.TotalMinutes + " دقيقة مضت";
+    else if (diff.TotalHours < 24)    timeLabel = (int)diff.TotalHours + " ساعة مضت";
+    else                              timeLabel = localTime.ToString("dd/MM/yyyy hh:mm tt");
+}
+
+<div class="notif-card @(Model.IsRead ? "read" : "unread")" data-card-id="@Model.NotificationId">
+    <div class="notif-type-ic @typeClass">
+        <i class="fas @iconFa"></i>
+    </div>
+    <div class="notif-card-body">
+        <div class="notif-card-title">
+            @Model.Title
+            @if (!Model.IsRead)
+            {
+                <span class="new-badge">جديد</span>
+            }
+        </div>
+        <p class="notif-card-message">@Model.Message</p>
+        <div class="notif-card-footer">
+            <span class="notif-card-time">
+                <i class="fas fa-clock" style="font-size:.7rem;"></i>
+                @timeLabel
+            </span>
+            <span class="notif-card-type-tag @tagClass">@tagLabel</span>
+        </div>
+    </div>
+    <div class="notif-card-actions">
+        @if (!Model.IsRead)
+        {
+            <button type="button" class="btn-read" data-notif-id="@Model.NotificationId">
+                <i class="fas fa-check"></i> قراءة
+            </button>
+        }
+        <button type="button" class="btn-del" data-del-id="@Model.NotificationId" title="حذف">
+            <i class="fas fa-trash-alt"></i>
+        </button>
+    </div>
+</div>

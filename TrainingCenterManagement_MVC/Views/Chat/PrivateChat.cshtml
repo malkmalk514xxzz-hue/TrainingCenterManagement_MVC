@@ -1,110 +1,795 @@
 ﻿@model List<TrainingCenterManagement_MVC.Models.Message>
+
 @{
     ViewData["Title"] = "Private Chat";
-    var receiverId = ViewBag.ReceiverId;
-    string receiverUsername = ViewBag.ReceiverUsername;
-    string senderUsername = User.Identity.Name;
-    string senderId =ViewBag.userId;
+    var receiverId = ViewBag.ReceiverId?.ToString() ?? string.Empty;
+    var receiverUsername = ViewBag.ReceiverUsername?.ToString() ?? "User";
+    var senderUsername = User.Identity?.Name ?? "You";
+    var senderId = ViewBag.UserId?.ToString() ?? string.Empty;
+
+    string SanitizeUrl(string? url)
+    {
+        return (url ?? string.Empty).Replace("\u200f", string.Empty).Replace("\u200e", string.Empty).Replace("\u061c", string.Empty);
+    }
+
+    string DetectMediaType(string? url)
+    {
+        if (string.IsNullOrWhiteSpace(url)) return string.Empty;
+        if (url.Contains("/uploads/audio/", StringComparison.OrdinalIgnoreCase)) return "audio";
+        if (url.Contains("/uploads/video/", StringComparison.OrdinalIgnoreCase)) return "video";
+        if (url.Contains("/uploads/image/", StringComparison.OrdinalIgnoreCase)) return "image";
+
+        var ext = System.IO.Path.GetExtension(url).ToLowerInvariant();
+        return ext switch
+        {
+            ".jpg" or ".jpeg" or ".png" or ".gif" or ".webp" or ".bmp" => "image",
+            ".mp3" or ".wav" or ".ogg" or ".m4a" or ".aac" or ".webm" => "audio",
+            ".mp4" or ".mov" or ".m4v" or ".avi" => "video",
+            _ => "file"
+        };
+    }
 }
 
-<div class="chat-container">
-    <div class="chat-header">Chat with @receiverUsername</div>
-    <div class="chat-box" id="chatBox">
+<link rel="stylesheet" href="~/css/chat.css" asp-append-version="true" />
+
+<div class="wa-wrap wa-chat-page" data-chat-kind="private">
+    <div class="wa-header">
+        <button type="button" class="wa-back" onclick="history.back()" aria-label="Back">
+            <i class="fas fa-arrow-left"></i>
+        </button>
+        <div class="wa-av">@receiverUsername.Substring(0, 1).ToUpperInvariant()</div>
+        <div class="wa-header-info">
+            <div class="wa-header-name">@receiverUsername</div>
+            <div class="wa-header-sub">محادثة خاصة</div>
+        </div>
+    </div>
+
+    <div class="wa-body" id="chatBox">
         @foreach (var message in Model)
         {
-            <div class="message @(message.Sender.UserName == senderUsername ? "sent" : "received")">
-                <div class="message-sender">@message.Sender.UserName</div>
-                <div>@message.Content</div>
-                <div class="message-time">@message.Timestamp.ToString("hh:mm tt")</div>
+            var isSent = message.SenderId == senderId;
+            var sanitizedMediaUrl = SanitizeUrl(message.MediaUrl);
+            var mediaType = !string.IsNullOrWhiteSpace(sanitizedMediaUrl) ? DetectMediaType(sanitizedMediaUrl) : string.Empty;
+            <div class="wa-row @(isSent ? "sent" : "received")" data-message-id="@message.Id" data-timestamp="@message.Timestamp.ToString("o")">
+                <div class="wa-bubble">
+                    @if (!string.IsNullOrWhiteSpace(sanitizedMediaUrl) && mediaType == "image")
+                    {
+                        <img class="wa-media-img wa-media-clickable" src="@sanitizedMediaUrl" alt="image message" loading="lazy" data-message-id="@message.Id" onclick="openMediaModal(this, @message.Id, 'private')" />
+                    }
+                    else if (!string.IsNullOrWhiteSpace(sanitizedMediaUrl) && mediaType == "video")
+                    {
+                        <video class="wa-media-video" controls preload="metadata">
+                            <source src="@sanitizedMediaUrl" type="video/mp4" />
+                        </video>
+                    }
+                    else if (!string.IsNullOrWhiteSpace(sanitizedMediaUrl) && mediaType == "audio")
+                    {
+                        <div class="wa-media-audio-wrap">
+                            <i class="fas fa-microphone wa-audio-ic"></i>
+                            <audio controls preload="auto">
+                                <source src="@sanitizedMediaUrl" type="audio/webm">
+                                <source src="@sanitizedMediaUrl" type="audio/ogg">
+                                <source src="@sanitizedMediaUrl" type="audio/mpeg">
+                            </audio>
+                        </div>
+                    }
+                    else if (!string.IsNullOrWhiteSpace(sanitizedMediaUrl))
+                    {
+                        <a class="wa-media-link" href="@sanitizedMediaUrl" target="_blank" rel="noopener">فتح الملف</a>
+                    }
+
+                    @if (!string.IsNullOrWhiteSpace(message.Content) && (string.IsNullOrWhiteSpace(sanitizedMediaUrl) || !message.Content.StartsWith("[", StringComparison.Ordinal)))
+                    {
+                        <p class="wa-text">@message.Content</p>
+                    }
+
+                    <div class="wa-meta">
+                        <span class="wa-time">@message.Timestamp.ToString("hh:mm tt")</span>
+                        @if (isSent)
+                        {
+                            <span class="wa-ticks @(message.IsRead ? "read" : string.Empty)">✓✓</span>
+                        }
+                    </div>
+                </div>
             </div>
         }
     </div>
-    <div class="chat-input">
-        <input type="text" id="messageInput" placeholder="Type a message..." />
-        <button onclick="sendPrivateMessage()">Send</button>
-    </div>
-    <div id="status"></div>
-</div>
 
+    <div class="wa-emoji-panel" id="emojiPanel"></div>
+
+    <div class="wa-attach-bar" id="attachmentBar">
+        <img id="attachmentThumb" class="wa-attach-thumb wa-hidden" alt="preview" />
+        <i id="attachmentIcon" class="fas fa-paperclip"></i>
+        <span class="wa-attach-nm" id="attachmentName">لا يوجد ملف محدد</span>
+        <button type="button" class="wa-attach-rm" id="removeAttachment" aria-label="Remove attachment">×</button>
+    </div>
+
+    <div class="wa-rec-bar" id="recordingBar">
+        <span class="wa-rec-dot"></span>
+        <span class="wa-rec-timer" id="recordingTimer">00:00</span>
+        <span class="wa-rec-label">جارٍ تسجيل رسالة صوتية</span>
+        <button type="button" class="wa-rec-cancel" id="cancelRecording"><i class="fas fa-trash"></i> إلغاء</button>
+        <button type="button" class="wa-rec-send" id="sendRecording" aria-label="Send recording"><i class="fas fa-check"></i></button>
+    </div>
+
+    <div class="wa-input-bar">
+        <button type="button" class="wa-icon-btn" id="emojiToggle" aria-label="Emoji picker"><i class="far fa-smile"></i></button>
+        <label class="wa-icon-btn" for="mediaInput" aria-label="Attach media"><i class="fas fa-paperclip"></i></label>
+        <input class="wa-file-input" id="mediaInput" type="file" accept="image/*,video/*,audio/*" />
+        <div class="wa-input-wrap">
+            <textarea id="messageInput" class="wa-input" rows="1" placeholder="اكتب رسالة"></textarea>
+        </div>
+        <button type="button" class="wa-icon-btn wa-mic-btn" id="recordButton" aria-label="Record voice"><i class="fas fa-microphone"></i></button>
+        <button type="button" class="wa-send-btn" id="sendButton" aria-label="Send message"><i class="fas fa-paper-plane"></i></button>
+    </div>
+
+    <div id="status" class="wa-status"></div>
+
+    <!-- Media Modal -->
+    <div id="mediaModal" class="wa-media-modal">
+        <button type="button" class="wa-media-modal-close" onclick="closeMediaModal()">×</button>
+        <div class="wa-media-modal-nav">
+            <button type="button" class="wa-media-modal-prev" id="prevMediaBtn" onclick="prevMedia()">❮</button>
+            <button type="button" class="wa-media-modal-next" id="nextMediaBtn" onclick="nextMedia()">❯</button>
+        </div>
+        <div class="wa-media-modal-content" id="mediaModalContent"></div>
+    </div>
 
 @section Scripts {
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
-        const connection = new signalR.HubConnectionBuilder()
-            .withUrl("/chatHub")
-            .build();
+        (() => {
+            const receiverId = '@receiverId';
+            const senderId = '@senderId';
+            const senderName = '@senderUsername';
+            const chatBox = document.getElementById('chatBox');
+            const messageInput = document.getElementById('messageInput');
+            const statusBox = document.getElementById('status');
+            const sendButton = document.getElementById('sendButton');
+            const mediaInput = document.getElementById('mediaInput');
+            const emojiPanel = document.getElementById('emojiPanel');
+            const emojiToggle = document.getElementById('emojiToggle');
+            const attachmentBar = document.getElementById('attachmentBar');
+            const attachmentName = document.getElementById('attachmentName');
+            const attachmentThumb = document.getElementById('attachmentThumb');
+            const attachmentIcon = document.getElementById('attachmentIcon');
+            const removeAttachment = document.getElementById('removeAttachment');
+            const recordButton = document.getElementById('recordButton');
+            const recordingBar = document.getElementById('recordingBar');
+            const recordingTimer = document.getElementById('recordingTimer');
+            const cancelRecordingButton = document.getElementById('cancelRecording');
+            const sendRecordingButton = document.getElementById('sendRecording');
 
-        connection.on("ReceivePrivateMessage", (senderId,sender, message, timestamp) => {
-            console.log(`استلام رسالة من ${sender}: ${message} في ${timestamp}`);
-            const chatBox = document.getElementById("chatBox");
-            const msg = document.createElement("div");
-            const isSent = sender === '@senderUsername';
-            msg.className = `message ${isSent ? 'sent' : 'received'}`;
-            msg.innerHTML = `
-                <div class="message-sender">${sender}</div>
-                <div>${message}</div>
-                <div class="message-time">${new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
-            `;
-            chatBox.appendChild(msg);
-            chatBox.scrollTop = chatBox.scrollHeight;
-        });
+            let selectedFile = null;
+            let mediaRecorder = null;
+            let mediaStream = null;
+            let recordedChunks = [];
+            let recordTimerId = null;
+            let recordSeconds = 0;
+            let recordedBlob = null;
+            let isWaitingForBlob = false;
+            let discardRecording = false;
+            let recordStartTime = 0;
 
-        connection.on("ReceiveNotification", (sender, message) => {
-            console.log(`إشعار: ${sender}: ${message}`);
-        });
+            const emojiGroups = [
+                ['😀','😁','😂','🤣','😊','😍','😘','😎','🤩','😇'],
+                ['👍','👏','🙌','🤝','🙏','💪','🔥','🎉','❤️','💯'],
+                ['😢','😭','😡','😴','🤔','🙄','😅','😬','🤯','🤗']
+            ];
 
-        document.addEventListener("DOMContentLoaded", () => {
-            const chatBox = document.getElementById("chatBox");
-            chatBox.scrollTop = chatBox.scrollHeight;
-        });
+            emojiPanel.innerHTML = emojiGroups.map((group, index) => `
+                <div class="wa-emoji-cat">${index === 0 ? 'Smileys' : index === 1 ? 'Reactions' : 'More'}</div>
+                <div class="wa-emoji-row">${group.map(emoji => `<button type="button" class="wa-em" data-emoji="${emoji}">${emoji}</button>`).join('')}</div>
+            `).join('');
 
-        connection.start()
-            .then(() => console.log("تم الاتصال بـ SignalR"))
-            .catch(err => {
-                console.error("خطأ في الاتصال بـ SignalR:", err);
-                $("#status").text("فشل الاتصال بخادم الدردشة");
+            const connection = new signalR.HubConnectionBuilder()
+                .withUrl('/chatHub')
+                .withAutomaticReconnect()
+                .build();
+
+            connection.on('ReceivePrivateMessage', function () {
+                const args = Array.from(arguments);
+                let incomingSenderId = null, incomingSender = null, payload = null, timestamp = null, messageId = null, isRead = false;
+                if (args.length === 3) {
+                    incomingSender = args[0];
+                    payload = args[1];
+                    timestamp = args[2];
+                } else {
+                    incomingSenderId = args[0];
+                    incomingSender = args[1];
+                    payload = args[2];
+                    timestamp = args[3];
+                    messageId = args[4];
+                    isRead = !!args[5];
+                }
+                if (incomingSenderId && incomingSenderId === senderId) return;
+
+                appendMessage({ senderId: incomingSenderId || null, senderName: incomingSender, content: payload, timestamp, messageId, isRead: !!isRead, isSent: false });
+                markConversationRead();
             });
 
-        function sendPrivateMessage() {
-            const message = $("#messageInput").val();
-            if (!message) {
-                $("#status").text("الرسالة لا يمكن أن تكون فارغة");
-                return;
-            }
+            connection.on('MessagesRead', (messageIds) => {
+                (messageIds || []).forEach(id => {
+                    const ticks = document.querySelector(`.wa-row[data-message-id="${id}"] .wa-ticks`);
+                    if (ticks) ticks.classList.add('read');
+                });
+            });
 
-            $.ajax({
-                url: '/Chat/SendPrivateMessage',
-                type: 'POST',
-                data: { receiverId: '@receiverId', content: message },
-                success: function (response) {
-                    if (response.success) {
-                        $("#messageInput").val("");
-                        $("#status").text("");
-                        const chatBox = document.getElementById("chatBox");
-                        const msg = document.createElement("div");
-                        msg.className = "message sent";
-                        msg.innerHTML = `
-                            <div class="message-sender">@senderUsername</div>
-                            <div>${message}</div>
-                            <div class="message-time">${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
-                        `;
-                        chatBox.appendChild(msg);
-                        chatBox.scrollTop = chatBox.scrollHeight;
-                        connection.invoke("SendPrivateMessage", "@receiverId", "@senderId", "@senderUsername", message)
-                            .catch(err => {
-                                console.error("خطأ في استدعاء SignalR:", err);
-                                $("#status").text("خطأ في إشعار المستقبل");
-                            });
-                    } else {
-                        $("#status").text(response.message);
-                    }
-                },
-                error: function () {
-                    console.error("خطأ AJAX: فشل إرسال الرسالة");
-                    $("#status").text("خطأ في إرسال الرسالة");
+            connection.on('ReceiveNotification', (sender, message) => {
+                if (typeof window.showTopNotification === 'function') {
+                    window.showTopNotification(sender, message, 'msg');
                 }
             });
+
+            connection.start().then(() => markConversationRead()).catch(() => showStatus('فشل الاتصال بخادم الدردشة'));
+            sendButton.addEventListener('click', sendMessage);
+            messageInput.addEventListener('keydown', (event) => {
+                if (event.key === 'Enter' && !event.shiftKey) {
+                    event.preventDefault();
+                    sendMessage();
+                }
+            });
+            messageInput.addEventListener('input', autoResize);
+            emojiToggle.addEventListener('click', () => emojiPanel.classList.toggle('open'));
+            emojiPanel.addEventListener('click', (event) => {
+                const button = event.target.closest('[data-emoji]');
+                if (!button) return;
+                insertAtCursor(messageInput, button.dataset.emoji);
+                autoResize();
+                messageInput.focus();
+            });
+            mediaInput.addEventListener('change', () => {
+                selectedFile = mediaInput.files[0] || null;
+                recordedBlob = null;
+                updateAttachmentPreview();
+            });
+            removeAttachment.addEventListener('click', clearAttachment);
+            recordButton.addEventListener('click', startRecording);
+            cancelRecordingButton.addEventListener('click', cancelRecording);
+            sendRecordingButton.addEventListener('click', sendRecording);
+            document.addEventListener('click', (event) => {
+                if (!emojiPanel.contains(event.target) && !emojiToggle.contains(event.target)) emojiPanel.classList.remove('open');
+            });
+
+            sortMessages();
+            scrollToBottom();
+            autoResize();
+
+            async function sendMessage() {
+                const text = messageInput.value.trim();
+                if (selectedFile || recordedBlob) {
+                    await sendMediaMessage();
+                    return;
+                }
+                if (!text) {
+                    showStatus('الرسالة لا يمكن أن تكون فارغة');
+                    return;
+                }
+
+                sendButton.disabled = true;
+                $.ajax({
+                    url: '/Chat/SendPrivateMessage',
+                    type: 'POST',
+                    data: { receiverId, content: text },
+                    success: function (response) {
+                        if (!response.success) {
+                            showStatus(response.message || 'تعذر إرسال الرسالة');
+                            return;
+                        }
+                        appendMessage({ senderId, senderName, content: text, timestamp: response.timestamp || new Date().toISOString(), messageId: response.messageId, isRead: false, isSent: true });
+                        messageInput.value = '';
+                        autoResize();
+                        showStatus('');
+                    },
+                    error: function () { showStatus('حدث خطأ أثناء إرسال الرسالة'); },
+                    complete: function () { sendButton.disabled = false; }
+                });
+            }
+
+            async function sendMediaMessage() {
+                const fileToSend = selectedFile || buildRecordedFile();
+                console.log('[Media] recordedBlob size (before send):', recordedBlob ? recordedBlob.size : null, 'recordedChunks:', recordedChunks ? recordedChunks.length : null);
+                if (!fileToSend) {
+                    showStatus('❌ لا يوجد ملف أو تسجيل صوتي للإرسال');
+                    console.warn('[Media] لا يوجد fileToSend');
+                    return;
+                }
+
+                // Prevent uploading empty files which cause 0:00 audio messages
+                if (typeof fileToSend.size === 'number' && fileToSend.size === 0) {
+                    console.error('[Media] fileToSend.size === 0 — aborting upload');
+                    showStatus('❌ الملف فارغ — أعد التسجيل');
+                    sendButton.disabled = false;
+                    return;
+                }
+
+                console.log('[Media] إرسال الملف:', { name: fileToSend.name, size: fileToSend.size, type: fileToSend.type });
+                showStatus(`📤 جاري رفع الملف (${(fileToSend.size / 1024).toFixed(2)} KB)...`);
+
+                const mediaType = resolveMediaType(fileToSend);
+                const formData = new FormData();
+                formData.append('file', fileToSend);
+                formData.append('receiverId', receiverId);
+                formData.append('mediaType', mediaType);
+
+                sendButton.disabled = true;
+                try {
+                    const response = await fetch('/Chat/SendMedia', { method: 'POST', body: formData });
+
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        console.error('[Media] خطأ في الرفع:', response.status, errorText);
+                        showStatus(`❌ خطأ في الرفع: ${response.status}`);
+                        return;
+                    }
+
+                    const result = await response.json();
+
+                    if (!result.success) {
+                        console.error('[Media] فشل الإرسال:', result.message);
+                        showStatus(result.message || '❌ تعذر إرسال الوسائط');
+                        return;
+                    }
+
+                    console.log('[Media] ✓ تم الإرسال بنجاح:', result.url);
+                    appendMessage({ senderId, senderName, content: `[media:${mediaType}:${result.url}]`, timestamp: result.timestamp || new Date().toISOString(), messageId: result.messageId, isRead: false, isSent: true });
+                    clearAttachment();
+                    stopRecordingUi();
+                    showStatus('✓ تم الإرسال بنجاح');
+
+                    // امسح الرسالة بعد ثانية
+                    setTimeout(() => showStatus(''), 2000);
+                } catch (error) {
+                    console.error('[Media] خطأ في الاتصال:', error);
+                    showStatus(`❌ خطأ في الاتصال: ${error.message}`);
+                } finally {
+                    sendButton.disabled = false;
+                }
+            }
+
+            function appendMessage(message) {
+                const row = document.createElement('div');
+                row.className = `wa-row ${message.isSent ? 'sent' : 'received'}`;
+                row.dataset.timestamp = normalizeTimestamp(message.timestamp);
+                if (message.messageId) row.dataset.messageId = message.messageId;
+
+                const bubble = document.createElement('div');
+                bubble.className = 'wa-bubble';
+                const parsed = parseMessagePayload(message.content);
+
+                if (parsed.type === 'image') bubble.innerHTML += `<img class="wa-media-img" src="${escapeAttribute(parsed.url)}" alt="image message" loading="lazy">`;
+                else if (parsed.type === 'video') bubble.innerHTML += `<video class="wa-media-video" controls preload="metadata"><source src="${escapeAttribute(parsed.url)}" type="video/mp4"></video>`;
+                else if (parsed.type === 'audio') bubble.innerHTML += `<div class="wa-media-audio-wrap"><i class="fas fa-microphone wa-audio-ic"></i><audio controls preload="auto"><source src="${escapeAttribute(parsed.url)}" type="audio/webm"><source src="${escapeAttribute(parsed.url)}" type="audio/ogg"><source src="${escapeAttribute(parsed.url)}" type="audio/mpeg"></audio></div>`;
+                else if (parsed.url) bubble.innerHTML += `<a class="wa-media-link" href="${escapeAttribute(parsed.url)}" target="_blank" rel="noopener">فتح الملف</a>`;
+
+                if (parsed.text) {
+                    const p = document.createElement('p');
+                    p.className = 'wa-text';
+                    p.textContent = parsed.text;
+                    bubble.appendChild(p);
+                }
+
+                const meta = document.createElement('div');
+                meta.className = 'wa-meta';
+                meta.innerHTML = `<span class="wa-time">${formatTime(message.timestamp)}</span>${message.isSent ? `<span class="wa-ticks ${message.isRead ? 'read' : ''}">✓✓</span>` : ''}`;
+                bubble.appendChild(meta);
+                row.appendChild(bubble);
+                chatBox.appendChild(row);
+                sortMessages();
+                scrollToBottom();
+            }
+
+            function parseMessagePayload(payload) {
+                const value = payload || '';
+                const mediaMatch = value.match(/^\[media:(image|video|audio):(.+)\]$/i);
+                if (mediaMatch) return { type: mediaMatch[1].toLowerCase(), url: sanitizeUrl(mediaMatch[2]), text: '' };
+                return { type: '', url: '', text: value.startsWith('[') && value.endsWith(']') ? '' : value };
+            }
+
+            function sanitizeUrl(url) { return String(url || '').replace(/\u200f|\u200e|\u061c/g, ''); }
+            function formatTime(timestamp) { const date = timestamp ? new Date(timestamp) : new Date(); return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); }
+            function normalizeTimestamp(timestamp) { const date = timestamp ? new Date(timestamp) : new Date(); return date.toISOString(); }
+            function sortMessages() { Array.from(chatBox.querySelectorAll('.wa-row')).sort((a,b) => new Date(a.dataset.timestamp) - new Date(b.dataset.timestamp)).forEach(row => chatBox.appendChild(row)); }
+            function autoResize() { messageInput.style.height = 'auto'; messageInput.style.height = Math.min(messageInput.scrollHeight, 120) + 'px'; }
+            function scrollToBottom() { chatBox.scrollTop = chatBox.scrollHeight; }
+            function showStatus(message) { statusBox.textContent = message; }
+            function insertAtCursor(textarea, text) { const start = textarea.selectionStart; const end = textarea.selectionEnd; textarea.value = textarea.value.slice(0, start) + text + textarea.value.slice(end); textarea.selectionStart = textarea.selectionEnd = start + text.length; }
+            function updateAttachmentPreview() {
+                const file = selectedFile;
+                if (!file) { attachmentBar.classList.remove('show'); attachmentThumb.classList.add('wa-hidden'); attachmentThumb.removeAttribute('src'); attachmentName.textContent = 'لا يوجد ملف محدد'; attachmentIcon.className = 'fas fa-paperclip'; return; }
+                attachmentBar.classList.add('show'); attachmentName.textContent = file.name; attachmentIcon.className = file.type.startsWith('video/') ? 'fas fa-video' : file.type.startsWith('audio/') ? 'fas fa-microphone' : 'fas fa-image';
+                if (file.type.startsWith('image/')) { attachmentThumb.src = URL.createObjectURL(file); attachmentThumb.classList.remove('wa-hidden'); } else { attachmentThumb.classList.add('wa-hidden'); attachmentThumb.removeAttribute('src'); }
+            }
+            function clearAttachment() { selectedFile = null; recordedBlob = null; mediaInput.value = ''; attachmentBar.classList.remove('show'); attachmentThumb.classList.add('wa-hidden'); attachmentThumb.removeAttribute('src'); attachmentName.textContent = 'لا يوجد ملف محدد'; attachmentIcon.className = 'fas fa-paperclip'; }
+
+            async function startRecording() {
+                // التحقق من دعم المتصفح
+                if (!navigator.mediaDevices) {
+                    showStatus('❌ خطأ: متصفحك لا يدعم الوصول للميكروفون. استخدم متصفح حديث (Chrome, Firefox, Edge)');
+                    console.error('mediaDevices not supported');
+                    return;
+                }
+
+                if (!window.MediaRecorder) {
+                    showStatus('❌ خطأ: MediaRecorder غير مدعوم في هذا المتصفح');
+                    console.error('MediaRecorder not supported');
+                    return;
+                }
+
+                if (mediaRecorder && mediaRecorder.state === 'recording') {
+                    showStatus('التسجيل جاري بالفعل');
+                    return;
+                }
+
+                try {
+                    console.log('[Audio] طلب إذن الوصول للميكروفون...');
+                    showStatus('⏳ جاري طلب إذن الوصول للميكروفون...');
+
+                    // طلب الوصول للميكروفون مع معاملات مرنة
+                    const constraints = {
+                        audio: {
+                            echoCancellation: true,
+                            noiseSuppression: true,
+                            autoGainControl: true
+                        }
+                    };
+
+                    mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
+                    console.log('[Audio] ✓ تم منح إذن الوصول للميكروفون', mediaStream.getAudioTracks());
+                    showStatus('✓ تم الاتصال بالميكروفون بنجاح');
+
+                    // التحقق من وجود مسارات صوتية
+                    const audioTracks = mediaStream.getAudioTracks();
+                    if (audioTracks.length === 0) {
+                        showStatus('❌ لا توجد مسارات صوتية متاحة. تحقق من توصيل الميكروفون');
+                        return;
+                    }
+
+                    console.log(`[Audio] عدد مسارات الصوت: ${audioTracks.length}`);
+                    audioTracks.forEach((track, i) => {
+                        console.log(`[Audio] المسار ${i}: ${track.label}, الحالة: ${track.readyState}`);
+                    });
+
+                    recordedChunks = [];
+                    recordedBlob = null;
+
+                    // إنشاء MediaRecorder
+                    const options = {
+                        mimeType: 'audio/webm;codecs=opus'
+                    };
+
+                    // التحقق من دعم الـ mime type
+                    if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+                        console.warn(`[Audio] ${options.mimeType} غير مدعوم، استخدام الـ default`);
+                        mediaRecorder = new MediaRecorder(mediaStream);
+                    } else {
+                        mediaRecorder = new MediaRecorder(mediaStream, options);
+                    }
+
+                    console.log('[Audio] MediaRecorder مُنشأ:', mediaRecorder.mimeType);
+
+                    mediaRecorder.ondataavailable = (event) => {
+                        const size = event.data.size;
+                        console.log(`[Audio] ondataavailable fired: ${size} bytes, mimeType: ${mediaRecorder.mimeType || 'undefined'}`);
+                        if (size > 0) {
+                            recordedChunks.push(event.data);
+                            console.log('[Audio] chunk saved, total chunks:', recordedChunks.length, 'total size so far:', recordedChunks.reduce((s, b) => s + b.size, 0), 'bytes');
+                        } else {
+                            console.warn('[Audio] ondataavailable fired but with 0 bytes');
+                        }
+                    };
+
+                    mediaRecorder.onstop = () => {
+                        console.log('[Audio] onstop fired، عدد البيانات:', recordedChunks.length, 'discard:', discardRecording);
+                        if (discardRecording) {
+                            discardRecording = false;
+                            recordedChunks = [];
+                            recordedBlob = null;
+                            cleanupMediaStream();
+                            isWaitingForBlob = false;
+                            sendRecordingButton.disabled = false;
+                            console.log('[Audio] onstop: تم الإلغاء');
+                            return;
+                        }
+                        if (recordedChunks.length === 0) {
+                            console.error('[Audio] onstop: لا توجد chunks');
+                            cleanupMediaStream();
+                            showStatus('❌ فشل التسجيل - لم يتم التقاط أي صوت. سجّل لمدة ثانية على الأقل');
+                            isWaitingForBlob = false;
+                            sendRecordingButton.disabled = false;
+                            return;
+                        }
+                        const rawBlob = new Blob(recordedChunks, { type: mediaRecorder.mimeType || 'audio/webm' });
+                        const durationMs = Date.now() - recordStartTime;
+                        console.log('[Audio] Raw blob:', rawBlob.size, 'bytes, duration:', durationMs, 'ms, chunks:', recordedChunks.map(c => c.size));
+                        fixWebmDuration(rawBlob, durationMs).then(fixed => {
+                            recordedBlob = fixed;
+                            isWaitingForBlob = false;
+                            sendRecordingButton.disabled = false;
+                            attachmentBar.classList.add('show');
+                            attachmentThumb.classList.add('wa-hidden');
+                            attachmentName.textContent = `رسالة صوتية (${(recordedBlob.size / 1024).toFixed(2)} KB)`;
+                            attachmentIcon.className = 'fas fa-microphone';
+                            showStatus('✓ تم التسجيل بنجاح، اضغط الآن لإرسالها');
+                            cleanupMediaStream();
+                        });
+                    };
+
+                    mediaRecorder.onstart = () => {
+                        console.log('[Audio] MediaRecorder started, mimeType:', mediaRecorder.mimeType);
+                    };
+
+                    mediaRecorder.onerror = (event) => {
+                        console.error('[Audio] خطأ في التسجيل:', event.error);
+                        showStatus(`❌ خطأ في التسجيل: ${event.error}`);
+                    };
+
+                    recordStartTime = Date.now();
+                    mediaRecorder.start(500);
+                    console.log('[Audio] بدء التسجيل مع timeslice 500ms...');
+
+                    recordButton.classList.add('recording');
+                    recordingBar.classList.add('active');
+                    recordSeconds = 0;
+                    recordingTimer.textContent = '00:00';
+
+                    // تعطيل زر الإرسال لأول 1.5 ثانية لضمان تسجيل كافٍ
+                    sendRecordingButton.disabled = true;
+                    sendRecordingButton.title = 'انتظر...';
+                    setTimeout(() => {
+                        if (mediaRecorder && mediaRecorder.state === 'recording') {
+                            sendRecordingButton.disabled = false;
+                            sendRecordingButton.title = '';
+                        }
+                    }, 1500);
+
+                    recordTimerId = window.setInterval(() => {
+                        recordSeconds += 1;
+                        const minutes = String(Math.floor(recordSeconds / 60)).padStart(2, '0');
+                        const seconds = String(recordSeconds % 60).padStart(2, '0');
+                        recordingTimer.textContent = `${minutes}:${seconds}`;
+                    }, 1000);
+
+                    clearAttachment();
+                    showStatus('🔴 جاري التسجيل... اضغط على ✓ للإنهاء أو سلة لإلغاء');
+
+                } catch (error) {
+                    console.error('[Audio] حدث خطأ:', error);
+
+                    // تشخيص الأخطاء المختلفة
+                    if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+                        showStatus('❌ تم رفض إذن الوصول للميكروفون. يرجى السماح بالوصول في إعدادات المتصفح');
+                    } else if (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError') {
+                        showStatus('❌ لم يتم العثور على ميكروفون. تحقق من توصيل جهاز الصوت');
+                    } else if (error.name === 'NotSupportedError' || error.name === 'TypeError') {
+                        showStatus('❌ متصفحك لا يدعم التسجيل الصوتي أو تطبيق لا يعمل على HTTPS');
+                    } else if (error.name === 'AbortError') {
+                        showStatus('❌ تم إيقاف طلب الوصول للميكروفون');
+                    } else {
+                        showStatus(`❌ خطأ في الوصول للميكروفون: ${error.message}`);
+                    }
+                }
+            }
+            function cancelRecording() { recordedBlob = null; discardRecording = true; stopRecorder(true); stopRecordingUi(); showStatus('تم إلغاء التسجيل'); }
+
+            function sendRecording() {
+                console.log('[Audio] محاولة إرسال التسجيل', { recordedBlob: !!recordedBlob, mediaRecorder: !!mediaRecorder, state: mediaRecorder?.state });
+
+                if (!mediaRecorder || mediaRecorder.state !== 'recording') {
+                    if (recordedBlob) {
+                        console.log('[Audio] إرسال التسجيل المحفوظ');
+                        sendMediaMessage();
+                    } else {
+                        showStatus('❌ لا توجد رسالة صوتية مسجلة');
+                        console.warn('[Audio] لا يوجد recordedBlob');
+                    }
+                    return;
+                }
+
+                console.log('[Audio] إيقاف التسجيل الجاري والانتظار للبيانات...');
+                showStatus('⏳ جاري معالجة التسجيل...');
+
+                isWaitingForBlob = true;
+                stopRecorder(false);
+                recordTimerId && clearInterval(recordTimerId);
+
+                // انتظر البيانات الصوتية بصبر
+                const checkBlobInterval = setInterval(() => {
+                    if (recordedBlob && !isWaitingForBlob) {
+                        console.log('[Audio] تم استقبال البيانات الصوتية:', recordedBlob.size, 'bytes');
+                        clearInterval(checkBlobInterval);
+                        sendMediaMessage();
+                        stopRecordingUi();
+                    } else if (!isWaitingForBlob) {
+                        // stopped but no blob? onstop must have handled it
+                        clearInterval(checkBlobInterval);
+                        stopRecordingUi();
+                    }
+                }, 50);
+
+                // timeout بعد 7 ثواني (زيادة المهلة قليلاً)
+                setTimeout(() => {
+                    clearInterval(checkBlobInterval);
+                    if (isWaitingForBlob) {
+                        isWaitingForBlob = false;
+                        showStatus('❌ انتهت مهلة الانتظار - لم يتم استقبال البيانات الصوتية. حاول مجددًا');
+                        console.error('[Audio] Timeout - لم يتم استقبال البيانات');
+                        stopRecordingUi();
+                    }
+                }, 7000);
+            }
+            function stopRecorder(discard) {
+                discardRecording = discard;
+                if (mediaRecorder && mediaRecorder.state === 'recording') {
+                    console.log('[Audio] إيقاف MediaRecorder، عدد chunks قبل الإيقاف:', recordedChunks.length);
+                    try {
+                        mediaRecorder.requestData();
+                        console.log('[Audio] requestData تم استدعاؤه');
+                    } catch (e) {
+                        console.warn('[Audio] requestData failed:', e);
+                    }
+                    mediaRecorder.stop();
+                    console.log('[Audio] stop تم استدعاؤه');
+                    return;
+                }
+                if (mediaStream) {
+                    cleanupMediaStream();
+                }
+                if (discard) {
+                    recordedChunks = [];
+                    recordedBlob = null;
+                    console.log('[Audio] تم مسح البيانات المسجلة');
+                }
+            }
+
+            function cleanupMediaStream() {
+                if (mediaStream) {
+                    const tracks = mediaStream.getTracks();
+                    console.log('[Audio] إيقاف مسارات الصوت:', tracks.length);
+                    tracks.forEach(track => {
+                        track.stop();
+                        console.log('[Audio] تم إيقاف مسار:', track.label);
+                    });
+                    mediaStream = null;
+                }
+            }
+
+            function stopRecordingUi() {
+                recordButton.classList.remove('recording');
+                recordingBar.classList.remove('active');
+                if (recordTimerId) {
+                    clearInterval(recordTimerId);
+                    recordTimerId = null;
+                }
+                recordingTimer.textContent = '00:00';
+                sendRecordingButton.disabled = false;
+                sendRecordingButton.title = '';
+                console.log('[Audio] تم تحديث واجهة الإيقاف');
+            }
+            function buildRecordedFile() {
+                if (!recordedBlob) {
+                    console.warn('[Audio] recordedBlob فارغ');
+                    return null;
+                }
+
+                if (recordedBlob.size === 0) {
+                    console.error('[Audio] حجم الـ blob = 0');
+                    return null;
+                }
+
+                const mimeType = recordedBlob.type || 'audio/webm';
+                // استخراج اللاحقة فقط بدون معاملات إضافية مثل ;codecs=opus
+                const extension = (mimeType.split('/')[1] || 'webm').split(';')[0];
+                const fileName = `voice-${Date.now()}.${extension}`;
+                const file = new File([recordedBlob], fileName, { type: mimeType });
+
+                console.log('[Audio] ملف مُنشأ:', { name: file.name, size: file.size, type: file.type });
+                return file;
+            }
+            function resolveMediaType(file) { if (file.type.startsWith('image/')) return 'image'; if (file.type.startsWith('video/')) return 'video'; return 'audio'; }
+            function escapeAttribute(value) { return sanitizeUrl(String(value).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;')); }
+            function markConversationRead() { fetch('/Chat/MarkRead', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' }, body: new URLSearchParams({ partnerId: receiverId }).toString() }).catch(() => {}); }
+
+            // إصلاح مدة WebM - يضيف عنصر Duration المفقود في ملفات MediaRecorder
+            function fixWebmDuration(blob, durationMs) {
+                return blob.arrayBuffer().then(buffer => {
+                    const data = new Uint8Array(buffer);
+                    // ابحث عن معرف EBML لعنصر Duration (0x4489) في أول 1KB
+                    const searchLimit = Math.min(data.length, 1024);
+                    for (let i = 0; i < searchLimit - 9; i++) {
+                        if (data[i] === 0x44 && data[i + 1] === 0x89) {
+                            // تحقق أن الحجم هو 8 بايت (float64)
+                            if (data[i + 2] === 0x88) {
+                                const view = new DataView(buffer);
+                                // اكتب المدة بالميلي ثانية كـ float64
+                                view.setFloat64(i + 3, durationMs, false);
+                                console.log('[Audio] تم إصلاح مدة WebM:', durationMs, 'ms');
+                                return new Blob([buffer], { type: blob.type });
+                            }
+                        }
+                    }
+                    // لم يُعثر على عنصر Duration - إرجاع الـ blob الأصلي
+                    console.warn('[Audio] لم يُعثر على عنصر Duration في WebM');
+                    return blob;
+                }).catch(() => blob);
+            }
+        })();
+
+        // ============ Media Modal Functions ============
+        let currentMediaIndex = 0;
+        let mediaList = [];
+
+        function openMediaModal(element, messageId, type) {
+            const modal = document.getElementById('mediaModal');
+            if (!modal) return;
+
+            // جلب جميع الصور/الفيديوهات في المحادثة
+            mediaList = Array.from(document.querySelectorAll(`.wa-media-${type === 'private' ? 'img' : 'img'}.wa-media-clickable`)).map((el, index) => ({
+                src: el.src,
+                alt: el.alt,
+                messageId: el.dataset.messageId,
+                type: 'image'
+            }));
+
+            currentMediaIndex = mediaList.findIndex(m => m.messageId == messageId);
+            displayMediaModal();
         }
+
+        function displayMediaModal() {
+            const modal = document.getElementById('mediaModal');
+            const content = document.getElementById('mediaModalContent');
+            const prevBtn = document.getElementById('prevMediaBtn');
+            const nextBtn = document.getElementById('nextMediaBtn');
+
+            if (!modal || mediaList.length === 0) return;
+
+            const current = mediaList[currentMediaIndex];
+            content.innerHTML = `<img src="${current.src}" alt="${current.alt}" style="max-width: 100%; max-height: 90vh; border-radius: 8px;">`;
+
+            prevBtn.style.display = currentMediaIndex > 0 ? 'block' : 'none';
+            nextBtn.style.display = currentMediaIndex < mediaList.length - 1 ? 'block' : 'none';
+
+            modal.classList.add('active');
+        }
+
+        function closeMediaModal() {
+            const modal = document.getElementById('mediaModal');
+            if (modal) {
+                modal.classList.remove('active');
+                mediaList = [];
+            }
+        }
+
+        function prevMedia() {
+            if (currentMediaIndex > 0) {
+                currentMediaIndex--;
+                displayMediaModal();
+            }
+        }
+
+        function nextMedia() {
+            if (currentMediaIndex < mediaList.length - 1) {
+                currentMediaIndex++;
+                displayMediaModal();
+            }
+        }
+
+        // Close modal on outside click
+        document.getElementById('mediaModal')?.addEventListener('click', function(event) {
+            if (event.target === this) {
+                closeMediaModal();
+            }
+        });
+
+        // Keyboard navigation
+        document.addEventListener('keydown', function(event) {
+            const modal = document.getElementById('mediaModal');
+            if (!modal || !modal.classList.contains('active')) return;
+
+            if (event.key === 'ArrowLeft') prevMedia();
+            if (event.key === 'ArrowRight') nextMedia();
+            if (event.key === 'Escape') closeMediaModal();
+        });
     </script>
 }

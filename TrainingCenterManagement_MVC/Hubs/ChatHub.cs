@@ -165,21 +165,81 @@ namespace Messaging_Chat_Application_MahmoudHakim.Hubs
         {
             if (userId is null || userId == string.Empty)
                 userId = await GetCurrentUserId();
-            //var groupMessage = new GroupMessage
-            //{
-            //    CourseId = courseId,
-            //    SenderId = userId,
-            //    Content = message,
-            //    Timestamp = DateTime.Now
-            //};
-            //_context.GroupMessages.Add(groupMessage);
-            //await _context.SaveChangesAsync();
-            await Clients.Group($"Course_{courseId}").SendAsync("ReceiveGroupMessage",userId, user, message, DateTime.Now);
 
-            // إرسال قائمة المحادثات الأخيرة لجميع أعضاء المجموعة
+            await Clients.Group($"Course_{courseId}").SendAsync("ReceiveGroupMessage", userId, user, message, DateTime.Now);
+
             var recentContacts = await GetRecentContacts(userId);
             await Clients.Group($"Course_{courseId}").SendAsync("UpdateRecentContacts", recentContacts);
-            await Clients.Group($"Course_{courseId}").SendAsync("ReceiveNotification", user, message);
+
+            // إرسال التوست للأعضاء الآخرين فقط (بدون المرسل)
+            await Clients.OthersInGroup($"Course_{courseId}").SendAsync("ReceiveNotification", user, message);
+
+            // حفظ إشعار في قاعدة البيانات لكل عضو في المجموعة (ما عدا المرسل)
+            await SaveGroupMessageNotificationsAsync(courseId, userId, user, message);
+        }
+
+        private async Task SaveGroupMessageNotificationsAsync(Guid courseId, string senderId, string senderName, string message)
+        {
+            try
+            {
+                var course = await _context.Courses.FindAsync(courseId);
+                if (course == null) return;
+
+                var traineeUserIds = await _context.CourseTrainees
+                    .Where(ct => ct.CourseId == courseId)
+                    .Include(ct => ct.Trainee)
+                    .Where(ct => ct.Trainee.UserId != senderId)
+                    .Select(ct => ct.Trainee.UserId)
+                    .ToListAsync();
+
+                var trainerUserIds = await _context.CourseTrainers
+                    .Where(ct => ct.CourseId == courseId)
+                    .Include(ct => ct.Trainer)
+                    .Where(ct => ct.Trainer.UserId != senderId)
+                    .Select(ct => ct.Trainer.UserId)
+                    .ToListAsync();
+
+                var allUserIds = traineeUserIds.Union(trainerUserIds).Distinct().ToList();
+                if (!allUserIds.Any()) return;
+
+                var truncated = message.Length > 100 ? message.Substring(0, 100) + "..." : message;
+
+                // 1. حفظ إشعار في قاعدة البيانات لكل عضو
+                var notifications = allUserIds.Select(uid => new UserNotification
+                {
+                    NotificationId = Guid.NewGuid(),
+                    UserId = uid,
+                    Title = $"رسالة في {course.CourseName}",
+                    Message = $"{senderName}: {truncated}",
+                    Type = NotificationType.MessageReceived,
+                    IsRead = false,
+                    CreatedAt = DateTime.UtcNow,
+                    RelatedId = courseId.ToString()
+                }).ToList();
+
+                _context.Notifications.AddRange(notifications);
+                await _context.SaveChangesAsync();
+
+                // 2. إرسال SignalR مباشرة لكل اتصالات الأعضاء (يشمل الـ notification widget)
+                // الـ OthersInGroup في SendGroupMessage يغطي من هو على صفحة الدردشة
+                // هذا الإرسال المباشر يغطي من هو على صفحات أخرى (Dashboard, Lectures...)
+                foreach (var uid in allUserIds)
+                {
+                    var connections = await _context.UserConnections
+                        .Where(c => c.UserId == uid && c.IsConnected)
+                        .Select(c => c.ConnectionId)
+                        .ToListAsync();
+
+                    foreach (var connId in connections)
+                    {
+                        await Clients.Client(connId).SendAsync("ReceiveNotification", senderName, message);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[SaveGroupMessageNotifications] ERROR: {ex.Message}");
+            }
         }
         public async Task SendPrivateMessage(string receiverId, string userId, string sender, string message)
         {
@@ -211,8 +271,22 @@ namespace Messaging_Chat_Application_MahmoudHakim.Hubs
                     Content = message,
                     Timestamp = DateTime.UtcNow
                 };
-
                 _context.Messages.Add(privateMessage);
+
+                var truncatedMsg = message.Length > 120 ? message.Substring(0, 120) + "..." : message;
+                var notification = new UserNotification
+                {
+                    NotificationId = Guid.NewGuid(),
+                    UserId = receiverId,
+                    Title = senderName,
+                    Message = truncatedMsg,
+                    Type = NotificationType.MessageReceived,
+                    IsRead = false,
+                    CreatedAt = DateTime.UtcNow,
+                    RelatedId = userId
+                };
+                _context.Notifications.Add(notification);
+
                 await _context.SaveChangesAsync();
 
                 // جلب الاتصالات

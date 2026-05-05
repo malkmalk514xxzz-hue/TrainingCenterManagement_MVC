@@ -1,5 +1,6 @@
 ﻿using Messaging_Chat_Application_MahmoudHakim.Hubs;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
@@ -16,12 +17,14 @@ namespace TrainingCenterManagement_MVC.Controllers
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IHubContext<ChatHub> _hubContext;
+        private readonly IWebHostEnvironment _env;
 
-        public ChatController(ApplicationDbContext context, UserManager<ApplicationUser> userManager, IHubContext<ChatHub> hubContext)
+        public ChatController(ApplicationDbContext context, UserManager<ApplicationUser> userManager, IHubContext<ChatHub> hubContext, IWebHostEnvironment env)
         {
             _context = context;
             _userManager = userManager;
             _hubContext = hubContext;
+            _env = env;
         }
         
 
@@ -118,13 +121,17 @@ namespace TrainingCenterManagement_MVC.Controllers
 
         public async Task<IActionResult> GroupChat(Guid courseId)
         {
+            var userId = await GetUserIdAsync();
             var messages = await _context.GroupMessages
                 .Where(m => m.CourseId == courseId)
                 .Include(m => m.Sender)
                 .OrderBy(m => m.Timestamp)
+                .ThenBy(m => m.Id)
                 .ToListAsync();
+            var course = await _context.Courses.FindAsync(courseId);
             ViewBag.CourseId = courseId;
-            ViewBag.user   = await _context.Users.FindAsync(await GetUserIdAsync());
+            ViewBag.CourseName = course?.CourseName ?? "Group Chat";
+            ViewBag.UserId = userId;
             return View(messages);
         }
 
@@ -137,11 +144,138 @@ namespace TrainingCenterManagement_MVC.Controllers
                 .Include(m => m.Sender)
                 .Include(m => m.Receiver)
                 .OrderBy(m => m.Timestamp)
+                .ThenBy(m => m.Id)
                 .ToListAsync();
+
+            // Mark received messages as read on open
+            var unread = messages.Where(m => m.SenderId == receiverId && !m.IsRead).ToList();
+            if (unread.Any())
+            {
+                unread.ForEach(m => m.IsRead = true);
+                await _context.SaveChangesAsync();
+            }
+
             ViewBag.ReceiverId = receiverId;
+            ViewBag.UserId = userId;
             var receiver = await _context.Users.FindAsync(receiverId);
             ViewBag.ReceiverUsername = receiver?.UserName;
             return View(messages);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> MarkRead(string partnerId)
+        {
+            var userId = await GetUserIdAsync();
+            var unread = await _context.Messages
+                .Where(m => m.SenderId == partnerId && m.ReceiverId == userId && !m.IsRead)
+                .ToListAsync();
+            if (unread.Any())
+            {
+                unread.ForEach(m => m.IsRead = true);
+                await _context.SaveChangesAsync();
+
+                // Notify sender that messages were read
+                var senderConnections = await _context.UserConnections
+                    .Where(c => c.UserId == partnerId && c.IsConnected)
+                    .Select(c => c.ConnectionId).ToListAsync();
+                var msgIds = unread.Select(m => m.Id).ToList();
+                foreach (var conn in senderConnections)
+                    await _hubContext.Clients.Client(conn).SendAsync("MessagesRead", msgIds);
+            }
+            return Json(new { success = true });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> SendMedia(IFormFile file, string? receiverId, string? courseId, string mediaType)
+        {
+            if (file == null || file.Length == 0)
+                return Json(new { success = false, message = "No file provided" });
+            if (file.Length > 50 * 1024 * 1024)
+                return Json(new { success = false, message = "File exceeds 50 MB limit" });
+
+            var userId = await GetUserIdAsync();
+            var user = await _context.Users.FindAsync(userId);
+            var now = DateTime.Now;
+
+            var origExt = Path.GetExtension(file.FileName).ToLowerInvariant();
+            if (!string.IsNullOrEmpty(origExt))
+            {
+                origExt = origExt.Split(';')[0];
+            }
+            var ext = string.IsNullOrEmpty(origExt)
+                ? (mediaType == "audio" ? ".webm" : mediaType == "video" ? ".mp4" : ".jpg")
+                : origExt;
+
+            var yearPart = now.Year.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            var monthPart = now.Month.ToString("00", System.Globalization.CultureInfo.InvariantCulture);
+            var folder = Path.Combine(_env.WebRootPath, "uploads", mediaType, yearPart, monthPart);
+            Directory.CreateDirectory(folder);
+            var fileName = $"{Guid.NewGuid()}{ext}";
+            using (var stream = System.IO.File.Create(Path.Combine(folder, fileName)))
+                await file.CopyToAsync(stream);
+
+            var url = $"/uploads/{mediaType}/{yearPart}/{monthPart}/{fileName}";
+            var senderName = user?.UserName ?? "User";
+
+            if (!string.IsNullOrEmpty(receiverId))
+            {
+                var msg = new Message
+                {
+                    SenderId = userId,
+                    ReceiverId = receiverId,
+                    Content = $"[{mediaType} message]",
+                    MediaUrl = url,
+                    Timestamp = DateTime.Now
+                };
+                _context.Messages.Add(msg);
+                await _context.SaveChangesAsync();
+
+                var connections = await _context.UserConnections
+                    .Where(c => c.UserId == receiverId && c.IsConnected)
+                    .Select(c => c.ConnectionId)
+                    .ToListAsync();
+
+                var notifText = mediaType == "audio" ? "🎙️ رسالة صوتية" : mediaType == "video" ? "🎥 مقطع فيديو" : "🖼️ صورة";
+                foreach (var conn in connections)
+                {
+                    await _hubContext.Clients.Client(conn).SendAsync(
+                        "ReceivePrivateMessage",
+                        userId,
+                        senderName,
+                        $"[media:{mediaType}:{url}]",
+                        msg.Timestamp.ToString("o"),
+                        msg.Id,
+                        false);
+                    await _hubContext.Clients.Client(conn).SendAsync(
+                        "ReceiveNotification",
+                        senderName,
+                        notifText);
+                }
+
+                return Json(new { success = true, url, messageId = msg.Id, timestamp = msg.Timestamp.ToString("o") });
+            }
+            else if (!string.IsNullOrEmpty(courseId) && Guid.TryParse(courseId, out var courseGuid))
+            {
+                var msg = new GroupMessage
+                {
+                    CourseId = courseGuid,
+                    SenderId = userId,
+                    Content = $"[media:{mediaType}:{url}]",
+                    Timestamp = DateTime.Now
+                };
+                _context.GroupMessages.Add(msg);
+                await _context.SaveChangesAsync();
+
+                var groupNotifText = mediaType == "audio" ? "🎙️ رسالة صوتية" : mediaType == "video" ? "🎥 مقطع فيديو" : "🖼️ صورة";
+                await _hubContext.Clients.Group($"Course_{courseGuid}")
+                    .SendAsync("ReceiveGroupMessage", userId, senderName, $"[media:{mediaType}:{url}]", msg.Timestamp.ToString("o"));
+                await _hubContext.Clients.Group($"Course_{courseGuid}")
+                    .SendAsync("ReceiveNotification", senderName, groupNotifText);
+
+                return Json(new { success = true, url, messageId = msg.Id, timestamp = msg.Timestamp.ToString("o") });
+            }
+
+            return Json(new { success = false, message = "Invalid target" });
         }
 
         [HttpPost]
@@ -149,6 +283,8 @@ namespace TrainingCenterManagement_MVC.Controllers
         {
             try
             {
+                content = (content ?? string.Empty).Trim();
+
                 if (string.IsNullOrEmpty(content))
                     return Json(new { success = false, message = "Message cannot be empty" });
 
@@ -164,30 +300,53 @@ namespace TrainingCenterManagement_MVC.Controllers
                 if (course == null)
                     return Json(new { success = false, message = "Course not found" });
 
+                var now = DateTime.Now;
                 var groupMessage = new GroupMessage
                 {
                     CourseId = courseId,
                     SenderId = userId,
                     Content = content,
-                    Timestamp = DateTime.Now
+                    Timestamp = now
                 };
+
                 await _context.GroupMessages.AddAsync(groupMessage);
                 await _context.SaveChangesAsync();
-               // await _hubContext.Clients.Group($"Course_{courseId}").SendAsync("ReceiveGroupMessage", user.UserName, content, DateTime.Now);
+
+                await _hubContext.Clients.Group($"Course_{courseId}")
+                    .SendAsync("ReceiveGroupMessage", userId, user.UserName, content, groupMessage.Timestamp.ToString("o"));
+
+                var courseConnections = await _context.UserConnections
+                    .Where(c => c.IsConnected && c.UserId != userId)
+                    .Join(
+                        _context.CourseTrainees.Where(ct => ct.CourseId == courseId).Select(ct => ct.Trainee.UserId)
+                            .Union(_context.CourseTrainers.Where(ct => ct.CourseId == courseId).Select(ct => ct.Trainer.UserId))
+                            .Distinct(),
+                        connection => connection.UserId,
+                        memberId => memberId,
+                        (connection, memberId) => connection.ConnectionId)
+                    .Distinct()
+                    .ToListAsync();
+
+                foreach (var connectionId in courseConnections)
+                {
+                    await _hubContext.Clients.Client(connectionId)
+                        .SendAsync("ReceiveNotification", user.UserName, content);
+                }
+
                 return Json(new { success = true });
             }
             catch (Exception ex)
             {
-                // تسجيل الخطأ لتتبعه
-                Console.WriteLine($"Error in SendGroupMessage: {ex.Message }");
+                Console.WriteLine($"Error in SendGroupMessage: {ex.Message}");
                 return Json(new { success = false, message = $"Failed to send message: {ex.Message}" });
             }
         }
 
-
         [HttpPost]
         public async Task<IActionResult> SendPrivateMessage(string receiverId, string content)
         {
+            content = (content ?? string.Empty).Trim();
+
             if (string.IsNullOrEmpty(content))
                 return Json(new { success = false, message = "Message cannot be empty" });
 
@@ -207,7 +366,35 @@ namespace TrainingCenterManagement_MVC.Controllers
             _context.Messages.Add(privateMessage);
             await _context.SaveChangesAsync();
 
-            return Json(new { success = true });
+            var senderName = user?.UserName ?? SenderFallback(userId);
+            var receiverConnections = await _context.UserConnections
+                .Where(c => c.UserId == receiverId && c.IsConnected)
+                .Select(c => c.ConnectionId)
+                .ToListAsync();
+
+            foreach (var connectionId in receiverConnections)
+            {
+                await _hubContext.Clients.Client(connectionId).SendAsync(
+                    "ReceivePrivateMessage",
+                    userId,
+                    senderName,
+                    content,
+                    privateMessage.Timestamp.ToString("o"),
+                    privateMessage.Id,
+                    false);
+
+                await _hubContext.Clients.Client(connectionId).SendAsync(
+                    "ReceiveNotification",
+                    senderName,
+                    content);
+            }
+
+            return Json(new { success = true, messageId = privateMessage.Id, timestamp = privateMessage.Timestamp.ToString("o") });
+        }
+
+        private static string SenderFallback(string userId)
+        {
+            return string.IsNullOrWhiteSpace(userId) ? "User" : $"User {userId[..Math.Min(4, userId.Length)]}";
         }
 
         private async Task<string> GetUserIdAsync()
@@ -259,6 +446,7 @@ namespace TrainingCenterManagement_MVC.Controllers
                             (m.SenderId == guestId.ToString() && adminsIds.Any(id => m.ReceiverId == id)))
                
                 .OrderBy(m => m.Timestamp)
+                .ThenBy(m => m.Id)
                 .ToListAsync();
 
             ViewBag.ReceiverId = adminsIds.FirstOrDefault() ?? "admin";
@@ -316,6 +504,7 @@ namespace TrainingCenterManagement_MVC.Controllers
                             (m.SenderId == guestId && adminsIds.Any(id => m.ReceiverId == id)))
                 
                 .OrderBy(m => m.Timestamp)
+                .ThenBy(m => m.Id)
                 .ToListAsync();
 
             ViewBag.ReceiverId = guestId;
@@ -484,3 +673,13 @@ namespace TrainingCenterManagement_MVC.Controllers
         }
     }
 }
+
+
+
+
+
+
+
+
+
+

@@ -1,55 +1,484 @@
-﻿@model IReadOnlyList<TrainingCenterManagement_MVC.Models.UserNotification>
+@model IReadOnlyList<TrainingCenterManagement_MVC.Models.UserNotification>
+@using TrainingCenterManagement_MVC.Models
 @{
-    ViewData["Title"] = "Notifications";
+    ViewData["Title"] = "الإشعارات";
     var unreadCount = Model.Count(n => !n.IsRead);
+    var today    = Model.Where(n => n.CreatedAt.ToLocalTime().Date == DateTime.Today).ToList();
+    var yesterday= Model.Where(n => n.CreatedAt.ToLocalTime().Date == DateTime.Today.AddDays(-1)).ToList();
+    var older    = Model.Where(n => n.CreatedAt.ToLocalTime().Date < DateTime.Today.AddDays(-1)).ToList();
 }
-<div class="container py-4">
-    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
-        <div>
-            <h2 class="mb-1">Notifications</h2>
-            <p class="text-muted mb-0">Unread count: @unreadCount</p>
+
+<style>
+    :root {
+        --notif-bg:        #f8f9fe;
+        --notif-card:      #ffffff;
+        --notif-border:    #e9ecf3;
+        --notif-shadow:    0 2px 16px rgba(79,70,229,.07);
+        --notif-msg:       rgba(30,34,90,.17);
+        --notif-read-bg:   #fafbff;
+        --notif-unread-bg: #f0f1ff;
+        --clr-msg:     #4f46e5;
+        --clr-lecture: #059669;
+        --clr-payment: #d97706;
+        --clr-system:  #7c3aed;
+        --clr-text:    #1e2260;
+        --clr-muted:   #6b7280;
+        --radius: 14px;
+    }
+
+    body { background: var(--notif-bg); }
+
+    /* ── Page layout ── */
+    .notif-page {
+        max-width: 780px;
+        margin: 0 auto;
+        padding: 2rem 1rem 4rem;
+    }
+
+    /* ── Header ── */
+    .notif-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+    .notif-header-left h1 {
+        font-size: 1.65rem;
+        font-weight: 800;
+        color: var(--clr-text);
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: .6rem;
+    }
+    .notif-header-left h1 .bell-icon {
+        width: 2.4rem;
+        height: 2.4rem;
+        border-radius: 12px;
+        background: linear-gradient(135deg, #6366f1, #4f46e5);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-size: 1rem;
+        flex-shrink: 0;
+    }
+    .notif-header-left p {
+        font-size: .9rem;
+        color: var(--clr-muted);
+        margin: .3rem 0 0;
+    }
+    .notif-header-left .unread-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: .3rem;
+        background: #eef2ff;
+        color: #4f46e5;
+        font-size: .78rem;
+        font-weight: 600;
+        padding: .2rem .65rem;
+        border-radius: 999px;
+        margin-top: .3rem;
+    }
+    .notif-header-left .unread-chip .dot {
+        width: .45rem;
+        height: .45rem;
+        border-radius: 50%;
+        background: #ef4444;
+        display: inline-block;
+    }
+
+    /* ── Action buttons ── */
+    .notif-actions { display: flex; gap: .6rem; }
+    .btn-mark-all {
+        display: inline-flex;
+        align-items: center;
+        gap: .4rem;
+        padding: .55rem 1.1rem;
+        border-radius: 999px;
+        border: 1.5px solid #c7d2fe;
+        background: #eef2ff;
+        color: #4f46e5;
+        font-size: .84rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background .15s, border-color .15s;
+        text-decoration: none;
+    }
+    .btn-mark-all:hover { background: #e0e7ff; border-color: #a5b4fc; }
+
+    /* ── Group label ── */
+    .notif-group-label {
+        font-size: .75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .06em;
+        color: var(--clr-muted);
+        margin: 1.6rem 0 .65rem;
+        padding: 0 .25rem;
+        display: flex;
+        align-items: center;
+        gap: .5rem;
+    }
+    .notif-group-label::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background: var(--notif-border);
+    }
+
+    /* ── Notification card ── */
+    .notif-card {
+        display: flex;
+        align-items: flex-start;
+        gap: 1rem;
+        padding: 1.1rem 1.2rem;
+        background: var(--notif-card);
+        border: 1.5px solid var(--notif-border);
+        border-radius: var(--radius);
+        margin-bottom: .6rem;
+        box-shadow: var(--notif-shadow);
+        transition: box-shadow .2s, border-color .2s, transform .15s;
+        position: relative;
+    }
+    .notif-card:hover {
+        box-shadow: 0 8px 28px rgba(79,70,229,.12);
+        border-color: #c7d2fe;
+        transform: translateY(-1px);
+    }
+    .notif-card.unread {
+        background: var(--notif-unread-bg);
+        border-color: #c7d2fe;
+    }
+    .notif-card.unread::before {
+        content: '';
+        position: absolute;
+        top: 0; bottom: 0;
+        inset-inline-start: 0;
+        width: 4px;
+        border-radius: 4px 0 0 4px;
+        background: linear-gradient(180deg, #6366f1, #4f46e5);
+    }
+    .notif-card.read { background: var(--notif-read-bg); }
+
+    /* ── Type icon ── */
+    .notif-type-ic {
+        width: 2.8rem;
+        height: 2.8rem;
+        border-radius: 12px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.05rem;
+        flex-shrink: 0;
+        margin-top: .05rem;
+    }
+    .ic-msg     { background: #eef2ff; color: var(--clr-msg); }
+    .ic-lecture { background: #ecfdf5; color: var(--clr-lecture); }
+    .ic-payment { background: #fffbeb; color: var(--clr-payment); }
+    .ic-system  { background: #f5f3ff; color: var(--clr-system); }
+
+    /* ── Card body ── */
+    .notif-card-body { flex: 1; min-width: 0; }
+    .notif-card-title {
+        font-size: .96rem;
+        font-weight: 700;
+        color: var(--clr-text);
+        margin: 0 0 .2rem;
+        display: flex;
+        align-items: center;
+        gap: .5rem;
+        flex-wrap: wrap;
+    }
+    .notif-card-title .new-badge {
+        font-size: .65rem;
+        font-weight: 700;
+        background: #ef4444;
+        color: #fff;
+        padding: .1rem .4rem;
+        border-radius: 999px;
+        letter-spacing: .02em;
+    }
+    .notif-card-message {
+        font-size: .87rem;
+        color: #374151;
+        margin: 0 0 .5rem;
+        line-height: 1.55;
+    }
+    .notif-card-footer {
+        display: flex;
+        align-items: center;
+        gap: .75rem;
+        flex-wrap: wrap;
+    }
+    .notif-card-time {
+        font-size: .75rem;
+        color: var(--clr-muted);
+        display: inline-flex;
+        align-items: center;
+        gap: .3rem;
+    }
+    .notif-card-type-tag {
+        font-size: .72rem;
+        font-weight: 600;
+        padding: .15rem .55rem;
+        border-radius: 999px;
+    }
+    .tag-msg     { background: #eef2ff; color: var(--clr-msg); }
+    .tag-lecture { background: #ecfdf5; color: var(--clr-lecture); }
+    .tag-payment { background: #fffbeb; color: var(--clr-payment); }
+    .tag-system  { background: #f5f3ff; color: var(--clr-system); }
+
+    /* ── Card actions ── */
+    .notif-card-actions {
+        display: flex;
+        flex-direction: column;
+        gap: .4rem;
+        align-items: flex-end;
+        flex-shrink: 0;
+    }
+    .btn-read {
+        background: transparent;
+        border: 1px solid #d1d5db;
+        color: #6b7280;
+        font-size: .75rem;
+        padding: .3rem .7rem;
+        border-radius: 999px;
+        cursor: pointer;
+        transition: all .15s;
+        white-space: nowrap;
+    }
+    .btn-read:hover { border-color: #4f46e5; color: #4f46e5; background: #eef2ff; }
+    .btn-del {
+        background: transparent;
+        border: none;
+        color: #d1d5db;
+        font-size: .8rem;
+        padding: .2rem .4rem;
+        cursor: pointer;
+        border-radius: 6px;
+        transition: color .15s;
+        line-height: 1;
+    }
+    .btn-del:hover { color: #ef4444; }
+
+    /* ── Empty state ── */
+    .notif-empty {
+        text-align: center;
+        padding: 4rem 2rem;
+    }
+    .notif-empty .empty-icon {
+        width: 5rem;
+        height: 5rem;
+        border-radius: 50%;
+        background: #eef2ff;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        color: #a5b4fc;
+        margin-bottom: 1.2rem;
+    }
+    .notif-empty h3 { font-size: 1.15rem; font-weight: 700; color: var(--clr-text); margin-bottom: .5rem; }
+    .notif-empty p  { color: var(--clr-muted); font-size: .9rem; margin: 0; }
+
+    /* ── Spinner ── */
+    .notif-marking { opacity: .5; pointer-events: none; transition: opacity .2s; }
+</style>
+
+<div class="notif-page">
+
+    <!-- Header -->
+    <div class="notif-header">
+        <div class="notif-header-left">
+            <h1>
+                <span class="bell-icon"><i class="fas fa-bell"></i></span>
+                الإشعارات
+            </h1>
+            @if (unreadCount > 0)
+            {
+                <span class="unread-chip" id="notifCountChip">
+                    <span class="dot"></span>
+                    <span class="chip-text">@unreadCount إشعار غير مقروء</span>
+                </span>
+            }
+            else
+            {
+                <p id="notifCountChip">كل إشعاراتك في مكان واحد</p>
+            }
         </div>
-        @if (Model.Any(n => !n.IsRead))
-        {
-            <form asp-action="MarkAllAsRead" method="post">
-                @Html.AntiForgeryToken()
-                <button type="submit" class="btn btn-primary">Mark all as read</button>
-            </form>
-        }
+
+        <div class="notif-actions">
+            @if (unreadCount > 0)
+            {
+                <button type="button" class="btn-mark-all" id="btnMarkAll">
+                    <i class="fas fa-check-double"></i>
+                    تعيين الكل كمقروء
+                </button>
+            }
+        </div>
     </div>
+
     @if (!Model.Any())
     {
-        <div class="alert alert-info">No notifications found.</div>
+        <div class="notif-empty">
+            <div class="empty-icon"><i class="fas fa-bell-slash"></i></div>
+            <h3>لا توجد إشعارات بعد</h3>
+            <p>ستظهر هنا إشعاراتك حين تصلك رسائل أو تُضاف محاضرات جديدة</p>
+        </div>
     }
     else
     {
-        <div class="list-group shadow-sm">
-            @foreach (var notification in Model)
-            {
-                <div class="list-group-item list-group-item-action @(notification.IsRead ? string.Empty : "list-group-item-warning")">
-                    <div class="d-flex justify-content-between align-items-start gap-3">
-                        <div class="flex-grow-1">
-                            <div class="d-flex align-items-center gap-2 mb-2">
-                                <h5 class="mb-0">@notification.Title</h5>
-                                @if (!notification.IsRead)
-                                {
-                                    <span class="badge bg-danger">New</span>
-                                }
-                            </div>
-                            <p class="mb-2">@notification.Message</p>
-                            <small class="text-muted">@notification.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd hh:mm tt")</small>
-                        </div>
-                        @if (!notification.IsRead)
-                        {
-                            <form asp-action="MarkAsRead" method="post">
-                                @Html.AntiForgeryToken()
-                                <input type="hidden" name="id" value="@notification.NotificationId" />
-                                <button type="submit" class="btn btn-outline-secondary btn-sm">Mark as read</button>
-                            </form>
-                        }
-                    </div>
-                </div>
-            }
-        </div>
+        @* Hidden anti-forgery token for AJAX *@
+        @Html.AntiForgeryToken()
+
+        @if (today.Any())
+        {
+            <div class="notif-group-label">اليوم</div>
+            @foreach (var n in today) { @await Html.PartialAsync("_NotificationCard", n) }
+        }
+        @if (yesterday.Any())
+        {
+            <div class="notif-group-label">أمس</div>
+            @foreach (var n in yesterday) { @await Html.PartialAsync("_NotificationCard", n) }
+        }
+        @if (older.Any())
+        {
+            <div class="notif-group-label">أقدم</div>
+            @foreach (var n in older) { @await Html.PartialAsync("_NotificationCard", n) }
+        }
     }
 </div>
+
+@section Scripts {
+<script>
+(function () {
+    // قراءة توكن الـ antiforgery من الصفحة
+    var afToken = (document.querySelector('input[name="__RequestVerificationToken"]') || {}).value || '';
+
+    function getToken() {
+        var el = document.querySelector('input[name="__RequestVerificationToken"]');
+        return el ? el.value : '';
+    }
+
+    // تعيين إشعار واحد كمقروء
+    document.addEventListener('click', function (e) {
+        var btn = e.target.closest('.btn-read[data-notif-id]');
+        if (!btn) return;
+        e.preventDefault();
+        var id = btn.dataset.notifId;
+        var card = btn.closest('.notif-card');
+        if (!card) return;
+        card.classList.add('notif-marking');
+
+        fetch('/Notifications/MarkAsRead', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-Requested-With': 'XMLHttpRequest',
+                'RequestVerificationToken': getToken()
+            },
+            body: 'id=' + encodeURIComponent(id)
+        })
+        .then(function (r) { return r.json(); })
+        .then(function (d) {
+            if (d.success) {
+                card.classList.remove('unread', 'notif-marking');
+                card.classList.add('read');
+                btn.remove();
+                var badge = card.querySelector('.new-badge');
+                if (badge) badge.remove();
+                if (window.setNotifBadge) window.setNotifBadge(d.remainingUnread);
+                updateHeaderCount(d.remainingUnread);
+            }
+        })
+        .catch(function () { card.classList.remove('notif-marking'); });
+    });
+
+    // حذف إشعار
+    document.addEventListener('click', function (e) {
+        var btn = e.target.closest('.btn-del[data-del-id]');
+        if (!btn) return;
+        e.preventDefault();
+        var id  = btn.dataset.delId;
+        var card = btn.closest('.notif-card');
+        if (!card) return;
+        card.style.transition = 'opacity .25s, transform .25s';
+        card.style.opacity = '0';
+        card.style.transform = 'scale(.97)';
+
+        fetch('/Notifications/Delete', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-Requested-With': 'XMLHttpRequest',
+                'RequestVerificationToken': getToken()
+            },
+            body: 'id=' + encodeURIComponent(id)
+        })
+        .then(function (r) { return r.json(); })
+        .then(function (d) {
+            setTimeout(function () { card.remove(); }, 260);
+        })
+        .catch(function () { card.style.opacity = '1'; card.style.transform = ''; });
+    });
+
+    // تعيين الكل كمقروء
+    var btnAll = document.getElementById('btnMarkAll');
+    if (btnAll) {
+        btnAll.addEventListener('click', function () {
+            btnAll.disabled = true;
+            btnAll.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جارٍ التحديث...';
+
+            fetch('/Notifications/MarkAllAsRead', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'RequestVerificationToken': getToken()
+                },
+                body: ''
+            })
+            .then(function (r) { return r.json(); })
+            .then(function (d) {
+                if (d.success) {
+                    document.querySelectorAll('.notif-card.unread').forEach(function (c) {
+                        c.classList.remove('unread');
+                        c.classList.add('read');
+                        var rb = c.querySelector('.btn-read');
+                        if (rb) rb.remove();
+                        var nb = c.querySelector('.new-badge');
+                        if (nb) nb.remove();
+                    });
+                    if (window.setNotifBadge) window.setNotifBadge(0);
+                    updateHeaderCount(0);
+                    btnAll.remove();
+                }
+            })
+            .catch(function () { btnAll.disabled = false; btnAll.innerHTML = '<i class="fas fa-check-double"></i> تعيين الكل كمقروء'; });
+        });
+    }
+
+    function updateHeaderCount(remaining) {
+        var chip = document.getElementById('notifCountChip');
+        if (chip) {
+            if (remaining > 0) {
+                var txt = chip.querySelector('.chip-text');
+                if (txt) txt.textContent = remaining + ' إشعار غير مقروء';
+            } else {
+                chip.remove();
+            }
+        }
+        if (window.setNotifBadge) window.setNotifBadge(remaining);
+    }
+
+    // عند فتح صفحة الإشعارات، صفّر الـ badge
+    if (window.setNotifBadge) {
+        var unread = @unreadCount;
+        window.setNotifBadge(unread);
+    }
+})();
+</script>
+}

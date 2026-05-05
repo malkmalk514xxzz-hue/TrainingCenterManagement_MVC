@@ -6,7 +6,15 @@
       "Bash(Get-ChildItem -Path \"d:\\\\Asp.Net Core API\\\\Forth Year Final Project\\\\TrainingCenterManagement_MVC\\\\TrainingCenterManagement_MVC\\\\Controllers\\\\Api\" -Name)",
       "Bash(Remove-Item -Recurse -Force \"d:\\\\Asp.Net Core API\\\\Forth Year Final Project\\\\TrainingCenterManagement_MVC\\\\TrainingCenterManagement_MVC\\\\Controllers\\\\Api\" -ErrorAction SilentlyContinue)",
       "Bash(Remove-Item -Force \"d:\\\\Asp.Net Core API\\\\Forth Year Final Project\\\\TrainingCenterManagement_MVC\\\\TrainingCenterManagement_MVC\\\\JwtBearerDocumentFilter.cs\" -ErrorAction SilentlyContinue)",
-      "PowerShell(dotnet tool install --global dotnet-ef --version 8.0.18 2>&1)"
+      "PowerShell(dotnet tool install --global dotnet-ef --version 8.0.18 2>&1)",
+      "Bash(Get-ChildItem -Path \"D:\\\\Asp.Net Core API\\\\Forth Year Final Project\\\\TrainingCenterManagement_MVC\" -Recurse -Directory)",
+      "Bash(Select-Object -ExpandProperty FullName)",
+      "Bash(Sort-Object)",
+      "PowerShell(head -30)",
+      "Bash(dotnet build *)",
+      "Bash(Get-ChildItem -Recurse \"d:\\\\Asp.Net Core API\\\\Forth Year Final Project\\\\TrainingCenterManagement_MVC\\\\TrainingCenterManagement_MVC\\\\wwwroot\\\\uploads\\\\audio\" -File)",
+      "Bash(Select-Object Name, Length, LastWriteTime)",
+      "Bash(Format-Table -AutoSize)"
     ]
   }
 }

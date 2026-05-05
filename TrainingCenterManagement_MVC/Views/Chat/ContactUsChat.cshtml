@@ -55,17 +55,41 @@
             $("#status").text("تم إغلاق الاتصال: " + (error ? error.message : "غير معروف"));
         });
 
-        connection.on("ReceivePrivateMessage", (sender, message, timestamp) => {
-            console.log(`استلام رسالة من ${sender}: ${message} في ${timestamp}`);
-            const chatBox = document.getElementById("chatBox");
-            const msg = document.createElement("div");
-            const isSent = sender === '@senderUsername';
+        connection.on("ReceivePrivateMessage", function () {
+            const args = Array.from(arguments);
+            let incomingSenderId = null, incomingSender = null, payload = null, timestamp = null, messageId = null, isRead = false;
+            if (args.length === 3) {
+                incomingSender = args[0];
+                payload = args[1];
+                timestamp = args[2];
+            } else {
+                incomingSenderId = args[0];
+                incomingSender = args[1];
+                payload = args[2];
+                timestamp = args[3];
+                messageId = args[4];
+                isRead = !!args[5];
+            }
+            console.log('Received private message', { incomingSenderId, incomingSender, payload, timestamp, messageId });
+            const chatBox = document.getElementById('chatBox');
+            const isSent = incomingSenderId ? incomingSenderId === '@senderId' : incomingSender === '@senderUsername';
+            const msg = document.createElement('div');
             msg.className = `message ${isSent ? 'sent' : 'received'}`;
-            msg.innerHTML = `
-                <div class="message-sender">${sender}</div>
-                <div>${message}</div>
-                <div class="message-time">${new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
-            `;
+
+            // parse payload for media
+            const mediaMatch = (payload || '').match(/^\[media:(image|video|audio):(.+)\]$/i);
+            let contentHtml = '';
+            if (mediaMatch) {
+                const type = mediaMatch[1].toLowerCase();
+                const url = mediaMatch[2];
+                if (type === 'image') contentHtml = `<img src="${url}" alt="image" />`;
+                else if (type === 'video') contentHtml = `<video controls src="${url}"></video>`;
+                else if (type === 'audio') contentHtml = `<div class="wa-media-audio-wrap"><i class="fas fa-microphone wa-audio-ic"></i><audio controls src="${url}"></audio></div>`;
+            } else {
+                contentHtml = `<div>${payload || ''}</div>`;
+            }
+
+            msg.innerHTML = `<div class="message-sender">${incomingSender}</div>${contentHtml}<div class="message-time">${new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>`;
             chatBox.appendChild(msg);
             chatBox.scrollTop = chatBox.scrollHeight;
         });
