@@ -1,8 +1,15 @@
 ﻿@using System.Globalization
 @using TrainingCenterManagement_MVC.Resources
+@using Microsoft.AspNetCore.Identity
+@using TrainingCenterManagement_MVC.Models
+@inject UserManager<ApplicationUser> UserManager
 @{
     string currentPage = ViewContext.RouteData.Values["action"]?.ToString()?.ToLower();
     Guid traineeId = ViewData["TraineeId"] != null ? Guid.Parse(ViewData["TraineeId"].ToString()) : Guid.Empty;
+    var user = await UserManager.GetUserAsync(User);
+    var profilePic = !string.IsNullOrEmpty(user?.ProfilePictureUrl) 
+        ? user.ProfilePictureUrl 
+        : "https://placehold.co/100/e2e8f0/60758a?text=User";
 }
 
 <style>
@@ -99,8 +106,8 @@
                     <span>@SharedResource.Attendance</span>
                 </a>
             </li>
-            <li class="@(currentPage == "profile" ? "active" : "")">
-                <a asp-controller="Trainees" asp-action="Profile">
+            <li class="@(currentPage == "index" && ViewContext.RouteData.Values["controller"]?.ToString() == "Profile" ? "active" : "")">
+                <a asp-controller="Profile" asp-action="Index">
                     <i class="fas fa-user"></i>
                     <span>@SharedResource.Profile</span>
                 </a>
@@ -130,15 +137,15 @@
     <div class="sidebar-footer">
         <div class="user-info">
             <div class="user-avatar">
-                <img src="https://placehold.co/100" alt="User Avatar">
+                <img src="@profilePic" alt="User Avatar" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
             </div>
             <div class="user-details">
-                <span class="user-name">@ViewData["FullName"] ?? @SharedResource.AdminUser</span>
-                <span class="user-email">@ViewData["Email"] ?? @SharedResource.AdminEmail</span>
+                <span class="user-name">@(user?.FullName ?? SharedResource.AdminUser)</span>
+                <span class="user-email">@(user?.Email ?? SharedResource.AdminEmail)</span>
             </div>
-            <button class="user-settings" aria-label="User Settings">
+            <a asp-controller="Profile" asp-action="Index" class="user-settings" aria-label="User Settings" style="color: inherit; text-decoration: none;">
                 <i class="fas fa-cog"></i>
-            </button>
+            </a>
         </div>
         <div class="language-switcher">
             <button class="language-btn" id="languageToggle" aria-label="Toggle Language">

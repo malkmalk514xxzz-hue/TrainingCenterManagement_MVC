@@ -227,6 +227,15 @@
 
 @using System.Globalization
 @using TrainingCenterManagement_MVC.Resources
+@using Microsoft.AspNetCore.Identity
+@using TrainingCenterManagement_MVC.Models
+@inject UserManager<ApplicationUser> UserManager
+@{
+    var user = User.Identity.IsAuthenticated ? await UserManager.GetUserAsync(User) : null;
+    var profilePic = !string.IsNullOrEmpty(user?.ProfilePictureUrl) 
+        ? user.ProfilePictureUrl 
+        : "https://placehold.co/100/e2e8f0/60758a?text=User";
+}
 
 <style>
     /* CSS Variables for colors, fonts, etc. */
@@ -830,7 +839,9 @@
 
             @if (User.Identity.IsAuthenticated)
             {
-                <div class="profile-image" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBGR41_Y1ar3ud_fe_2QJslfpr4I12Sdirzpwj9ncVYB-eE_oMY6pWLrZnTqLjS5rJ-aM97srqXNN3ZmZf4DQ1p254Q6AmI7XQz5Sd2vxtaTfVQcVmKeoqeo9k6YxJLYU_PxUAk9v-eyjlD6Q-mDccTZbmAko1c_I1Znim1CwlDCo67eIO63pzPiqCp2r4bd0i7EcLTLCvekZ4NEMzIEO4s6gbBieLhkfd1x_Dc-XyGJhrlUe3xRgkCyS5z2cwTxSB9bkAfb1ujdCc");'></div>
+                <a asp-controller="Profile" asp-action="Index" title="@user?.FullName">
+                    <div class="profile-image" style='background-image: url("@profilePic");'></div>
+                </a>
             }
         </div>
     </div>
@@ -869,6 +880,11 @@
             <li>
                 <a asp-controller="Dashboard" asp-action="Index">
                     <i class="fas fa-tachometer-alt" style="margin-right: 12px;"></i> @SharedResource.Dashboard
+                </a>
+            </li>
+            <li>
+                <a asp-controller="Profile" asp-action="Index">
+                    <i class="fas fa-user" style="margin-right: 12px;"></i> @SharedResource.Profile
                 </a>
             </li>
             <li>

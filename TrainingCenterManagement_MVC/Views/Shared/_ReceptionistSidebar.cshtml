@@ -1,8 +1,15 @@
 ﻿@using System.Globalization
 @using TrainingCenterManagement_MVC.Resources
+@using Microsoft.AspNetCore.Identity
+@using TrainingCenterManagement_MVC.Models
+@inject UserManager<ApplicationUser> UserManager
 @inject Microsoft.AspNetCore.Mvc.Rendering.IHtmlHelper HtmlHelper
 @{
     string currentPage = ViewContext.RouteData.Values["action"]?.ToString()?.ToLower();
+    var user = await UserManager.GetUserAsync(User);
+    var profilePic = !string.IsNullOrEmpty(user?.ProfilePictureUrl) 
+        ? user.ProfilePictureUrl 
+        : "https://placehold.co/100/e2e8f0/60758a?text=User";
 }
 
 <style>
@@ -153,12 +160,15 @@
     <div class="sidebar-footer">
         <div class="user-info">
             <div class="user-avatar">
-                <img src="https://placehold.co/100" alt="Receptionist">
+                <img src="@profilePic" alt="User Avatar" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
             </div>
-           
-            <button class="user-settings" aria-label="User settings">
+            <div class="user-details">
+                <span class="user-name">@(user?.FullName ?? "موظف استقبال")</span>
+                <span class="user-email">@(user?.Email)</span>
+            </div>
+            <a asp-controller="Profile" asp-action="Index" class="user-settings" aria-label="User settings" style="color: inherit; text-decoration: none;">
                 <i class="fas fa-cog"></i>
-            </button>
+            </a>
         </div>
         <div class="language-switcher">
             <button class="language-btn" id="languageToggle">
