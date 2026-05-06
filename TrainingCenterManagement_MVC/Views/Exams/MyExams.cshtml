@@ -204,17 +204,22 @@ document.querySelectorAll('.filter-tab').forEach(btn => {
 });
 
 function updateCountdowns() {
+    let needsReload = false;
     document.querySelectorAll('.countdown-label[data-deadline]').forEach(el => {
         const deadline = new Date(el.dataset.deadline);
         const diff = deadline - Date.now();
-        if (diff <= 0) { location.reload(); return; }
+        if (diff <= 0) { needsReload = true; return; }
         const d = Math.floor(diff / 86400000);
         const h = Math.floor((diff % 86400000) / 3600000);
         const m = Math.floor((diff % 3600000) / 60000);
         const s = Math.floor((diff % 60000) / 1000);
         el.textContent = (d > 0 ? d + ' يوم ' : '') + h + ':' + String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
     });
+    if (needsReload) {
+        clearInterval(countdownInterval);
+        location.reload();
+    }
 }
-setInterval(updateCountdowns, 1000);
+const countdownInterval = setInterval(updateCountdowns, 1000);
 updateCountdowns();
 </script>

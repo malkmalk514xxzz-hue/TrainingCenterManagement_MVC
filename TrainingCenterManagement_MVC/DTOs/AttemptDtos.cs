@@ -40,6 +40,23 @@ namespace TrainingCenterManagement_MVC.DTOs
         public Guid AttemptId { get; set; }
     }
 
+    /// تطبيق عقوبة على محاولة طالب
+    public class ApplyPenaltyDto
+    {
+        [Required]
+        public Guid AttemptId { get; set; }
+
+        [Required]
+        public PenaltyType PenaltyType { get; set; }
+
+        /// قيمة الخصم — نقاط أو نسبة مئوية (لا تُستخدم عند ZeroGrade)
+        [Range(0.01, 1000)]
+        public decimal? DeductionValue { get; set; }
+
+        [Required, MaxLength(500)]
+        public string Reason { get; set; } = string.Empty;
+    }
+
     // ─────────────────────────────────────────────────────────────
     //  OUTPUT — للطالب أثناء الامتحان
     // ─────────────────────────────────────────────────────────────
@@ -98,6 +115,17 @@ namespace TrainingCenterManagement_MVC.DTOs
         public int TimeTakenMinutes { get; set; }
         public bool HasPendingEssays { get; set; }
 
+        // بيانات المخالفات (للمدرب فقط)
+        public int TabSwitchCount { get; set; }
+        public string? IpAddress { get; set; }
+        public string? UserAgent { get; set; }
+
+        // بيانات العقوبة
+        public bool PenaltyApplied { get; set; }
+        public string? PenaltyReason { get; set; }
+        public decimal? OriginalTotalScore { get; set; }
+        public decimal? OriginalScorePercentage { get; set; }
+
         /// متاح فقط إذا كان ShowResultsImmediately = true
         public List<AnswerResultDto>? AnswerResults { get; set; }
     }
@@ -120,6 +148,8 @@ namespace TrainingCenterManagement_MVC.DTOs
         public int TabSwitchCount { get; set; }
         public string? IpAddress { get; set; }
         public bool HasPendingEssays { get; set; }
+        public bool PenaltyApplied { get; set; }
+        public string? PenaltyReason { get; set; }
     }
 
     public class TrainerExamResultsDto

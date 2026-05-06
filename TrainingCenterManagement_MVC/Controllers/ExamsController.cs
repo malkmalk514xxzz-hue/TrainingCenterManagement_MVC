@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using Messaging_Chat_Application_MahmoudHakim.Hubs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using TrainingCenterManagement_MVC.Data;
 using TrainingCenterManagement_MVC.DTOs;
@@ -20,11 +22,13 @@ namespace TrainingCenterManagement_MVC.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly IExamService _examService;
+        private readonly IHubContext<ChatHub> _hubContext;
 
-        public ExamsController(ApplicationDbContext context, IExamService examService)
+        public ExamsController(ApplicationDbContext context, IExamService examService, IHubContext<ChatHub> hubContext)
         {
             _context = context;
             _examService = examService;
+            _hubContext = hubContext;
         }
 
         // ══════════════════════════════════════════════════════════
@@ -173,6 +177,7 @@ namespace TrainingCenterManagement_MVC.Controllers
             {
                 await _examService.PublishExamAsync(id, trainerId.Value);
                 TempData["Success"] = "تم نشر الامتحان — سيظهر للطلاب الآن.";
+                await SendExamPublishedNotificationsAsync(id);
             }
             catch (Exception ex)
             {
@@ -367,6 +372,55 @@ namespace TrainingCenterManagement_MVC.Controllers
             return RedirectToAction(nameof(AttemptDetail), new { id = attemptId });
         }
 
+        [HttpPost, ValidateAntiForgeryToken]
+        [Authorize(Roles = "Trainer,Admin")]
+        public async Task<IActionResult> ApplyPenalty(ApplyPenaltyDto dto)
+        {
+            var trainerId = await GetCurrentTrainerIdAsync();
+            if (trainerId == null) return Forbid();
+
+            if (!ModelState.IsValid)
+            {
+                TempData["Error"] = "بيانات العقوبة غير مكتملة.";
+                return RedirectToAction(nameof(AttemptDetail), new { id = dto.AttemptId });
+            }
+
+            if (dto.PenaltyType != PenaltyType.ZeroGrade && (dto.DeductionValue == null || dto.DeductionValue <= 0))
+            {
+                TempData["Error"] = dto.PenaltyType == PenaltyType.DeductPoints
+                    ? "يجب إدخال عدد النقاط المراد خصمها."
+                    : "يجب إدخال النسبة المئوية المراد خصمها.";
+                return RedirectToAction(nameof(AttemptDetail), new { id = dto.AttemptId });
+            }
+
+            try
+            {
+                var ok = await _examService.ApplyPenaltyAsync(dto, trainerId.Value);
+                TempData[ok ? "Success" : "Error"] = ok
+                    ? "تم تطبيق العقوبة وتعديل الدرجة بنجاح."
+                    : "لم يتم العثور على المحاولة أو لا يمكن تعديلها.";
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = ex.Message;
+            }
+            return RedirectToAction(nameof(AttemptDetail), new { id = dto.AttemptId });
+        }
+
+        [HttpPost, ValidateAntiForgeryToken]
+        [Authorize(Roles = "Trainer,Admin")]
+        public async Task<IActionResult> RemovePenalty(Guid attemptId)
+        {
+            var trainerId = await GetCurrentTrainerIdAsync();
+            if (trainerId == null) return Forbid();
+
+            var ok = await _examService.RemovePenaltyAsync(attemptId, trainerId.Value);
+            TempData[ok ? "Success" : "Error"] = ok
+                ? "تم إلغاء العقوبة وإعادة الدرجة الأصلية."
+                : "لا توجد عقوبة مطبّقة على هذه المحاولة.";
+            return RedirectToAction(nameof(AttemptDetail), new { id = attemptId });
+        }
+
         // ══════════════════════════════════════════════════════════
         //  TRAINEE — رؤية الامتحانات المتاحة
         // ══════════════════════════════════════════════════════════
@@ -384,6 +438,58 @@ namespace TrainingCenterManagement_MVC.Controllers
         // ══════════════════════════════════════════════════════════
         //  HELPERS
         // ══════════════════════════════════════════════════════════
+
+        private async Task SendExamPublishedNotificationsAsync(Guid examId)
+        {
+            var exam = await _context.Exams
+                .Include(e => e.Course)
+                .FirstOrDefaultAsync(e => e.ExamId == examId);
+
+            if (exam?.Course == null) return;
+
+            var startFormatted = exam.StartDateTime.ToString("dd/MM/yyyy HH:mm");
+            var title   = "امتحان جديد";
+            var message = $"تمت إضافة امتحان '{exam.ExamName}' في كورس {exam.Course.CourseName} — يبدأ في {startFormatted}";
+
+            // جلب جميع المتدربين المسجّلين في الكورس
+            var enrolledTrainees = await _context.CourseTrainees
+                .Where(ct => ct.CourseId == exam.CourseId)
+                .Include(ct => ct.Trainee)
+                .ToListAsync();
+
+            if (!enrolledTrainees.Any()) return;
+
+            // حفظ الإشعارات في قاعدة البيانات
+            var notifications = enrolledTrainees.Select(ct => new UserNotification
+            {
+                NotificationId = Guid.NewGuid(),
+                UserId         = ct.Trainee.UserId,
+                Title          = title,
+                Message        = message,
+                Type           = NotificationType.ExamAdded,
+                IsRead         = false,
+                CreatedAt      = DateTime.UtcNow,
+                RelatedId      = examId.ToString()
+            }).ToList();
+
+            _context.Notifications.AddRange(notifications);
+            await _context.SaveChangesAsync();
+
+            // إرسال SignalR لكل متدرب متصل حالياً
+            foreach (var ct in enrolledTrainees)
+            {
+                var connections = await _context.UserConnections
+                    .Where(c => c.UserId == ct.Trainee.UserId && c.IsConnected)
+                    .Select(c => c.ConnectionId)
+                    .ToListAsync();
+
+                foreach (var connId in connections)
+                {
+                    await _hubContext.Clients.Client(connId)
+                        .SendAsync("ReceiveSystemNotification", title, message);
+                }
+            }
+        }
 
         private async Task<Guid?> GetCurrentTrainerIdAsync()
         {

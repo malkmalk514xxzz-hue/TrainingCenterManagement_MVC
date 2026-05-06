@@ -58,6 +58,23 @@ namespace TrainingCenterManagement_MVC.Models
         /// آخر وقت سُجّل فيه نشاط (لاكتشاف الانقطاع)
         public DateTime? LastActivityAt { get; set; }
 
+        // ====== Penalty ======
+
+        /// هل طُبِّقت عقوبة على هذه المحاولة
+        public bool PenaltyApplied { get; set; } = false;
+
+        /// سبب العقوبة المُدخَل من المدرب
+        [MaxLength(500)]
+        public string? PenaltyReason { get; set; }
+
+        /// الدرجة الأصلية قبل تطبيق العقوبة
+        [Column(TypeName = "decimal(7,2)")]
+        public decimal? OriginalTotalScore { get; set; }
+
+        /// النسبة المئوية الأصلية قبل تطبيق العقوبة
+        [Column(TypeName = "decimal(5,2)")]
+        public decimal? OriginalScorePercentage { get; set; }
+
         // ====== Reconnection Support ======
         /// رقم المحاولة (1 للمحاولة الأولى، 2 للثانية...)
         public int AttemptNumber { get; set; } = 1;

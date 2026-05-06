@@ -105,9 +105,17 @@
 <script>
 const deadline = new Date("@deadline.ToString("o")");
 
+let navigating = false;
 function updateCountdown() {
     const diff = deadline - Date.now();
-    if (diff <= 0) { location.href = '@Url.Action("Start", "ExamAttempt", new { examId = Model.ExamId })'; return; }
+    if (diff <= 0) {
+        if (!navigating) {
+            navigating = true;
+            clearInterval(countdownInterval);
+            location.href = '@Url.Action("Start", "ExamAttempt", new { examId = Model.ExamId })';
+        }
+        return;
+    }
     const days  = Math.floor(diff / 86400000);
     const hours = Math.floor((diff % 86400000) / 3600000);
     const mins  = Math.floor((diff % 3600000) / 60000);
@@ -117,6 +125,6 @@ function updateCountdown() {
     document.getElementById('cd-mins').textContent  = String(mins).padStart(2, '0');
     document.getElementById('cd-secs').textContent  = String(secs).padStart(2, '0');
 }
-setInterval(updateCountdown, 1000);
+const countdownInterval = setInterval(updateCountdown, 1000);
 updateCountdown();
 </script>

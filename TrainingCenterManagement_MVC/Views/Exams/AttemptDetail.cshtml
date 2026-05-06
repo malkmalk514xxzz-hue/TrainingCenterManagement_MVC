@@ -14,6 +14,19 @@
     .score-circle { width:90px;height:90px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.5rem;font-weight:800;margin:0 auto; }
     .badge-pts    { background:#ede9fe;color:#5b21b6;border-radius:8px;padding:3px 10px;font-weight:700;font-size:.82rem; }
     .grade-form   { background:#f8fafc;border-radius:12px;padding:14px;border:1.5px solid #e5e7eb; }
+
+    /* ── Violations & Penalty ── */
+    .violation-card { border-radius:14px;border:1.5px solid #fca5a5;background:#fff5f5; }
+    .penalty-card   { border-radius:14px;border:1.5px solid #fbbf24;background:#fffbeb; }
+    .penalty-active { border-color:#ef4444;background:#fef2f2; }
+    .viol-stat      { background:#fff;border-radius:10px;padding:14px;text-align:center;border:1.5px solid #fecaca; }
+    .penalty-type-btn { border:2px solid #e5e7eb;border-radius:10px;padding:12px 16px;cursor:pointer;transition:all .15s;background:#fff; }
+    .penalty-type-btn:hover  { border-color:#4f46e5; }
+    .penalty-type-btn.active { border-color:#ef4444;background:#fef2f2; }
+    .deduction-input { display:none; }
+    .deduction-input.show { display:block; }
+    .penalty-badge  { background:#fce7f3;color:#be185d;border-radius:8px;padding:4px 12px;font-size:.82rem;font-weight:700; }
+    .restored-score { text-decoration:line-through;color:#9ca3af;font-size:.85rem; }
 </style>
 
 <div class="dashboard-wrapper">
@@ -31,6 +44,21 @@
                 </div>
             </div>
 
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show mb-3 py-2" style="border-radius:10px;font-size:.88rem">
+                    <i class="fas fa-check-circle me-2"></i>@TempData["Success"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show mb-3 py-2" style="border-radius:10px;font-size:.88rem">
+                    <i class="fas fa-exclamation-circle me-2"></i>@TempData["Error"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
             <!-- Summary -->
             <div class="result-card p-4 mb-4">
                 <div class="row align-items-center g-3">
@@ -44,12 +72,28 @@
                         <div class="mt-2 fw-bold" style="color:@(Model.IsPassed ? "#10b981" : "#ef4444")">
                             @(Model.IsPassed ? "✓ ناجح" : "✗ راسب")
                         </div>
+                        @if (Model.PenaltyApplied)
+                        {
+                            <div class="mt-1" style="font-size:.72rem;color:#be185d"><i class="fas fa-gavel me-1"></i>مُعاقَب</div>
+                        }
                     </div>
                     <div class="col-12 col-md-9">
                         <div class="row g-3">
+                            <div class="col-6 col-md-4">
+                                <div style="font-size:.75rem;color:#6b7280">الطالب</div>
+                                <div class="fw-semibold" style="color:#1e293b;font-size:.9rem">@Model.TraineeName</div>
+                            </div>
+                            <div class="col-6 col-md-4">
+                                <div style="font-size:.75rem;color:#6b7280">الدرجة</div>
+                                <div class="fw-semibold" style="color:#1e293b;font-size:.9rem">
+                                    @Model.TotalScore / @Model.MaxScore
+                                    @if (Model.PenaltyApplied && Model.OriginalTotalScore.HasValue)
+                                    {
+                                        <span class="restored-score ms-1">(@Model.OriginalTotalScore)</span>
+                                    }
+                                </div>
+                            </div>
                             @foreach (var (lbl, val) in new[]{
-                                ("الطالب", Model.TraineeName),
-                                ("الدرجة", $"{Model.TotalScore} / {Model.MaxScore}"),
                                 ("نسبة النجاح المطلوبة", $"{Model.PassingScore}%"),
                                 ("وقت البدء", Model.StartedAt.ToString("dd/MM/yyyy HH:mm")),
                                 ("وقت الإرسال", Model.SubmittedAt.ToString("dd/MM/yyyy HH:mm")),
@@ -71,6 +115,189 @@
                         }
                     </div>
                 </div>
+            </div>
+
+            <!-- ══ Violations ══ -->
+            <div class="violation-card p-4 mb-4 @(Model.TabSwitchCount == 0 ? "d-none" : "")">
+                <div class="d-flex align-items-center gap-2 mb-3">
+                    <div style="width:36px;height:36px;border-radius:10px;background:#fee2e2;display:flex;align-items:center;justify-content:center">
+                        <i class="fas fa-eye-slash" style="color:#ef4444"></i>
+                    </div>
+                    <div>
+                        <div class="fw-bold" style="color:#991b1b">مخالفات أثناء الامتحان</div>
+                        <div style="font-size:.78rem;color:#b91c1c">سُجِّلت تلقائياً بواسطة نظام مكافحة الغش</div>
+                    </div>
+                </div>
+                <div class="row g-3 mb-3">
+                    <div class="col-6 col-md-3">
+                        <div class="viol-stat">
+                            <div style="font-size:2rem;font-weight:800;color:#ef4444">@Model.TabSwitchCount</div>
+                            <div style="font-size:.75rem;color:#6b7280">تبديل تبويب</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="viol-stat">
+                            <div style="font-size:.9rem;font-weight:700;color:#374151;word-break:break-all">
+                                @(string.IsNullOrEmpty(Model.IpAddress) ? "—" : Model.IpAddress)
+                            </div>
+                            <div style="font-size:.75rem;color:#6b7280">عنوان IP</div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <div class="viol-stat text-start">
+                            <div style="font-size:.78rem;color:#374151;word-break:break-all;line-height:1.4">
+                                @(string.IsNullOrEmpty(Model.UserAgent) ? "—" : Model.UserAgent)
+                            </div>
+                            <div style="font-size:.75rem;color:#6b7280;margin-top:4px">المتصفح / الجهاز</div>
+                        </div>
+                    </div>
+                </div>
+                @if (Model.TabSwitchCount >= 3)
+                {
+                    <div style="background:#fef2f2;border-radius:8px;padding:10px 14px;font-size:.83rem;color:#991b1b">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        عدد المخالفات كبير — يُنصح بمراجعة هذه المحاولة وتطبيق عقوبة مناسبة.
+                    </div>
+                }
+            </div>
+
+            <!-- ══ Penalty Panel ══ -->
+            <div class="penalty-card p-4 mb-4 @(Model.PenaltyApplied ? "penalty-active" : "")">
+                <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+                    <div class="d-flex align-items-center gap-2">
+                        <div style="width:36px;height:36px;border-radius:10px;background:@(Model.PenaltyApplied ? "#fee2e2" : "#fef3c7");display:flex;align-items:center;justify-content:center">
+                            <i class="fas fa-gavel" style="color:@(Model.PenaltyApplied ? "#ef4444" : "#d97706")"></i>
+                        </div>
+                        <div>
+                            <div class="fw-bold" style="color:#1e293b">
+                                @(Model.PenaltyApplied ? "عقوبة مطبّقة" : "تطبيق عقوبة")
+                            </div>
+                            <div style="font-size:.78rem;color:#6b7280">
+                                @(Model.PenaltyApplied ? "يمكن إلغاؤها وإعادة الدرجة الأصلية" : "تصفير الدرجة أو خصم نقاط بسبب المخالفات")
+                            </div>
+                        </div>
+                    </div>
+                    @if (Model.PenaltyApplied)
+                    {
+                        <span class="penalty-badge"><i class="fas fa-gavel me-1"></i>مُعاقَب</span>
+                    }
+                </div>
+
+                @if (Model.PenaltyApplied)
+                {
+                    <!-- Active Penalty Info -->
+                    <div class="row g-3 mb-3">
+                        <div class="col-12 col-md-6">
+                            <div style="background:#fff;border-radius:10px;padding:12px;border:1.5px solid #fecaca">
+                                <div style="font-size:.72rem;color:#9ca3af">الدرجة قبل العقوبة</div>
+                                <div class="fw-bold" style="color:#374151">
+                                    @Model.OriginalTotalScore / @Model.MaxScore
+                                    <span style="color:#6b7280;font-size:.82rem">(@Model.OriginalScorePercentage?.ToString("F1")%)</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <div style="background:#fff;border-radius:10px;padding:12px;border:1.5px solid #fecaca">
+                                <div style="font-size:.72rem;color:#9ca3af">الدرجة بعد العقوبة</div>
+                                <div class="fw-bold" style="color:#ef4444">
+                                    @Model.TotalScore / @Model.MaxScore
+                                    <span style="font-size:.82rem">(@Model.ScorePercentage.ToString("F1")%)</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div style="background:#fff;border-radius:10px;padding:12px;border:1.5px solid #fecaca">
+                                <div style="font-size:.72rem;color:#9ca3af">سبب العقوبة</div>
+                                <div class="fw-semibold" style="color:#374151">@Model.PenaltyReason</div>
+                            </div>
+                        </div>
+                    </div>
+                    <form asp-action="RemovePenalty" method="post" class="d-inline"
+                          onsubmit="return confirm('هل أنت متأكد من إلغاء العقوبة وإعادة الدرجة الأصلية؟')">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="attemptId" value="@Model.AttemptId" />
+                        <button type="submit" class="btn btn-outline-danger btn-sm" style="border-radius:8px">
+                            <i class="fas fa-undo me-1"></i>إلغاء العقوبة وإعادة الدرجة
+                        </button>
+                    </form>
+                }
+                else
+                {
+                    <!-- Apply Penalty Form -->
+                    <form asp-action="ApplyPenalty" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="AttemptId" value="@Model.AttemptId" />
+
+                        <div class="mb-3">
+                            <label class="fw-semibold mb-2 d-block" style="font-size:.85rem;color:#374151">نوع العقوبة</label>
+                            <div class="d-flex gap-2 flex-wrap">
+                                <label class="penalty-type-btn" id="btn-zero">
+                                    <input type="radio" name="PenaltyType" value="1" class="d-none penalty-radio" required />
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div style="width:32px;height:32px;border-radius:8px;background:#fee2e2;display:flex;align-items:center;justify-content:center">
+                                            <i class="fas fa-times" style="color:#ef4444"></i>
+                                        </div>
+                                        <div>
+                                            <div class="fw-semibold" style="font-size:.88rem;color:#1e293b">تصفير الدرجة</div>
+                                            <div style="font-size:.72rem;color:#6b7280">الدرجة تصبح 0 / @Model.MaxScore</div>
+                                        </div>
+                                    </div>
+                                </label>
+                                <label class="penalty-type-btn" id="btn-pts">
+                                    <input type="radio" name="PenaltyType" value="2" class="d-none penalty-radio" />
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div style="width:32px;height:32px;border-radius:8px;background:#fef3c7;display:flex;align-items:center;justify-content:center">
+                                            <i class="fas fa-minus" style="color:#d97706"></i>
+                                        </div>
+                                        <div>
+                                            <div class="fw-semibold" style="font-size:.88rem;color:#1e293b">خصم نقاط</div>
+                                            <div style="font-size:.72rem;color:#6b7280">خصم عدد محدد من النقاط</div>
+                                        </div>
+                                    </div>
+                                </label>
+                                <label class="penalty-type-btn" id="btn-pct">
+                                    <input type="radio" name="PenaltyType" value="3" class="d-none penalty-radio" />
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div style="width:32px;height:32px;border-radius:8px;background:#ede9fe;display:flex;align-items:center;justify-content:center">
+                                            <i class="fas fa-percent" style="color:#7c3aed"></i>
+                                        </div>
+                                        <div>
+                                            <div class="fw-semibold" style="font-size:.88rem;color:#1e293b">خصم نسبة</div>
+                                            <div style="font-size:.72rem;color:#6b7280">خصم نسبة % من الدرجة</div>
+                                        </div>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="deduction-input mb-3" id="deductionBox">
+                            <label class="fw-semibold mb-1 d-block" style="font-size:.85rem;color:#374151" id="deductionLabel">القيمة</label>
+                            <div class="d-flex align-items-center gap-2" style="max-width:260px">
+                                <input type="number" name="DeductionValue" id="deductionValue"
+                                       class="form-control" style="border-radius:8px"
+                                       min="0.01" step="0.5" placeholder="أدخل القيمة" />
+                                <span id="deductionUnit" style="color:#6b7280;font-size:.88rem;white-space:nowrap;min-width:40px">نقطة</span>
+                            </div>
+                            <div id="deductionHint" style="font-size:.75rem;color:#6b7280;margin-top:4px"></div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="fw-semibold mb-1 d-block" style="font-size:.85rem;color:#374151">
+                                سبب العقوبة <span style="color:#ef4444">*</span>
+                            </label>
+                            <textarea name="Reason" class="form-control" rows="2"
+                                      style="border-radius:8px;font-size:.88rem"
+                                      placeholder="مثال: تبديل التبويب 5 مرات خلال الامتحان..."
+                                      required maxlength="500"></textarea>
+                        </div>
+
+                        <button type="submit" class="btn fw-semibold text-white px-4"
+                                style="background:linear-gradient(135deg,#ef4444,#dc2626);border-radius:10px"
+                                onclick="return confirm('هل أنت متأكد من تطبيق هذه العقوبة؟ ستُعدَّل درجة الطالب.')">
+                            <i class="fas fa-gavel me-2"></i>تطبيق العقوبة
+                        </button>
+                    </form>
+                }
             </div>
 
             <!-- Answers -->
@@ -178,3 +405,55 @@
         </div>
     </main>
 </div>
+
+<script>
+(function () {
+    var MAX_SCORE = @(Model.MaxScore.ToString(System.Globalization.CultureInfo.InvariantCulture));
+
+    document.querySelectorAll('.penalty-radio').forEach(function (radio) {
+        radio.addEventListener('change', function () {
+            document.querySelectorAll('.penalty-type-btn').forEach(function (b) {
+                b.classList.remove('active');
+            });
+            this.closest('.penalty-type-btn').classList.add('active');
+
+            var box   = document.getElementById('deductionBox');
+            var lbl   = document.getElementById('deductionLabel');
+            var unit  = document.getElementById('deductionUnit');
+            var hint  = document.getElementById('deductionHint');
+            var input = document.getElementById('deductionValue');
+
+            input.value = '';
+
+            if (this.value === '1') {
+                // ZeroGrade — لا حاجة لإدخال قيمة
+                box.classList.remove('show');
+                input.removeAttribute('required');
+                input.removeAttribute('max');
+            } else if (this.value === '2') {
+                // DeductPoints
+                box.classList.add('show');
+                lbl.textContent  = 'عدد النقاط المراد خصمها';
+                unit.textContent = 'نقطة';
+                hint.textContent = 'الحد الأقصى: ' + MAX_SCORE + ' نقطة';
+                input.min   = '0.5';
+                input.max   = MAX_SCORE;
+                input.step  = '0.5';
+                input.setAttribute('required', '');
+                input.focus();
+            } else {
+                // DeductPercentage
+                box.classList.add('show');
+                lbl.textContent  = 'النسبة المئوية المراد خصمها';
+                unit.textContent = '%';
+                hint.textContent = 'أدخل نسبة من 1 إلى 100';
+                input.min   = '1';
+                input.max   = '100';
+                input.step  = '1';
+                input.setAttribute('required', '');
+                input.focus();
+            }
+        });
+    });
+})();
+</script>

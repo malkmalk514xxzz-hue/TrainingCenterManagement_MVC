@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Text;
 using System.Xml.Linq;
 using TrainingCenterManagement_MVC.Data;
-using Microsoft.EntityFrameworkCore;
 
 namespace TrainingCenterManagement_MVC.Controllers
 {
@@ -20,49 +20,78 @@ namespace TrainingCenterManagement_MVC.Controllers
         [Produces("application/xml")]
         public async Task<IActionResult> Index()
         {
-            var baseUrl = $"{Request.Scheme}://{Request.Host.Value}";
+            var scheme = Request.Scheme;
+            var host   = Request.Host.Value;
+            var now    = DateTime.UtcNow;
 
-            var urls = new List<(string loc, DateTime? lastmod)>();
+            var entries = new List<SitemapEntry>();
 
-            // Static important pages
-            urls.Add((Url.Action("Index", "Home", null, Request.Scheme, Request.Host.Value), DateTime.UtcNow));
-            urls.Add((Url.Action("Index", "Courses", null, Request.Scheme, Request.Host.Value), DateTime.UtcNow));
+            // ── الصفحات الثابتة بأولوياتها ───────────────────────────
+            entries.Add(new(Url.Action("Index",  "Home",    null, scheme, host), now,        "daily",   "1.0"));
+            entries.Add(new(Url.Action("Index",  "Courses", null, scheme, host), now,        "daily",   "0.9"));
+            entries.Add(new(Url.Action("Verify", "Certificates", null, scheme, host), now,  "monthly", "0.7"));
+            entries.Add(new(Url.Action("Search", "Certificates", null, scheme, host), now,  "monthly", "0.6"));
+            entries.Add(new(Url.Action("Index",  "Trainers", null, scheme, host), now,      "monthly", "0.6"));
 
-            // Add courses (details)
+            // ── تفاصيل الكورسات ──────────────────────────────────────
             var courses = await _context.Courses
                 .AsNoTracking()
                 .Where(c => !c.IsDeleted)
+                .Select(c => new { c.CourseId, c.ReleaseDate, c.CreatedDate })
                 .ToListAsync();
 
             foreach (var c in courses)
             {
-                var loc = Url.Action("Details", "Courses", new { id = c.CourseId }, Request.Scheme, Request.Host.Value);
-                DateTime? lastmod = null;
-                // handle when ReleaseDate might be default
-                if (c.ReleaseDate != default(DateTime)) lastmod = c.ReleaseDate;
-                else lastmod = c.CreatedDate;
-
-                // ensure tuple types match
-                urls.Add((loc, lastmod));
+                var loc     = Url.Action("Details", "Courses", new { id = c.CourseId }, scheme, host);
+                var lastmod = c.ReleaseDate != default ? c.ReleaseDate : c.CreatedDate;
+                entries.Add(new(loc, lastmod, "weekly", "0.8"));
             }
 
-            // Build XML
+            // ── الامتحانات المنشورة ───────────────────────────────────
+            var exams = await _context.Exams
+                .AsNoTracking()
+                .Where(e => !e.IsDeleted && e.IsPublished)
+                .Select(e => new { e.ExamId, e.UpdatedAt, e.CreatedAt })
+                .ToListAsync();
+
+            foreach (var e in exams)
+            {
+                var loc     = Url.Action("Details", "Exams", new { id = e.ExamId }, scheme, host);
+                var lastmod = e.UpdatedAt != default ? e.UpdatedAt : e.CreatedAt;
+                entries.Add(new(loc, lastmod, "weekly", "0.6"));
+            }
+
+            // ── تفاصيل المدربين ───────────────────────────────────────
+            var trainers = await _context.Trainers
+                .AsNoTracking()
+                .Select(t => new { t.TrainerId })
+                .ToListAsync();
+
+            foreach (var t in trainers)
+            {
+                var loc = Url.Action("Details", "Trainers", new { id = t.TrainerId }, scheme, host);
+                entries.Add(new(loc, null, "monthly", "0.5"));
+            }
+
+            // ── بناء XML ──────────────────────────────────────────────
             XNamespace ns = "http://www.sitemaps.org/schemas/sitemap/0.9";
             var urlset = new XElement(ns + "urlset",
-                from u in urls
-                where !string.IsNullOrEmpty(u.loc)
-                select new XElement(ns + "url",
-                    new XElement(ns + "loc", u.loc),
-                    u.lastmod != null ? new XElement(ns + "lastmod", u.lastmod.Value.ToString("yyyy-MM-dd")) : null,
-                    new XElement(ns + "changefreq", "weekly"),
-                    new XElement(ns + "priority", "0.6")
-                )
+                entries
+                    .Where(u => !string.IsNullOrEmpty(u.Loc))
+                    .Select(u => new XElement(ns + "url",
+                        new XElement(ns + "loc",        u.Loc),
+                        u.LastMod.HasValue
+                            ? new XElement(ns + "lastmod", u.LastMod.Value.ToString("yyyy-MM-dd"))
+                            : null,
+                        new XElement(ns + "changefreq", u.ChangeFreq),
+                        new XElement(ns + "priority",   u.Priority)
+                    ))
             );
 
-            var declaration = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
-            var xml = declaration + urlset.ToString();
-
+            var xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + urlset;
             return Content(xml, "application/xml", Encoding.UTF8);
         }
+
+        private record SitemapEntry(string? Loc, DateTime? LastMod, string ChangeFreq, string Priority);
     }
 }

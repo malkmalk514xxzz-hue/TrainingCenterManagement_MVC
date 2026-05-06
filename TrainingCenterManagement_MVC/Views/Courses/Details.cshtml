@@ -148,7 +148,18 @@
 @model TrainingCenterManagement_MVC.Models.Course
 
 @{
-    ViewData["Title"] = "Course Details";
+    var courseDesc = string.IsNullOrWhiteSpace(Model.Description)
+        ? $"تفاصيل كورس {Model.CourseName} — سجّل الآن وانضم لأفضل البرامج التدريبية المهنية."
+        : Model.Description.Length > 160 ? Model.Description[..157] + "..." : Model.Description;
+
+    ViewData["Title"]       = $"{Model.CourseName} | مركز التدريب";
+    ViewData["Description"] = courseDesc;
+    ViewData["Keywords"]    = $"{Model.CourseName}, كورس تدريبي, دورة مهنية, تسجيل في كورس, شهادة تدريب, مركز تدريب, {Model.CourseName} عبر الإنترنت";
+    ViewData["OgImage"]     = string.IsNullOrEmpty(Model.ThumbnailUrl) ? null : Model.ThumbnailUrl;
+    ViewData["JsonLdType"]  = "Course";
+    ViewData["JsonLdName"]  = Model.CourseName;
+    ViewData["JsonLdPrice"] = Model.Price.ToString("F2");
+    ViewData["JsonLdDate"]  = Model.ReleaseDate != default ? Model.ReleaseDate.ToString("yyyy-MM-dd") : null;
 }
 
 <style>

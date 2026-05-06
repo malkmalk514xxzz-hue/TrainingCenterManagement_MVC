@@ -345,7 +345,9 @@ namespace TrainingCenterManagement_MVC.Services
                     SubmittedAt = a.SubmittedAt,
                     TabSwitchCount = a.TabSwitchCount,
                     IpAddress = a.IpAddress,
-                    HasPendingEssays = a.StudentAnswers.Any(sa => !sa.IsManuallyGraded && sa.IsCorrect == null)
+                    HasPendingEssays = a.StudentAnswers.Any(sa => !sa.IsManuallyGraded && sa.IsCorrect == null),
+                    PenaltyApplied = a.PenaltyApplied,
+                    PenaltyReason = a.PenaltyReason
                 }).ToList()
             };
         }
@@ -360,6 +362,79 @@ namespace TrainingCenterManagement_MVC.Services
                 ?? throw new InvalidOperationException("المحاولة غير موجودة.");
 
             return BuildExamResultDto(attempt, showAnswers: true);
+        }
+
+        public async Task<bool> ApplyPenaltyAsync(ApplyPenaltyDto dto, Guid trainerId)
+        {
+            var attempt = await _db.ExamAttempts
+                .Include(a => a.Exam)
+                .FirstOrDefaultAsync(a => a.AttemptId == dto.AttemptId && a.Exam.TrainerId == trainerId);
+
+            if (attempt == null) return false;
+            if (attempt.Status != AttemptStatus.Submitted && attempt.Status != AttemptStatus.TimedOut)
+                return false;
+
+            // حفظ الدرجة الأصلية قبل أي عقوبة (مرة واحدة فقط)
+            if (!attempt.PenaltyApplied)
+            {
+                attempt.OriginalTotalScore = attempt.TotalScore;
+                attempt.OriginalScorePercentage = attempt.ScorePercentage;
+            }
+
+            var baseTotal = attempt.OriginalTotalScore ?? attempt.TotalScore ?? 0;
+            var basePct   = attempt.OriginalScorePercentage ?? attempt.ScorePercentage ?? 0;
+            var maxScore  = attempt.MaxScore ?? 0;
+
+            switch (dto.PenaltyType)
+            {
+                case PenaltyType.ZeroGrade:
+                    attempt.TotalScore = 0;
+                    attempt.ScorePercentage = 0;
+                    break;
+
+                case PenaltyType.DeductPoints:
+                    var deductedTotal = Math.Max(0, baseTotal - (dto.DeductionValue ?? 0));
+                    attempt.TotalScore = Math.Round(deductedTotal, 2);
+                    attempt.ScorePercentage = maxScore > 0
+                        ? Math.Round(deductedTotal / maxScore * 100, 2)
+                        : 0;
+                    break;
+
+                case PenaltyType.DeductPercentage:
+                    var newPct = Math.Max(0, basePct - (dto.DeductionValue ?? 0));
+                    attempt.ScorePercentage = Math.Round(newPct, 2);
+                    attempt.TotalScore = maxScore > 0
+                        ? Math.Round(newPct / 100 * maxScore, 2)
+                        : 0;
+                    break;
+            }
+
+            attempt.IsPassed = attempt.ScorePercentage >= attempt.Exam.PassingScore;
+            attempt.PenaltyApplied = true;
+            attempt.PenaltyReason = dto.Reason;
+
+            await _db.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<bool> RemovePenaltyAsync(Guid attemptId, Guid trainerId)
+        {
+            var attempt = await _db.ExamAttempts
+                .Include(a => a.Exam)
+                .FirstOrDefaultAsync(a => a.AttemptId == attemptId && a.Exam.TrainerId == trainerId);
+
+            if (attempt == null || !attempt.PenaltyApplied) return false;
+
+            attempt.TotalScore = attempt.OriginalTotalScore;
+            attempt.ScorePercentage = attempt.OriginalScorePercentage;
+            attempt.IsPassed = attempt.ScorePercentage >= attempt.Exam.PassingScore;
+            attempt.PenaltyApplied = false;
+            attempt.PenaltyReason = null;
+            attempt.OriginalTotalScore = null;
+            attempt.OriginalScorePercentage = null;
+
+            await _db.SaveChangesAsync();
+            return true;
         }
 
         public async Task<bool> ManualGradeAnswerAsync(ManualGradeDto dto, Guid trainerId)
@@ -889,6 +964,13 @@ namespace TrainingCenterManagement_MVC.Services
                     : 0,
                 HasPendingEssays = attempt.StudentAnswers?
                     .Any(sa => !sa.IsManuallyGraded && sa.IsCorrect == null) ?? false,
+                TabSwitchCount = attempt.TabSwitchCount,
+                IpAddress = attempt.IpAddress,
+                UserAgent = attempt.UserAgent,
+                PenaltyApplied = attempt.PenaltyApplied,
+                PenaltyReason = attempt.PenaltyReason,
+                OriginalTotalScore = attempt.OriginalTotalScore,
+                OriginalScorePercentage = attempt.OriginalScorePercentage,
                 AnswerResults = answerResults
             };
         }

@@ -3,9 +3,10 @@ namespace TrainingCenterManagement_MVC.Models
 {
     public enum NotificationType
     {
-        LectureAdded = 1,
+        LectureAdded    = 1,
         PaymentReceived = 2,
-        MessageReceived = 3
+        MessageReceived = 3,
+        ExamAdded       = 4
     }
     public class UserNotification
     {

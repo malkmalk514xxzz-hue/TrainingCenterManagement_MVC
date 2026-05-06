@@ -34,6 +34,8 @@ namespace TrainingCenterManagement_MVC.Services
         Task<TrainerExamResultsDto> GetExamResultsForTrainerAsync(Guid examId, Guid trainerId);
         Task<ExamResultDto> GetAttemptDetailForTrainerAsync(Guid attemptId, Guid trainerId);
         Task<bool> ManualGradeAnswerAsync(ManualGradeDto dto, Guid trainerId);
+        Task<bool> ApplyPenaltyAsync(ApplyPenaltyDto dto, Guid trainerId);
+        Task<bool> RemovePenaltyAsync(Guid attemptId, Guid trainerId);
 
         // ── Trainee: أداء الامتحان ─────────────────────────────────
 

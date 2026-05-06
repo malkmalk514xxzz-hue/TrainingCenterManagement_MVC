@@ -624,6 +624,38 @@ c5.5,0,9.9,4.5,9.9,9.9V73.3z"></path>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>@SharedResource.EmpowerFuture</title>
+    <meta name="description" content="مركز التدريب المهني — اكتشف دورات تدريبية متخصصة في تطوير المهارات، الحصول على شهادات معتمدة، والتقدم في مسيرتك المهنية. سجّل الآن وانضم لآلاف المتدربين." />
+    <meta name="keywords" content="مركز تدريب, دورات مهنية, كورسات تدريبية, شهادات معتمدة, تطوير المهارات, تعلم عبر الإنترنت, دورات احترافية, برامج تعليمية, تدريب مهني" />
+    <meta name="robots" content="index, follow" />
+    <meta name="author" content="مركز التدريب المهني" />
+    <link rel="canonical" href="@(Context.Request.Scheme + "://" + Context.Request.Host + "/")" />
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="@SharedResource.EmpowerFuture" />
+    <meta property="og:description" content="مركز التدريب المهني — اكتشف دورات تدريبية متخصصة في تطوير المهارات والحصول على شهادات معتمدة." />
+    <meta property="og:url" content="@(Context.Request.Scheme + "://" + Context.Request.Host + "/")" />
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="@SharedResource.EmpowerFuture" />
+    <meta name="twitter:description" content="مركز التدريب المهني — دورات تدريبية متخصصة وشهادات معتمدة." />
+    <!-- JSON-LD WebSite Schema -->
+    <script type="application/ld+json">
+    {
+      "@@context": "https://schema.org",
+      "@@type": "WebSite",
+      "name": "@Html.Raw(SharedResource.EmpowerFuture?.Replace("\"", "\\\""))",
+      "url": "@(Context.Request.Scheme + "://" + Context.Request.Host + "/")",
+      "description": "مركز التدريب المهني — دورات مهنية متخصصة وشهادات معتمدة لتطوير المهارات.",
+      "potentialAction": {
+        "@@type": "SearchAction",
+        "target": {
+          "@@type": "EntryPoint",
+          "urlTemplate": "@(Context.Request.Scheme + "://" + Context.Request.Host + "/Courses?search={search_term_string}")"
+        },
+        "query-input": "required name=search_term_string"
+      }
+    }
+    </script>
     <!-- No external libraries; all styling below -->
     <style>
         :root {

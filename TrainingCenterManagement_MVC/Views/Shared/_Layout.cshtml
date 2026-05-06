@@ -12,24 +12,29 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
+    @using System.Text.Json
     @{
         var title = (ViewData["Title"] ?? ViewBag.Title ?? "Training Center Management").ToString();
         var description = (ViewData["Description"] ?? "مركز تدريبي يقدم دورات مهنية وبرامج تعليمية").ToString();
         var keywords = (ViewData["Keywords"] ?? "training,courses,education,training center").ToString();
         var canonical = (ViewData["Canonical"] ?? Context.Request.GetDisplayUrl()).ToString();
+        var robots = (ViewData["Robots"] ?? "index, follow").ToString();
         var siteName = "Training Center Management";
         var ogImage = (ViewData["OgImage"] ?? Url.Content("~/images/og-default.jpg")).ToString();
+        var baseUrl = Context.Request.Scheme + "://" + Context.Request.Host;
+        var isCoursePage = ViewData["JsonLdType"]?.ToString() == "Course";
     }
 
     <title>@title</title>
     <meta name="description" content="@description" />
     <meta name="keywords" content="@keywords" />
+    <meta name="robots" content="@robots" />
     <link rel="canonical" href="@canonical" />
 
     <!-- OpenGraph -->
     <meta property="og:title" content="@title" />
     <meta property="og:description" content="@description" />
-    <meta property="og:type" content="website" />
+    <meta property="og:type" content="@(isCoursePage ? "article" : "website")" />
     <meta property="og:url" content="@canonical" />
     <meta property="og:site_name" content="@siteName" />
     <meta property="og:image" content="@ogImage" />
@@ -40,20 +45,54 @@
     <meta name="twitter:description" content="@description" />
     <meta name="twitter:image" content="@ogImage" />
 
-    <!-- JSON-LD Organization -->
-    @using System.Text.Json
-    @{
-        var ld = new Dictionary<string, object>
+    <!-- JSON-LD -->
+    @if (isCoursePage)
+    {
+        var courseName = ViewData["JsonLdName"]?.ToString() ?? title;
+        var courseDesc = description;
+        var courseImage = ogImage;
+        var coursePrice = ViewData["JsonLdPrice"]?.ToString();
+        var courseDate = ViewData["JsonLdDate"]?.ToString();
+        var courseId = ViewData["JsonLdId"]?.ToString() ?? canonical;
+        var courseLd = new Dictionary<string, object>
+        {
+            ["@context"] = "https://schema.org",
+            ["@type"] = "Course",
+            ["name"] = courseName,
+            ["description"] = courseDesc,
+            ["url"] = canonical,
+            ["image"] = courseImage,
+            ["provider"] = new Dictionary<string, object>
+            {
+                ["@type"] = "Organization",
+                ["name"] = siteName,
+                ["url"] = baseUrl
+            }
+        };
+        if (!string.IsNullOrEmpty(coursePrice))
+            courseLd["offers"] = new Dictionary<string, object>
+            {
+                ["@type"] = "Offer",
+                ["price"] = coursePrice,
+                ["priceCurrency"] = "USD",
+                ["availability"] = "https://schema.org/InStock"
+            };
+        if (!string.IsNullOrEmpty(courseDate))
+            courseLd["startDate"] = courseDate;
+        <script type="application/ld+json">@Html.Raw(JsonSerializer.Serialize(courseLd))</script>
+    }
+    else
+    {
+        var orgLd = new Dictionary<string, object>
         {
             ["@context"] = "https://schema.org",
             ["@type"] = "Organization",
             ["name"] = siteName,
-            ["url"] = canonical,
-            ["logo"] = Url.Content("~/images/logo.png")
+            ["url"] = baseUrl,
+            ["logo"] = baseUrl + Url.Content("~/images/logo.png")
         };
-        var jsonLd = JsonSerializer.Serialize(ld);
+        <script type="application/ld+json">@Html.Raw(JsonSerializer.Serialize(orgLd))</script>
     }
-    <script type="application/ld+json">@Html.Raw(jsonLd)</script>
 
     <link rel="sitemap" type="application/xml" title="Sitemap" href="/sitemap.xml" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">

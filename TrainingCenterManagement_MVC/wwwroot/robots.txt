@@ -1,3 +1,46 @@
 User-agent: *
-Disallow:
+
+# صفحات عامة مسموح بها
+Allow: /
+Allow: /Courses
+Allow: /Courses/Details/
+Allow: /Trainers
+Allow: /Trainers/Details/
+Allow: /Certificates
+Allow: /Certificates/Verify
+Allow: /Certificates/Search
+
+# حجب المسارات الخاصة والإدارية
+Disallow: /Admin/
+Disallow: /Dashboard/
+Disallow: /Account/
+Disallow: /Chat/
+Disallow: /Notifications/
+Disallow: /Payments/
+Disallow: /Presences/
+Disallow: /Receptionists/
+Disallow: /Settings/
+Disallow: /Media/
+Disallow: /Exams/Create
+Disallow: /Exams/Edit/
+Disallow: /Exams/Delete/
+Disallow: /Exams/ManageQuestions/
+Disallow: /Exams/QuestionBank
+Disallow: /Exams/CreateQuestion
+Disallow: /Exams/Results/
+Disallow: /Exams/AttemptDetail/
+Disallow: /ExamAttempt/
+Disallow: /Lectures/Create
+Disallow: /Lectures/Edit/
+Disallow: /Lectures/Delete/
+Disallow: /Lectures/UploadVideo/
+Disallow: /Trainees/
+Disallow: /Language/
+
+# حجب ملفات النظام
+Disallow: /lib/
+Disallow: /Identity/
+
+Crawl-delay: 1
+
 Sitemap: /sitemap.xml
