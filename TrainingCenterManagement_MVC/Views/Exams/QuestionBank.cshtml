@@ -1,0 +1,171 @@
+@using TrainingCenterManagement_MVC.Models.Enums
+@model IEnumerable<TrainingCenterManagement_MVC.DTOs.QuestionDto>
+@{
+    ViewData["Title"] = "بنك الأسئلة";
+    var selectedType = ViewBag.SelectedType as QuestionType?;
+    var selectedDiff = ViewBag.SelectedDifficulty as DifficultyLevel?;
+}
+<style>
+    .q-card { border-radius: 12px; border: 1.5px solid #e5e7eb; background: #fff; transition: all .2s; }
+    .q-card:hover { border-color: #4f46e5; box-shadow: 0 4px 12px rgba(79,70,229,.08); }
+    .filter-chip { border-radius: 20px; padding: 5px 14px; border: 1.5px solid #e5e7eb; background: #fff; cursor: pointer; font-size: .82rem; font-weight: 500; transition: all .2s; text-decoration: none; color: #374151; }
+    .filter-chip.active, .filter-chip:hover { background: #4f46e5; color: #fff; border-color: #4f46e5; }
+    .badge-mc  { background:#dbeafe;color:#1d4ed8; }
+    .badge-tf  { background:#dcfce7;color:#16a34a; }
+    .badge-sa  { background:#fef9c3;color:#a16207; }
+    .badge-es  { background:#fce7f3;color:#be185d; }
+    .badge-easy   { background:#d1fae5;color:#065f46; }
+    .badge-medium { background:#fef3c7;color:#92400e; }
+    .badge-hard   { background:#fee2e2;color:#991b1b; }
+    .points-badge { background:#ede9fe;color:#5b21b6;border-radius:8px;padding:2px 10px;font-weight:700;font-size:.82rem; }
+</style>
+
+<div class="dashboard-wrapper">
+    @await Html.PartialAsync("_TrainerSidebar")
+    <main class="dashboard-main">
+        <div class="container-fluid px-4 py-4">
+
+            <!-- Header -->
+            <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+                <div>
+                    <h2 class="fw-bold mb-0" style="color:#1e293b">
+                        <i class="fas fa-database me-2" style="color:#4f46e5"></i>بنك الأسئلة
+                    </h2>
+                    <p class="text-muted mb-0 mt-1" style="font-size:.88rem">@Model.Count() سؤال في مكتبتك</p>
+                </div>
+                <a asp-action="CreateQuestion" class="btn text-white" style="background:#4f46e5;border-radius:10px">
+                    <i class="fas fa-plus me-1"></i>سؤال جديد
+                </a>
+            </div>
+
+            <!-- Filters -->
+            <div class="d-flex flex-wrap gap-2 mb-4">
+                <a asp-action="QuestionBank" class="filter-chip @(selectedType == null && selectedDiff == null ? "active" : "")">
+                    الكل
+                </a>
+                <a asp-action="QuestionBank" asp-route-type="MultipleChoice"
+                   class="filter-chip @(selectedType == QuestionType.MultipleChoice ? "active" : "")">
+                    <i class="fas fa-list me-1"></i>اختيار متعدد
+                </a>
+                <a asp-action="QuestionBank" asp-route-type="TrueFalse"
+                   class="filter-chip @(selectedType == QuestionType.TrueFalse ? "active" : "")">
+                    <i class="fas fa-check-circle me-1"></i>صح / خطأ
+                </a>
+                <a asp-action="QuestionBank" asp-route-type="ShortAnswer"
+                   class="filter-chip @(selectedType == QuestionType.ShortAnswer ? "active" : "")">
+                    <i class="fas fa-font me-1"></i>إجابة قصيرة
+                </a>
+                <a asp-action="QuestionBank" asp-route-type="Essay"
+                   class="filter-chip @(selectedType == QuestionType.Essay ? "active" : "")">
+                    <i class="fas fa-paragraph me-1"></i>مقالي
+                </a>
+                <span style="border-left:1px solid #e5e7eb;margin:0 4px"></span>
+                <a asp-action="QuestionBank" asp-route-difficulty="Easy"
+                   class="filter-chip @(selectedDiff == DifficultyLevel.Easy ? "active" : "")">سهل</a>
+                <a asp-action="QuestionBank" asp-route-difficulty="Medium"
+                   class="filter-chip @(selectedDiff == DifficultyLevel.Medium ? "active" : "")">متوسط</a>
+                <a asp-action="QuestionBank" asp-route-difficulty="Hard"
+                   class="filter-chip @(selectedDiff == DifficultyLevel.Hard ? "active" : "")">صعب</a>
+            </div>
+
+            <!-- Search -->
+            <div class="mb-4" style="max-width:400px">
+                <input type="text" class="form-control" id="qSearch" placeholder="بحث في الأسئلة..."
+                       style="border-radius:12px;border:1.5px solid #e5e7eb">
+            </div>
+
+            @if (Model.Any())
+            {
+                <div class="row g-3" id="qGrid">
+                    @foreach (var q in Model)
+                    {
+                        string typeBadge = q.QuestionType switch {
+                            QuestionType.MultipleChoice => "badge-mc",
+                            QuestionType.TrueFalse      => "badge-tf",
+                            QuestionType.ShortAnswer    => "badge-sa",
+                            _                            => "badge-es"
+                        };
+                        string typeLabel = q.QuestionType switch {
+                            QuestionType.MultipleChoice => "اختيار متعدد",
+                            QuestionType.TrueFalse      => "صح / خطأ",
+                            QuestionType.ShortAnswer    => "إجابة قصيرة",
+                            _                            => "مقالي"
+                        };
+                        string diffBadge = q.DifficultyLevel switch {
+                            DifficultyLevel.Easy   => "badge-easy",
+                            DifficultyLevel.Medium => "badge-medium",
+                            _                       => "badge-hard"
+                        };
+                        string diffLabel = q.DifficultyLevel switch {
+                            DifficultyLevel.Easy   => "سهل",
+                            DifficultyLevel.Medium => "متوسط",
+                            _                       => "صعب"
+                        };
+                        <div class="col-12 col-md-6 q-item" data-qtext="@q.QuestionText.ToLower()">
+                            <div class="q-card p-3">
+                                <!-- Question text -->
+                                <p class="fw-semibold mb-2" style="color:#1e293b;font-size:.9rem;line-height:1.5">
+                                    @q.QuestionText
+                                </p>
+                                <!-- Options preview for MC -->
+                                @if (q.QuestionType == QuestionType.MultipleChoice && q.Options.Any())
+                                {
+                                    <div class="mb-2">
+                                        @foreach (var opt in q.Options.Take(4))
+                                        {
+                                            bool isCorrect = opt == q.CorrectAnswer;
+                                            <div class="d-flex align-items-center gap-2 mb-1">
+                                                <span style="width:18px;height:18px;border-radius:50%;border:2px solid @(isCorrect ? "#10b981" : "#d1d5db");background:@(isCorrect ? "#d1fae5" : "transparent");display:inline-flex;align-items:center;justify-content:center">
+                                                    @if (isCorrect){ <i class="fas fa-check" style="font-size:.55rem;color:#10b981"></i> }
+                                                </span>
+                                                <span style="font-size:.82rem;color:@(isCorrect ? "#065f46" : "#6b7280")">@opt</span>
+                                            </div>
+                                        }
+                                    </div>
+                                }
+                                @if (q.QuestionType == QuestionType.TrueFalse)
+                                {
+                                    <div class="mb-2 d-flex gap-2">
+                                        <span class="badge @(q.CorrectAnswer == "True" ? "bg-success" : "bg-secondary")">صح ✓</span>
+                                        <span class="badge @(q.CorrectAnswer == "False" ? "bg-danger" : "bg-secondary")">خطأ ✗</span>
+                                    </div>
+                                }
+                                <!-- Meta -->
+                                <div class="d-flex flex-wrap gap-2 align-items-center">
+                                    <span class="badge @typeBadge" style="border-radius:8px;font-size:.72rem">@typeLabel</span>
+                                    <span class="badge @diffBadge" style="border-radius:8px;font-size:.72rem">@diffLabel</span>
+                                    <span class="points-badge">@q.DefaultPoints نقطة</span>
+                                    @if (q.UsedInExamsCount > 0)
+                                    {
+                                        <span style="font-size:.75rem;color:#6b7280">
+                                            <i class="fas fa-layer-group me-1"></i>مُستخدَم في @q.UsedInExamsCount امتحان
+                                        </span>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div style="text-align:center;padding:60px 20px;color:#9ca3af">
+                    <i class="fas fa-database" style="font-size:3rem;color:#d1d5db;display:block;margin-bottom:16px"></i>
+                    <h5 style="color:#6b7280">لا توجد أسئلة بعد</h5>
+                    <a asp-action="CreateQuestion" class="btn text-white mt-2" style="background:#4f46e5;border-radius:10px">
+                        إنشاء أول سؤال
+                    </a>
+                </div>
+            }
+        </div>
+    </main>
+</div>
+
+<script>
+document.getElementById('qSearch')?.addEventListener('input', function() {
+    const term = this.value.toLowerCase();
+    document.querySelectorAll('.q-item').forEach(item => {
+        item.style.display = item.dataset.qtext.includes(term) ? '' : 'none';
+    });
+});
+</script>

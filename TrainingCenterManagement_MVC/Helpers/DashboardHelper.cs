@@ -466,7 +466,7 @@ namespace TrainingCenterManagement_MVC.Helpers
             .ToListAsync();
 
             var upcomingExams = await context.Exams
-                .Where(e => e.ExamDate >= DateTime.UtcNow && !e.IsDeleted)
+                .Where(e => e.StartDateTime >= DateTime.UtcNow && !e.IsDeleted)
                 .Include(e => e.Course)
                 .ThenInclude(c => c.CourseTrainees)
                 .Where(e => e.Course.CourseTrainees.Any(ct => ct.TraineeId == _traineeId))
@@ -474,7 +474,7 @@ namespace TrainingCenterManagement_MVC.Helpers
                 .Select(e => new UpcomingEvent
                 {
                     Title = e.ExamName,
-                    Date = e.ExamDate.ToString("MMM dd, yyyy HH:mm"),
+                    Date = e.StartDateTime.ToString("MMM dd, yyyy HH:mm"),
                     Link = "https://zoom.us/j/123456789" // Placeholder link
                 })
                 .ToListAsync();
@@ -620,7 +620,7 @@ namespace TrainingCenterManagement_MVC.Helpers
                 .CountAsync(l => l.LectureDate >= DateTime.UtcNow && !l.IsDeleted && l.Course.CourseTrainers.Any(ct => ct.TrainerId == trainerId));
 
             var upcomingExams = await context.Exams
-                .CountAsync(e => e.ExamDate >= DateTime.UtcNow && !e.IsDeleted && e.Course.CourseTrainers.Any(ct => ct.TrainerId == trainerId));
+                .CountAsync(e => e.StartDateTime >= DateTime.UtcNow && !e.IsDeleted && e.Course.CourseTrainers.Any(ct => ct.TrainerId == trainerId));
 
             return upcomingLectures + upcomingExams;
         }
@@ -689,13 +689,13 @@ namespace TrainingCenterManagement_MVC.Helpers
                 .ToListAsync();
 
             var upcomingExams = await context.Exams
-                .Where(e => e.ExamDate >= DateTime.UtcNow && !e.IsDeleted && e.Course.CourseTrainers.Any(ct => ct.TrainerId == trainerId))
-                .OrderBy(e => e.ExamDate)
+                .Where(e => e.StartDateTime >= DateTime.UtcNow && !e.IsDeleted && e.Course.CourseTrainers.Any(ct => ct.TrainerId == trainerId))
+                .OrderBy(e => e.StartDateTime)
                 .Take(5)
                 .Select(e => new UpcomingEvent
                 {
                     Title = e.ExamName,
-                    Date = e.ExamDate.ToString("MMM dd, yyyy HH:mm"),
+                    Date = e.StartDateTime.ToString("MMM dd, yyyy HH:mm"),
                     Link = "https://zoom.us/j/123456789"
                 })
                 .ToListAsync();

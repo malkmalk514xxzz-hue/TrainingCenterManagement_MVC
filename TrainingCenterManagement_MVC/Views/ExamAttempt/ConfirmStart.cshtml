@@ -1,0 +1,113 @@
+@model TrainingCenterManagement_MVC.Models.Exam
+@{
+    ViewData["Title"] = "تأكيد بدء الامتحان";
+    int completedAttempts = ViewBag.CompletedAttempts ?? 0;
+    int questionsCount = Model.ExamQuestions?.Count ?? 0;
+}
+<style>
+    .confirm-card { border-radius:18px;border:1.5px solid #e8ecef;background:#fff;max-width:600px;margin:0 auto; }
+    .info-row     { display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #f1f5f9; }
+    .info-row:last-child { border-bottom:none; }
+    .rule-item    { display:flex;align-items:flex-start;gap:10px;margin-bottom:8px;font-size:.88rem;color:#374151; }
+    .rule-icon    { width:22px;height:22px;border-radius:50%;background:#eef2ff;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px; }
+</style>
+
+<div class="dashboard-wrapper">
+    @await Html.PartialAsync("_TraineeSidebar")
+    <main class="dashboard-main">
+        <div class="container-fluid px-4 py-4" style="max-width:680px">
+
+            <!-- Back -->
+            <div class="d-flex align-items-center gap-3 mb-4">
+                <a asp-controller="Exams" asp-action="MyExams" class="btn btn-sm btn-outline-secondary" style="border-radius:10px">
+                    <i class="fas fa-arrow-right"></i>
+                </a>
+                <div>
+                    <h2 class="fw-bold mb-0" style="color:#1e293b">تأكيد بدء الامتحان</h2>
+                    <p class="text-muted mb-0 mt-1" style="font-size:.88rem">تأكد من جاهزيتك قبل البدء</p>
+                </div>
+            </div>
+
+            <div class="confirm-card p-4 mb-4">
+                <!-- Exam Name -->
+                <div class="text-center mb-4 pb-3" style="border-bottom:2px solid #e0e7ff">
+                    <div style="width:64px;height:64px;border-radius:16px;background:linear-gradient(135deg,#4f46e5,#7c3aed);display:flex;align-items:center;justify-content:center;margin:0 auto 12px">
+                        <i class="fas fa-graduation-cap" style="font-size:1.5rem;color:#fff"></i>
+                    </div>
+                    <h4 class="fw-bold mb-1" style="color:#1e293b">@Model.ExamName</h4>
+                    @if (!string.IsNullOrEmpty(Model.Instructions))
+                    {
+                        <p class="text-muted mb-0" style="font-size:.88rem">@Model.Instructions</p>
+                    }
+                </div>
+
+                <!-- Exam Details -->
+                <div class="mb-4">
+                    <div class="info-row">
+                        <span style="font-size:.85rem;color:#6b7280"><i class="fas fa-clock me-2 text-primary"></i>المدة</span>
+                        <span class="fw-semibold" style="color:#1e293b">@Model.DurationMinutes دقيقة</span>
+                    </div>
+                    <div class="info-row">
+                        <span style="font-size:.85rem;color:#6b7280"><i class="fas fa-question-circle me-2 text-primary"></i>عدد الأسئلة</span>
+                        <span class="fw-semibold" style="color:#1e293b">@questionsCount سؤال</span>
+                    </div>
+                    <div class="info-row">
+                        <span style="font-size:.85rem;color:#6b7280"><i class="fas fa-percentage me-2 text-primary"></i>درجة النجاح</span>
+                        <span class="fw-semibold" style="color:#1e293b">@Model.PassingScore%</span>
+                    </div>
+                    <div class="info-row">
+                        <span style="font-size:.85rem;color:#6b7280"><i class="fas fa-redo me-2 text-primary"></i>عدد المحاولات المتاحة</span>
+                        <span class="fw-semibold" style="color:#1e293b">@(Model.MaxAttempts - completedAttempts) من @Model.MaxAttempts</span>
+                    </div>
+                    <div class="info-row">
+                        <span style="font-size:.85rem;color:#6b7280"><i class="fas fa-random me-2 text-primary"></i>ترتيب الأسئلة</span>
+                        <span class="fw-semibold" style="color:#1e293b">@(Model.IsRandomized ? "عشوائي" : "ثابت")</span>
+                    </div>
+                    <div class="info-row">
+                        <span style="font-size:.85rem;color:#6b7280"><i class="fas fa-eye me-2 text-primary"></i>النتيجة</span>
+                        <span class="fw-semibold" style="color:#1e293b">@(Model.ShowResultsImmediately ? "تظهر فور الإنهاء" : "بعد المراجعة")</span>
+                    </div>
+                </div>
+
+                <!-- Rules -->
+                <div style="background:#fefce8;border-radius:12px;padding:16px;border:1.5px solid #fde68a;margin-bottom:20px">
+                    <div class="fw-semibold mb-2" style="color:#92400e;font-size:.85rem">
+                        <i class="fas fa-exclamation-triangle me-2"></i>تعليمات مهمة
+                    </div>
+                    <div class="rule-item">
+                        <div class="rule-icon"><i class="fas fa-desktop" style="font-size:.65rem;color:#4f46e5"></i></div>
+                        <span>لا تغادر نافذة الامتحان أو تغير التبويب — سيتم تسجيل كل مخالفة.</span>
+                    </div>
+                    <div class="rule-item">
+                        <div class="rule-icon"><i class="fas fa-save" style="font-size:.65rem;color:#4f46e5"></i></div>
+                        <span>إجاباتك تُحفظ تلقائياً — في حال انقطاع الإنترنت ستجد إجاباتك محفوظة عند العودة.</span>
+                    </div>
+                    <div class="rule-item">
+                        <div class="rule-icon"><i class="fas fa-hourglass-end" style="font-size:.65rem;color:#4f46e5"></i></div>
+                        <span>عند انتهاء الوقت يُرسَل الامتحان تلقائياً بإجاباتك المحفوظة.</span>
+                    </div>
+                    <div class="rule-item">
+                        <div class="rule-icon"><i class="fas fa-wifi" style="font-size:.65rem;color:#4f46e5"></i></div>
+                        <span>تأكد من استقرار اتصال الإنترنت قبل البدء.</span>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <form asp-controller="ExamAttempt" asp-action="Start" asp-route-examId="@Model.ExamId" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="confirm" value="yes" />
+                    <div class="d-flex gap-3">
+                        <a asp-controller="Exams" asp-action="MyExams"
+                           class="btn btn-outline-secondary flex-grow-1" style="border-radius:12px;padding:12px">
+                            <i class="fas fa-times me-2"></i>إلغاء
+                        </a>
+                        <button type="submit" class="btn flex-grow-1 text-white fw-semibold"
+                                style="background:linear-gradient(135deg,#4f46e5,#7c3aed);border-radius:12px;padding:12px">
+                            <i class="fas fa-play me-2"></i>ابدأ الامتحان الآن
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+</div>

@@ -1,40 +1,220 @@
-﻿@model IEnumerable<TrainingCenterManagement_MVC.Models.Exam>
-
+@using TrainingCenterManagement_MVC.Models.Enums
+@model IEnumerable<TrainingCenterManagement_MVC.DTOs.ExamSummaryDto>
 @{
-    ViewData["Title"] = "My Exams";
+    ViewData["Title"] = "امتحاناتي";
 }
+<style>
+    .exam-card  { border-radius:14px;border:1.5px solid #e8ecef;background:#fff;transition:all .2s; }
+    .exam-card:hover { transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.08); }
+    .badge-active   { background:#d1fae5;color:#065f46; }
+    .badge-upcoming { background:#fef3c7;color:#92400e; }
+    .badge-ended    { background:#f3f4f6;color:#6b7280; }
+    .badge-done     { background:#dbeafe;color:#1d4ed8; }
+    .stat-dot       { width:8px;height:8px;border-radius:50%;display:inline-block; }
+    .empty-state    { text-align:center;padding:60px 20px;color:#9ca3af; }
+    .filter-tab     { border-radius:20px;padding:5px 16px;font-size:.85rem;cursor:pointer;border:1.5px solid #e5e7eb;background:#fff;color:#374151; }
+    .filter-tab.active { background:#4f46e5;color:#fff;border-color:#4f46e5; }
+</style>
 
-<h1 class="mb-4">📋 My Exams</h1>
+<div class="dashboard-wrapper">
+    @await Html.PartialAsync("_TraineeSidebar")
+    <main class="dashboard-main">
+        <div class="container-fluid px-4 py-4">
 
-@if (!Model.Any())
-{
-    <div class="alert alert-info">لا يوجد امتحانات متاحة لك حاليًا.</div>
-}
-else
-{
-    <table class="table table-striped table-hover">
-        <thead class="table-dark">
-            <tr>
-                <th>Exam Name</th>
-                <th>Course</th>
-                <th>Exam Date</th>
-                <th>Action</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var exam in Model)
+            <!-- Header -->
+            <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+                <div>
+                    <h2 class="fw-bold mb-0" style="color:#1e293b">
+                        <i class="fas fa-graduation-cap me-2" style="color:#4f46e5"></i>امتحاناتي
+                    </h2>
+                    <p class="text-muted mb-0 mt-1" style="font-size:.9rem">جميع الامتحانات المتاحة لك</p>
+                </div>
+            </div>
+
+            @if (TempData["Error"] != null)
             {
-                <tr>
-                    <td>@exam.ExamName</td>
-                    <td>@exam.Course.CourseName</td>
-                    <td>@exam.ExamDate.ToString("dd/MM/yyyy")</td>
-                    <td>
-                        <a asp-action="TakeExam" asp-route-examId="@exam.ExamId" class="btn btn-sm btn-primary">
-                            Start Exam
-                        </a>
-                    </td>
-                </tr>
+                <div class="alert alert-danger alert-dismissible fade show rounded-3 mb-4">
+                    <i class="fas fa-exclamation-circle me-2"></i>@TempData["Error"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
             }
-        </tbody>
-    </table>
+
+            @if (!Model.Any())
+            {
+                <div class="empty-state">
+                    <i class="fas fa-graduation-cap" style="font-size:3rem;color:#d1d5db;display:block;margin-bottom:16px"></i>
+                    <h5 style="color:#6b7280">لا توجد امتحانات متاحة حالياً</h5>
+                    <p style="font-size:.88rem">ستظهر هنا الامتحانات عند نشرها من قِبل المدرب.</p>
+                </div>
+            }
+            else
+            {
+                <!-- Filter Tabs -->
+                <div class="d-flex gap-2 mb-4 flex-wrap">
+                    <button class="filter-tab active" data-filter="all">الكل (@Model.Count())</button>
+                    <button class="filter-tab" data-filter="active">
+                        جارية الآن (@Model.Count(e => e.IsActive))
+                    </button>
+                    <button class="filter-tab" data-filter="upcoming">
+                        قادمة (@Model.Count(e => !e.IsActive && e.StartDateTime > DateTime.UtcNow))
+                    </button>
+                    <button class="filter-tab" data-filter="ended">
+                        منتهية (@Model.Count(e => e.StartDateTime.AddMinutes(e.DurationMinutes) < DateTime.UtcNow))
+                    </button>
+                </div>
+
+                <div class="row g-3" id="examGrid">
+                    @foreach (var exam in Model)
+                    {
+                        bool hasStarted = exam.StartDateTime <= DateTime.UtcNow;
+                        bool hasEnded   = exam.StartDateTime.AddMinutes(exam.DurationMinutes) < DateTime.UtcNow;
+                        bool isActive   = exam.IsActive;
+
+                        string filterAttr = hasEnded ? "ended" : isActive ? "active" : "upcoming";
+
+                        string statusLabel = hasEnded ? "منتهي" : isActive ? "جارٍ الآن" : "لم يبدأ بعد";
+                        string statusClass = hasEnded ? "badge-ended" : isActive ? "badge-active" : "badge-upcoming";
+                        string dotColor   = hasEnded ? "#9ca3af" : isActive ? "#10b981" : "#f59e0b";
+
+                        string attemptLabel = "";
+                        string attemptClass = "";
+                        if (exam.HasAttempted == true)
+                        {
+                            attemptLabel = exam.LastAttemptStatus switch {
+                                AttemptStatus.Submitted  => "أديت الامتحان",
+                                AttemptStatus.TimedOut   => "انتهى الوقت",
+                                AttemptStatus.InProgress => "جارٍ الآن",
+                                _                        => "مُهجور"
+                            };
+                            attemptClass = exam.LastAttemptStatus == AttemptStatus.InProgress ? "badge-upcoming" : "badge-done";
+                        }
+
+                        TimeSpan? countdown = !hasStarted ? exam.StartDateTime - DateTime.UtcNow : (TimeSpan?)null;
+
+                        <div class="col-12 col-md-6 col-xl-4 exam-item" data-filter="@filterAttr">
+                            <div class="exam-card p-4 h-100 d-flex flex-column">
+
+                                <!-- Status + Title -->
+                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                    <div class="flex-grow-1">
+                                        <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
+                                            <span class="stat-dot" style="background:@dotColor"></span>
+                                            <span class="@statusClass" style="font-size:.72rem;font-weight:700;padding:2px 8px;border-radius:10px">@statusLabel</span>
+                                            @if (!string.IsNullOrEmpty(attemptLabel))
+                                            {
+                                                <span class="@attemptClass" style="font-size:.72rem;font-weight:600;padding:2px 8px;border-radius:10px">@attemptLabel</span>
+                                            }
+                                        </div>
+                                        <h5 class="fw-bold mb-0" style="color:#1e293b;font-size:1rem">@exam.ExamName</h5>
+                                    </div>
+                                    @if (isActive)
+                                    {
+                                        <div style="width:10px;height:10px;border-radius:50%;background:#10b981;animation:pulse 2s infinite;flex-shrink:0;margin-top:4px"></div>
+                                    }
+                                </div>
+
+                                <!-- Details -->
+                                <div class="row g-2 mb-3">
+                                    <div class="col-6">
+                                        <div style="font-size:.72rem;color:#9ca3af">موعد البدء</div>
+                                        <div style="font-size:.82rem;font-weight:600;color:#374151">
+                                            @exam.StartDateTime.ToString("dd/MM/yyyy")
+                                            <span style="color:#6b7280;display:block">@exam.StartDateTime.ToString("HH:mm")</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div style="font-size:.72rem;color:#9ca3af">المدة</div>
+                                        <div style="font-size:.82rem;font-weight:600;color:#374151">
+                                            @exam.DurationMinutes دقيقة
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Countdown for upcoming -->
+                                @if (countdown.HasValue && countdown.Value.TotalSeconds > 0)
+                                {
+                                    <div style="background:#fffbeb;border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:.82rem;color:#92400e">
+                                        <i class="fas fa-clock me-2" style="color:#f59e0b"></i>
+                                        يبدأ خلال:
+                                        <span class="fw-bold countdown-label" data-deadline="@exam.StartDateTime.ToString("o")">
+                                            @(countdown.Value.Days > 0 ? $"{countdown.Value.Days} يوم " : "")@countdown.Value.Hours ساعة @countdown.Value.Minutes دقيقة
+                                        </span>
+                                    </div>
+                                }
+
+                                <!-- Action Button -->
+                                <div class="mt-auto">
+                                    @if (isActive && exam.LastAttemptStatus == AttemptStatus.InProgress)
+                                    {
+                                        <a asp-controller="ExamAttempt" asp-action="Start" asp-route-examId="@exam.ExamId"
+                                           class="btn w-100 fw-semibold" style="background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;border-radius:10px">
+                                            <i class="fas fa-redo me-2"></i>متابعة الامتحان
+                                        </a>
+                                    }
+                                    else if (isActive && exam.HasAttempted != true)
+                                    {
+                                        <a asp-controller="ExamAttempt" asp-action="Start" asp-route-examId="@exam.ExamId"
+                                           class="btn w-100 fw-semibold text-white" style="background:linear-gradient(135deg,#4f46e5,#7c3aed);border-radius:10px">
+                                            <i class="fas fa-play me-2"></i>ابدأ الامتحان
+                                        </a>
+                                    }
+                                    else if (exam.HasAttempted == true && (hasEnded || isActive))
+                                    {
+                                        <a asp-controller="ExamAttempt" asp-action="Result" asp-route-attemptId="@exam.LastAttemptId"
+                                           class="btn w-100 btn-outline-primary" style="border-radius:10px">
+                                            <i class="fas fa-chart-bar me-2"></i>عرض النتيجة
+                                        </a>
+                                    }
+                                    else if (!hasStarted)
+                                    {
+                                        <button class="btn w-100 btn-outline-secondary" style="border-radius:10px" disabled>
+                                            <i class="fas fa-hourglass-half me-2"></i>لم يبدأ بعد
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button class="btn w-100 btn-outline-secondary" style="border-radius:10px" disabled>
+                                            <i class="fas fa-lock me-2"></i>انتهى الامتحان
+                                        </button>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </main>
+</div>
+
+<style>
+@@keyframes pulse { 0%,100% { box-shadow:0 0 0 3px rgba(16,185,129,.25); } 50% { box-shadow:0 0 0 6px rgba(16,185,129,.1); } }
+</style>
+
+<script>
+document.querySelectorAll('.filter-tab').forEach(btn => {
+    btn.addEventListener('click', function() {
+        document.querySelectorAll('.filter-tab').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        const filter = this.dataset.filter;
+        document.querySelectorAll('.exam-item').forEach(item => {
+            item.style.display = filter === 'all' || item.dataset.filter === filter ? '' : 'none';
+        });
+    });
+});
+
+function updateCountdowns() {
+    document.querySelectorAll('.countdown-label[data-deadline]').forEach(el => {
+        const deadline = new Date(el.dataset.deadline);
+        const diff = deadline - Date.now();
+        if (diff <= 0) { location.reload(); return; }
+        const d = Math.floor(diff / 86400000);
+        const h = Math.floor((diff % 86400000) / 3600000);
+        const m = Math.floor((diff % 3600000) / 60000);
+        const s = Math.floor((diff % 60000) / 1000);
+        el.textContent = (d > 0 ? d + ' يوم ' : '') + h + ':' + String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+    });
 }
+setInterval(updateCountdowns, 1000);
+updateCountdowns();
+</script>

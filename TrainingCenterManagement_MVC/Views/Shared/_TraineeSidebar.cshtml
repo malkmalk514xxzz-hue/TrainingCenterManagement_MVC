@@ -105,9 +105,10 @@
                     <span>@SharedResource.Profile</span>
                 </a>
             </li>
-            <li class="@(currentPage == "profile" ? "active" : "")">
-                <a asp-controller="Exams" asp-action="MyExams" class="btn btn-outline-primary btn-sm">
-                    <i class="bi bi-journal-check"></i> My Exams
+            <li class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Exams" && currentPage == "myexams" || ViewContext.RouteData.Values["controller"]?.ToString() == "ExamAttempt" ? "active" : "")">
+                <a asp-controller="Exams" asp-action="MyExams">
+                    <i class="fas fa-graduation-cap"></i>
+                    <span>امتحاناتي</span>
                 </a>
             </li>
            

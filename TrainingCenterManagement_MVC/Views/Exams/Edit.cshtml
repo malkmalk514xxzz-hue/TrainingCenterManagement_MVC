@@ -1,57 +1,145 @@
-﻿@model TrainingCenterManagement_MVC.Models.Exam
-
+@model TrainingCenterManagement_MVC.DTOs.UpdateExamDto
 @{
-    ViewData["Title"] = "Edit Exam";
+    ViewData["Title"] = "تعديل الامتحان";
 }
+<style>
+    .form-card { border-radius: 16px; border: 1px solid #e8ecef; background: #fff; }
+    .section-header { font-size: .8rem; font-weight: 700; color: #4f46e5; text-transform: uppercase; letter-spacing: .05em; border-bottom: 2px solid #e0e7ff; padding-bottom: 8px; margin-bottom: 16px; }
+    .form-label { font-weight: 600; font-size: .88rem; color: #374151; }
+    .form-control { border-radius: 10px; border: 1.5px solid #e5e7eb; font-size: .9rem; }
+    .form-control:focus { border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79,70,229,.12); }
+    .toggle-card { border: 2px solid #e5e7eb; border-radius: 12px; padding: 14px; cursor: pointer; transition: border-color .2s, background .2s; }
+    .btn-submit { background: linear-gradient(135deg,#4f46e5,#7c3aed); border: none; border-radius: 12px; padding: 12px 32px; font-weight: 600; }
+</style>
 
-<div class="container mt-4">
-    <div class="card shadow-lg border-0 rounded-3">
-        <div class="card-header bg-primary text-white text-center">
-            <h3 class="mb-0">✏ Edit Exam</h3>
-        </div>
-        <div class="card-body p-4">
-            <form asp-action="Edit">
-                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+<div class="dashboard-wrapper">
+    @await Html.PartialAsync("_TrainerSidebar")
+    <main class="dashboard-main">
+        <div class="container-fluid px-4 py-4" style="max-width:800px">
 
-                @* Hidden ID *@
-                <input type="hidden" asp-for="ExamId" />
+            <div class="d-flex align-items-center gap-3 mb-4">
+                <a asp-action="Details" asp-route-id="@Model.ExamId" class="btn btn-sm btn-outline-secondary" style="border-radius:10px">
+                    <i class="fas fa-arrow-right"></i>
+                </a>
+                <div>
+                    <h2 class="fw-bold mb-0" style="color:#1e293b">
+                        <i class="fas fa-pen-to-square me-2" style="color:#4f46e5"></i>تعديل الامتحان
+                    </h2>
+                    <p class="text-muted mb-0 mt-1" style="font-size:.88rem">حدّث بيانات الامتحان قبل بدايته</p>
+                </div>
+            </div>
 
-                <div class="mb-3">
-                    <label asp-for="ExamName" class="form-label fw-bold"></label>
-                    <input asp-for="ExamName" class="form-control" placeholder="Enter exam name" />
-                    <span asp-validation-for="ExamName" class="text-danger small"></span>
+            <form asp-action="Edit" method="post">
+                @Html.AntiForgeryToken()
+                <input asp-for="ExamId" type="hidden" />
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger rounded-3"></div>
+
+                <div class="form-card p-4 mb-3">
+                    <div class="section-header"><i class="fas fa-info-circle me-1"></i>المعلومات الأساسية</div>
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label asp-for="ExamName" class="form-label">اسم الامتحان</label>
+                            <input asp-for="ExamName" class="form-control" />
+                            <span asp-validation-for="ExamName" class="text-danger small"></span>
+                        </div>
+                        <div class="col-12">
+                            <label asp-for="Instructions" class="form-label">التعليمات</label>
+                            <textarea asp-for="Instructions" class="form-control" rows="3"></textarea>
+                            <span asp-validation-for="Instructions" class="text-danger small"></span>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="mb-3">
-                    <label asp-for="ExamDate" class="form-label fw-bold"></label>
-                    <input asp-for="ExamDate" type="date" class="form-control" />
-                    <span asp-validation-for="ExamDate" class="text-danger small"></span>
+                <div class="form-card p-4 mb-3">
+                    <div class="section-header"><i class="fas fa-clock me-1"></i>الجدول الزمني</div>
+                    <div class="row g-3">
+                        <div class="col-12 col-md-6">
+                            <label asp-for="StartDateTime" class="form-label">وقت بدء الامتحان</label>
+                            <input asp-for="StartDateTime" type="datetime-local" class="form-control" id="startDt" />
+                            <span asp-validation-for="StartDateTime" class="text-danger small"></span>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label asp-for="DurationMinutes" class="form-label">المدة بالدقائق</label>
+                            <input asp-for="DurationMinutes" type="number" class="form-control" min="1" max="480" />
+                            <small class="text-muted" id="endPreview"></small>
+                            <span asp-validation-for="DurationMinutes" class="text-danger small"></span>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label asp-for="PassingScore" class="form-label">نسبة النجاح</label>
+                            <input asp-for="PassingScore" type="number" class="form-control" min="0" max="100" step="0.5" />
+                            <span asp-validation-for="PassingScore" class="text-danger small"></span>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label asp-for="MaxAttempts" class="form-label">عدد المحاولات</label>
+                            <input asp-for="MaxAttempts" type="number" class="form-control" min="1" max="10" />
+                            <span asp-validation-for="MaxAttempts" class="text-danger small"></span>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="form-check mb-3">
-                    <input class="form-check-input" asp-for="IsDeleted" />
-                    <label class="form-check-label fw-bold" asp-for="IsDeleted"></label>
+                <div class="form-card p-4 mb-4">
+                    <div class="section-header"><i class="fas fa-cog me-1"></i>الإعدادات</div>
+                    <div class="row g-3">
+                        <div class="col-12 col-md-6">
+                            <label class="toggle-card d-flex align-items-center gap-3 w-100">
+                                <input asp-for="IsRandomized" type="checkbox" class="form-check-input" style="width:20px;height:20px;margin:0" />
+                                <div>
+                                    <div class="fw-semibold" style="font-size:.9rem">ترتيب عشوائي للأسئلة</div>
+                                    <div class="text-muted" style="font-size:.8rem">تبديل ترتيب الأسئلة لكل طالب</div>
+                                </div>
+                            </label>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label class="toggle-card d-flex align-items-center gap-3 w-100">
+                                <input asp-for="ShowResultsImmediately" type="checkbox" class="form-check-input" style="width:20px;height:20px;margin:0" />
+                                <div>
+                                    <div class="fw-semibold" style="font-size:.9rem">عرض النتيجة فوراً</div>
+                                    <div class="text-muted" style="font-size:.8rem">إظهار النتيجة بعد الإرسال مباشرة</div>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="mb-3">
-                    <label asp-for="CourseId" class="form-label fw-bold"></label>
-                    <select asp-for="CourseId" class="form-select" asp-items="ViewBag.CourseId">
-                        <option value="">-- Select Course --</option>
-                    </select>
-                    <span asp-validation-for="CourseId" class="text-danger small"></span>
-                </div>
-
-                <div class="d-flex justify-content-between">
-                    <a asp-action="Index" class="btn btn-secondary px-4">⬅ Back</a>
-                    <button type="submit" class="btn btn-success px-4">💾 Save</button>
+                <div class="d-flex gap-2 justify-content-end">
+                    <a asp-action="Details" asp-route-id="@Model.ExamId" class="btn btn-outline-secondary px-4" style="border-radius:12px">إلغاء</a>
+                    <button type="submit" class="btn btn-submit text-white px-5">
+                        <i class="fas fa-save me-2"></i>حفظ التعديلات
+                    </button>
                 </div>
             </form>
         </div>
-    </div>
+    </main>
 </div>
 
-@section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+<script>
+document.querySelectorAll('.toggle-card').forEach(card => {
+    const cb = card.querySelector('input[type=checkbox]');
+    const update = () => {
+        card.style.borderColor = cb.checked ? '#4f46e5' : '#e5e7eb';
+        card.style.background = cb.checked ? '#eef2ff' : '#fff';
+    };
+    cb.addEventListener('change', update);
+    update();
+});
+
+const startEl = document.getElementById('startDt');
+const durEl = document.querySelector('[name="DurationMinutes"]');
+const preview = document.getElementById('endPreview');
+
+function updatePreview() {
+    const start = new Date(startEl.value);
+    const dur = parseInt(durEl.value) || 0;
+    if (!isNaN(start.getTime()) && dur > 0) {
+        const end = new Date(start.getTime() + dur * 60000);
+        preview.textContent = 'ينتهي الامتحان في: ' + end.toLocaleString('ar-EG');
+        preview.style.color = '#4f46e5';
+    } else {
+        preview.textContent = '';
     }
 }
+
+startEl?.addEventListener('change', updatePreview);
+durEl?.addEventListener('input', updatePreview);
+updatePreview();
+</script>

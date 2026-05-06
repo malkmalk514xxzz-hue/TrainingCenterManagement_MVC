@@ -429,22 +429,154 @@ namespace TrainingCenterManagement_MVC.Migrations
                     b.Property<Guid>("CourseId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<DateTime>("ExamDate")
+                    b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<int>("DurationMinutes")
+                        .HasColumnType("int");
 
                     b.Property<string>("ExamName")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Instructions")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
+                    b.Property<bool>("IsPublished")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsRandomized")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("MaxAttempts")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("PassingScore")
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<bool>("ShowResultsImmediately")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("StartDateTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("TrainerId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
                     b.HasKey("ExamId");
 
                     b.HasIndex("CourseId")
-                        .IsUnique();
+                        .HasDatabaseName("IX_Exams_CourseId");
+
+                    b.HasIndex("StartDateTime")
+                        .HasDatabaseName("IX_Exams_StartDateTime");
+
+                    b.HasIndex("TrainerId", "IsPublished")
+                        .HasDatabaseName("IX_Exams_TrainerId_IsPublished");
 
                     b.ToTable("Exams");
+                });
+
+            modelBuilder.Entity("TrainingCenterManagement_MVC.Models.ExamAttempt", b =>
+                {
+                    b.Property<Guid>("AttemptId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("AttemptNumber")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("ExamId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("IpAddress")
+                        .HasMaxLength(45)
+                        .HasColumnType("nvarchar(45)");
+
+                    b.Property<bool?>("IsPassed")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("LastActivityAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal?>("MaxScore")
+                        .HasColumnType("decimal(7,2)");
+
+                    b.Property<decimal?>("ScorePercentage")
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<DateTime>("StartedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("SubmittedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("TabSwitchCount")
+                        .HasColumnType("int");
+
+                    b.Property<decimal?>("TotalScore")
+                        .HasColumnType("decimal(7,2)");
+
+                    b.Property<Guid>("TraineeId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("UserAgent")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.HasKey("AttemptId");
+
+                    b.HasIndex("TraineeId")
+                        .HasDatabaseName("IX_ExamAttempt_TraineeId");
+
+                    b.HasIndex("ExamId", "Status")
+                        .HasDatabaseName("IX_ExamAttempt_ExamId_Status");
+
+                    b.HasIndex("ExamId", "TraineeId", "AttemptNumber")
+                        .IsUnique()
+                        .HasDatabaseName("UX_ExamAttempt_Exam_Trainee_Number");
+
+                    b.ToTable("ExamAttempts");
+                });
+
+            modelBuilder.Entity("TrainingCenterManagement_MVC.Models.ExamQuestion", b =>
+                {
+                    b.Property<Guid>("ExamQuestionId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ExamId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("OrderIndex")
+                        .HasColumnType("int");
+
+                    b.Property<decimal?>("PointsOverride")
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<Guid>("QuestionId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("ExamQuestionId");
+
+                    b.HasIndex("QuestionId");
+
+                    b.HasIndex("ExamId", "QuestionId")
+                        .IsUnique()
+                        .HasDatabaseName("UX_ExamQuestion_ExamId_QuestionId");
+
+                    b.ToTable("ExamQuestions");
                 });
 
             modelBuilder.Entity("TrainingCenterManagement_MVC.Models.GroupMessage", b =>
@@ -724,6 +856,54 @@ namespace TrainingCenterManagement_MVC.Migrations
                     b.ToTable("QrLoginTokens");
                 });
 
+            modelBuilder.Entity("TrainingCenterManagement_MVC.Models.Question", b =>
+                {
+                    b.Property<Guid>("QuestionId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("CorrectAnswer")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal>("DefaultPoints")
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<int>("DifficultyLevel")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Explanation")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("OptionsJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("QuestionText")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<int>("QuestionType")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("TrainerId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("QuestionId");
+
+                    b.HasIndex("TrainerId", "QuestionType")
+                        .HasDatabaseName("IX_Questions_TrainerId_Type");
+
+                    b.ToTable("Questions");
+                });
+
             modelBuilder.Entity("TrainingCenterManagement_MVC.Models.Receptionist", b =>
                 {
                     b.Property<Guid>("ReceptionistId")
@@ -740,6 +920,55 @@ namespace TrainingCenterManagement_MVC.Migrations
                         .IsUnique();
 
                     b.ToTable("Receptionists");
+                });
+
+            modelBuilder.Entity("TrainingCenterManagement_MVC.Models.StudentAnswer", b =>
+                {
+                    b.Property<Guid>("AnswerId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("AnswerText")
+                        .HasMaxLength(5000)
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("AnsweredAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("AttemptId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool?>("IsCorrect")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsManuallyGraded")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("LastModifiedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal>("PointsEarned")
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<Guid>("QuestionId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("TrainerFeedback")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.HasKey("AnswerId");
+
+                    b.HasIndex("AttemptId")
+                        .HasDatabaseName("IX_StudentAnswer_AttemptId");
+
+                    b.HasIndex("QuestionId");
+
+                    b.HasIndex("AttemptId", "QuestionId")
+                        .IsUnique()
+                        .HasDatabaseName("UX_StudentAnswer_Attempt_Question");
+
+                    b.ToTable("StudentAnswers");
                 });
 
             modelBuilder.Entity("TrainingCenterManagement_MVC.Models.Trainee", b =>
@@ -789,43 +1018,6 @@ namespace TrainingCenterManagement_MVC.Migrations
                     b.ToTable("Trainers");
                 });
 
-            modelBuilder.Entity("TrainingCenterManagement_MVC.Models.UserNotification", b =>
-                {
-                    b.Property<Guid>("NotificationId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<bool>("IsRead")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("Message")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("RelatedId")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("Type")
-                        .HasColumnType("int");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("NotificationId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("Notifications");
-                });
-
             modelBuilder.Entity("TrainingCenterManagement_MVC.Models.UserConnection", b =>
                 {
                     b.Property<int>("Id")
@@ -851,6 +1043,45 @@ namespace TrainingCenterManagement_MVC.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("UserConnections");
+                });
+
+            modelBuilder.Entity("TrainingCenterManagement_MVC.Models.UserNotification", b =>
+                {
+                    b.Property<Guid>("NotificationId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("RelatedId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("NotificationId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Notifications", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -1002,12 +1233,58 @@ namespace TrainingCenterManagement_MVC.Migrations
             modelBuilder.Entity("TrainingCenterManagement_MVC.Models.Exam", b =>
                 {
                     b.HasOne("TrainingCenterManagement_MVC.Models.Course", "Course")
-                        .WithOne("Exam")
-                        .HasForeignKey("TrainingCenterManagement_MVC.Models.Exam", "CourseId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .WithMany("Exams")
+                        .HasForeignKey("CourseId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("TrainingCenterManagement_MVC.Models.Trainer", "Trainer")
+                        .WithMany("Exams")
+                        .HasForeignKey("TrainerId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Course");
+
+                    b.Navigation("Trainer");
+                });
+
+            modelBuilder.Entity("TrainingCenterManagement_MVC.Models.ExamAttempt", b =>
+                {
+                    b.HasOne("TrainingCenterManagement_MVC.Models.Exam", "Exam")
+                        .WithMany("ExamAttempts")
+                        .HasForeignKey("ExamId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("TrainingCenterManagement_MVC.Models.Trainee", "Trainee")
+                        .WithMany("ExamAttempts")
+                        .HasForeignKey("TraineeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Exam");
+
+                    b.Navigation("Trainee");
+                });
+
+            modelBuilder.Entity("TrainingCenterManagement_MVC.Models.ExamQuestion", b =>
+                {
+                    b.HasOne("TrainingCenterManagement_MVC.Models.Exam", "Exam")
+                        .WithMany("ExamQuestions")
+                        .HasForeignKey("ExamId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("TrainingCenterManagement_MVC.Models.Question", "Question")
+                        .WithMany("ExamQuestions")
+                        .HasForeignKey("QuestionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Exam");
+
+                    b.Navigation("Question");
                 });
 
             modelBuilder.Entity("TrainingCenterManagement_MVC.Models.GroupMessage", b =>
@@ -1121,15 +1398,15 @@ namespace TrainingCenterManagement_MVC.Migrations
                     b.Navigation("Trainee");
                 });
 
-            modelBuilder.Entity("TrainingCenterManagement_MVC.Models.UserNotification", b =>
+            modelBuilder.Entity("TrainingCenterManagement_MVC.Models.Question", b =>
                 {
-                    b.HasOne("TrainingCenterManagement_MVC.Models.ApplicationUser", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                    b.HasOne("TrainingCenterManagement_MVC.Models.Trainer", "Trainer")
+                        .WithMany("Questions")
+                        .HasForeignKey("TrainerId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("User");
+                    b.Navigation("Trainer");
                 });
 
             modelBuilder.Entity("TrainingCenterManagement_MVC.Models.Receptionist", b =>
@@ -1141,6 +1418,25 @@ namespace TrainingCenterManagement_MVC.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("TrainingCenterManagement_MVC.Models.StudentAnswer", b =>
+                {
+                    b.HasOne("TrainingCenterManagement_MVC.Models.ExamAttempt", "Attempt")
+                        .WithMany("StudentAnswers")
+                        .HasForeignKey("AttemptId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("TrainingCenterManagement_MVC.Models.Question", "Question")
+                        .WithMany("StudentAnswers")
+                        .HasForeignKey("QuestionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Attempt");
+
+                    b.Navigation("Question");
                 });
 
             modelBuilder.Entity("TrainingCenterManagement_MVC.Models.Trainee", b =>
@@ -1165,12 +1461,25 @@ namespace TrainingCenterManagement_MVC.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("TrainingCenterManagement_MVC.Models.UserNotification", b =>
+                {
+                    b.HasOne("TrainingCenterManagement_MVC.Models.ApplicationUser", "User")
+                        .WithMany("Notifications")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("TrainingCenterManagement_MVC.Models.ApplicationUser", b =>
                 {
                     b.Navigation("Admin")
                         .IsRequired();
 
                     b.Navigation("Messages");
+
+                    b.Navigation("Notifications");
 
                     b.Navigation("Receptionist")
                         .IsRequired();
@@ -1195,8 +1504,7 @@ namespace TrainingCenterManagement_MVC.Migrations
 
                     b.Navigation("CourseTrainers");
 
-                    b.Navigation("Exam")
-                        .IsRequired();
+                    b.Navigation("Exams");
 
                     b.Navigation("GroupMessages");
 
@@ -1208,6 +1516,15 @@ namespace TrainingCenterManagement_MVC.Migrations
             modelBuilder.Entity("TrainingCenterManagement_MVC.Models.Exam", b =>
                 {
                     b.Navigation("Certificates");
+
+                    b.Navigation("ExamAttempts");
+
+                    b.Navigation("ExamQuestions");
+                });
+
+            modelBuilder.Entity("TrainingCenterManagement_MVC.Models.ExamAttempt", b =>
+                {
+                    b.Navigation("StudentAnswers");
                 });
 
             modelBuilder.Entity("TrainingCenterManagement_MVC.Models.Lecture", b =>
@@ -1220,11 +1537,20 @@ namespace TrainingCenterManagement_MVC.Migrations
                     b.Navigation("MediaFiles");
                 });
 
+            modelBuilder.Entity("TrainingCenterManagement_MVC.Models.Question", b =>
+                {
+                    b.Navigation("ExamQuestions");
+
+                    b.Navigation("StudentAnswers");
+                });
+
             modelBuilder.Entity("TrainingCenterManagement_MVC.Models.Trainee", b =>
                 {
                     b.Navigation("Certificates");
 
                     b.Navigation("CourseTrainees");
+
+                    b.Navigation("ExamAttempts");
 
                     b.Navigation("Payments");
 
@@ -1236,6 +1562,10 @@ namespace TrainingCenterManagement_MVC.Migrations
                     b.Navigation("Certificates");
 
                     b.Navigation("CourseTrainers");
+
+                    b.Navigation("Exams");
+
+                    b.Navigation("Questions");
                 });
 #pragma warning restore 612, 618
         }

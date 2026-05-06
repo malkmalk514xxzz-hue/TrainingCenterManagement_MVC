@@ -1,71 +1,156 @@
-﻿@model TrainingCenterManagement_MVC.Models.Exam
-
+@model TrainingCenterManagement_MVC.DTOs.CreateExamDto
 @{
-    ViewData["Title"] = "Create Exam";
+    ViewData["Title"] = "إنشاء امتحان جديد";
 }
+<style>
+    .form-card { border-radius: 16px; border: 1px solid #e8ecef; background: #fff; }
+    .section-header { font-size: .8rem; font-weight: 700; color: #4f46e5; text-transform: uppercase; letter-spacing: .05em; border-bottom: 2px solid #e0e7ff; padding-bottom: 8px; margin-bottom: 16px; }
+    .form-label { font-weight: 600; font-size: .88rem; color: #374151; }
+    .form-control, .form-select { border-radius: 10px; border: 1.5px solid #e5e7eb; font-size: .9rem; }
+    .form-control:focus, .form-select:focus { border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79,70,229,.12); }
+    .toggle-card { border: 2px solid #e5e7eb; border-radius: 12px; padding: 14px; cursor: pointer; transition: border-color .2s, background .2s; }
+    .btn-submit { background: linear-gradient(135deg,#4f46e5,#7c3aed); border: none; border-radius: 12px; padding: 12px 32px; font-weight: 600; }
+</style>
 
-<div class="container mt-4">
-    <div class="card shadow-sm border-0">
-        <div class="card-header bg-primary text-white">
-            <h4 class="mb-0">Create New Exam</h4>
-        </div>
-        <div class="card-body">
-            <form asp-action="Create">
-                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+<div class="dashboard-wrapper">
+    @await Html.PartialAsync("_TrainerSidebar")
+    <main class="dashboard-main">
+        <div class="container-fluid px-4 py-4" style="max-width:800px">
 
-                <div class="mb-3">
-                    <label asp-for="ExamName" class="form-label fw-bold"></label>
-                    <input asp-for="ExamName" class="form-control" placeholder="Enter exam name" />
-                    <span asp-validation-for="ExamName" class="text-danger"></span>
+            <div class="d-flex align-items-center gap-3 mb-4">
+                <a asp-action="Index" class="btn btn-sm btn-outline-secondary" style="border-radius:10px">
+                    <i class="fas fa-arrow-right"></i>
+                </a>
+                <div>
+                    <h2 class="fw-bold mb-0" style="color:#1e293b">
+                        <i class="fas fa-plus-circle me-2" style="color:#4f46e5"></i>إنشاء امتحان جديد
+                    </h2>
+                    <p class="text-muted mb-0 mt-1" style="font-size:.88rem">أدخل تفاصيل الامتحان ثم أضف الأسئلة</p>
+                </div>
+            </div>
+
+            <form asp-action="Create" method="post">
+                @Html.AntiForgeryToken()
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger rounded-3"></div>
+
+                <!-- المعلومات الأساسية -->
+                <div class="form-card p-4 mb-3">
+                    <div class="section-header"><i class="fas fa-info-circle me-1"></i>المعلومات الأساسية</div>
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label asp-for="ExamName" class="form-label">اسم الامتحان</label>
+                            <input asp-for="ExamName" class="form-control" placeholder="مثال: الامتحان النهائي - Python Basics" />
+                            <span asp-validation-for="ExamName" class="text-danger small"></span>
+                        </div>
+                        <div class="col-12">
+                            <label asp-for="CourseId" class="form-label">الكورس</label>
+                            <select asp-for="CourseId" class="form-select" asp-items="@(ViewData["CourseId"] as Microsoft.AspNetCore.Mvc.Rendering.SelectList)">
+                                <option value="">-- اختر الكورس --</option>
+                            </select>
+                            <span asp-validation-for="CourseId" class="text-danger small"></span>
+                        </div>
+                        <div class="col-12">
+                            <label asp-for="Instructions" class="form-label">التعليمات (اختياري)</label>
+                            <textarea asp-for="Instructions" class="form-control" rows="3"
+                                placeholder="تعليمات توضيحية تظهر للطالب قبل بدء الامتحان..."></textarea>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="mb-3">
-                    <label asp-for="ExamDate" class="form-label fw-bold"></label>
-                    <input asp-for="ExamDate" type="date" class="form-control" />
-                    <span asp-validation-for="ExamDate" class="text-danger"></span>
+                <!-- الجدول الزمني -->
+                <div class="form-card p-4 mb-3">
+                    <div class="section-header"><i class="fas fa-clock me-1"></i>الجدول الزمني</div>
+                    <div class="row g-3">
+                        <div class="col-12 col-md-6">
+                            <label asp-for="StartDateTime" class="form-label">وقت بدء الامتحان</label>
+                            <input asp-for="StartDateTime" type="datetime-local" class="form-control" id="startDt" />
+                            <small class="text-muted">يبدأ لجميع الطلاب في نفس الوقت (UTC)</small>
+                            <span asp-validation-for="StartDateTime" class="text-danger small"></span>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label asp-for="DurationMinutes" class="form-label">المدة (بالدقائق)</label>
+                            <input asp-for="DurationMinutes" type="number" class="form-control" min="1" max="480" value="60" />
+                            <small class="text-muted" id="endPreview" style="color:#4f46e5"></small>
+                            <span asp-validation-for="DurationMinutes" class="text-danger small"></span>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label asp-for="PassingScore" class="form-label">نسبة النجاح (%)</label>
+                            <div class="input-group">
+                                <input asp-for="PassingScore" type="number" class="form-control" min="0" max="100" step="0.5" value="60" />
+                                <span class="input-group-text">%</span>
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label asp-for="MaxAttempts" class="form-label">عدد المحاولات المسموح بها</label>
+                            <input asp-for="MaxAttempts" type="number" class="form-control" min="1" max="10" value="1" />
+                        </div>
+                    </div>
                 </div>
 
-                <div class="form-check mb-3">
-                    <input class="form-check-input" asp-for="IsDeleted" />
-                    <label class="form-check-label fw-bold" asp-for="IsDeleted"></label>
+                <!-- الإعدادات -->
+                <div class="form-card p-4 mb-4">
+                    <div class="section-header"><i class="fas fa-cog me-1"></i>إعدادات الامتحان</div>
+                    <div class="row g-3">
+                        <div class="col-12 col-md-6">
+                            <label class="toggle-card d-flex align-items-center gap-3 w-100" id="randCard">
+                                <input asp-for="IsRandomized" type="checkbox" class="form-check-input" style="width:20px;height:20px;margin:0" />
+                                <div>
+                                    <div class="fw-semibold" style="font-size:.9rem">ترتيب عشوائي للأسئلة</div>
+                                    <div class="text-muted" style="font-size:.8rem">ترتيب مختلف لكل طالب</div>
+                                </div>
+                            </label>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label class="toggle-card d-flex align-items-center gap-3 w-100" id="showResCard">
+                                <input asp-for="ShowResultsImmediately" type="checkbox" class="form-check-input" style="width:20px;height:20px;margin:0" checked />
+                                <div>
+                                    <div class="fw-semibold" style="font-size:.9rem">عرض النتيجة فوراً</div>
+                                    <div class="text-muted" style="font-size:.8rem">يرى الطالب نتيجته بعد الإرسال</div>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="mb-3">
-                    <label asp-for="CourseId" class="form-label fw-bold"></label>
-                    <select asp-for="CourseId" class="form-control select2" asp-items="ViewBag.CourseId">
-                        <option value="">-- Select Course --</option>
-                    </select>
-                    <span asp-validation-for="CourseId" class="text-danger"></span>
-                </div>
-
-                <div class="d-flex justify-content-between">
-                    <a asp-action="Index" class="btn btn-secondary">
-                        <i class="bi bi-arrow-left"></i> Back to List
-                    </a>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-plus-circle"></i> Create
+                <div class="d-flex gap-2 justify-content-end">
+                    <a asp-action="Index" class="btn btn-outline-secondary px-4" style="border-radius:12px">إلغاء</a>
+                    <button type="submit" class="btn btn-submit text-white px-5">
+                        <i class="fas fa-arrow-left me-2"></i>إنشاء والانتقال لإضافة الأسئلة
                     </button>
                 </div>
             </form>
         </div>
-    </div>
+    </main>
 </div>
 
-@section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
+<script>
+// Toggle card highlight
+document.querySelectorAll('.toggle-card').forEach(card => {
+    const cb = card.querySelector('input[type=checkbox]');
+    const update = () => card.style.borderColor = cb.checked ? '#4f46e5' : '#e5e7eb';
+    cb.addEventListener('change', update); update();
+});
 
-    <!-- إضافة مكتبة Select2 -->
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-
-    <script>
-        $(document).ready(function () {
-            $('.select2').select2({
-                placeholder: "Search or select a course",
-                allowClear: true
-            });
-        });
-    </script>
+// End time preview
+const startEl = document.getElementById('startDt');
+const durEl   = document.querySelector('[name="DurationMinutes"]');
+const preview = document.getElementById('endPreview');
+function updatePreview() {
+    const start = new Date(startEl.value);
+    const dur   = parseInt(durEl.value) || 0;
+    if (!isNaN(start.getTime()) && dur > 0) {
+        const end = new Date(start.getTime() + dur * 60000);
+        preview.textContent = `⏱ ينتهي في: ${end.toLocaleString('ar-EG')}`;
+    } else preview.textContent = '';
 }
+startEl.addEventListener('change', updatePreview);
+durEl.addEventListener('input', updatePreview);
+
+// Default datetime = tomorrow 9AM
+const t = new Date(); t.setDate(t.getDate()+1); t.setHours(9,0,0,0);
+if (!startEl.value) {
+    const p = n => n.toString().padStart(2,'0');
+    startEl.value = `${t.getFullYear()}-${p(t.getMonth()+1)}-${p(t.getDate())}T09:00`;
+    updatePreview();
+}
+</script>

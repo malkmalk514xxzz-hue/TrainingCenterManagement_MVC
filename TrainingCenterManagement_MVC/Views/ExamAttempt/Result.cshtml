@@ -1,0 +1,223 @@
+@using TrainingCenterManagement_MVC.Models.Enums
+@model TrainingCenterManagement_MVC.DTOs.ExamResultDto
+@{
+    ViewData["Title"] = "نتيجة الامتحان";
+}
+<style>
+    .result-card  { border-radius:14px;border:1.5px solid #e8ecef;background:#fff; }
+    .q-correct    { border-color:#10b981;background:#f0fdf4; }
+    .q-wrong      { border-color:#ef4444;background:#fef2f2; }
+    .q-pending    { border-color:#f59e0b;background:#fffbeb; }
+    .opt-correct  { background:#d1fae5;border-radius:8px;padding:6px 12px; }
+    .opt-student  { background:#fee2e2;border-radius:8px;padding:6px 12px; }
+    .opt-normal   { background:#f8fafc;border-radius:8px;padding:6px 12px; }
+    .score-circle { width:110px;height:110px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-direction:column;font-weight:800;margin:0 auto; }
+    .badge-pts    { background:#ede9fe;color:#5b21b6;border-radius:8px;padding:3px 10px;font-weight:700;font-size:.82rem; }
+    .stat-item    { background:#f8fafc;border-radius:10px;padding:14px;text-align:center; }
+</style>
+
+<div class="dashboard-wrapper">
+    @await Html.PartialAsync("_TraineeSidebar")
+    <main class="dashboard-main">
+        <div class="container-fluid px-4 py-4" style="max-width:860px">
+
+            <!-- Header -->
+            <div class="d-flex align-items-center gap-3 mb-4">
+                <a asp-controller="Exams" asp-action="MyExams" class="btn btn-sm btn-outline-secondary" style="border-radius:10px">
+                    <i class="fas fa-arrow-right"></i>
+                </a>
+                <div>
+                    <h2 class="fw-bold mb-0" style="color:#1e293b">نتيجتك</h2>
+                    <p class="text-muted mb-0 mt-1" style="font-size:.88rem">@Model.ExamName</p>
+                </div>
+            </div>
+
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show rounded-3 mb-4">
+                    <i class="fas fa-check-circle me-2"></i>@TempData["Success"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            <!-- Score Summary -->
+            <div class="result-card p-4 mb-4">
+                <div class="row align-items-center g-3">
+                    <div class="col-12 col-md-3 text-center">
+                        @{
+                            string circleGrad = Model.IsPassed
+                                ? "background:linear-gradient(135deg,#10b981,#059669)"
+                                : "background:linear-gradient(135deg,#ef4444,#dc2626)";
+                        }
+                        <div class="score-circle text-white" style="@circleGrad">
+                            <div style="font-size:1.6rem">@Model.ScorePercentage.ToString("F0")%</div>
+                            <div style="font-size:.75rem;opacity:.85;margin-top:2px">@(Model.IsPassed ? "ناجح ✓" : "راسب ✗")</div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-9">
+                        <div class="row g-3">
+                            <div class="col-6 col-md-4">
+                                <div class="stat-item">
+                                    <div style="font-size:.72rem;color:#6b7280">الدرجة</div>
+                                    <div class="fw-bold" style="color:#1e293b;font-size:1rem">@Model.TotalScore / @Model.MaxScore</div>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-4">
+                                <div class="stat-item">
+                                    <div style="font-size:.72rem;color:#6b7280">درجة النجاح</div>
+                                    <div class="fw-bold" style="color:#1e293b;font-size:1rem">@Model.PassingScore%</div>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-4">
+                                <div class="stat-item">
+                                    <div style="font-size:.72rem;color:#6b7280">الوقت المستغرق</div>
+                                    <div class="fw-bold" style="color:#1e293b;font-size:1rem">@Model.TimeTakenMinutes دقيقة</div>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-6">
+                                <div class="stat-item">
+                                    <div style="font-size:.72rem;color:#6b7280">وقت البدء</div>
+                                    <div class="fw-semibold" style="color:#374151;font-size:.88rem">@Model.StartedAt.ToString("dd/MM/yyyy HH:mm")</div>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-6">
+                                <div class="stat-item">
+                                    <div style="font-size:.72rem;color:#6b7280">وقت الإرسال</div>
+                                    <div class="fw-semibold" style="color:#374151;font-size:.88rem">@Model.SubmittedAt.ToString("dd/MM/yyyy HH:mm")</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        @if (Model.HasPendingEssays)
+                        {
+                            <div class="alert alert-warning mt-3 mb-0 py-2" style="border-radius:10px;font-size:.85rem">
+                                <i class="fas fa-clock me-2"></i>
+                                توجد أسئلة مقالية قيد المراجعة — درجتك النهائية قد تتغير بعد التصحيح اليدوي.
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pass/Fail Banner -->
+            @if (Model.IsPassed)
+            {
+                <div class="p-4 mb-4 text-center" style="background:linear-gradient(135deg,#d1fae5,#a7f3d0);border-radius:14px;border:1.5px solid #34d399">
+                    <i class="fas fa-trophy" style="font-size:2rem;color:#065f46;margin-bottom:8px"></i>
+                    <h5 class="fw-bold mb-1" style="color:#065f46">تهانينا! لقد اجتزت الامتحان بنجاح</h5>
+                    <p class="mb-0" style="font-size:.88rem;color:#047857">حصلت على @Model.ScorePercentage.ToString("F1")% وهي أعلى من درجة النجاح البالغة @Model.PassingScore%</p>
+                </div>
+            }
+            else
+            {
+                <div class="p-4 mb-4 text-center" style="background:linear-gradient(135deg,#fee2e2,#fecaca);border-radius:14px;border:1.5px solid #f87171">
+                    <i class="fas fa-times-circle" style="font-size:2rem;color:#991b1b;margin-bottom:8px"></i>
+                    <h5 class="fw-bold mb-1" style="color:#991b1b">لم تجتز الامتحان هذه المرة</h5>
+                    <p class="mb-0" style="font-size:.88rem;color:#b91c1c">حصلت على @Model.ScorePercentage.ToString("F1")% وكانت درجة النجاح المطلوبة @Model.PassingScore%</p>
+                </div>
+            }
+
+            <!-- Detailed Answers (if ShowResultsImmediately) -->
+            @if (Model.AnswerResults?.Any() == true)
+            {
+                <h5 class="fw-bold mb-3" style="color:#1e293b">
+                    <i class="fas fa-list-check me-2" style="color:#4f46e5"></i>مراجعة الإجابات
+                </h5>
+                int num = 1;
+                @foreach (var ans in Model.AnswerResults)
+                {
+                    string cardClass = ans.IsCorrect == true ? "q-correct" : ans.IsCorrect == false ? "q-wrong" : "q-pending";
+                    string icon = ans.IsCorrect == true ? "fa-check-circle text-success"
+                                : ans.IsCorrect == false ? "fa-times-circle text-danger"
+                                : "fa-clock text-warning";
+
+                    <div class="result-card @cardClass p-4 mb-3">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div class="d-flex align-items-center gap-2">
+                                <span style="width:28px;height:28px;border-radius:50%;background:#eef2ff;display:flex;align-items:center;justify-content:center;font-size:.85rem;font-weight:700;color:#4f46e5">@num</span>
+                                <i class="fas @icon"></i>
+                                <span style="font-size:.8rem;color:#6b7280">@(ans.QuestionType switch {
+                                    QuestionType.MultipleChoice => "اختيار متعدد",
+                                    QuestionType.TrueFalse      => "صح / خطأ",
+                                    QuestionType.ShortAnswer    => "إجابة قصيرة",
+                                    _                            => "مقالي"
+                                })</span>
+                            </div>
+                            <span class="badge-pts">@ans.PointsEarned / @ans.MaxPoints</span>
+                        </div>
+
+                        <p class="fw-semibold mb-3" style="color:#1e293b">@ans.QuestionText</p>
+
+                        @if (ans.QuestionType == QuestionType.MultipleChoice && ans.Options.Any())
+                        {
+                            <div class="mb-3">
+                                @foreach (var opt in ans.Options)
+                                {
+                                    bool isCorrect = opt == ans.CorrectAnswer;
+                                    bool isStudent = opt == ans.StudentAnswer;
+                                    string cls = isCorrect ? "opt-correct" : isStudent && !isCorrect ? "opt-student" : "opt-normal";
+                                    <div class="@cls mb-1 d-flex align-items-center gap-2" style="font-size:.88rem">
+                                        @if (isCorrect) { <i class="fas fa-check" style="color:#10b981"></i> }
+                                        else if (isStudent) { <i class="fas fa-times" style="color:#ef4444"></i> }
+                                        else { <span style="display:inline-block;width:14px"></span> }
+                                        @opt
+                                        @if (isCorrect) { <span style="font-size:.75rem;color:#10b981;font-weight:600">الإجابة الصحيحة</span> }
+                                        @if (isStudent && !isCorrect) { <span style="font-size:.75rem;color:#ef4444;font-weight:600">إجابتك</span> }
+                                    </div>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="row g-2 mb-3">
+                                <div class="col-12 col-md-6">
+                                    <div style="font-size:.75rem;color:#6b7280;margin-bottom:4px">إجابتك</div>
+                                    <div class="opt-@(ans.IsCorrect == true ? "correct" : ans.StudentAnswer != null ? "student" : "normal")" style="font-size:.88rem">
+                                        @(ans.StudentAnswer ?? "—لم تُجِب—")
+                                    </div>
+                                </div>
+                                @if (ans.CorrectAnswer != null)
+                                {
+                                    <div class="col-12 col-md-6">
+                                        <div style="font-size:.75rem;color:#6b7280;margin-bottom:4px">الإجابة النموذجية</div>
+                                        <div class="opt-correct" style="font-size:.88rem">@ans.CorrectAnswer</div>
+                                    </div>
+                                }
+                            </div>
+                        }
+
+                        @if (!string.IsNullOrEmpty(ans.TrainerFeedback))
+                        {
+                            <div style="background:#f0f9ff;border-radius:8px;padding:10px 14px;font-size:.83rem;color:#0369a1;margin-bottom:8px">
+                                <i class="fas fa-comment-dots me-2" style="color:#3b82f6"></i>
+                                <strong>تغذية راجعة من المدرب:</strong> @ans.TrainerFeedback
+                            </div>
+                        }
+
+                        @if (!string.IsNullOrEmpty(ans.Explanation))
+                        {
+                            <div style="background:#f0f9ff;border-radius:8px;padding:10px 14px;font-size:.83rem;color:#0369a1">
+                                <i class="fas fa-lightbulb me-2" style="color:#f59e0b"></i>@ans.Explanation
+                            </div>
+                        }
+                    </div>
+                    num++;
+                }
+            }
+            else if (!Model.HasPendingEssays)
+            {
+                <div style="text-align:center;padding:40px;background:#f8fafc;border-radius:14px;color:#6b7280">
+                    <i class="fas fa-eye-slash" style="font-size:2rem;color:#d1d5db;display:block;margin-bottom:12px"></i>
+                    <p class="mb-0">النتائج التفصيلية غير متاحة لهذا الامتحان.</p>
+                </div>
+            }
+
+            <!-- Back Button -->
+            <div class="text-center mt-4">
+                <a asp-controller="Exams" asp-action="MyExams" class="btn text-white px-5" style="background:#4f46e5;border-radius:12px">
+                    <i class="fas fa-home me-2"></i>العودة لقائمة الامتحانات
+                </a>
+            </div>
+        </div>
+    </main>
+</div>

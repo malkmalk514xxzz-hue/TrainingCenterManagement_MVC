@@ -364,11 +364,12 @@ namespace TrainingCenterManagement_MVC.Controllers
         public async Task<IActionResult> IssueCertificate(Guid traineeId, Guid courseId)
         {
             var course = await _context.Courses
-                .Include(c => c.Exam)
+                .Include(c => c.Exams)
                 .Include(c => c.CourseTrainees)
                 .FirstOrDefaultAsync(c => c.CourseId == courseId);
 
-            if (course == null || course.Exam == null)
+            var lastExam = course?.Exams?.OrderByDescending(e => e.StartDateTime).FirstOrDefault();
+            if (course == null || lastExam == null)
                 return NotFound("Course or exam not found.");
 
             var trainee = await _context.Trainees.Include(t => t.User).FirstOrDefaultAsync(t => t.TraineeId == traineeId);
@@ -387,7 +388,7 @@ namespace TrainingCenterManagement_MVC.Controllers
                 CourseId = courseId,
                 TrainerId = trainerId,
                 TraineeId = traineeId,
-                ExamId = course.Exam.ExamId
+                ExamId = lastExam.ExamId
             };
 
             _context.Certificates.Add(certificate);

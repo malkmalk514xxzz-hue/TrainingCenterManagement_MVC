@@ -14,7 +14,14 @@
       "Bash(dotnet build *)",
       "Bash(Get-ChildItem -Recurse \"d:\\\\Asp.Net Core API\\\\Forth Year Final Project\\\\TrainingCenterManagement_MVC\\\\TrainingCenterManagement_MVC\\\\wwwroot\\\\uploads\\\\audio\" -File)",
       "Bash(Select-Object Name, Length, LastWriteTime)",
-      "Bash(Format-Table -AutoSize)"
+      "Bash(Format-Table -AutoSize)",
+      "Bash(Get-ChildItem -Path \"d:\\\\Asp.Net Core API\\\\Forth Year Final Project\\\\TrainingCenterManagement_MVC\" -Directory)",
+      "Bash(Select-Object Name)",
+      "Bash(New-Item -ItemType Directory -Force -Path \"d:\\\\Asp.Net Core API\\\\Forth Year Final Project\\\\TrainingCenterManagement_MVC\\\\TrainingCenterManagement_MVC\\\\Models\\\\Enums\")",
+      "Bash(Out-Null)",
+      "Bash(New-Item -ItemType Directory -Force -Path \"d:\\\\Asp.Net Core API\\\\Forth Year Final Project\\\\TrainingCenterManagement_MVC\\\\TrainingCenterManagement_MVC\\\\DTOs\")",
+      "Bash(New-Item -ItemType Directory -Force -Path \"d:\\\\Asp.Net Core API\\\\Forth Year Final Project\\\\TrainingCenterManagement_MVC\\\\TrainingCenterManagement_MVC\\\\Services\")",
+      "Bash(Write-Host \"Directories created\")"
     ]
   }
 }

@@ -1,0 +1,232 @@
+@using TrainingCenterManagement_MVC.Models.Enums
+@model TrainingCenterManagement_MVC.DTOs.CreateQuestionDto
+@{
+    ViewData["Title"] = "إنشاء سؤال جديد";
+    var examId = ViewBag.ExamId as Guid?;
+}
+<style>
+    .form-card { border-radius: 16px; border: 1px solid #e8ecef; background: #fff; }
+    .section-header { font-size: .8rem; font-weight: 700; color: #4f46e5; text-transform: uppercase; letter-spacing: .05em; border-bottom: 2px solid #e0e7ff; padding-bottom: 8px; margin-bottom: 16px; }
+    .form-label { font-weight: 600; font-size: .88rem; color: #374151; }
+    .form-control, .form-select { border-radius: 10px; border: 1.5px solid #e5e7eb; }
+    .form-control:focus, .form-select:focus { border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79,70,229,.12); }
+    .type-card { border: 2px solid #e5e7eb; border-radius: 12px; padding: 12px 16px; cursor: pointer; transition: all .2s; text-align: center; }
+    .type-card:has(input:checked) { border-color: #4f46e5; background: #eef2ff; }
+    .option-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+    .option-row input[type=text] { flex: 1; }
+    .correct-radio { width: 20px; height: 20px; accent-color: #10b981; }
+    .btn-submit { background: linear-gradient(135deg,#4f46e5,#7c3aed); border: none; border-radius: 12px; padding: 12px 32px; font-weight: 600; }
+</style>
+
+<div class="dashboard-wrapper">
+    @await Html.PartialAsync("_TrainerSidebar")
+    <main class="dashboard-main">
+        <div class="container-fluid px-4 py-4" style="max-width:780px">
+
+            <div class="d-flex align-items-center gap-3 mb-4">
+                <a href="javascript:history.back()" class="btn btn-sm btn-outline-secondary" style="border-radius:10px">
+                    <i class="fas fa-arrow-right"></i>
+                </a>
+                <div>
+                    <h2 class="fw-bold mb-0" style="color:#1e293b">
+                        <i class="fas fa-plus-circle me-2" style="color:#4f46e5"></i>إنشاء سؤال جديد
+                    </h2>
+                    <p class="text-muted mb-0 mt-1" style="font-size:.88rem">
+                        @(examId.HasValue ? "سيُضاف السؤال مباشرةً للامتحان" : "سيُضاف للبنك العام")
+                    </p>
+                </div>
+            </div>
+
+            <form id="questionForm" asp-action="CreateQuestion" asp-route-examId="@examId" method="post">
+                @Html.AntiForgeryToken()
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger rounded-3"></div>
+
+                <!-- نص السؤال -->
+                <div class="form-card p-4 mb-3">
+                    <div class="section-header"><i class="fas fa-question me-1"></i>نص السؤال</div>
+                    <textarea asp-for="QuestionText" class="form-control" rows="3"
+                        placeholder="أدخل نص السؤال هنا..."></textarea>
+                    <span asp-validation-for="QuestionText" class="text-danger small"></span>
+                </div>
+
+                <!-- نوع السؤال -->
+                <div class="form-card p-4 mb-3">
+                    <div class="section-header"><i class="fas fa-tags me-1"></i>نوع السؤال والصعوبة</div>
+                    <div class="row g-2 mb-3">
+                        @foreach (var t in new[]{ (QuestionType.MultipleChoice,"اختيار متعدد","fa-list","#4f46e5"), (QuestionType.TrueFalse,"صح / خطأ","fa-check-circle","#10b981"), (QuestionType.ShortAnswer,"إجابة قصيرة","fa-font","#f59e0b"), (QuestionType.Essay,"مقالي","fa-paragraph","#8b5cf6")})
+                        {
+                            <div class="col-6 col-md-3">
+                                <label class="type-card w-100">
+                                    <input type="radio" asp-for="QuestionType" value="@t.Item1" class="d-none" />
+                                    <i class="fas @t.Item3 mb-1" style="font-size:1.2rem;color:@t.Item4;display:block"></i>
+                                    <div style="font-size:.82rem;font-weight:600">@t.Item2</div>
+                                </label>
+                            </div>
+                        }
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-12 col-md-6">
+                            <label asp-for="DifficultyLevel" class="form-label">مستوى الصعوبة</label>
+                            <select asp-for="DifficultyLevel" class="form-select">
+                                <option value="Easy">سهل</option>
+                                <option value="Medium" selected>متوسط</option>
+                                <option value="Hard">صعب</option>
+                            </select>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label asp-for="DefaultPoints" class="form-label">الدرجة الافتراضية</label>
+                            <input asp-for="DefaultPoints" type="number" class="form-control" min="0.25" max="100" step="0.25" value="1" />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- خيارات الإجابة (MC) -->
+                <div class="form-card p-4 mb-3" id="mcSection">
+                    <div class="section-header"><i class="fas fa-list-ul me-1"></i>خيارات الإجابة</div>
+                    <p class="text-muted small mb-3">اكتب الخيارات وحدد الإجابة الصحيحة بالنقر على الدائرة</p>
+                    <div id="optionsList">
+                        @foreach (var i in Enumerable.Range(0, 4))
+                        {
+                            <div class="option-row">
+                                <input type="radio" name="correctChoice" value="@i" class="correct-radio" @(i == 0 ? "checked" : "") title="الإجابة الصحيحة" />
+                                <input type="text" name="Options[]" class="form-control"
+                                    placeholder="@($"الخيار {i+1}")" style="border-radius:10px;border:1.5px solid #e5e7eb" />
+                                @if (i >= 2)
+                                {
+                                    <button type="button" class="btn btn-sm btn-outline-danger remove-option" style="border-radius:8px;width:32px;height:32px;padding:0">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                }
+                                else { <div style="width:32px"></div> }
+                            </div>
+                        }
+                    </div>
+                    <button type="button" id="addOption" class="btn btn-sm btn-outline-primary mt-2" style="border-radius:8px">
+                        <i class="fas fa-plus me-1"></i>إضافة خيار
+                    </button>
+                    <input type="hidden" asp-for="CorrectAnswer" id="correctAnswerInput" />
+                </div>
+
+                <!-- إجابة TF -->
+                <div class="form-card p-4 mb-3 d-none" id="tfSection">
+                    <div class="section-header"><i class="fas fa-check-circle me-1"></i>الإجابة الصحيحة</div>
+                    <div class="d-flex gap-3">
+                        <label class="type-card flex-grow-1" style="text-align:center">
+                            <input type="radio" name="tfAnswer" value="True" class="d-none" />
+                            <i class="fas fa-check" style="font-size:1.5rem;color:#10b981;display:block;margin-bottom:6px"></i>
+                            <span class="fw-bold" style="color:#10b981">صحيح</span>
+                        </label>
+                        <label class="type-card flex-grow-1" style="text-align:center">
+                            <input type="radio" name="tfAnswer" value="False" class="d-none" />
+                            <i class="fas fa-times" style="font-size:1.5rem;color:#ef4444;display:block;margin-bottom:6px"></i>
+                            <span class="fw-bold" style="color:#ef4444">خاطئ</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- إجابة ShortAnswer -->
+                <div class="form-card p-4 mb-3 d-none" id="saSection">
+                    <div class="section-header"><i class="fas fa-font me-1"></i>الإجابة النموذجية</div>
+                    <input type="text" id="saInput" class="form-control"
+                        placeholder="الإجابة المتوقعة (ستُقارَن بإجابة الطالب بغض النظر عن الحالة)" />
+                    <small class="text-muted">ستُصحَّح تلقائياً مع تجاهل الفراغات والحالة الكبيرة/الصغيرة</small>
+                </div>
+
+                <!-- شرح الإجابة -->
+                <div class="form-card p-4 mb-4">
+                    <div class="section-header"><i class="fas fa-lightbulb me-1"></i>شرح الإجابة (اختياري)</div>
+                    <textarea asp-for="Explanation" class="form-control" rows="2"
+                        placeholder="شرح يظهر للطالب بعد التصحيح..."></textarea>
+                </div>
+
+                <div class="d-flex gap-2 justify-content-end">
+                    <a href="javascript:history.back()" class="btn btn-outline-secondary px-4" style="border-radius:12px">إلغاء</a>
+                    <button type="submit" class="btn btn-submit text-white px-5">
+                        <i class="fas fa-save me-2"></i>حفظ السؤال
+                    </button>
+                </div>
+            </form>
+        </div>
+    </main>
+</div>
+
+<script>
+// Show/hide sections based on question type
+const typeRadios = document.querySelectorAll('[name="QuestionType"]');
+const mcSection  = document.getElementById('mcSection');
+const tfSection  = document.getElementById('tfSection');
+const saSection  = document.getElementById('saSection');
+
+function updateSections() {
+    const val = document.querySelector('[name="QuestionType"]:checked')?.value;
+    mcSection.classList.toggle('d-none', val !== 'MultipleChoice');
+    tfSection.classList.toggle('d-none', val !== 'TrueFalse');
+    saSection.classList.toggle('d-none', val !== 'ShortAnswer');
+    // Essay: no extra section
+}
+typeRadios.forEach(r => r.addEventListener('change', updateSections));
+// Default: show MC
+document.querySelector('[name="QuestionType"][value="MultipleChoice"]')?.dispatchEvent(new Event('change'));
+
+// Toggle card highlight for type
+typeRadios.forEach(r => {
+    r.addEventListener('change', () => {
+        document.querySelectorAll('.type-card').forEach(c => {
+            const inp = c.querySelector('input[type=radio]');
+            c.style.borderColor = inp?.checked ? '#4f46e5' : '#e5e7eb';
+            c.style.background  = inp?.checked ? '#eef2ff' : '#fff';
+        });
+    });
+});
+
+// TF highlight
+document.querySelectorAll('[name="tfAnswer"]').forEach(r => {
+    r.addEventListener('change', () => {
+        document.querySelectorAll('#tfSection .type-card').forEach(c => {
+            const inp = c.querySelector('input');
+            c.style.borderColor = inp?.checked ? '#4f46e5' : '#e5e7eb';
+            c.style.background  = inp?.checked ? '#eef2ff' : '#fff';
+        });
+    });
+});
+
+// Add / Remove option
+let optCount = 4;
+document.getElementById('addOption')?.addEventListener('click', () => {
+    if (optCount >= 6) return;
+    const div = document.createElement('div');
+    div.className = 'option-row';
+    div.innerHTML = `
+        <input type="radio" name="correctChoice" value="${optCount}" class="correct-radio" />
+        <input type="text" name="Options[]" class="form-control" placeholder="الخيار ${optCount+1}" style="border-radius:10px;border:1.5px solid #e5e7eb" />
+        <button type="button" class="btn btn-sm btn-outline-danger remove-option" style="border-radius:8px;width:32px;height:32px;padding:0">
+            <i class="fas fa-times"></i>
+        </button>`;
+    document.getElementById('optionsList').appendChild(div);
+    div.querySelector('.remove-option').addEventListener('click', () => div.remove());
+    optCount++;
+});
+document.querySelectorAll('.remove-option').forEach(b => b.addEventListener('click', () => b.closest('.option-row').remove()));
+
+// Before submit: build CorrectAnswer and Options
+document.getElementById('questionForm').addEventListener('submit', function(e) {
+    const type = document.querySelector('[name="QuestionType"]:checked')?.value;
+    const ci   = document.getElementById('correctAnswerInput');
+
+    if (type === 'MultipleChoice') {
+        const opts = [...document.querySelectorAll('[name="Options[]"]')].map(i => i.value.trim());
+        const idx  = document.querySelector('[name="correctChoice"]:checked')?.value;
+        ci.value = opts[parseInt(idx)] || '';
+        // also set Options hidden fields
+        document.querySelectorAll('[name="Options[]"]').forEach((inp, i) => {
+            inp.name = `Options[${i}]`;
+        });
+    } else if (type === 'TrueFalse') {
+        ci.value = document.querySelector('[name="tfAnswer"]:checked')?.value || '';
+    } else if (type === 'ShortAnswer') {
+        ci.value = document.getElementById('saInput')?.value || '';
+    } else {
+        ci.value = '';
+    }
+});
+</script>

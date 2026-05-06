@@ -31,6 +31,12 @@ namespace TrainingCenterManagement_MVC.Data
         public DbSet<Models.AppSetting> AppSettings { get; set; }
         public DbSet<UserNotification> Notifications { get; set; }
 
+        // ── Online Exam System ──────────────────────────────────
+        public DbSet<Question> Questions { get; set; }
+        public DbSet<ExamQuestion> ExamQuestions { get; set; }
+        public DbSet<ExamAttempt> ExamAttempts { get; set; }
+        public DbSet<StudentAnswer> StudentAnswers { get; set; }
+
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
@@ -185,6 +191,161 @@ namespace TrainingCenterManagement_MVC.Data
             .WithMany(u => u.Notifications)
             .HasForeignKey(n => n.UserId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        // ══════════════════════════════════════════════════════════
+        //  ONLINE EXAM SYSTEM — Fluent API
+        // ══════════════════════════════════════════════════════════
+
+        // ── Exam ──────────────────────────────────────────────────
+
+        builder.Entity<Exam>()
+            .HasOne(e => e.Course)
+            .WithMany(c => c.Exams)
+            .HasForeignKey(e => e.CourseId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.Entity<Exam>()
+            .HasOne(e => e.Trainer)
+            .WithMany(t => t.Exams)
+            .HasForeignKey(e => e.TrainerId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.Entity<Exam>()
+            .Property(e => e.PassingScore)
+            .HasColumnType("decimal(5,2)");
+
+        // فلتر عالمي: لا تُظهر الامتحانات المحذوفة
+        builder.Entity<Exam>()
+            .HasQueryFilter(e => !e.IsDeleted);
+
+        // Index للبحث السريع
+        builder.Entity<Exam>()
+            .HasIndex(e => e.CourseId)
+            .HasDatabaseName("IX_Exams_CourseId");
+
+        builder.Entity<Exam>()
+            .HasIndex(e => new { e.TrainerId, e.IsPublished })
+            .HasDatabaseName("IX_Exams_TrainerId_IsPublished");
+
+        builder.Entity<Exam>()
+            .HasIndex(e => e.StartDateTime)
+            .HasDatabaseName("IX_Exams_StartDateTime");
+
+        // ── Question (Question Bank) ───────────────────────────────
+
+        builder.Entity<Question>()
+            .HasOne(q => q.Trainer)
+            .WithMany(t => t.Questions)
+            .HasForeignKey(q => q.TrainerId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.Entity<Question>()
+            .Property(q => q.DefaultPoints)
+            .HasColumnType("decimal(5,2)");
+
+        builder.Entity<Question>()
+            .HasQueryFilter(q => !q.IsDeleted);
+
+        builder.Entity<Question>()
+            .HasIndex(q => new { q.TrainerId, q.QuestionType })
+            .HasDatabaseName("IX_Questions_TrainerId_Type");
+
+        // OptionsJson — يُحفظ كـ nvarchar
+        builder.Entity<Question>()
+            .Property(q => q.OptionsJson)
+            .HasColumnType("nvarchar(max)");
+
+        // ── ExamQuestion (Junction) ────────────────────────────────
+
+        // Unique constraint: سؤال واحد مرة واحدة فقط في كل امتحان
+        builder.Entity<ExamQuestion>()
+            .HasIndex(eq => new { eq.ExamId, eq.QuestionId })
+            .IsUnique()
+            .HasDatabaseName("UX_ExamQuestion_ExamId_QuestionId");
+
+        builder.Entity<ExamQuestion>()
+            .HasOne(eq => eq.Exam)
+            .WithMany(e => e.ExamQuestions)
+            .HasForeignKey(eq => eq.ExamId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<ExamQuestion>()
+            .HasOne(eq => eq.Question)
+            .WithMany(q => q.ExamQuestions)
+            .HasForeignKey(eq => eq.QuestionId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.Entity<ExamQuestion>()
+            .Property(eq => eq.PointsOverride)
+            .HasColumnType("decimal(5,2)");
+
+        // ── ExamAttempt ───────────────────────────────────────────
+
+        builder.Entity<ExamAttempt>()
+            .HasOne(a => a.Exam)
+            .WithMany(e => e.ExamAttempts)
+            .HasForeignKey(a => a.ExamId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.Entity<ExamAttempt>()
+            .HasOne(a => a.Trainee)
+            .WithMany(t => t.ExamAttempts)
+            .HasForeignKey(a => a.TraineeId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.Entity<ExamAttempt>()
+            .Property(a => a.TotalScore)
+            .HasColumnType("decimal(7,2)");
+
+        builder.Entity<ExamAttempt>()
+            .Property(a => a.MaxScore)
+            .HasColumnType("decimal(7,2)");
+
+        builder.Entity<ExamAttempt>()
+            .Property(a => a.ScorePercentage)
+            .HasColumnType("decimal(5,2)");
+
+        // Unique: طالب واحد → محاولة واحدة نشطة per exam (للـ InProgress)
+        builder.Entity<ExamAttempt>()
+            .HasIndex(a => new { a.ExamId, a.TraineeId, a.AttemptNumber })
+            .IsUnique()
+            .HasDatabaseName("UX_ExamAttempt_Exam_Trainee_Number");
+
+        builder.Entity<ExamAttempt>()
+            .HasIndex(a => new { a.ExamId, a.Status })
+            .HasDatabaseName("IX_ExamAttempt_ExamId_Status");
+
+        builder.Entity<ExamAttempt>()
+            .HasIndex(a => a.TraineeId)
+            .HasDatabaseName("IX_ExamAttempt_TraineeId");
+
+        // ── StudentAnswer ──────────────────────────────────────────
+
+        builder.Entity<StudentAnswer>()
+            .HasOne(sa => sa.Attempt)
+            .WithMany(a => a.StudentAnswers)
+            .HasForeignKey(sa => sa.AttemptId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<StudentAnswer>()
+            .HasOne(sa => sa.Question)
+            .WithMany(q => q.StudentAnswers)
+            .HasForeignKey(sa => sa.QuestionId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.Entity<StudentAnswer>()
+            .Property(sa => sa.PointsEarned)
+            .HasColumnType("decimal(5,2)");
+
+        // Unique: إجابة واحدة لكل سؤال في كل محاولة
+        builder.Entity<StudentAnswer>()
+            .HasIndex(sa => new { sa.AttemptId, sa.QuestionId })
+            .IsUnique()
+            .HasDatabaseName("UX_StudentAnswer_Attempt_Question");
+
+        builder.Entity<StudentAnswer>()
+            .HasIndex(sa => sa.AttemptId)
+            .HasDatabaseName("IX_StudentAnswer_AttemptId");
 
         }
     }

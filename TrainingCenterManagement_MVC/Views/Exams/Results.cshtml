@@ -1,0 +1,194 @@
+@using TrainingCenterManagement_MVC.Models.Enums
+@model TrainingCenterManagement_MVC.DTOs.TrainerExamResultsDto
+@{
+    ViewData["Title"] = "نتائج الامتحان";
+    double passRate = Model.SubmittedCount > 0 ? (double)Model.PassedCount / Model.SubmittedCount * 100 : 0;
+}
+<style>
+    .stat-card { border-radius:14px;border:1.5px solid #e8ecef;background:#fff;padding:20px; }
+    .result-row:hover { background:#f8fafc; }
+    .badge-pass { background:#d1fae5;color:#065f46;border-radius:8px;padding:3px 10px;font-size:.78rem;font-weight:700; }
+    .badge-fail { background:#fee2e2;color:#991b1b;border-radius:8px;padding:3px 10px;font-size:.78rem;font-weight:700; }
+    .badge-prog { background:#fef3c7;color:#92400e;border-radius:8px;padding:3px 10px;font-size:.78rem;font-weight:700; }
+    .score-bar { height:6px;border-radius:3px;background:#e5e7eb;overflow:hidden; }
+    .score-fill { height:100%;border-radius:3px;transition:width .5s ease; }
+    .cheat-badge { background:#fce7f3;color:#be185d;border-radius:6px;padding:2px 8px;font-size:.72rem;font-weight:600; }
+</style>
+
+<div class="dashboard-wrapper">
+    @await Html.PartialAsync("_TrainerSidebar")
+    <main class="dashboard-main">
+        <div class="container-fluid px-4 py-4">
+
+            <!-- Header -->
+            <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+                <div class="d-flex align-items-center gap-3">
+                    <a asp-action="Index" class="btn btn-sm btn-outline-secondary" style="border-radius:10px">
+                        <i class="fas fa-arrow-right"></i>
+                    </a>
+                    <div>
+                        <h2 class="fw-bold mb-0" style="color:#1e293b">
+                            <i class="fas fa-chart-bar me-2" style="color:#4f46e5"></i>نتائج الامتحان
+                        </h2>
+                        <p class="text-muted mb-0 mt-1" style="font-size:.88rem">@Model.ExamName</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- KPI Cards -->
+            <div class="row g-3 mb-4">
+                @foreach (var (label, val, sub, color) in new[]{
+                    ("إجمالي المحاولات",  Model.TotalAttempts.ToString(),  "", "#4f46e5"),
+                    ("أكملوا الامتحان",   Model.SubmittedCount.ToString(), "", "#6366f1"),
+                    ("ناجحون",            Model.PassedCount.ToString(),    $"من {Model.SubmittedCount}", "#10b981"),
+                    ("راسبون",            Model.FailedCount.ToString(),    $"من {Model.SubmittedCount}", "#ef4444")
+                })
+                {
+                    <div class="col-6 col-md-3">
+                        <div class="stat-card d-flex align-items-center gap-3">
+                            <div style="width:44px;height:44px;border-radius:12px;background:@(color)22;display:flex;align-items:center;justify-content:center">
+                                <span class="fw-bold" style="color:@color;font-size:1.1rem">@val</span>
+                            </div>
+                            <div>
+                                <div class="fw-semibold" style="color:#1e293b;font-size:.9rem">@label</div>
+                                @if (!string.IsNullOrEmpty(sub)) { <div style="font-size:.78rem;color:#6b7280">@sub</div> }
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <!-- Stats Row -->
+            @if (Model.SubmittedCount > 0)
+            {
+                <div class="row g-3 mb-4">
+                    <div class="col-12 col-md-4">
+                        <div class="stat-card text-center">
+                            <div style="font-size:2rem;font-weight:800;color:#4f46e5">@passRate.ToString("F0")%</div>
+                            <div style="font-size:.85rem;color:#6b7280">نسبة النجاح</div>
+                            <div class="score-bar mt-2">
+                                <div class="score-fill" style="width:@passRate%;background:#4f46e5"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <div class="stat-card text-center">
+                            <div style="font-size:2rem;font-weight:800;color:#10b981">@Model.AverageScore?.ToString("F1")%</div>
+                            <div style="font-size:.85rem;color:#6b7280">متوسط الدرجات</div>
+                            <div class="score-bar mt-2">
+                                <div class="score-fill" style="width:@Model.AverageScore%;background:#10b981"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <div class="stat-card">
+                            <div class="d-flex justify-content-between">
+                                <div class="text-center">
+                                    <div style="font-size:1.4rem;font-weight:800;color:#10b981">@Model.HighestScore?.ToString("F1")%</div>
+                                    <div style="font-size:.78rem;color:#6b7280">أعلى درجة</div>
+                                </div>
+                                <div class="text-center">
+                                    <div style="font-size:1.4rem;font-weight:800;color:#ef4444">@Model.LowestScore?.ToString("F1")%</div>
+                                    <div style="font-size:.78rem;color:#6b7280">أدنى درجة</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <!-- Results Table -->
+            <div class="stat-card p-0 overflow-hidden">
+                <div class="p-3 border-bottom d-flex justify-content-between align-items-center">
+                    <span class="fw-bold" style="color:#1e293b">تفاصيل محاولات الطلاب</span>
+                    <input type="text" class="form-control form-control-sm" id="tSearch" placeholder="بحث..."
+                           style="width:200px;border-radius:10px;border:1.5px solid #e5e7eb">
+                </div>
+                <div class="table-responsive">
+                    <table class="table mb-0" style="font-size:.88rem">
+                        <thead style="background:#f8fafc">
+                            <tr>
+                                <th class="px-3 py-3">الطالب</th>
+                                <th class="py-3">الدرجة</th>
+                                <th class="py-3">الحالة</th>
+                                <th class="py-3">وقت البدء</th>
+                                <th class="py-3">وقت الإرسال</th>
+                                <th class="py-3">مخالفات</th>
+                                <th class="py-3"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="resultsBody">
+                            @if (Model.Attempts.Any())
+                            {
+                                @foreach (var a in Model.Attempts.OrderByDescending(x => x.ScorePercentage))
+                                {
+                                    string statusClass = a.Status == AttemptStatus.Submitted || a.Status == AttemptStatus.TimedOut
+                                        ? (a.IsPassed == true ? "badge-pass" : "badge-fail")
+                                        : "badge-prog";
+                                    string statusLabel = a.Status switch {
+                                        AttemptStatus.Submitted => a.IsPassed == true ? "ناجح ✓" : "راسب ✗",
+                                        AttemptStatus.TimedOut  => "انتهى الوقت",
+                                        AttemptStatus.InProgress=> "جارٍ الآن",
+                                        _                        => "مهجور"
+                                    };
+                                    double score = (double)(a.ScorePercentage ?? 0);
+                                    string barColor = score >= 60 ? "#10b981" : "#ef4444";
+                                    <tr class="result-row" data-name="@a.TraineeName.ToLower()">
+                                        <td class="px-3 py-3">
+                                            <div class="fw-semibold" style="color:#1e293b">@a.TraineeName</div>
+                                            <div style="font-size:.78rem;color:#6b7280">@a.TraineeEmail</div>
+                                        </td>
+                                        <td class="py-3">
+                                            <div class="fw-bold" style="color:#1e293b">@a.ScorePercentage?.ToString("F1")%</div>
+                                            <div class="score-bar mt-1" style="width:80px">
+                                                <div class="score-fill" style="width:@score%;background:@barColor"></div>
+                                            </div>
+                                        </td>
+                                        <td class="py-3">
+                                            <span class="@statusClass">@statusLabel</span>
+                                            @if (a.HasPendingEssays) { <br><span class="cheat-badge mt-1">⏳ يحتاج تصحيح يدوي</span> }
+                                        </td>
+                                        <td class="py-3" style="color:#6b7280">
+                                            @a.StartedAt.ToString("dd/MM HH:mm")
+                                        </td>
+                                        <td class="py-3" style="color:#6b7280">
+                                            @(a.SubmittedAt?.ToString("dd/MM HH:mm") ?? "—")
+                                        </td>
+                                        <td class="py-3">
+                                            @if (a.TabSwitchCount > 0)
+                                            {
+                                                <span class="cheat-badge">
+                                                    <i class="fas fa-eye-slash me-1"></i>@a.TabSwitchCount مرة
+                                                </span>
+                                            }
+                                            else { <span style="color:#10b981;font-size:.78rem">لا مخالفات</span> }
+                                        </td>
+                                        <td class="py-3">
+                                            <a asp-action="AttemptDetail" asp-route-id="@a.AttemptId"
+                                               class="btn btn-sm btn-outline-primary" style="border-radius:8px;font-size:.78rem">
+                                                <i class="fas fa-eye me-1"></i>التفاصيل
+                                            </a>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr><td colspan="7" class="text-center py-5 text-muted">لا يوجد محاولات بعد</td></tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script>
+document.getElementById('tSearch')?.addEventListener('input', function() {
+    const t = this.value.toLowerCase();
+    document.querySelectorAll('#resultsBody tr[data-name]').forEach(row => {
+        row.style.display = row.dataset.name.includes(t) ? '' : 'none';
+    });
+});
+</script>

@@ -25,5 +25,7 @@ namespace TrainingCenterManagement_MVC.Models
 
         public ICollection<CourseTrainer> CourseTrainers { get; set; } = new List<CourseTrainer>();
         public ICollection<Certificate> Certificates { get; set; } = new List<Certificate>();
+        public ICollection<Question> Questions { get; set; } = new List<Question>();
+        public ICollection<Exam> Exams { get; set; } = new List<Exam>();
     }
 }

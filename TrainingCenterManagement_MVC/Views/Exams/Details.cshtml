@@ -1,59 +1,124 @@
-﻿@model TrainingCenterManagement_MVC.Models.Exam
-
+@model TrainingCenterManagement_MVC.Models.Exam
 @{
-    ViewData["Title"] = "Exam Details";
+    ViewData["Title"] = "تفاصيل الامتحان";
+    var totalPoints = Model.ExamQuestions?.Sum(eq => eq.EffectivePoints) ?? 0;
 }
+<style>
+    .info-card { border-radius: 16px; border: 1px solid #e8ecef; background: #fff; }
+    .stat-chip { background:#f8fafc; border-radius:12px; padding:14px; }
+    .label-xs { font-size:.75rem; color:#6b7280; }
+    .value-main { font-size:.95rem; font-weight:700; color:#1e293b; }
+    .badge-soft { border-radius:999px; padding:6px 12px; font-size:.78rem; font-weight:700; }
+</style>
 
-<div class="container mt-4">
-    <div class="card shadow-lg border-0 rounded-4">
-        <div class="card-header bg-primary text-white text-center rounded-top-4">
-            <h3 class="mb-0">📄 Exam Details</h3>
-        </div>
-        <div class="card-body">
-            <dl class="row mb-0">
-                <dt class="col-sm-3 fw-bold">
-                    @Html.DisplayNameFor(model => model.ExamName)
-                </dt>
-                <dd class="col-sm-9">
-                    @Html.DisplayFor(model => model.ExamName)
-                </dd>
+<div class="dashboard-wrapper">
+    @await Html.PartialAsync("_TrainerSidebar")
+    <main class="dashboard-main">
+        <div class="container-fluid px-4 py-4">
 
-                <dt class="col-sm-3 fw-bold">
-                    @Html.DisplayNameFor(model => model.ExamDate)
-                </dt>
-                <dd class="col-sm-9">
-                    @Html.DisplayFor(model => model.ExamDate)
-                </dd>
-
-                <dt class="col-sm-3 fw-bold">
-                    @Html.DisplayNameFor(model => model.IsDeleted)
-                </dt>
-                <dd class="col-sm-9">
-                    @if (Model.IsDeleted)
+            <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+                <div>
+                    <h2 class="fw-bold mb-0" style="color:#1e293b">
+                        <i class="fas fa-file-lines me-2" style="color:#4f46e5"></i>تفاصيل الامتحان
+                    </h2>
+                    <p class="text-muted mb-0 mt-1" style="font-size:.88rem">@Model.ExamName</p>
+                </div>
+                <div class="d-flex gap-2">
+                    @if (!Model.HasStarted)
                     {
-                        <span class="badge bg-danger">Deleted</span>
+                        <a asp-action="Edit" asp-route-id="@Model.ExamId" class="btn btn-outline-warning" style="border-radius:10px">
+                            <i class="fas fa-pen me-1"></i>تعديل
+                        </a>
+                        <a asp-action="ManageQuestions" asp-route-id="@Model.ExamId" class="btn btn-outline-primary" style="border-radius:10px">
+                            <i class="fas fa-list-check me-1"></i>الأسئلة
+                        </a>
                     }
-                    else
-                    {
-                        <span class="badge bg-success">Active</span>
-                    }
-                </dd>
+                    <a asp-action="Index" class="btn btn-outline-secondary" style="border-radius:10px">
+                        <i class="fas fa-arrow-right me-1"></i>العودة
+                    </a>
+                </div>
+            </div>
 
-                <dt class="col-sm-3 fw-bold">
-                    @Html.DisplayNameFor(model => model.Course)
-                </dt>
-                <dd class="col-sm-9">
-                    @Html.DisplayFor(model => model.Course.CourseName)
-                </dd>
-            </dl>
+            <div class="row g-4">
+                <div class="col-12 col-lg-8">
+                    <div class="info-card p-4 h-100">
+                        <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+                            <span class="badge-soft" style="background:@(Model.IsPublished ? "#d1fae5" : "#ede9fe");color:@(Model.IsPublished ? "#065f46" : "#5b21b6")">
+                                @(Model.IsPublished ? "منشور" : "مسودة")
+                            </span>
+                            <span class="badge-soft" style="background:@(Model.IsActive ? "#dbeafe" : Model.HasEnded ? "#f3f4f6" : "#fef3c7");color:@(Model.IsActive ? "#1d4ed8" : Model.HasEnded ? "#6b7280" : "#92400e")">
+                                @(Model.IsActive ? "جارٍ الآن" : Model.HasEnded ? "منتهي" : "قادم")
+                            </span>
+                        </div>
+
+                        <h4 class="fw-bold mb-3" style="color:#1e293b">@Model.ExamName</h4>
+                        <p class="text-muted mb-4" style="line-height:1.8">
+                            @(string.IsNullOrWhiteSpace(Model.Instructions) ? "لا توجد تعليمات إضافية لهذا الامتحان." : Model.Instructions)
+                        </p>
+
+                        <div class="row g-3">
+                            <div class="col-12 col-md-6">
+                                <div class="stat-chip">
+                                    <div class="label-xs">الكورس</div>
+                                    <div class="value-main">@Model.Course?.CourseName</div>
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <div class="stat-chip">
+                                    <div class="label-xs">المدرب</div>
+                                    <div class="value-main">@Model.Trainer?.User?.UserName</div>
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <div class="stat-chip">
+                                    <div class="label-xs">وقت البدء</div>
+                                    <div class="value-main">@Model.StartDateTime.ToString("dd/MM/yyyy HH:mm")</div>
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <div class="stat-chip">
+                                    <div class="label-xs">وقت الانتهاء</div>
+                                    <div class="value-main">@Model.EndDateTime.ToString("dd/MM/yyyy HH:mm")</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-12 col-lg-4">
+                    <div class="info-card p-4">
+                        <h6 class="fw-bold mb-3" style="color:#1e293b">ملخص سريع</h6>
+                        <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                            <span class="label-xs">عدد الأسئلة</span>
+                            <span class="value-main">@Model.ExamQuestions.Count</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                            <span class="label-xs">إجمالي الدرجات</span>
+                            <span class="value-main">@totalPoints</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                            <span class="label-xs">المدة</span>
+                            <span class="value-main">@Model.DurationMinutes دقيقة</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                            <span class="label-xs">نسبة النجاح</span>
+                            <span class="value-main">@Model.PassingScore%</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                            <span class="label-xs">المحاولات المسموحة</span>
+                            <span class="value-main">@Model.MaxAttempts</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                            <span class="label-xs">ترتيب الأسئلة</span>
+                            <span class="value-main">@(Model.IsRandomized ? "عشوائي" : "ثابت")</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center pt-2">
+                            <span class="label-xs">عرض النتائج</span>
+                            <span class="value-main">@(Model.ShowResultsImmediately ? "فوري" : "بعد المراجعة")</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="card-footer text-center bg-light rounded-bottom-4">
-            <a asp-action="Edit" asp-route-id="@Model?.ExamId" class="btn btn-warning me-2">
-                ✏ Edit
-            </a>
-            <a asp-action="Index" class="btn btn-secondary">
-                ⬅ Back to List
-            </a>
-        </div>
-    </div>
+    </main>
 </div>

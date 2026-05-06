@@ -1,0 +1,258 @@
+@using TrainingCenterManagement_MVC.Models
+@using TrainingCenterManagement_MVC.DTOs
+@model IEnumerable<TrainingCenterManagement_MVC.Models.ExamQuestion>
+@{
+    ViewData["Title"] = "إدارة أسئلة الامتحان";
+    var exam = ViewBag.Exam as Exam;
+    var bank = ViewBag.QuestionBank as List<QuestionDto>;
+    var totalPoints = Model.Sum(eq => eq.EffectivePoints);
+}
+<style>
+    .q-card { border-radius: 12px; border: 1.5px solid #e5e7eb; background: #fff; transition: all .2s; }
+    .q-card:hover { border-color: #4f46e5; box-shadow: 0 4px 12px rgba(79,70,229,.1); }
+    .badge-mc  { background:#dbeafe;color:#1d4ed8; }
+    .badge-tf  { background:#dcfce7;color:#16a34a; }
+    .badge-sa  { background:#fef9c3;color:#a16207; }
+    .badge-es  { background:#fce7f3;color:#be185d; }
+    .badge-easy   { background:#d1fae5;color:#065f46; }
+    .badge-medium { background:#fef3c7;color:#92400e; }
+    .badge-hard   { background:#fee2e2;color:#991b1b; }
+    .points-badge { background:#ede9fe;color:#5b21b6;border-radius:8px;padding:2px 10px;font-weight:700;font-size:.85rem; }
+    .bank-card { border-radius: 10px; border: 1.5px solid #e5e7eb; background: #fff; transition: border-color .2s; cursor: pointer; }
+    .bank-card:hover { border-color: #4f46e5; }
+    .bank-card.selected { border-color: #4f46e5; background: #eef2ff; }
+    .section-title { font-size:.75rem;font-weight:700;color:#4f46e5;text-transform:uppercase;letter-spacing:.05em; }
+    .empty-bank { text-align:center;padding:40px 20px;color:#9ca3af; }
+    .total-bar { background: linear-gradient(135deg,#4f46e5,#7c3aed); border-radius: 12px; padding: 16px 20px; color: #fff; }
+</style>
+
+<div class="dashboard-wrapper">
+    @await Html.PartialAsync("_TrainerSidebar")
+    <main class="dashboard-main">
+        <div class="container-fluid px-4 py-4">
+
+            <!-- Header -->
+            <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+                <div class="d-flex align-items-center gap-3">
+                    <a asp-action="Index" class="btn btn-sm btn-outline-secondary" style="border-radius:10px">
+                        <i class="fas fa-arrow-right"></i>
+                    </a>
+                    <div>
+                        <h2 class="fw-bold mb-0" style="color:#1e293b">
+                            <i class="fas fa-list-check me-2" style="color:#4f46e5"></i>إدارة الأسئلة
+                        </h2>
+                        <p class="text-muted mb-0 mt-1" style="font-size:.88rem">@exam?.ExamName</p>
+                    </div>
+                </div>
+                <a asp-action="CreateQuestion" asp-route-examId="@exam?.ExamId" class="btn text-white" style="background:#4f46e5;border-radius:10px">
+                    <i class="fas fa-plus me-1"></i>سؤال جديد
+                </a>
+            </div>
+
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show rounded-3">
+                    <i class="fas fa-check-circle me-2"></i>@TempData["Success"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show rounded-3">
+                    <i class="fas fa-exclamation-circle me-2"></i>@TempData["Error"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            <div class="row g-4">
+                <!-- Left: أسئلة الامتحان الحالية -->
+                <div class="col-12 col-lg-7">
+                    <!-- Info Bar -->
+                    <div class="total-bar mb-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        <div>
+                            <div style="font-size:.85rem;opacity:.8">أسئلة الامتحان</div>
+                            <div class="fw-bold" style="font-size:1.3rem">@Model.Count() سؤال</div>
+                        </div>
+                        <div class="text-center">
+                            <div style="font-size:.85rem;opacity:.8">المدة</div>
+                            <div class="fw-bold">@exam?.DurationMinutes دقيقة</div>
+                        </div>
+                        <div class="text-center">
+                            <div style="font-size:.85rem;opacity:.8">إجمالي الدرجات</div>
+                            <div class="fw-bold" style="font-size:1.2rem">@totalPoints</div>
+                        </div>
+                        <div>
+                            @if (!exam!.IsPublished && Model.Any())
+                            {
+                                <form asp-action="Publish" method="post">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@exam.ExamId" />
+                                    <button type="submit" class="btn btn-sm text-white fw-semibold" style="background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.4);border-radius:10px">
+                                        <i class="fas fa-paper-plane me-1"></i>نشر الامتحان
+                                    </button>
+                                </form>
+                            }
+                            else if (exam.IsPublished)
+                            {
+                                <span class="badge" style="background:rgba(255,255,255,.2);font-size:.85rem;padding:6px 12px;border-radius:10px">
+                                    <i class="fas fa-check-circle me-1"></i>منشور
+                                </span>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Exam Questions List -->
+                    @if (Model.Any())
+                    {
+                        <div id="sortable-questions">
+                            @{int qNum = 1;}
+                            @foreach (var eq in Model.OrderBy(q => q.OrderIndex))
+                            {
+                                string typeBadge = eq.Question?.QuestionType switch {
+                                    TrainingCenterManagement_MVC.Models.Enums.QuestionType.MultipleChoice => "badge-mc",
+                                    TrainingCenterManagement_MVC.Models.Enums.QuestionType.TrueFalse      => "badge-tf",
+                                    TrainingCenterManagement_MVC.Models.Enums.QuestionType.ShortAnswer    => "badge-sa",
+                                    _                                                                      => "badge-es"
+                                };
+                                string typeLabel = eq.Question?.QuestionType switch {
+                                    TrainingCenterManagement_MVC.Models.Enums.QuestionType.MultipleChoice => "اختيار متعدد",
+                                    TrainingCenterManagement_MVC.Models.Enums.QuestionType.TrueFalse      => "صح / خطأ",
+                                    TrainingCenterManagement_MVC.Models.Enums.QuestionType.ShortAnswer    => "إجابة قصيرة",
+                                    _                                                                      => "مقالي"
+                                };
+                                string diffBadge = eq.Question?.DifficultyLevel switch {
+                                    TrainingCenterManagement_MVC.Models.Enums.DifficultyLevel.Easy   => "badge-easy",
+                                    TrainingCenterManagement_MVC.Models.Enums.DifficultyLevel.Medium => "badge-medium",
+                                    _                                                                  => "badge-hard"
+                                };
+                                string diffLabel = eq.Question?.DifficultyLevel switch {
+                                    TrainingCenterManagement_MVC.Models.Enums.DifficultyLevel.Easy   => "سهل",
+                                    TrainingCenterManagement_MVC.Models.Enums.DifficultyLevel.Medium => "متوسط",
+                                    _                                                                  => "صعب"
+                                };
+                                <div class="q-card p-3 mb-2 d-flex align-items-start gap-3">
+                                    <div style="min-width:32px;height:32px;border-radius:50%;background:#eef2ff;display:flex;align-items:center;justify-content:center;font-weight:700;color:#4f46e5;font-size:.9rem">
+                                        @qNum
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <p class="mb-2 fw-semibold" style="color:#1e293b;font-size:.9rem">@eq.Question?.QuestionText</p>
+                                        <div class="d-flex flex-wrap gap-1 align-items-center">
+                                            <span class="badge @typeBadge" style="border-radius:8px;font-size:.72rem">@typeLabel</span>
+                                            <span class="badge @diffBadge" style="border-radius:8px;font-size:.72rem">@diffLabel</span>
+                                            <span class="points-badge">@eq.EffectivePoints نقطة</span>
+                                        </div>
+                                    </div>
+                                    @if (!exam!.HasStarted)
+                                    {
+                                        <form asp-action="RemoveQuestion" method="post" class="ms-auto"
+                                              onsubmit="return confirm('هل تريد حذف هذا السؤال من الامتحان؟')">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="examId" value="@exam.ExamId" />
+                                            <input type="hidden" name="questionId" value="@eq.QuestionId" />
+                                            <button type="submit" class="btn btn-sm btn-outline-danger" style="border-radius:8px;padding:4px 10px">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </form>
+                                    }
+                                </div>
+                                qNum++;
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="empty-bank" style="border:2px dashed #e5e7eb;border-radius:14px">
+                            <i class="fas fa-question-circle" style="font-size:2.5rem;color:#d1d5db;display:block;margin-bottom:12px"></i>
+                            <p class="fw-semibold" style="color:#6b7280">لا توجد أسئلة في الامتحان بعد</p>
+                            <p style="font-size:.85rem">أضف أسئلة من بنك الأسئلة أو أنشئ سؤالاً جديداً</p>
+                        </div>
+                    }
+                </div>
+
+                <!-- Right: بنك الأسئلة -->
+                <div class="col-12 col-lg-5">
+                    <div class="form-card p-3 rounded-3" style="border:1px solid #e8ecef;background:#f8fafc;position:sticky;top:80px">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <span class="section-title"><i class="fas fa-database me-1"></i>بنك الأسئلة</span>
+                            <small class="text-muted">@(bank?.Count ?? 0) سؤال متاح</small>
+                        </div>
+
+                        <!-- Filter -->
+                        <input type="text" class="form-control form-control-sm mb-2" id="bankSearch"
+                               placeholder="بحث في الأسئلة..." style="border-radius:10px">
+
+                        @if (bank?.Any() == true)
+                        {
+                            <div style="max-height:500px;overflow-y:auto;padding-right:4px" id="bankList">
+                                @foreach (var q in bank)
+                                {
+                                    bool alreadyAdded = Model.Any(eq => eq.QuestionId == q.QuestionId);
+                                    string typeBadge = q.QuestionType switch {
+                                        TrainingCenterManagement_MVC.Models.Enums.QuestionType.MultipleChoice => "badge-mc",
+                                        TrainingCenterManagement_MVC.Models.Enums.QuestionType.TrueFalse      => "badge-tf",
+                                        TrainingCenterManagement_MVC.Models.Enums.QuestionType.ShortAnswer    => "badge-sa",
+                                        _                                                                      => "badge-es"
+                                    };
+                                    string typeLabel = q.QuestionType switch {
+                                        TrainingCenterManagement_MVC.Models.Enums.QuestionType.MultipleChoice => "MC",
+                                        TrainingCenterManagement_MVC.Models.Enums.QuestionType.TrueFalse      => "T/F",
+                                        TrainingCenterManagement_MVC.Models.Enums.QuestionType.ShortAnswer    => "قصير",
+                                        _                                                                      => "مقالي"
+                                    };
+                                    <div class="bank-card p-2 mb-2 @(alreadyAdded ? "opacity-50" : "")" data-qtext="@q.QuestionText.ToLower()">
+                                        <p class="mb-1" style="font-size:.82rem;color:#374151;line-height:1.4">
+                                            @(q.QuestionText.Length > 80 ? q.QuestionText.Substring(0, 80) + "..." : q.QuestionText)
+                                        </p>
+                                        <div class="d-flex align-items-center justify-content-between gap-1">
+                                            <div class="d-flex gap-1">
+                                                <span class="badge @typeBadge" style="font-size:.68rem;border-radius:6px">@typeLabel</span>
+                                                <span class="points-badge" style="font-size:.72rem">@q.DefaultPoints</span>
+                                            </div>
+                                            @if (!alreadyAdded && !exam!.HasStarted)
+                                            {
+                                                <form asp-action="AddQuestion" method="post">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="ExamId" value="@exam.ExamId" />
+                                                    <input type="hidden" name="QuestionId" value="@q.QuestionId" />
+                                                    <button type="submit" class="btn text-white" style="background:#4f46e5;border-radius:8px;padding:3px 12px;font-size:.78rem">
+                                                        <i class="fas fa-plus me-1"></i>إضافة
+                                                    </button>
+                                                </form>
+                                            }
+                                            else if (alreadyAdded)
+                                            {
+                                                <span style="font-size:.75rem;color:#10b981;font-weight:600">
+                                                    <i class="fas fa-check me-1"></i>مضاف
+                                                </span>
+                                            }
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="empty-bank">
+                                <p style="font-size:.85rem">لا توجد أسئلة في بنك الأسئلة.</p>
+                                <a asp-action="CreateQuestion" asp-route-examId="@exam?.ExamId"
+                                   class="btn btn-sm text-white" style="background:#4f46e5;border-radius:8px">
+                                    إنشاء أول سؤال
+                                </a>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script>
+// Bank search
+document.getElementById('bankSearch')?.addEventListener('input', function() {
+    const term = this.value.toLowerCase();
+    document.querySelectorAll('#bankList .bank-card').forEach(card => {
+        card.style.display = card.dataset.qtext.includes(term) ? '' : 'none';
+    });
+});
+</script>

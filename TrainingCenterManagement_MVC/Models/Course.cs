@@ -48,6 +48,7 @@ namespace TrainingCenterManagement_MVC.Models
         public ICollection<Payment> Payments { get; set; } = new List<Payment>();
         public ICollection<Certificate> Certificates { get; set; } = new List<Certificate>();
         public ICollection<GroupMessage> GroupMessages { get; set; } = new List<GroupMessage>();
-        public Exam Exam { get; set; }
+        // كورس واحد → امتحانات متعددة (midterm, final, quiz...)
+        public ICollection<Exam> Exams { get; set; } = new List<Exam>();
     }
 }

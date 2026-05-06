@@ -1,69 +1,210 @@
-﻿@model IEnumerable<TrainingCenterManagement_MVC.Models.Exam>
+@model IEnumerable<TrainingCenterManagement_MVC.Models.Exam>
 @{
-    ViewData["Title"] = "Exams List";
+    ViewData["Title"] = "امتحاناتي";
 }
 
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2 class="text-primary">
-            <i class="bi bi-journal-check"></i> Exams List
-        </h2>
-        <a asp-action="Create" class="btn btn-success">
-            <i class="bi bi-plus-circle"></i> Create New Exam
-        </a>
-    </div>
+<style>
+    .exam-card { border-radius: 14px; border: 1px solid #e8ecef; transition: all .25s ease; background: #fff; }
+    .exam-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,.1); }
+    .status-badge { font-size: .75rem; font-weight: 600; padding: 4px 10px; border-radius: 20px; }
+    .badge-active  { background: #d1fae5; color: #065f46; }
+    .badge-pending { background: #fef3c7; color: #92400e; }
+    .badge-ended   { background: #f3f4f6; color: #6b7280; }
+    .badge-draft   { background: #ede9fe; color: #5b21b6; }
+    .stat-mini { font-size:.8rem; color:#6b7280; }
+    .action-btn { border-radius: 8px; font-size: .82rem; padding: 5px 12px; font-weight: 500; }
+    .filter-tabs .nav-link { color: #6b7280; border-radius: 10px; padding: 6px 16px; font-size: .88rem; }
+    .filter-tabs .nav-link.active { background: #4f46e5; color: #fff; }
+    .empty-state { text-align:center; padding: 60px 20px; color: #9ca3af; }
+</style>
 
-    <div class="table-responsive shadow-sm rounded">
-        <table class="table table-hover table-bordered align-middle">
-            <thead class="table-primary text-center">
-                <tr>
-                    <th>@Html.DisplayNameFor(model => model.ExamName)</th>
-                    <th>@Html.DisplayNameFor(model => model.ExamDate)</th>
-                    <th>@Html.DisplayNameFor(model => model.IsDeleted)</th>
-                    <th>@Html.DisplayNameFor(model => model.Course)</th>
-                    <th style="width: 180px;">Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                @if (Model != null && Model.Any())
+<div class="dashboard-wrapper">
+    @await Html.PartialAsync("_TrainerSidebar")
+    <main class="dashboard-main">
+        <div class="container-fluid px-4 py-4">
+
+            <!-- Header -->
+            <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+                <div>
+                    <h2 class="fw-bold mb-0" style="color:#1e293b">
+                        <i class="fas fa-file-alt me-2" style="color:#4f46e5"></i>امتحاناتي
+                    </h2>
+                    <p class="text-muted mb-0 mt-1" style="font-size:.9rem">إدارة وإنشاء جميع الامتحانات</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <a asp-action="QuestionBank" class="btn btn-outline-primary action-btn">
+                        <i class="fas fa-database me-1"></i>بنك الأسئلة
+                    </a>
+                    <a asp-action="Create" class="btn action-btn text-white" style="background:#4f46e5">
+                        <i class="fas fa-plus me-1"></i>امتحان جديد
+                    </a>
+                </div>
+            </div>
+
+            <!-- KPIs -->
+            @{
+                var total   = Model.Count();
+                var active  = Model.Count(e => e.IsActive);
+                var pending = Model.Count(e => !e.HasStarted && e.IsPublished);
+                var drafts  = Model.Count(e => !e.IsPublished);
+            }
+            <div class="row g-3 mb-4">
+                @foreach (var (label, val, icon, color) in new[]{ ("إجمالي الامتحانات", total,"fa-list-ul","#4f46e5"),("جارٍ الآن",active,"fa-circle-notch","#10b981"),("قادم",pending,"fa-clock","#f59e0b"),("مسودة",drafts,"fa-edit","#8b5cf6")})
                 {
-                    foreach (var item in Model)
+                <div class="col-6 col-md-3">
+                    <div class="exam-card p-3 d-flex align-items-center gap-3">
+                        <div style="width:44px;height:44px;border-radius:12px;background:@(color)22;display:flex;align-items:center;justify-content:center">
+                            <i class="fas @icon" style="color:@color;font-size:1.1rem"></i>
+                        </div>
+                        <div>
+                            <div class="fw-bold" style="font-size:1.4rem;color:#1e293b">@val</div>
+                            <div class="stat-mini">@label</div>
+                        </div>
+                    </div>
+                </div>
+                }
+            </div>
+
+            <!-- Alerts -->
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="fas fa-check-circle me-2"></i>@TempData["Success"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="fas fa-exclamation-circle me-2"></i>@TempData["Error"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            <!-- Filter Tabs -->
+            <ul class="nav filter-tabs mb-3 gap-1">
+                <li class="nav-item"><a class="nav-link active" data-filter="all" href="#">الكل (@total)</a></li>
+                <li class="nav-item"><a class="nav-link" data-filter="active" href="#">جارٍ الآن (@active)</a></li>
+                <li class="nav-item"><a class="nav-link" data-filter="upcoming" href="#">قادم (@pending)</a></li>
+                <li class="nav-item"><a class="nav-link" data-filter="draft" href="#">مسودة (@drafts)</a></li>
+                <li class="nav-item"><a class="nav-link" data-filter="ended" href="#">منتهي</a></li>
+            </ul>
+
+            <!-- Exam Cards -->
+            @if (Model.Any())
+            {
+                <div class="row g-3" id="examGrid">
+                    @foreach (var exam in Model.OrderByDescending(e => e.StartDateTime))
                     {
-                        <tr>
-                            <td>@Html.DisplayFor(modelItem => item.ExamName)</td>
-                            <td>@item.ExamDate.ToString("yyyy-MM-dd")</td>
-                            <td>
-                                @if (item.IsDeleted)
-                                {
-                                    <span class="badge bg-danger">Deleted</span>
-                                }
-                                else
-                                {
-                                    <span class="badge bg-success">Active</span>
-                                }
-                            </td>
-                            <td>@Html.DisplayFor(modelItem => item.Course.CourseName)</td>
-                            <td class="text-center">
-                                <a asp-action="Edit" asp-route-id="@item.ExamId" class="btn btn-sm btn-warning">
-                                    <i class="bi bi-pencil-square"></i> Edit
-                                </a>
-                                <a asp-action="Details" asp-route-id="@item.ExamId" class="btn btn-sm btn-info text-white">
-                                    <i class="bi bi-eye"></i> Details
-                                </a>
-                                <a asp-action="Delete" asp-route-id="@item.ExamId" class="btn btn-sm btn-danger">
-                                    <i class="bi bi-trash"></i> Delete
-                                </a>
-                            </td>
-                        </tr>
+                        string filterClass = exam.IsActive ? "active" :
+                                             (!exam.HasStarted && exam.IsPublished) ? "upcoming" :
+                                             !exam.IsPublished ? "draft" : "ended";
+                        <div class="col-12 col-md-6 col-xl-4 exam-item" data-status="@filterClass">
+                            <div class="exam-card p-4 h-100 d-flex flex-column">
+                                <!-- Header -->
+                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                    <div class="flex-grow-1 me-2">
+                                        <h6 class="fw-bold mb-1" style="color:#1e293b">@exam.ExamName</h6>
+                                        <small class="text-muted">
+                                            <i class="fas fa-book-open me-1" style="color:#4f46e5"></i>@exam.Course?.CourseName
+                                        </small>
+                                    </div>
+                                    <span class="status-badge @(filterClass == "active" ? "badge-active" : filterClass == "upcoming" ? "badge-pending" : filterClass == "draft" ? "badge-draft" : "badge-ended")">
+                                        @(filterClass == "active" ? "جارٍ" : filterClass == "upcoming" ? "قادم" : filterClass == "draft" ? "مسودة" : "منتهي")
+                                    </span>
+                                </div>
+
+                                <!-- Meta -->
+                                <div class="row g-2 mb-3">
+                                    <div class="col-6">
+                                        <div class="p-2 rounded" style="background:#f8fafc">
+                                            <div class="stat-mini"><i class="fas fa-calendar-alt me-1"></i>تاريخ البدء</div>
+                                            <div style="font-size:.82rem;color:#1e293b;font-weight:600">@exam.StartDateTime.ToString("dd/MM/yyyy")</div>
+                                            <div class="stat-mini">@exam.StartDateTime.ToString("HH:mm") UTC</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="p-2 rounded" style="background:#f8fafc">
+                                            <div class="stat-mini"><i class="fas fa-clock me-1"></i>المدة</div>
+                                            <div style="font-size:.82rem;color:#1e293b;font-weight:600">@exam.DurationMinutes دقيقة</div>
+                                            <div class="stat-mini">نسبة النجاح: @exam.PassingScore%</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="p-2 rounded" style="background:#f8fafc">
+                                            <div class="stat-mini"><i class="fas fa-question-circle me-1"></i>الأسئلة</div>
+                                            <div style="font-size:.82rem;color:#1e293b;font-weight:600">@exam.ExamQuestions.Count سؤال</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="p-2 rounded" style="background:#f8fafc">
+                                            <div class="stat-mini"><i class="fas fa-users me-1"></i>المحاولات</div>
+                                            <div style="font-size:.82rem;color:#1e293b;font-weight:600">@exam.ExamAttempts.Count محاولة</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Actions -->
+                                <div class="d-flex flex-wrap gap-2 mt-auto">
+                                    <a asp-action="Details" asp-route-id="@exam.ExamId" class="btn btn-sm btn-outline-secondary action-btn flex-grow-1">
+                                        <i class="fas fa-eye me-1"></i>تفاصيل
+                                    </a>
+                                    @if (!exam.HasStarted)
+                                    {
+                                        <a asp-action="Edit" asp-route-id="@exam.ExamId" class="btn btn-sm btn-outline-warning action-btn flex-grow-1">
+                                            <i class="fas fa-edit me-1"></i>تعديل
+                                        </a>
+                                        <a asp-action="ManageQuestions" asp-route-id="@exam.ExamId" class="btn btn-sm btn-outline-primary action-btn flex-grow-1">
+                                            <i class="fas fa-list-check me-1"></i>الأسئلة
+                                        </a>
+                                    }
+                                    @if (exam.ExamAttempts.Any())
+                                    {
+                                        <a asp-action="Results" asp-route-id="@exam.ExamId" class="btn btn-sm action-btn flex-grow-1 text-white" style="background:#10b981">
+                                            <i class="fas fa-chart-bar me-1"></i>النتائج
+                                        </a>
+                                    }
+                                    @if (!exam.IsPublished && exam.ExamQuestions.Any())
+                                    {
+                                        <form asp-action="Publish" method="post" class="flex-grow-1">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@exam.ExamId" />
+                                            <button type="submit" class="btn btn-sm action-btn w-100 text-white" style="background:#4f46e5">
+                                                <i class="fas fa-paper-plane me-1"></i>نشر
+                                            </button>
+                                        </form>
+                                    }
+                                </div>
+                            </div>
+                        </div>
                     }
-                }
-                else
-                {
-                    <tr>
-                        <td colspan="5" class="text-center text-muted">No exams available.</td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-    </div>
+                </div>
+            }
+            else
+            {
+                <div class="empty-state">
+                    <i class="fas fa-file-alt" style="font-size:3rem;color:#d1d5db;margin-bottom:16px;display:block"></i>
+                    <h5 style="color:#6b7280">لا يوجد امتحانات بعد</h5>
+                    <p>ابدأ بإنشاء أول امتحان لطلابك</p>
+                    <a asp-action="Create" class="btn text-white mt-2" style="background:#4f46e5;border-radius:10px">
+                        <i class="fas fa-plus me-2"></i>إنشاء امتحان جديد
+                    </a>
+                </div>
+            }
+        </div>
+    </main>
 </div>
+
+<script>
+document.querySelectorAll('[data-filter]').forEach(tab => {
+    tab.addEventListener('click', e => {
+        e.preventDefault();
+        document.querySelectorAll('[data-filter]').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        const filter = tab.dataset.filter;
+        document.querySelectorAll('.exam-item').forEach(item => {
+            item.style.display = (filter === 'all' || item.dataset.status === filter) ? '' : 'none';
+        });
+    });
+});
+</script>

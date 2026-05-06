@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Policy;
+using System.Text.Json;
 using TrainingCenterManagement_MVC.Data;
 using TrainingCenterManagement_MVC.Models;
+using TrainingCenterManagement_MVC.Models.Enums;
 
 namespace TrainingCenterManagement_MVC.Data
 {
@@ -32,6 +34,8 @@ namespace TrainingCenterManagement_MVC.Data
             await SeedPaymentsAsync();
             await SeedPresencesAsync();
             await SeedExamsAsync();
+            await SeedQuestionsAsync();
+            await SeedExamQuestionsAsync();
             await SeedCertificatesAsync();
             await SeedMessagesAsync();
             await SeedContactUsAsync();
@@ -851,117 +855,383 @@ namespace TrainingCenterManagement_MVC.Data
 
         #endregion
 
-        #region Exams 
+        #region Exams
         private async Task SeedExamsAsync()
         {
-            var courses = await _context.Courses.ToListAsync();
-            Guid GetCourseId(string courseName) =>
-                                              courses.First(c => c.CourseName == courseName).CourseId;
-            var exams = new List<Exam>
+            if (await _context.Exams.AnyAsync()) return;
+
+            var courses  = await _context.Courses.ToListAsync();
+            var trainers = await _context.Trainers.Include(t => t.User).ToListAsync();
+
+            Guid CourseId(string name) => courses.First(c => c.CourseName == name).CourseId;
+            Guid TrainerId(string name) => trainers.First(t => t.User.FullName == name).TrainerId;
+
+            // ── الامتحانات السابقة (published، منتهية) ──
+            var past = new List<(string Course, string Trainer, string ExamName, DateTime Start, int Mins)>
             {
-                // Python Basics
-                new Exam
-                {
-                    CourseId = GetCourseId("Python Basics"),
-                    ExamName = "Python Basics - Midterm Exam",
-                    ExamDate = new DateTime(2025, 3, 5, 10, 0, 0)
-                },
-                new Exam
-                {
-                    CourseId = GetCourseId("Python Basics"),
-                    ExamName = "Python Basics - Final Exam",
-                    ExamDate = new DateTime(2025, 4, 2, 10, 0, 0)
-                },
-
-                // Web Development
-                new Exam
-                {
-                    CourseId = GetCourseId("Web Development"),
-                    ExamName = "Web Development - Midterm Exam",
-                    ExamDate = new DateTime(2025, 3, 8, 9, 30, 0)
-                },
-                new Exam
-                {
-                    CourseId = GetCourseId("Web Development"),
-                    ExamName = "Web Development - Final Exam",
-                    ExamDate = new DateTime(2025, 4, 6, 9, 30, 0)
-                },
-
-                // Advanced JavaScript
-                new Exam
-                {
-                    CourseId = GetCourseId("Advanced JavaScript"),
-                    ExamName = "Advanced JavaScript - Midterm Exam",
-                    ExamDate = new DateTime(2025, 3, 10, 11, 0, 0)
-                },
-                new Exam
-                {
-                    CourseId = GetCourseId("Advanced JavaScript"),
-                    ExamName = "Advanced JavaScript - Final Exam",
-                    ExamDate = new DateTime(2025, 4, 8, 11, 0, 0)
-                },
-
-                // SQL and Databases
-                new Exam
-                {
-                    CourseId = GetCourseId("SQL and Databases"),
-                    ExamName = "SQL and Databases - Midterm Exam",
-                    ExamDate = new DateTime(2025, 3, 12, 14, 0, 0)
-                },
-                new Exam
-                {
-                    CourseId = GetCourseId("SQL and Databases"),
-                    ExamName = "SQL and Databases - Final Exam",
-                    ExamDate = new DateTime(2025, 4, 10, 14, 0, 0)
-                },
-
-                // Cybersecurity Essentials
-                new Exam
-                {
-                    CourseId = GetCourseId("Cybersecurity Essentials"),
-                    ExamName = "Cybersecurity Essentials - Midterm Exam",
-                    ExamDate = new DateTime(2025, 3, 14, 15, 0, 0)
-                },
-                new Exam
-                {
-                    CourseId = GetCourseId("Cybersecurity Essentials"),
-                    ExamName = "Cybersecurity Essentials - Final Exam",
-                    ExamDate = new DateTime(2025, 4, 12, 15, 0, 0)
-                },
-
-                // Machine Learning Basics
-                new Exam
-                {
-                    CourseId = GetCourseId("Machine Learning Basics"),
-                    ExamName = "Machine Learning Basics - Midterm Exam",
-                    ExamDate = new DateTime(2025, 3, 16, 13, 0, 0)
-                },
-                new Exam
-                {
-                    CourseId = GetCourseId("Machine Learning Basics"),
-                    ExamName = "Machine Learning Basics - Final Exam",
-                    ExamDate = new DateTime(2025, 4, 14, 13, 0, 0)
-                },
-
-                // Docker & Kubernetes
-                new Exam
-                {
-                    CourseId = GetCourseId("Docker & Kubernetes"),
-                    ExamName = "Docker & Kubernetes - Midterm Exam",
-                    ExamDate = new DateTime(2025, 3, 18, 10, 0, 0)
-                },
-                new Exam
-                {
-                    CourseId = GetCourseId("Docker & Kubernetes"),
-                    ExamName = "Docker & Kubernetes - Final Exam",
-                    ExamDate = new DateTime(2025, 4, 16, 10, 0, 0)
-                }
+                ("Python Basics",          "Fahd alhasan",   "Python Basics - Midterm Exam",              new DateTime(2025,3,5,10,0,0),  60),
+                ("Python Basics",          "Fahd alhasan",   "Python Basics - Final Exam",                new DateTime(2025,4,2,10,0,0),  90),
+                ("Web Development",        "Fras Mohammed",  "Web Development - Midterm Exam",            new DateTime(2025,3,8,9,30,0),  60),
+                ("Web Development",        "Fras Mohammed",  "Web Development - Final Exam",              new DateTime(2025,4,6,9,30,0),  90),
+                ("Advanced JavaScript",    "Ali Robinson",   "Advanced JavaScript - Midterm Exam",        new DateTime(2025,3,10,11,0,0), 60),
+                ("Advanced JavaScript",    "Ali Robinson",   "Advanced JavaScript - Final Exam",          new DateTime(2025,4,8,11,0,0),  90),
+                ("SQL and Databases",      "Salem ali",      "SQL and Databases - Midterm Exam",          new DateTime(2025,3,12,14,0,0), 60),
+                ("SQL and Databases",      "Salem ali",      "SQL and Databases - Final Exam",            new DateTime(2025,4,10,14,0,0), 90),
+                ("Cybersecurity Essentials","Rghad Shoriqee","Cybersecurity Essentials - Midterm Exam",   new DateTime(2025,3,14,15,0,0), 60),
+                ("Cybersecurity Essentials","Rghad Shoriqee","Cybersecurity Essentials - Final Exam",     new DateTime(2025,4,12,15,0,0), 90),
+                ("Machine Learning Basics","Malek Aslan",    "Machine Learning Basics - Midterm Exam",    new DateTime(2025,3,16,13,0,0), 60),
+                ("Machine Learning Basics","Malek Aslan",    "Machine Learning Basics - Final Exam",      new DateTime(2025,4,14,13,0,0), 90),
+                ("Docker & Kubernetes",    "Hasan Hassene",  "Docker & Kubernetes - Midterm Exam",        new DateTime(2025,3,18,10,0,0), 60),
+                ("Docker & Kubernetes",    "Hasan Hassene",  "Docker & Kubernetes - Final Exam",          new DateTime(2025,4,16,10,0,0), 90),
             };
+
+            // ── امتحانات قادمة (منشورة، تبدأ في المستقبل القريب للتجربة) ──
+            var now = DateTime.UtcNow;
+            var upcoming = new List<(string Course, string Trainer, string ExamName, DateTime Start, int Mins)>
+            {
+                ("Python Basics",          "Fahd alhasan",  "Python Basics - Quiz 1",               now.AddMinutes(2),   30),
+                ("Web Development",        "Fras Mohammed", "Web Development - Quiz 1",             now.AddMinutes(5),   30),
+                ("Advanced JavaScript",    "Ali Robinson",  "Advanced JavaScript - Quiz 1",         now.AddHours(2),     45),
+                ("SQL and Databases",      "Salem ali",     "SQL and Databases - Quiz 1",           now.AddHours(3),     45),
+                ("Cybersecurity Essentials","Rghad Shoriqee","Cybersecurity Quiz - Basics",         now.AddDays(1),      60),
+                ("Machine Learning Basics","Malek Aslan",   "ML Basics - Quick Assessment",         now.AddDays(2),      60),
+                ("Docker & Kubernetes",    "Hasan Hassene", "Docker & Kubernetes - Pre-Final Quiz", now.AddDays(3),      45),
+            };
+
+            var exams = new List<Exam>();
+
+            foreach (var e in past)
+                exams.Add(new Exam
+                {
+                    CourseId        = CourseId(e.Course),
+                    TrainerId       = TrainerId(e.Trainer),
+                    ExamName        = e.ExamName,
+                    StartDateTime   = DateTime.SpecifyKind(e.Start, DateTimeKind.Utc),
+                    DurationMinutes = e.Mins,
+                    PassingScore    = 60,
+                    MaxAttempts     = 1,
+                    IsRandomized    = true,
+                    ShowResultsImmediately = true,
+                    IsPublished     = true,
+                    Instructions    = "اقرأ كل سؤال بعناية. لكل سؤال إجابة واحدة صحيحة فقط في أسئلة الاختيار من متعدد."
+                });
+
+            foreach (var e in upcoming)
+                exams.Add(new Exam
+                {
+                    CourseId        = CourseId(e.Course),
+                    TrainerId       = TrainerId(e.Trainer),
+                    ExamName        = e.ExamName,
+                    StartDateTime   = e.Start,
+                    DurationMinutes = e.Mins,
+                    PassingScore    = 60,
+                    MaxAttempts     = 2,
+                    IsRandomized    = true,
+                    ShowResultsImmediately = true,
+                    IsPublished     = true,
+                    Instructions    = "تأكد من إكمال جميع الأسئلة قبل إرسال الامتحان. بعد الإرسال لا يمكن التعديل."
+                });
 
             _context.Exams.AddRange(exams);
             await _context.SaveChangesAsync();
+        }
+        #endregion
 
+        #region Questions & ExamQuestions
+        private async Task SeedQuestionsAsync()
+        {
+            if (await _context.Questions.AnyAsync()) return;
 
+            var trainers = await _context.Trainers.Include(t => t.User).ToListAsync();
+            Guid TrId(string name) => trainers.First(t => t.User.FullName == name).TrainerId;
+
+            string Opt(params string[] opts) => JsonSerializer.Serialize(opts);
+
+            var questions = new List<Question>
+            {
+                // ─── Python Basics (Fahd alhasan) ───────────────────────
+                new Question { TrainerId=TrId("Fahd alhasan"), QuestionType=QuestionType.MultipleChoice, DifficultyLevel=DifficultyLevel.Easy,
+                    QuestionText="ما هو الناتج الصحيح للأمر: print(type(42)) في Python؟",
+                    OptionsJson=Opt("<class 'int'>","<class 'float'>","<class 'str'>","<class 'num'>"),
+                    CorrectAnswer="<class 'int'>", DefaultPoints=2,
+                    Explanation="القيمة 42 هي عدد صحيح integer، لذا type(42) يرجع <class 'int'>." },
+
+                new Question { TrainerId=TrId("Fahd alhasan"), QuestionType=QuestionType.MultipleChoice, DifficultyLevel=DifficultyLevel.Easy,
+                    QuestionText="أي من التالي يُستخدم لتعريف دالة في Python؟",
+                    OptionsJson=Opt("function","def","fun","define"),
+                    CorrectAnswer="def", DefaultPoints=2,
+                    Explanation="الكلمة المحجوزة لتعريف الدوال في Python هي def." },
+
+                new Question { TrainerId=TrId("Fahd alhasan"), QuestionType=QuestionType.TrueFalse, DifficultyLevel=DifficultyLevel.Easy,
+                    QuestionText="في Python، يمكن أن تكون القوائم (lists) متداخلة داخل بعضها.",
+                    CorrectAnswer="True", DefaultPoints=1,
+                    Explanation="نعم، Python تدعم القوائم المتداخلة (nested lists)." },
+
+                new Question { TrainerId=TrId("Fahd alhasan"), QuestionType=QuestionType.MultipleChoice, DifficultyLevel=DifficultyLevel.Medium,
+                    QuestionText="ما الفرق بين القاموس (dict) والقائمة (list) في Python؟",
+                    OptionsJson=Opt("القاموس مرتب والقائمة غير مرتبة","القائمة تستخدم مفاتيح والقاموس يستخدم فهارس","القاموس يستخدم key:value أما القائمة فتستخدم فهارس رقمية","لا فرق بينهما"),
+                    CorrectAnswer="القاموس يستخدم key:value أما القائمة فتستخدم فهارس رقمية", DefaultPoints=3,
+                    Explanation="القاموس dict يخزن البيانات كـ key:value بينما القائمة list تستخدم فهارس رقمية تبدأ من 0." },
+
+                new Question { TrainerId=TrId("Fahd alhasan"), QuestionType=QuestionType.MultipleChoice, DifficultyLevel=DifficultyLevel.Medium,
+                    QuestionText="ما هو ناتج: len([1, 2, [3, 4], 5]) في Python؟",
+                    OptionsJson=Opt("3","4","5","خطأ في الكود"),
+                    CorrectAnswer="4", DefaultPoints=2,
+                    Explanation="القائمة تحتوي على 4 عناصر: 1، 2، [3,4] (عنصر واحد هو قائمة)، 5." },
+
+                new Question { TrainerId=TrId("Fahd alhasan"), QuestionType=QuestionType.TrueFalse, DifficultyLevel=DifficultyLevel.Medium,
+                    QuestionText="دالة range(5) في Python تُنشئ الأرقام: 0, 1, 2, 3, 4, 5.",
+                    CorrectAnswer="False", DefaultPoints=1,
+                    Explanation="range(5) تُنشئ: 0, 1, 2, 3, 4 (5 أرقام تبدأ من 0 حتى 4)، لا تشمل 5." },
+
+                new Question { TrainerId=TrId("Fahd alhasan"), QuestionType=QuestionType.ShortAnswer, DifficultyLevel=DifficultyLevel.Easy,
+                    QuestionText="ما هو الكلمة المحجوزة في Python لإيقاف الحلقة التكرارية فوراً؟",
+                    CorrectAnswer="break", DefaultPoints=2,
+                    Explanation="الكلمة break تُوقف تنفيذ الحلقة فوراً والانتقال إلى الكود بعدها." },
+
+                new Question { TrainerId=TrId("Fahd alhasan"), QuestionType=QuestionType.MultipleChoice, DifficultyLevel=DifficultyLevel.Hard,
+                    QuestionText="ما الناتج الصحيح للكود التالي؟\nx = [1,2,3]\ny = x\ny.append(4)\nprint(x)",
+                    OptionsJson=Opt("[1, 2, 3]","[1, 2, 3, 4]","خطأ","[4, 1, 2, 3]"),
+                    CorrectAnswer="[1, 2, 3, 4]", DefaultPoints=4,
+                    Explanation="y = x لا تُنشئ نسخة جديدة، بل تُشير إلى نفس القائمة، لذا تعديل y يُعدّل x أيضاً." },
+
+                new Question { TrainerId=TrId("Fahd alhasan"), QuestionType=QuestionType.ShortAnswer, DifficultyLevel=DifficultyLevel.Medium,
+                    QuestionText="اكتب طريقة واحدة لعكس قائمة في Python.",
+                    CorrectAnswer="reverse", DefaultPoints=3,
+                    Explanation="يمكن استخدام list.reverse() أو list[::-1] أو reversed()." },
+
+                new Question { TrainerId=TrId("Fahd alhasan"), QuestionType=QuestionType.Essay, DifficultyLevel=DifficultyLevel.Hard,
+                    QuestionText="اشرح الفرق بين المتغيرات المحلية (local) والعامة (global) في Python مع مثال برمجي.",
+                    DefaultPoints=10,
+                    Explanation="المتغير المحلي يُعرَّف داخل الدالة ولا يمكن الوصول إليه من خارجها، أما العام فيُعرَّف خارج الدوال ويمكن الوصول إليه من أي مكان." },
+
+                // ─── Advanced JavaScript (Ali Robinson) ──────────────────
+                new Question { TrainerId=TrId("Ali Robinson"), QuestionType=QuestionType.MultipleChoice, DifficultyLevel=DifficultyLevel.Medium,
+                    QuestionText="ما الفرق الأساسي بين var و let في JavaScript؟",
+                    OptionsJson=Opt("لا فرق بينهما","var له نطاق كتلة (block scope) وlet له نطاق دالة","let له نطاق كتلة (block scope) وvar له نطاق دالة أو عالمي","let لا يمكن إعادة تعيينه"),
+                    CorrectAnswer="let له نطاق كتلة (block scope) وvar له نطاق دالة أو عالمي", DefaultPoints=3,
+                    Explanation="var له function scope أو global scope، بينما let له block scope (محدود بالأقواس {})." },
+
+                new Question { TrainerId=TrId("Ali Robinson"), QuestionType=QuestionType.TrueFalse, DifficultyLevel=DifficultyLevel.Easy,
+                    QuestionText="Promise في JavaScript يمكن أن يكون في حالة 'pending' فقط مرة واحدة.",
+                    CorrectAnswer="True", DefaultPoints=1,
+                    Explanation="بمجرد حل أو رفض الـ Promise، تنتهي حالة pending ولا يمكن العودة إليها." },
+
+                new Question { TrainerId=TrId("Ali Robinson"), QuestionType=QuestionType.MultipleChoice, DifficultyLevel=DifficultyLevel.Medium,
+                    QuestionText="ما هو ناتج: console.log(typeof null) في JavaScript؟",
+                    OptionsJson=Opt("'null'","'undefined'","'object'","'boolean'"),
+                    CorrectAnswer="'object'", DefaultPoints=3,
+                    Explanation="هذا خطأ تاريخي مشهور في JavaScript؛ typeof null يُرجع 'object' وليس 'null'." },
+
+                new Question { TrainerId=TrId("Ali Robinson"), QuestionType=QuestionType.MultipleChoice, DifficultyLevel=DifficultyLevel.Hard,
+                    QuestionText="ما مفهوم Closure في JavaScript؟",
+                    OptionsJson=Opt("دالة لا تُرجع قيمة","دالة تحتفظ بالوصول إلى متغيرات النطاق الخارجي حتى بعد انتهائه","طريقة لإغلاق النافذة في المتصفح","نوع خاص من الـ Promise"),
+                    CorrectAnswer="دالة تحتفظ بالوصول إلى متغيرات النطاق الخارجي حتى بعد انتهائه", DefaultPoints=4,
+                    Explanation="الـ Closure هو دالة تحتفظ بمرجع للمتغيرات الموجودة في النطاق الذي عُرِّفت فيه." },
+
+                new Question { TrainerId=TrId("Ali Robinson"), QuestionType=QuestionType.ShortAnswer, DifficultyLevel=DifficultyLevel.Easy,
+                    QuestionText="ما هو الأمر المستخدم للانتظار داخل دالة async في JavaScript؟",
+                    CorrectAnswer="await", DefaultPoints=2,
+                    Explanation="الكلمة await تُوقف تنفيذ الدالة async حتى يُحلّ الـ Promise." },
+
+                new Question { TrainerId=TrId("Ali Robinson"), QuestionType=QuestionType.Essay, DifficultyLevel=DifficultyLevel.Hard,
+                    QuestionText="اشرح كيف يعمل Event Loop في JavaScript وكيف يتعامل مع المهام غير المتزامنة.",
+                    DefaultPoints=10,
+                    Explanation="Event Loop يراقب Call Stack وCallback Queue، وعندما يفرغ الـ Stack يأخذ المهام من الـ Queue وينفذها." },
+
+                // ─── SQL and Databases (Salem ali) ──────────────────────
+                new Question { TrainerId=TrId("Salem ali"), QuestionType=QuestionType.MultipleChoice, DifficultyLevel=DifficultyLevel.Easy,
+                    QuestionText="ما وظيفة أمر SELECT في SQL؟",
+                    OptionsJson=Opt("إضافة سجلات جديدة","حذف سجلات","جلب واسترجاع البيانات","تحديث البيانات الموجودة"),
+                    CorrectAnswer="جلب واسترجاع البيانات", DefaultPoints=2,
+                    Explanation="SELECT يُستخدم لاسترجاع البيانات من جدول أو أكثر." },
+
+                new Question { TrainerId=TrId("Salem ali"), QuestionType=QuestionType.MultipleChoice, DifficultyLevel=DifficultyLevel.Medium,
+                    QuestionText="ما الفرق بين INNER JOIN و LEFT JOIN؟",
+                    OptionsJson=Opt("لا فرق بينهما","INNER JOIN يُرجع الصفوف المتطابقة فقط، LEFT JOIN يُرجع جميع صفوف الجدول الأيسر","LEFT JOIN أسرع من INNER JOIN دائماً","INNER JOIN يُرجع كل الصفوف"),
+                    CorrectAnswer="INNER JOIN يُرجع الصفوف المتطابقة فقط، LEFT JOIN يُرجع جميع صفوف الجدول الأيسر", DefaultPoints=3,
+                    Explanation="INNER JOIN يُرجع فقط الصفوف التي لها تطابق في كلا الجدولين. LEFT JOIN يُرجع كل صفوف الجدول الأيسر حتى لو لم يكن لها تطابق." },
+
+                new Question { TrainerId=TrId("Salem ali"), QuestionType=QuestionType.TrueFalse, DifficultyLevel=DifficultyLevel.Easy,
+                    QuestionText="يمكن أن يحتوي جدول واحد في SQL على أكثر من Primary Key.",
+                    CorrectAnswer="False", DefaultPoints=1,
+                    Explanation="كل جدول يمكن أن يحتوي على Primary Key واحد فقط، لكنه قد يتكون من أكثر من عمود (Composite Key)." },
+
+                new Question { TrainerId=TrId("Salem ali"), QuestionType=QuestionType.ShortAnswer, DifficultyLevel=DifficultyLevel.Medium,
+                    QuestionText="ما أمر SQL المستخدم لتجميع الصفوف وحساب الإجماليات؟",
+                    CorrectAnswer="GROUP BY", DefaultPoints=2,
+                    Explanation="GROUP BY يُجمّع الصفوف التي لها نفس القيمة في العمود المحدد." },
+
+                new Question { TrainerId=TrId("Salem ali"), QuestionType=QuestionType.Essay, DifficultyLevel=DifficultyLevel.Hard,
+                    QuestionText="اشرح مفهوم تطبيع قواعد البيانات (Database Normalization) مع توضيح أشكال 1NF و 2NF و 3NF.",
+                    DefaultPoints=10,
+                    Explanation="التطبيع هو عملية تنظيم البيانات في جداول لتقليل التكرار وضمان الاتساق. 1NF: لا تكرار في الأعمدة. 2NF: لا تبعية جزئية. 3NF: لا تبعية انتقالية." },
+
+                // ─── Cybersecurity Essentials (Rghad Shoriqee) ─────────
+                new Question { TrainerId=TrId("Rghad Shoriqee"), QuestionType=QuestionType.MultipleChoice, DifficultyLevel=DifficultyLevel.Easy,
+                    QuestionText="ما هو هجوم Phishing؟",
+                    OptionsJson=Opt("هجوم يستهدف كلمات المرور بالقوة","خداع المستخدمين للكشف عن معلوماتهم عبر رسائل مزيفة","هجوم على الشبكة لقطع الخدمة","استغلال ثغرة في قاعدة البيانات"),
+                    CorrectAnswer="خداع المستخدمين للكشف عن معلوماتهم عبر رسائل مزيفة", DefaultPoints=2,
+                    Explanation="Phishing هو أسلوب احتيال يخدع الضحايا للكشف عن بياناتهم الحساسة عبر رسائل بريد أو مواقع مزيفة." },
+
+                new Question { TrainerId=TrId("Rghad Shoriqee"), QuestionType=QuestionType.TrueFalse, DifficultyLevel=DifficultyLevel.Easy,
+                    QuestionText="HTTPS يضمن تشفير البيانات المنقولة بين المتصفح والخادم.",
+                    CorrectAnswer="True", DefaultPoints=1,
+                    Explanation="HTTPS يستخدم SSL/TLS لتشفير البيانات المنقولة مما يحميها من التنصت." },
+
+                new Question { TrainerId=TrId("Rghad Shoriqee"), QuestionType=QuestionType.MultipleChoice, DifficultyLevel=DifficultyLevel.Medium,
+                    QuestionText="ما معنى SQL Injection؟",
+                    OptionsJson=Opt("حقن كود SQL في نموذج إدخال لاختراق قاعدة البيانات","هجوم يمنع المستخدمين من الدخول","تشفير بيانات SQL","نسخ احتياطي لقاعدة البيانات"),
+                    CorrectAnswer="حقن كود SQL في نموذج إدخال لاختراق قاعدة البيانات", DefaultPoints=3,
+                    Explanation="SQL Injection هو هجوم يحقن فيه المهاجم أوامر SQL ضارة في حقول الإدخال للتحكم بقاعدة البيانات." },
+
+                new Question { TrainerId=TrId("Rghad Shoriqee"), QuestionType=QuestionType.ShortAnswer, DifficultyLevel=DifficultyLevel.Medium,
+                    QuestionText="ما المقصود بـ CIA Triad في أمن المعلومات؟",
+                    CorrectAnswer="Confidentiality Integrity Availability", DefaultPoints=3,
+                    Explanation="CIA Triad تمثل ثلاثة مبادئ أساسية: السرية (Confidentiality) والنزاهة (Integrity) والتوافر (Availability)." },
+
+                new Question { TrainerId=TrId("Rghad Shoriqee"), QuestionType=QuestionType.Essay, DifficultyLevel=DifficultyLevel.Hard,
+                    QuestionText="اشرح هجوم Man-in-the-Middle (MITM) وكيف يمكن الحماية منه.",
+                    DefaultPoints=10,
+                    Explanation="MITM هو هجوم يتنصت فيه المهاجم على الاتصال بين طرفين. للحماية: استخدام HTTPS، التحقق من الشهادات الرقمية، VPN." },
+
+                // ─── Machine Learning Basics (Malek Aslan) ──────────────
+                new Question { TrainerId=TrId("Malek Aslan"), QuestionType=QuestionType.MultipleChoice, DifficultyLevel=DifficultyLevel.Easy,
+                    QuestionText="ما الفرق بين Supervised و Unsupervised Learning؟",
+                    OptionsJson=Opt("لا فرق بينهما","Supervised يستخدم بيانات مُصنَّفة، Unsupervised يعمل بدون تصنيف","Unsupervised أدق دائماً","Supervised لا يحتاج بيانات"),
+                    CorrectAnswer="Supervised يستخدم بيانات مُصنَّفة، Unsupervised يعمل بدون تصنيف", DefaultPoints=2,
+                    Explanation="Supervised Learning يتعلم من بيانات مُصنَّفة (labels)، أما Unsupervised فيبحث عن أنماط في بيانات غير مُصنَّفة." },
+
+                new Question { TrainerId=TrId("Malek Aslan"), QuestionType=QuestionType.TrueFalse, DifficultyLevel=DifficultyLevel.Medium,
+                    QuestionText="Overfitting يعني أن النموذج يؤدي جيداً على بيانات التدريب لكن بشكل سيء على البيانات الجديدة.",
+                    CorrectAnswer="True", DefaultPoints=1,
+                    Explanation="Overfitting يحدث عندما يحفظ النموذج بيانات التدريب بدلاً من التعلم منها، فيفشل مع بيانات جديدة." },
+
+                new Question { TrainerId=TrId("Malek Aslan"), QuestionType=QuestionType.MultipleChoice, DifficultyLevel=DifficultyLevel.Medium,
+                    QuestionText="ما مهمة خوارزمية K-Means Clustering؟",
+                    OptionsJson=Opt("التنبؤ بقيم مستمرة","تصنيف البيانات إلى K مجموعات بناءً على التشابه","تدريب الشبكات العصبية","قياس دقة النموذج"),
+                    CorrectAnswer="تصنيف البيانات إلى K مجموعات بناءً على التشابه", DefaultPoints=3,
+                    Explanation="K-Means تُقسّم البيانات إلى K مجموعة (cluster) بحيث تكون البيانات داخل كل مجموعة متشابهة." },
+
+                new Question { TrainerId=TrId("Malek Aslan"), QuestionType=QuestionType.ShortAnswer, DifficultyLevel=DifficultyLevel.Easy,
+                    QuestionText="ما مكتبة Python الأكثر شيوعاً لتحليل البيانات والمصفوفات الرقمية؟",
+                    CorrectAnswer="numpy", DefaultPoints=2,
+                    Explanation="NumPy هي المكتبة الأساسية للحوسبة العلمية في Python وتُوفّر دعماً للمصفوفات متعددة الأبعاد." },
+
+                new Question { TrainerId=TrId("Malek Aslan"), QuestionType=QuestionType.Essay, DifficultyLevel=DifficultyLevel.Hard,
+                    QuestionText="اشرح مفهوم Train/Validation/Test Split ولماذا هو مهم في تقييم نماذج Machine Learning.",
+                    DefaultPoints=10,
+                    Explanation="يُقسَّم البيانات إلى 3 أجزاء: Train للتدريب، Validation لضبط المعاملات، Test للتقييم النهائي. هذا يمنع data leakage ويعطي تقييماً موضوعياً." },
+
+                // ─── Docker & Kubernetes (Hasan Hassene) ─────────────────
+                new Question { TrainerId=TrId("Hasan Hassene"), QuestionType=QuestionType.MultipleChoice, DifficultyLevel=DifficultyLevel.Easy,
+                    QuestionText="ما الفرق الأساسي بين Docker Container و Virtual Machine؟",
+                    OptionsJson=Opt("لا فرق بينهما","الـ Container يُشارك kernel نظام التشغيل، الـ VM لديها نظام تشغيل منفصل","الـ VM أسرع من الـ Container","الـ Container لا يمكن تشغيله على Linux"),
+                    CorrectAnswer="الـ Container يُشارك kernel نظام التشغيل، الـ VM لديها نظام تشغيل منفصل", DefaultPoints=2,
+                    Explanation="Container يُشارك kernel مع الـ Host OS مما يجعله أخف وأسرع، بينما VM تمتلك نظام تشغيل كامل." },
+
+                new Question { TrainerId=TrId("Hasan Hassene"), QuestionType=QuestionType.TrueFalse, DifficultyLevel=DifficultyLevel.Easy,
+                    QuestionText="ملف Dockerfile يُستخدم لبناء Docker Image.",
+                    CorrectAnswer="True", DefaultPoints=1,
+                    Explanation="Dockerfile هو ملف نصي يحتوي على تعليمات بناء الـ Image خطوة بخطوة." },
+
+                new Question { TrainerId=TrId("Hasan Hassene"), QuestionType=QuestionType.MultipleChoice, DifficultyLevel=DifficultyLevel.Medium,
+                    QuestionText="ما وظيفة Kubernetes في بيئة الـ Containers؟",
+                    OptionsJson=Opt("بناء Docker Images","تشغيل Container واحد فقط","إدارة ونشر وتوسيع Containers تلقائياً","إنشاء قواعد بيانات"),
+                    CorrectAnswer="إدارة ونشر وتوسيع Containers تلقائياً", DefaultPoints=3,
+                    Explanation="Kubernetes هو نظام orchestration يُدير دورة حياة الـ Containers تلقائياً: النشر والتوسيع والاسترداد." },
+
+                new Question { TrainerId=TrId("Hasan Hassene"), QuestionType=QuestionType.ShortAnswer, DifficultyLevel=DifficultyLevel.Medium,
+                    QuestionText="ما أمر Docker المستخدم لتشغيل Container من Image محددة؟",
+                    CorrectAnswer="docker run", DefaultPoints=2,
+                    Explanation="الأمر docker run يُنشئ Container جديد ويبدأ تشغيله من الـ Image المحددة." },
+
+                new Question { TrainerId=TrId("Hasan Hassene"), QuestionType=QuestionType.Essay, DifficultyLevel=DifficultyLevel.Hard,
+                    QuestionText="اشرح مفهوم Docker Compose ومتى تستخدمه مقارنةً بـ Kubernetes.",
+                    DefaultPoints=10,
+                    Explanation="Docker Compose لإدارة تطبيقات متعددة الـ Containers على جهاز واحد (dev environment). Kubernetes لبيئات الإنتاج والتوزيع على cluster." },
+
+                // ─── Web Development (Fras Mohammed) ──────────────────────
+                new Question { TrainerId=TrId("Fras Mohammed"), QuestionType=QuestionType.MultipleChoice, DifficultyLevel=DifficultyLevel.Easy,
+                    QuestionText="ما الفرق بين HTML وCSS؟",
+                    OptionsJson=Opt("HTML للتنسيق وCSS للهيكل","HTML يُبرمج التفاعل وCSS يُبرمج المنطق","HTML يُعرِّف هيكل الصفحة وCSS يُحدِّد المظهر والتنسيق","لا فرق بينهما"),
+                    CorrectAnswer="HTML يُعرِّف هيكل الصفحة وCSS يُحدِّد المظهر والتنسيق", DefaultPoints=2,
+                    Explanation="HTML (HyperText Markup Language) يُعرِّف محتوى وهيكل الصفحة، بينما CSS (Cascading Style Sheets) يُتحكم في التصميم والتنسيق." },
+
+                new Question { TrainerId=TrId("Fras Mohammed"), QuestionType=QuestionType.TrueFalse, DifficultyLevel=DifficultyLevel.Easy,
+                    QuestionText="RESTful API يستخدم HTTP methods مثل GET وPOST وPUT وDELETE.",
+                    CorrectAnswer="True", DefaultPoints=1,
+                    Explanation="REST API يعتمد على HTTP methods الأساسية للتعامل مع الموارد: GET للقراءة، POST للإنشاء، PUT للتحديث، DELETE للحذف." },
+
+                new Question { TrainerId=TrId("Fras Mohammed"), QuestionType=QuestionType.MultipleChoice, DifficultyLevel=DifficultyLevel.Medium,
+                    QuestionText="ما المقصود بـ Responsive Design في تطوير الويب؟",
+                    OptionsJson=Opt("تصميم يعمل على المتصفحات القديمة فقط","تصميم يتكيف مع أحجام الشاشات المختلفة تلقائياً","تصميم يُحمَّل بسرعة على الإنترنت البطيء","تصميم يدعم لغة واحدة فقط"),
+                    CorrectAnswer="تصميم يتكيف مع أحجام الشاشات المختلفة تلقائياً", DefaultPoints=3,
+                    Explanation="Responsive Design هو أسلوب تصميم يجعل الموقع يتكيف تلقائياً مع أحجام الشاشات المختلفة (موبايل، تابلت، سطح مكتب)." },
+
+                new Question { TrainerId=TrId("Fras Mohammed"), QuestionType=QuestionType.ShortAnswer, DifficultyLevel=DifficultyLevel.Easy,
+                    QuestionText="ما تنسيق البيانات الأكثر شيوعاً في تبادل البيانات بين الـ API والعميل؟",
+                    CorrectAnswer="JSON", DefaultPoints=2,
+                    Explanation="JSON (JavaScript Object Notation) هو التنسيق الأكثر شيوعاً لتبادل البيانات في الـ APIs الحديثة." },
+
+                new Question { TrainerId=TrId("Fras Mohammed"), QuestionType=QuestionType.Essay, DifficultyLevel=DifficultyLevel.Hard,
+                    QuestionText="اشرح الفرق بين Server-Side Rendering (SSR) وClient-Side Rendering (CSR) مع ذكر مزايا وعيوب كل منهما.",
+                    DefaultPoints=10,
+                    Explanation="SSR: يُولِّد الـ HTML في الخادم، أسرع في التحميل الأولي، أفضل لـ SEO. CSR: يُولِّد الـ HTML في المتصفح، تجربة مستخدم أفضل بعد التحميل الأولي، أبطأ في الـ SEO." },
+            };
+
+            _context.Questions.AddRange(questions);
+            await _context.SaveChangesAsync();
+        }
+
+        private async Task SeedExamQuestionsAsync()
+        {
+            if (await _context.ExamQuestions.AnyAsync()) return;
+
+            var exams     = await _context.Exams.ToListAsync();
+            var questions = await _context.Questions.Include(q => q.Trainer).ThenInclude(t => t.User).ToListAsync();
+
+            Guid ExamId(string name) => exams.First(e => e.ExamName == name).ExamId;
+
+            // خريطة: اسم الامتحان → مجموعة أسئلة المدرب المُضافة
+            var mappings = new Dictionary<string, (string Trainer, int Take)>
+            {
+                { "Python Basics - Final Exam",               ("Fahd alhasan",   9) },
+                { "Advanced JavaScript - Final Exam",         ("Ali Robinson",   5) },
+                { "SQL and Databases - Final Exam",           ("Salem ali",      4) },
+                { "Cybersecurity Essentials - Final Exam",    ("Rghad Shoriqee", 4) },
+                { "Machine Learning Basics - Final Exam",     ("Malek Aslan",    4) },
+                { "Docker & Kubernetes - Final Exam",         ("Hasan Hassene",  4) },
+                { "Web Development - Final Exam",             ("Fras Mohammed",  4) },
+                { "Python Basics - Quiz 1",                   ("Fahd alhasan",   5) },
+                { "Web Development - Quiz 1",                 ("Fras Mohammed",  3) },
+                { "Advanced JavaScript - Quiz 1",             ("Ali Robinson",   4) },
+                { "SQL and Databases - Quiz 1",               ("Salem ali",      3) },
+            };
+
+            var examQuestions = new List<ExamQuestion>();
+
+            foreach (var (examName, (trainerName, take)) in mappings)
+            {
+                Guid examId;
+                try { examId = ExamId(examName); } catch { continue; }
+
+                var trainerQuestions = questions
+                    .Where(q => q.Trainer.User.FullName == trainerName)
+                    .Take(take)
+                    .ToList();
+
+                for (int i = 0; i < trainerQuestions.Count; i++)
+                    examQuestions.Add(new ExamQuestion
+                    {
+                        ExamId     = examId,
+                        QuestionId = trainerQuestions[i].QuestionId,
+                        OrderIndex = i
+                    });
+            }
+
+            _context.ExamQuestions.AddRange(examQuestions);
+            await _context.SaveChangesAsync();
         }
         #endregion
         #region Certifcates

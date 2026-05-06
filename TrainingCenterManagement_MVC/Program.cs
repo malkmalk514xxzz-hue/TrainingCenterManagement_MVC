@@ -79,6 +79,8 @@ builder.Services.AddScoped<ISettingsService, SettingsService>();
 builder.Services.AddScoped<DashboardHelper>();
 builder.Services.AddScoped<IUserHelper, UserHelper>();
 builder.Services.AddScoped<RoleInitializer>();
+builder.Services.AddScoped<TrainingCenterManagement_MVC.Services.IExamService,
+                           TrainingCenterManagement_MVC.Services.ExamService>();
 
 // ====================== Build App ======================
 var app = builder.Build();
@@ -104,16 +106,14 @@ using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     var context = services.GetRequiredService<ApplicationDbContext>();
+    var roleInitializer = services.GetRequiredService<RoleInitializer>();
+    await roleInitializer.SeedRolesAsync();
+    var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
+    var seeder = new SeedDataInitializer(context, userManager);
 
-    if (!context.Roles.Any() || !context.Users.Any())
-    {
-        var roleInitializer = services.GetRequiredService<RoleInitializer>();
-        await roleInitializer.SeedRolesAsync();
-
-        var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
-        var seeder = new SeedDataInitializer(context, userManager);
-        await seeder.SeedAllAsync();
-    }
+    // Run the seeder on every startup. Seed methods are idempotent and this
+    // lets existing databases receive new modules like online exams.
+    await seeder.SeedAllAsync();
 }
 
 if (!app.Environment.IsDevelopment())

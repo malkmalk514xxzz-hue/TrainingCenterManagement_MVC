@@ -20,5 +20,6 @@ namespace TrainingCenterManagement_MVC.Models
         public ICollection<Payment> Payments { get; set; } = new List<Payment>();
         public ICollection<Presence> Presences { get; set; } = new List<Presence>();
         public ICollection<Certificate> Certificates { get; set; } = new List<Certificate>();
+        public ICollection<ExamAttempt> ExamAttempts { get; set; } = new List<ExamAttempt>();
     }
 }

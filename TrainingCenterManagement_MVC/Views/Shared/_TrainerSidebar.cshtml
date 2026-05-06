@@ -81,6 +81,18 @@
                     <span>@SharedResource.Lectures</span>
                 </a>
             </li>
+            <li class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Exams" || ViewContext.RouteData.Values["controller"]?.ToString() == "ExamAttempt" ? "active" : "")">
+                <a asp-action="Index" asp-controller="Exams">
+                    <i class="fas fa-file-alt"></i>
+                    <span>الامتحانات</span>
+                </a>
+            </li>
+            <li class="@(currentPage == "questionbank" ? "active" : "")">
+                <a asp-action="QuestionBank" asp-controller="Exams">
+                    <i class="fas fa-database"></i>
+                    <span>بنك الأسئلة</span>
+                </a>
+            </li>
           
             <li class="@(currentPage == "presences" ? "active" : "")">
                 <a asp-action="Index" asp-controller="Presences">
