@@ -340,40 +340,93 @@
                     
                 </div>
 
-                @* <div class="video-container">
-                    @if (!string.IsNullOrEmpty(videoId))
-                    {
-                        <div class="video-player">
-                            <iframe class="video-iframe"
-                                    src="https://www.youtube.com/embed/@videoId?enablejsapi=1"
-                                    allow="autoplay; encrypted-media"
-                                    allowfullscreen>
-                            </iframe>
+                <!-- Video Section -->
+                @if (Model.Videos != null && Model.Videos.Any())
+                {
+                    <div class="video-container">
+                        @foreach (var video in Model.Videos)
+                        {
+                            <div style="margin-bottom:1.5rem;">
+                                <p style="font-weight:600;color:#111418;margin-bottom:0.5rem;">@video.VideoTitle</p>
+                                @if (!string.IsNullOrEmpty(video.Description))
+                                {
+                                    <p style="color:#60758a;font-size:0.875rem;margin-bottom:0.5rem;">@video.Description</p>
+                                }
+                                @if (video.VideoSourceType == TrainingCenterManagement_MVC.Models.VideoSourceType.YouTube)
+                                {
+                                    <div class="video-player">
+                                        <iframe class="video-iframe"
+                                                src="@video.VideoUrl"
+                                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                                allowfullscreen
+                                                data-video-id="@video.VideoId">
+                                        </iframe>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="video-player">
+                                        <video class="video-iframe" controls
+                                               data-video-id="@video.VideoId"
+                                               preload="metadata">
+                                            <source src="@video.VideoUrl" type="video/mp4">
+                                            <source src="@video.VideoUrl" type="video/webm">
+                                            متصفحك لا يدعم تشغيل الفيديو.
+                                        </video>
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="video-container" style="text-align:center;color:#60758a;padding:2rem 1rem;">
+                        <p>لا توجد فيديوهات لهذه المحاضرة بعد.</p>
+                    </div>
+                }
+
+                <!-- Materials Section -->
+                @if (Model.Materials != null && Model.Materials.Any())
+                {
+                    <div style="padding:1rem;">
+                        <p style="font-weight:700;font-size:1rem;color:#111418;margin-bottom:0.75rem;">
+                            <i class="fas fa-folder-open" style="margin-left:0.4rem;color:#60758a;"></i>
+                            مواد المحاضرة
+                        </p>
+                        <div style="display:flex;flex-direction:column;gap:0.5rem;">
+                            @foreach (var mat in Model.Materials)
+                            {
+                                var ext2 = System.IO.Path.GetExtension(mat.FileName).ToLowerInvariant();
+                                var iconColor = ext2 == ".pdf" ? "#dc2626" : ext2 is ".docx" or ".doc" ? "#2563eb" : ext2 is ".pptx" or ".ppt" ? "#d97706" : "#16a34a";
+                                <div style="display:flex;align-items:center;gap:0.75rem;padding:0.5rem 0.75rem;background:#f8f9fa;border-radius:8px;">
+                                    <i class="fas fa-file" style="color:@iconColor;font-size:1.25rem;flex-shrink:0;"></i>
+                                    <span style="flex-grow:1;font-size:14px;color:#111418;font-weight:500;">@mat.Title</span>
+                                    <span style="font-size:12px;color:#60758a;">@((mat.FileSizeInBytes/1024.0).ToString("F0")) KB</span>
+                                    <a asp-controller="LectureMaterials" asp-action="Download" asp-route-materialId="@mat.MaterialId"
+                                       style="background:#e2e8f0;color:#111418;padding:0.3rem 0.75rem;border-radius:6px;font-size:13px;font-weight:600;text-decoration:none;">
+                                        تحميل
+                                    </a>
+                                </div>
+                            }
                         </div>
-                    }
-                    else if (!string.IsNullOrEmpty(Model.VideoUrl))
-                    {
-                        <div class="video-player">
-                            <video id="lectureVideo" class="video-iframe" controls>
-                                <source src="@Model.VideoUrl" type="video/mp4">
-                                Your browser does not support the video tag.
-                            </video>
-                        </div>
-                    }
-                    else
-                    {
-                        <p class="text-center text-[#60758a]">No video URL provided.</p>
-                    }
-                </div> *@
+                    </div>
+                }
 
                 <div class="button-group">
                     <div class="buttons-container">
                         <a asp-action="Edit" asp-route-id="@Model.LectureId" class="secondary-button">
                             <span class="truncate">Edit</span>
                         </a>
-                        <a asp-action="UploadVideo" asp-route-id="@Model.LectureId" class="secondary-button">
-                            <span class="truncate">Upload Video</span>
-                        </a>
+                        @if (User.IsInRole("Trainer") || User.IsInRole("Admin"))
+                        {
+                            <a asp-controller="LectureVideos" asp-action="Manage" asp-route-lectureId="@Model.LectureId" class="secondary-button">
+                                <span class="truncate">إدارة الفيديوهات</span>
+                            </a>
+                            <a asp-controller="LectureMaterials" asp-action="Manage" asp-route-lectureId="@Model.LectureId" class="secondary-button">
+                                <span class="truncate">إدارة المواد</span>
+                            </a>
+                        }
                         <a asp-action="ViewLecture" asp-route-id="@Model.LectureId" class="primary-button">
                             <span class="truncate">View Lecture</span>
                         </a>

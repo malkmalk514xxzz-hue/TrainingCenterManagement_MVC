@@ -47,6 +47,8 @@ namespace TrainingCenterManagement_MVC.Controllers
 
             var lecture = await _context.Lectures
                 .Include(l => l.Course)
+                .Include(l => l.Videos.OrderBy(v => v.DisplayOrder))
+                .Include(l => l.Materials.OrderBy(m => m.CreatedAt))
                 .FirstOrDefaultAsync(m => m.LectureId == id);
 
             if (lecture == null) return NotFound();

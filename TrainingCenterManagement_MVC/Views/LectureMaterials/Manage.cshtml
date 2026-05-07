@@ -1,0 +1,133 @@
+@model TrainingCenterManagement_MVC.Models.Lecture
+@{
+    ViewData["Title"] = "إدارة مواد المحاضرة";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1">مواد المحاضرة</h2>
+            <p class="text-muted mb-0"><strong>@Model.Title</strong> — @Model.Course?.CourseName</p>
+        </div>
+        <a asp-controller="Lectures" asp-action="Details" asp-route-id="@Model.LectureId" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-right me-1"></i> العودة
+        </a>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            <i class="fas fa-check-circle me-1"></i> @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show">
+            <i class="fas fa-exclamation-circle me-1"></i> @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="row g-4">
+        <div class="col-md-5">
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <i class="fas fa-upload me-2"></i> رفع مادة جديدة
+                </div>
+                <div class="card-body">
+                    <form asp-controller="LectureMaterials" asp-action="Upload" method="post" enctype="multipart/form-data">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="lectureId" value="@Model.LectureId" />
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">العنوان <span class="text-danger">*</span></label>
+                            <input type="text" name="title" class="form-control" placeholder="مثال: شرائح الدرس الأول" required maxlength="500" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">الملف <span class="text-danger">*</span></label>
+                            <input type="file" name="materialFile" class="form-control" id="matFile"
+                                   accept=".pdf,.docx,.doc,.pptx,.ppt,.xlsx,.xls,.txt,.zip" required />
+                            <div class="form-text">PDF, Word, PowerPoint, Excel, TXT, ZIP — الحد الأقصى 50 MB</div>
+                            <div id="matSizeInfo" class="small mt-1"></div>
+                        </div>
+                        <button type="submit" class="btn btn-success w-100">
+                            <i class="fas fa-upload me-1"></i> رفع المادة
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-7">
+            <div class="card shadow-sm">
+                <div class="card-header bg-light fw-semibold">
+                    <i class="fas fa-folder-open me-2"></i> المواد المرفوعة
+                    <span class="badge bg-secondary ms-2">@Model.Materials.Count</span>
+                </div>
+                <div class="card-body p-0">
+                    @if (!Model.Materials.Any())
+                    {
+                        <div class="text-center text-muted py-5">
+                            <i class="fas fa-folder-open fa-3x mb-3 opacity-25"></i>
+                            <p>لا توجد مواد بعد.</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="list-group list-group-flush">
+                            @foreach (var mat in Model.Materials)
+                            {
+                                var ext = System.IO.Path.GetExtension(mat.FileName).ToLowerInvariant();
+                                var icon = ext switch {
+                                    ".pdf" => "fas fa-file-pdf text-danger",
+                                    ".docx" or ".doc" => "fas fa-file-word text-primary",
+                                    ".pptx" or ".ppt" => "fas fa-file-powerpoint text-warning",
+                                    ".xlsx" or ".xls" => "fas fa-file-excel text-success",
+                                    ".zip" => "fas fa-file-archive text-secondary",
+                                    _ => "fas fa-file text-muted"
+                                };
+                                <div class="list-group-item d-flex align-items-center gap-3">
+                                    <i class="@icon fa-2x flex-shrink-0"></i>
+                                    <div class="flex-grow-1">
+                                        <div class="fw-semibold">@mat.Title</div>
+                                        <div class="small text-muted">
+                                            @mat.FileName
+                                            <span class="ms-2">@((mat.FileSizeInBytes / 1024.0).ToString("F0")) KB</span>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex gap-2 flex-shrink-0">
+                                        <a asp-controller="LectureMaterials" asp-action="Download"
+                                           asp-route-materialId="@mat.MaterialId"
+                                           class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-download"></i>
+                                        </a>
+                                        <form asp-controller="LectureMaterials" asp-action="Delete" method="post"
+                                              onsubmit="return confirm('حذف هذه المادة؟');">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="materialId" value="@mat.MaterialId" />
+                                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('matFile').addEventListener('change', function () {
+        var file = this.files[0];
+        var info = document.getElementById('matSizeInfo');
+        if (file) {
+            var sizeKB = (file.size / 1024).toFixed(0);
+            info.textContent = 'الحجم: ' + sizeKB + ' KB';
+            info.className = file.size > 50 * 1024 * 1024 ? 'small mt-1 text-danger' : 'small mt-1 text-success';
+        }
+    });
+</script>

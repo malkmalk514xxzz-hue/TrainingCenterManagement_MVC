@@ -37,6 +37,16 @@ namespace TrainingCenterManagement_MVC.Data
         public DbSet<ExamAttempt> ExamAttempts { get; set; }
         public DbSet<StudentAnswer> StudentAnswers { get; set; }
 
+        // ── Video Management System ─────────────────────────────────
+        public DbSet<LectureVideo> LectureVideos { get; set; }
+        public DbSet<VideoView> VideoViews { get; set; }
+
+        // ── Lecture Materials ────────────────────────────────────────
+        public DbSet<LectureMaterial> LectureMaterials { get; set; }
+
+        // ── Course Ratings ───────────────────────────────────────────
+        public DbSet<CourseRating> CourseRatings { get; set; }
+
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
@@ -346,6 +356,106 @@ namespace TrainingCenterManagement_MVC.Data
         builder.Entity<StudentAnswer>()
             .HasIndex(sa => sa.AttemptId)
             .HasDatabaseName("IX_StudentAnswer_AttemptId");
+
+        // ══════════════════════════════════════════════════════════
+        //  VIDEO MANAGEMENT SYSTEM — Fluent API
+        // ══════════════════════════════════════════════════════════
+
+        builder.Entity<LectureVideo>()
+            .HasOne(lv => lv.Lecture)
+            .WithMany(l => l.Videos)
+            .HasForeignKey(lv => lv.LectureId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<LectureVideo>()
+            .HasOne(lv => lv.UploadedByTrainer)
+            .WithMany(t => t.LectureVideos)
+            .HasForeignKey(lv => lv.UploadedByTrainerId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.Entity<LectureVideo>()
+            .HasQueryFilter(lv => !lv.IsDeleted);
+
+        builder.Entity<LectureVideo>()
+            .HasIndex(lv => lv.LectureId)
+            .HasDatabaseName("IX_LectureVideos_LectureId");
+
+        builder.Entity<LectureVideo>()
+            .HasIndex(lv => lv.YouTubeVideoId)
+            .HasDatabaseName("IX_LectureVideos_YouTubeVideoId");
+
+        builder.Entity<LectureVideo>()
+            .HasIndex(lv => lv.UploadedByTrainerId)
+            .HasDatabaseName("IX_LectureVideos_UploadedByTrainerId");
+
+        builder.Entity<VideoView>()
+            .HasOne(vv => vv.Video)
+            .WithMany(v => v.Views)
+            .HasForeignKey(vv => vv.VideoId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<VideoView>()
+            .HasOne(vv => vv.Trainee)
+            .WithMany(t => t.VideoViews)
+            .HasForeignKey(vv => vv.TraineeId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.Entity<VideoView>()
+            .HasIndex(vv => new { vv.VideoId, vv.TraineeId })
+            .IsUnique()
+            .HasDatabaseName("UX_VideoView_VideoId_TraineeId");
+
+        builder.Entity<VideoView>()
+            .HasIndex(vv => vv.TraineeId)
+            .HasDatabaseName("IX_VideoView_TraineeId");
+
+        // ══════════════════════════════════════════════════════════
+        //  LECTURE MATERIALS — Fluent API
+        // ══════════════════════════════════════════════════════════
+
+        builder.Entity<LectureMaterial>()
+            .HasOne(m => m.Lecture)
+            .WithMany(l => l.Materials)
+            .HasForeignKey(m => m.LectureId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<LectureMaterial>()
+            .HasOne(m => m.UploadedByTrainer)
+            .WithMany(t => t.LectureMaterials)
+            .HasForeignKey(m => m.UploadedByTrainerId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.Entity<LectureMaterial>()
+            .HasQueryFilter(m => !m.IsDeleted);
+
+        builder.Entity<LectureMaterial>()
+            .HasIndex(m => m.LectureId)
+            .HasDatabaseName("IX_LectureMaterials_LectureId");
+
+        // ══════════════════════════════════════════════════════════
+        //  COURSE RATINGS — Fluent API
+        // ══════════════════════════════════════════════════════════
+
+        builder.Entity<CourseRating>()
+            .HasOne(r => r.Course)
+            .WithMany(c => c.Ratings)
+            .HasForeignKey(r => r.CourseId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<CourseRating>()
+            .HasOne(r => r.Trainee)
+            .WithMany(t => t.CourseRatings)
+            .HasForeignKey(r => r.TraineeId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.Entity<CourseRating>()
+            .HasIndex(r => new { r.CourseId, r.TraineeId })
+            .IsUnique()
+            .HasDatabaseName("UX_CourseRating_Course_Trainee");
+
+        builder.Entity<CourseRating>()
+            .HasIndex(r => r.CourseId)
+            .HasDatabaseName("IX_CourseRating_CourseId");
 
         }
     }

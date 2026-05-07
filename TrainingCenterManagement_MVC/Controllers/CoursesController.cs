@@ -46,10 +46,22 @@ namespace TrainingCenterManagement_MVC.Controllers
                 .Include(c => c.Admin)
                 .Include(c => c.CourseTrainers).ThenInclude(ct => ct.Trainer).ThenInclude(t => t.User)
                 .Include(c => c.CourseTrainees).ThenInclude(ct => ct.Trainee).ThenInclude(t => t.User)
+                .Include(c => c.Ratings).ThenInclude(r => r.Trainee).ThenInclude(t => t.User)
                 .FirstOrDefaultAsync(m => m.CourseId == id && !m.IsDeleted);
 
             if (course == null)
                 return NotFound();
+
+            if (User.IsInRole("Trainee"))
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var trainee = await _context.Trainees.FirstOrDefaultAsync(t => t.UserId == userId);
+                if (trainee != null)
+                {
+                    ViewBag.IsEnrolled = course.CourseTrainees.Any(ct => ct.TraineeId == trainee.TraineeId);
+                    ViewBag.MyRating = course.Ratings.FirstOrDefault(r => r.TraineeId == trainee.TraineeId);
+                }
+            }
 
             return View(course);
         }

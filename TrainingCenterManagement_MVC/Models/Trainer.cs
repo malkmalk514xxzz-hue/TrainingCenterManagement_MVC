@@ -27,5 +27,9 @@ namespace TrainingCenterManagement_MVC.Models
         public ICollection<Certificate> Certificates { get; set; } = new List<Certificate>();
         public ICollection<Question> Questions { get; set; } = new List<Question>();
         public ICollection<Exam> Exams { get; set; } = new List<Exam>();
+
+        // Video Management System
+        public ICollection<LectureVideo> LectureVideos { get; set; } = new List<LectureVideo>();
+        public ICollection<LectureMaterial> LectureMaterials { get; set; } = new List<LectureMaterial>();
     }
 }

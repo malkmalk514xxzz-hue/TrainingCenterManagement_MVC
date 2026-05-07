@@ -1,0 +1,238 @@
+@model TrainingCenterManagement_MVC.ViewModels.CourseProgressViewModel
+@{
+    ViewData["Title"] = $"تقدمك في {Model.CourseName}";
+}
+
+<style>
+    .progress-ring { position: relative; display: inline-flex; align-items: center; justify-content: center; }
+    .progress-label { position: absolute; font-size: 1.1rem; font-weight: 700; color: #111; }
+    .stat-card { border-radius: 12px; padding: 1.25rem; text-align: center; }
+    .lecture-row.attended { border-right: 4px solid #28a745; }
+    .lecture-row.absent { border-right: 4px solid #dc3545; }
+</style>
+
+<div class="container mt-4" dir="rtl">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-2">
+        <div>
+            <h2 class="mb-1">تقدمك في الكورس</h2>
+            <p class="text-muted mb-0 fs-5">@Model.CourseName</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a asp-controller="Courses" asp-action="Details" asp-route-id="@Model.CourseId" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-1"></i> تفاصيل الكورس
+            </a>
+            @if (Model.HasCertificate)
+            {
+                <span class="btn btn-warning disabled">
+                    <i class="fas fa-certificate me-1"></i> حصلت على الشهادة
+                </span>
+            }
+        </div>
+    </div>
+
+    <!-- Overall Progress -->
+    <div class="card shadow-sm mb-4 border-0" style="background: linear-gradient(135deg,#667eea,#764ba2); color:#fff;">
+        <div class="card-body py-4">
+            <div class="row align-items-center">
+                <div class="col-auto">
+                    <svg width="90" height="90" viewBox="0 0 90 90">
+                        <circle cx="45" cy="45" r="38" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="8"/>
+                        <circle cx="45" cy="45" r="38" fill="none" stroke="#fff" stroke-width="8"
+                                stroke-dasharray="@(2 * Math.PI * 38 * Model.OverallPercent / 100) @(2 * Math.PI * 38)"
+                                stroke-linecap="round" transform="rotate(-90 45 45)" />
+                        <text x="45" y="50" text-anchor="middle" fill="#fff" font-size="18" font-weight="700">@Model.OverallPercent%</text>
+                    </svg>
+                </div>
+                <div class="col">
+                    <h4 class="mb-1">التقدم الإجمالي</h4>
+                    <p class="mb-0 opacity-75">بناءً على الحضور، الفيديوهات، والامتحانات</p>
+                </div>
+                @if (Model.HasCertificate)
+                {
+                    <div class="col-auto">
+                        <div class="text-center">
+                            <i class="fas fa-certificate fa-3x text-warning"></i>
+                            <div class="mt-1 small">حصلت على الشهادة!</div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="row g-3 mb-4">
+        <div class="col-sm-4">
+            <div class="card shadow-sm border-0 stat-card h-100" style="background:#f0fdf4;">
+                <div class="text-success mb-2"><i class="fas fa-calendar-check fa-2x"></i></div>
+                <div class="fs-3 fw-bold text-success">@Model.AttendedLectures / @Model.TotalLectures</div>
+                <div class="text-muted small">محاضرة حضرتها</div>
+                <div class="progress mt-2" style="height:6px;">
+                    <div class="progress-bar bg-success" style="width:@Model.AttendancePercent%;"></div>
+                </div>
+                <div class="small text-success mt-1">@Model.AttendancePercent%</div>
+            </div>
+        </div>
+        <div class="col-sm-4">
+            <div class="card shadow-sm border-0 stat-card h-100" style="background:#eff6ff;">
+                <div class="text-primary mb-2"><i class="fas fa-play-circle fa-2x"></i></div>
+                <div class="fs-3 fw-bold text-primary">@Model.WatchedVideos / @Model.TotalVideos</div>
+                <div class="text-muted small">فيديو شاهدته</div>
+                <div class="progress mt-2" style="height:6px;">
+                    <div class="progress-bar bg-primary" style="width:@Model.VideoPercent%;"></div>
+                </div>
+                <div class="small text-primary mt-1">@Model.VideoPercent%</div>
+            </div>
+        </div>
+        <div class="col-sm-4">
+            <div class="card shadow-sm border-0 stat-card h-100" style="background:#fefce8;">
+                <div class="text-warning mb-2"><i class="fas fa-file-alt fa-2x"></i></div>
+                <div class="fs-3 fw-bold text-warning">@Model.Exams.Count(e => e.HasAttempt) / @Model.Exams.Count</div>
+                <div class="text-muted small">امتحان أديته</div>
+                @if (Model.Exams.Any(e => e.HasAttempt))
+                {
+                    var bestPct = Model.Exams.Where(e => e.BestScorePercentage.HasValue).Max(e => e.BestScorePercentage!.Value);
+                    <div class="small text-warning mt-2">أعلى نتيجة: @bestPct.ToString("F0")%</div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Lectures Table -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header fw-semibold bg-light">
+            <i class="fas fa-chalkboard me-2"></i> تفاصيل المحاضرات
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>#</th>
+                        <th>المحاضرة</th>
+                        <th>التاريخ</th>
+                        <th class="text-center">الحضور</th>
+                        <th class="text-center">الفيديوهات</th>
+                        <th class="text-center">المواد</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (int i = 0; i < Model.Lectures.Count; i++)
+                    {
+                        var lec = Model.Lectures[i];
+                        <tr class="lecture-row @(lec.IsAttended ? "attended" : "absent")">
+                            <td class="text-muted">@(i + 1)</td>
+                            <td class="fw-semibold">@lec.Title</td>
+                            <td class="text-muted small">@lec.Date.ToString("dd/MM/yyyy")</td>
+                            <td class="text-center">
+                                @if (lec.IsAttended)
+                                {
+                                    <span class="badge bg-success"><i class="fas fa-check me-1"></i>حاضر</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger"><i class="fas fa-times me-1"></i>غائب</span>
+                                }
+                            </td>
+                            <td class="text-center">
+                                @if (lec.TotalVideos == 0)
+                                {
+                                    <span class="text-muted small">—</span>
+                                }
+                                else
+                                {
+                                    <span class="@(lec.WatchedVideos == lec.TotalVideos ? "text-success" : "text-warning") fw-semibold">
+                                        @lec.WatchedVideos/@lec.TotalVideos
+                                    </span>
+                                }
+                            </td>
+                            <td class="text-center">
+                                @if (lec.TotalMaterials == 0)
+                                {
+                                    <span class="text-muted small">—</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-info text-dark">@lec.TotalMaterials</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Exams Table -->
+    @if (Model.Exams.Any())
+    {
+        <div class="card shadow-sm mb-4">
+            <div class="card-header fw-semibold bg-light">
+                <i class="fas fa-graduation-cap me-2"></i> نتائج الامتحانات
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover mb-0 align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>الامتحان</th>
+                            <th class="text-center">النتيجة</th>
+                            <th class="text-center">النسبة</th>
+                            <th class="text-center">الحالة</th>
+                            <th class="text-center">التاريخ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var exam in Model.Exams)
+                        {
+                            <tr>
+                                <td class="fw-semibold">@exam.ExamTitle</td>
+                                <td class="text-center">
+                                    @if (exam.HasAttempt)
+                                    {
+                                        <span>@exam.BestTotalScore?.ToString("F0") / @exam.MaxScore?.ToString("F0")</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">—</span>
+                                    }
+                                </td>
+                                <td class="text-center">
+                                    @if (exam.HasAttempt)
+                                    {
+                                        var pct = (int)(exam.BestScorePercentage ?? 0);
+                                        <div class="progress" style="height:8px;min-width:80px;">
+                                            <div class="progress-bar @(pct >= 60 ? "bg-success" : "bg-danger")"
+                                                 style="width:@pct%;"></div>
+                                        </div>
+                                        <small>@pct%</small>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted small">لم يُؤدَ</span>
+                                    }
+                                </td>
+                                <td class="text-center">
+                                    @if (!exam.HasAttempt)
+                                    {
+                                        <span class="badge bg-secondary">لم يُؤدَ</span>
+                                    }
+                                    else if ((exam.BestScorePercentage ?? 0) >= 60)
+                                    {
+                                        <span class="badge bg-success">ناجح</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger">راسب</span>
+                                    }
+                                </td>
+                                <td class="text-center small text-muted">
+                                    @(exam.AttemptDate?.ToString("dd/MM/yyyy") ?? "—")
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+</div>

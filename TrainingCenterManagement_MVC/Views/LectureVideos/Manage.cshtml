@@ -1,0 +1,205 @@
+@model TrainingCenterManagement_MVC.Models.Lecture
+@{
+    ViewData["Title"] = "إدارة فيديوهات المحاضرة";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1">إدارة الفيديوهات</h2>
+            <p class="text-muted mb-0">
+                <strong>@Model.Title</strong> — @Model.Course?.CourseName
+            </p>
+        </div>
+        <a asp-controller="Lectures" asp-action="Details" asp-route-id="@Model.LectureId" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-right me-1"></i> العودة للمحاضرة
+        </a>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-1"></i> @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-1"></i> @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="row g-4">
+        <!-- Add YouTube Video -->
+        <div class="col-md-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-danger text-white">
+                    <i class="fab fa-youtube me-2"></i> إضافة فيديو YouTube
+                </div>
+                <div class="card-body">
+                    <form asp-controller="LectureVideos" asp-action="AddYouTube" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="lectureId" value="@Model.LectureId" />
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">عنوان الفيديو <span class="text-danger">*</span></label>
+                            <input type="text" name="videoTitle" class="form-control" placeholder="مثال: شرح المفاهيم الأساسية" required maxlength="500" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">رابط YouTube <span class="text-danger">*</span></label>
+                            <input type="url" name="youtubeUrl" class="form-control" placeholder="https://www.youtube.com/watch?v=..." required />
+                            <div class="form-text">يدعم روابط youtube.com/watch?v= و youtu.be/</div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">الوصف (اختياري)</label>
+                            <textarea name="description" class="form-control" rows="3" maxlength="2000" placeholder="وصف مختصر للفيديو..."></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-danger w-100">
+                            <i class="fab fa-youtube me-1"></i> إضافة الفيديو
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Upload Local Video -->
+        <div class="col-md-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-primary text-white">
+                    <i class="fas fa-upload me-2"></i> رفع فيديو من الجهاز
+                </div>
+                <div class="card-body">
+                    <form asp-controller="LectureVideos" asp-action="Upload" method="post" enctype="multipart/form-data">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="lectureId" value="@Model.LectureId" />
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">عنوان الفيديو <span class="text-danger">*</span></label>
+                            <input type="text" name="videoTitle" class="form-control" placeholder="مثال: الدرس الأول" required maxlength="500" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">ملف الفيديو <span class="text-danger">*</span></label>
+                            <input type="file" name="videoFile" class="form-control" accept=".mp4,.webm,.ogg,.mov,.avi,.mkv" required id="videoFileInput" />
+                            <div class="form-text">الصيغ المقبولة: mp4, webm, ogg, mov, avi, mkv — الحد الأقصى 500 ميغابايت</div>
+                            <div id="fileSizeInfo" class="mt-1 text-muted small"></div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">الوصف (اختياري)</label>
+                            <textarea name="description" class="form-control" rows="3" maxlength="2000" placeholder="وصف مختصر للفيديو..."></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100" id="uploadBtn">
+                            <i class="fas fa-upload me-1"></i> رفع الفيديو
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Video List -->
+    <div class="card shadow-sm mt-4">
+        <div class="card-header bg-light fw-semibold">
+            <i class="fas fa-film me-2"></i> فيديوهات المحاضرة
+            <span class="badge bg-secondary ms-2">@Model.Videos.Count</span>
+        </div>
+        <div class="card-body p-0">
+            @if (!Model.Videos.Any())
+            {
+                <div class="text-center text-muted py-5">
+                    <i class="fas fa-video fa-3x mb-3 opacity-25"></i>
+                    <p>لا توجد فيديوهات بعد. أضف فيديو YouTube أو ارفع ملفاً.</p>
+                </div>
+            }
+            else
+            {
+                <div class="list-group list-group-flush">
+                    @foreach (var video in Model.Videos)
+                    {
+                        <div class="list-group-item">
+                            <div class="d-flex align-items-center gap-3">
+                                <!-- Thumbnail -->
+                                <div class="flex-shrink-0">
+                                    @if (!string.IsNullOrEmpty(video.ThumbnailUrl))
+                                    {
+                                        <img src="@video.ThumbnailUrl" alt="thumbnail"
+                                             style="width:100px;height:60px;object-fit:cover;border-radius:4px;" />
+                                    }
+                                    else
+                                    {
+                                        <div style="width:100px;height:60px;background:#e9ecef;border-radius:4px;display:flex;align-items:center;justify-content:center;">
+                                            <i class="fas fa-video text-muted"></i>
+                                        </div>
+                                    }
+                                </div>
+                                <!-- Info -->
+                                <div class="flex-grow-1">
+                                    <div class="fw-semibold">@video.VideoTitle</div>
+                                    <div class="small text-muted">
+                                        @if (video.VideoSourceType == TrainingCenterManagement_MVC.Models.VideoSourceType.YouTube)
+                                        {
+                                            <span class="badge bg-danger me-1"><i class="fab fa-youtube me-1"></i>YouTube</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-primary me-1"><i class="fas fa-file-video me-1"></i>مرفوع</span>
+                                            if (video.FileSizeInBytes.HasValue)
+                                            {
+                                                <span class="me-2">@((video.FileSizeInBytes.Value / (1024.0 * 1024)).ToString("F1")) MB</span>
+                                            }
+                                        }
+                                        <span><i class="fas fa-eye me-1"></i>@video.ViewCount مشاهدة</span>
+                                        <span class="ms-2">ترتيب: @video.DisplayOrder</span>
+                                    </div>
+                                    @if (!string.IsNullOrEmpty(video.Description))
+                                    {
+                                        <div class="small text-muted mt-1">@video.Description</div>
+                                    }
+                                </div>
+                                <!-- Actions -->
+                                <div class="flex-shrink-0 d-flex gap-2">
+                                    @if (video.VideoSourceType == TrainingCenterManagement_MVC.Models.VideoSourceType.YouTube)
+                                    {
+                                        <a href="https://www.youtube.com/watch?v=@video.YouTubeVideoId"
+                                           target="_blank" class="btn btn-sm btn-outline-danger">
+                                            <i class="fab fa-youtube"></i>
+                                        </a>
+                                    }
+                                    <form asp-controller="LectureVideos" asp-action="Delete" method="post"
+                                          onsubmit="return confirm('هل أنت متأكد من حذف هذا الفيديو؟');">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="videoId" value="@video.VideoId" />
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('videoFileInput').addEventListener('change', function () {
+        var file = this.files[0];
+        var info = document.getElementById('fileSizeInfo');
+        if (file) {
+            var sizeMB = (file.size / (1024 * 1024)).toFixed(1);
+            info.textContent = 'حجم الملف المختار: ' + sizeMB + ' MB';
+            info.className = file.size > 500 * 1024 * 1024
+                ? 'mt-1 text-danger small'
+                : 'mt-1 text-success small';
+        } else {
+            info.textContent = '';
+        }
+    });
+
+    document.querySelector('form[action*="Upload"]')?.addEventListener('submit', function () {
+        var btn = document.getElementById('uploadBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> جاري الرفع...';
+    });
+</script>

@@ -50,5 +50,6 @@ namespace TrainingCenterManagement_MVC.Models
         public ICollection<GroupMessage> GroupMessages { get; set; } = new List<GroupMessage>();
         // كورس واحد → امتحانات متعددة (midterm, final, quiz...)
         public ICollection<Exam> Exams { get; set; } = new List<Exam>();
+        public ICollection<CourseRating> Ratings { get; set; } = new List<CourseRating>();
     }
 }

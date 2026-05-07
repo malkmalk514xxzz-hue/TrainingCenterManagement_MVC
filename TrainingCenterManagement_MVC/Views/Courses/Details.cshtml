@@ -646,8 +646,132 @@
                     <a class="button" href="@Url.Action("ExportPaymentsPdf", "Payments", new { courseId = Model.CourseId })">
                         <span class="truncate">Export Payments</span>
                     </a>
+                    @if (User.IsInRole("Trainee") && ViewBag.IsEnrolled == true)
+                    {
+                        <a class="button button-primary" href="@Url.Action("CourseProgress", "Progress", new { courseId = Model.CourseId })">
+                            <span class="truncate">تقدمي في الكورس</span>
+                        </a>
+                    }
                 </div>
             </div>
+
+            <!-- Course Ratings -->
+            @{
+                var ratings = Model.Ratings?.ToList() ?? new List<TrainingCenterManagement_MVC.Models.CourseRating>();
+                var avgStars = ratings.Any() ? ratings.Average(r => r.Stars) : 0;
+                var myRating = ViewBag.MyRating as TrainingCenterManagement_MVC.Models.CourseRating;
+            }
+
+            @if (TempData["RatingSuccess"] != null)
+            {
+                <div style="margin:1rem;padding:0.75rem 1rem;background:#d1fae5;border-radius:8px;color:#065f46;font-size:14px;">
+                    ✓ @TempData["RatingSuccess"]
+                </div>
+            }
+            @if (TempData["RatingError"] != null)
+            {
+                <div style="margin:1rem;padding:0.75rem 1rem;background:#fee2e2;border-radius:8px;color:#991b1b;font-size:14px;">
+                    ✗ @TempData["RatingError"]
+                </div>
+            }
+
+            <h2 class="section-title">تقييمات الطلاب</h2>
+
+            @if (ratings.Any())
+            {
+                <div style="padding:0 1rem 0.5rem 1rem;display:flex;align-items:center;gap:0.75rem;">
+                    <span style="font-size:2rem;font-weight:700;color:#111;">@avgStars.ToString("F1")</span>
+                    <div>
+                        @for (int s = 1; s <= 5; s++)
+                        {
+                            <span style="color:@(s <= Math.Round(avgStars) ? "#f59e0b" : "#d1d5db");font-size:1.25rem;">★</span>
+                        }
+                        <div style="font-size:13px;color:#6b7280;">@ratings.Count @(ratings.Count == 1 ? "تقييم" : "تقييمات")</div>
+                    </div>
+                </div>
+            }
+
+            @foreach (var rating in ratings.OrderByDescending(r => r.CreatedAt).Take(5))
+            {
+                <div style="padding:0.75rem 1rem;border-top:1px solid #e6e4db;">
+                    <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.25rem;">
+                        <span style="font-weight:600;font-size:14px;">@rating.Trainee?.User?.FullName</span>
+                        <span style="color:#f59e0b;font-size:1rem;">
+                            @for (int s = 1; s <= 5; s++) { <text>@(s <= rating.Stars ? "★" : "☆")</text> }
+                        </span>
+                        <span style="font-size:12px;color:#9ca3af;margin-right:auto;">@rating.CreatedAt.ToString("dd/MM/yyyy")</span>
+                    </div>
+                    @if (!string.IsNullOrEmpty(rating.Comment))
+                    {
+                        <p style="font-size:14px;color:#6b7280;margin:0;">@rating.Comment</p>
+                    }
+                </div>
+            }
+
+            @if (User.IsInRole("Trainee") && ViewBag.IsEnrolled == true)
+            {
+                <div style="padding:1rem;border-top:1px solid #e6e4db;">
+                    <h3 style="font-size:16px;font-weight:700;color:#111;margin-bottom:0.75rem;">
+                        @(myRating != null ? "عدّل تقييمك" : "أضف تقييمك")
+                    </h3>
+                    <form asp-controller="CourseRatings" asp-action="Rate" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="courseId" value="@Model.CourseId" />
+                        <div style="margin-bottom:0.75rem;">
+                            <div id="starSelector" style="display:flex;gap:0.25rem;font-size:2rem;cursor:pointer;direction:ltr;">
+                                @for (int s = 1; s <= 5; s++)
+                                {
+                                    <span class="star-opt" data-val="@s"
+                                          style="color:@(myRating != null && s <= myRating.Stars ? "#f59e0b" : "#d1d5db");">★</span>
+                                }
+                            </div>
+                            <input type="hidden" name="stars" id="starsInput" value="@(myRating?.Stars ?? 0)" required />
+                        </div>
+                        <textarea name="comment" rows="3" maxlength="1000" placeholder="اكتب تعليقك هنا (اختياري)..."
+                                  style="width:100%;border:1px solid #e6e4db;border-radius:8px;padding:0.5rem;font-size:14px;resize:vertical;">@myRating?.Comment</textarea>
+                        <div style="margin-top:0.75rem;display:flex;gap:0.5rem;">
+                            <button type="submit" class="button button-primary" style="height:36px;">
+                                <span>@(myRating != null ? "تحديث التقييم" : "إرسال التقييم")</span>
+                            </button>
+                            @if (myRating != null)
+                            {
+                                <form asp-controller="CourseRatings" asp-action="Delete" method="post" style="display:inline;">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="courseId" value="@Model.CourseId" />
+                                    <button type="submit" class="button"
+                                            onclick="return confirm('حذف تقييمك؟')"
+                                            style="height:36px;background:#fee2e2;color:#991b1b;">
+                                        <span>حذف</span>
+                                    </button>
+                                </form>
+                            }
+                        </div>
+                    </form>
+                </div>
+            }
         </div>
     </div>
 </div>
+
+<script>
+    (function () {
+        var stars = document.querySelectorAll('.star-opt');
+        var input = document.getElementById('starsInput');
+        if (!stars.length) return;
+        stars.forEach(function (s) {
+            s.addEventListener('mouseover', function () {
+                var v = +this.dataset.val;
+                stars.forEach(function (x) { x.style.color = +x.dataset.val <= v ? '#f59e0b' : '#d1d5db'; });
+            });
+            s.addEventListener('mouseout', function () {
+                var sel = +(input.value || 0);
+                stars.forEach(function (x) { x.style.color = +x.dataset.val <= sel ? '#f59e0b' : '#d1d5db'; });
+            });
+            s.addEventListener('click', function () {
+                input.value = this.dataset.val;
+                var sel = +input.value;
+                stars.forEach(function (x) { x.style.color = +x.dataset.val <= sel ? '#f59e0b' : '#d1d5db'; });
+            });
+        });
+    })();
+</script>

@@ -31,5 +31,11 @@ namespace TrainingCenterManagement_MVC.Models
         public Course Course { get; set; }
 
         public ICollection<Presence> Presences { get; set; } = new List<Presence>();
+
+        // Video Management System
+        public ICollection<LectureVideo> Videos { get; set; } = new List<LectureVideo>();
+
+        // Lecture Materials
+        public ICollection<LectureMaterial> Materials { get; set; } = new List<LectureMaterial>();
     }
 }
