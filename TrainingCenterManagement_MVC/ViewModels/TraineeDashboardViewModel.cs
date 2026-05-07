@@ -6,8 +6,8 @@ namespace TrainingCenterManagement_MVC.ViewModels
 {
     public class TraineeDashboardViewModel
     {
-
         public string FullName { get; set; }
+        public string Email { get; set; } = string.Empty;
         public string ProfilePictureUrl { get; set; }
         public string WelcomeMessage { get; set; }
         public int OverallProgress { get; set; }

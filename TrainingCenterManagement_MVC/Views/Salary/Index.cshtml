@@ -1,0 +1,167 @@
+@model TrainingCenterManagement_MVC.ViewModels.SalaryIndexViewModel
+@{
+    ViewData["Title"] = "إدارة رواتب الموظفين";
+    var monthNames = new[] { "", "يناير","فبراير","مارس","أبريل","مايو","يونيو","يوليو","أغسطس","سبتمبر","أكتوبر","نوفمبر","ديسمبر" };
+}
+
+<style>
+    :root { --sl-primary:#7c3aed; --sl-bg:#faf5ff; --sl-card:#fff; --sl-border:#ede9fe; --sl-shadow:0 4px 20px rgba(124,58,237,.09); }
+    .sl-header { background:linear-gradient(135deg,#1e1b4b 0%,#7c3aed 60%,#a78bfa 100%); border-radius:16px; padding:28px 32px; color:#fff; margin-bottom:24px; display:flex; align-items:center; gap:16px; }
+    .sl-header h1 { margin:0; font-size:1.5rem; font-weight:700; }
+    .sl-header p  { margin:4px 0 0; opacity:.8; }
+    .sl-header-icon { width:56px; height:56px; border-radius:14px; background:rgba(255,255,255,.15); display:flex; align-items:center; justify-content:center; font-size:1.5rem; flex-shrink:0; }
+    .sl-stats { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:24px; }
+    .sl-stat { background:var(--sl-card); border-radius:12px; padding:18px 20px; box-shadow:var(--sl-shadow); border:1px solid var(--sl-border); }
+    .sl-stat .icon { font-size:1.2rem; margin-bottom:8px; }
+    .sl-stat .val  { font-size:1.6rem; font-weight:800; color:#1e1b4b; }
+    .sl-stat .lbl  { font-size:.82rem; color:#7c3aed; margin-top:4px; }
+    /* Table */
+    .sl-wrap { background:var(--sl-card); border-radius:14px; box-shadow:var(--sl-shadow); border:1px solid var(--sl-border); overflow:hidden; }
+    .sl-wrap-head { padding:16px 20px; border-bottom:1px solid var(--sl-border); display:flex; align-items:center; justify-content:space-between; }
+    .sl-wrap-head h3 { margin:0; font-size:1rem; font-weight:700; color:#1e1b4b; display:flex; align-items:center; gap:8px; }
+    .sl-table { width:100%; border-collapse:collapse; font-size:.88rem; }
+    .sl-table th { padding:11px 16px; background:#f5f3ff; color:#7c3aed; font-weight:600; font-size:.78rem; text-transform:uppercase; border-bottom:1px solid var(--sl-border); }
+    .sl-table td { padding:13px 16px; border-bottom:1px solid #f5f3ff; vertical-align:middle; }
+    .sl-table tr:last-child td { border-bottom:none; }
+    .sl-table tr:hover td { background:#faf5ff; }
+    .emp-cell { display:flex; align-items:center; gap:10px; }
+    .emp-avatar { width:36px; height:36px; border-radius:50%; object-fit:cover; }
+    .emp-avatar-fb { width:36px; height:36px; border-radius:50%; background:linear-gradient(135deg,#7c3aed,#a78bfa); color:#fff; font-size:.85rem; font-weight:700; display:inline-flex; align-items:center; justify-content:center; }
+    .role-trainer { background:#ede9fe; color:#5b21b6; border-radius:6px; padding:3px 9px; font-size:.75rem; font-weight:700; }
+    .role-receptionist { background:#dbeafe; color:#1e40af; border-radius:6px; padding:3px 9px; font-size:.75rem; font-weight:700; }
+    .paid-chip   { background:#d1fae5; color:#065f46; border-radius:20px; padding:3px 10px; font-size:.78rem; font-weight:700; }
+    .unpaid-chip { background:#fee2e2; color:#991b1b; border-radius:20px; padding:3px 10px; font-size:.78rem; font-weight:700; }
+    .btn-sm-action { border:none; border-radius:8px; padding:6px 13px; font-size:.8rem; font-weight:600; cursor:pointer; text-decoration:none; display:inline-flex; align-items:center; gap:5px; }
+    .btn-detail   { background:#f5f3ff; color:#7c3aed; }
+    .btn-detail:hover { background:#ede9fe; color:#7c3aed; }
+    .btn-add      { background:linear-gradient(135deg,#7c3aed,#6d28d9); color:#fff; }
+    .btn-add:hover { opacity:.9; color:#fff; }
+    @@media (max-width:900px) { .sl-stats { grid-template-columns:1fr 1fr; } }
+</style>
+
+<div class="dashboard-wrapper" style="display:flex;direction:rtl;min-height:100vh">
+@await Html.PartialAsync("_AdminSidebar")
+<main style="flex:1;padding:28px 32px;background:#faf5ff;overflow-x:hidden">
+
+<div class="sl-header">
+    <div class="sl-header-icon"><i class="fas fa-money-check-alt"></i></div>
+    <div>
+        <h1>إدارة رواتب الموظفين</h1>
+        <p>متابعة رواتب المدربين وموظفي الاستقبال — @(monthNames[Model.CurrentMonth]) @Model.CurrentYear</p>
+    </div>
+    <div class="ms-auto">
+        <a asp-action="Create" asp-controller="Salary" class="btn-sm-action btn-add">
+            <i class="fas fa-user-plus"></i> إضافة موظف
+        </a>
+    </div>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show mb-3">
+        <i class="fas fa-check-circle me-2"></i>@TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show mb-3">
+        <i class="fas fa-exclamation-circle me-2"></i>@TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<!-- KPIs -->
+<div class="sl-stats">
+    <div class="sl-stat">
+        <div class="icon" style="color:#7c3aed"><i class="fas fa-users"></i></div>
+        <div class="val">@Model.Employees.Count</div>
+        <div class="lbl">إجمالي الموظفين النشطين</div>
+    </div>
+    <div class="sl-stat">
+        <div class="icon" style="color:#1d4ed8"><i class="fas fa-coins"></i></div>
+        <div class="val">@Model.TotalMonthlyPayroll.ToString("N0") ر.س</div>
+        <div class="lbl">إجمالي الرواتب الشهرية</div>
+    </div>
+    <div class="sl-stat">
+        <div class="icon" style="color:#10b981"><i class="fas fa-check-circle"></i></div>
+        <div class="val">@Model.PaidThisMonth.ToString("N0") ر.س</div>
+        <div class="lbl">المصروف هذا الشهر</div>
+    </div>
+    <div class="sl-stat">
+        <div class="icon" style="color:#ef4444"><i class="fas fa-clock"></i></div>
+        <div class="val">@Model.PendingThisMonth.ToString("N0") ر.س</div>
+        <div class="lbl">المتبقي هذا الشهر</div>
+    </div>
+</div>
+
+<!-- Employees Table -->
+<div class="sl-wrap">
+    <div class="sl-wrap-head">
+        <h3><i class="fas fa-list-alt" style="color:#7c3aed"></i> قائمة الموظفين</h3>
+        <span style="font-size:.82rem;color:#94a3b8">@(monthNames[Model.CurrentMonth]) @Model.CurrentYear</span>
+    </div>
+    <table class="sl-table">
+        <thead>
+            <tr>
+                <th>الموظف</th>
+                <th>الدور</th>
+                <th>الراتب الشهري</th>
+                <th>حالة الشهر الحالي</th>
+                <th>آخر صرف</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var e in Model.Employees)
+            {
+                var initials = e.Name.Length > 0 ? e.Name[0].ToString() : "؟";
+                <tr>
+                    <td>
+                        <div class="emp-cell">
+                            @if (!string.IsNullOrEmpty(e.ProfilePic))
+                            { <img src="@e.ProfilePic" class="emp-avatar" alt=""> }
+                            else
+                            { <div class="emp-avatar-fb">@initials</div> }
+                            <div>
+                                <div style="font-weight:600;color:#1e1b4b">@e.Name</div>
+                                <div style="font-size:.78rem;color:#94a3b8">@e.Email</div>
+                                @if (!string.IsNullOrEmpty(e.Specialty))
+                                { <div style="font-size:.75rem;color:#7c3aed">@e.Specialty</div> }
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="@(e.Role == "Trainer" ? "role-trainer" : "role-receptionist")">
+                            @(e.Role == "Trainer" ? "مدرب" : "موظف استقبال")
+                        </span>
+                    </td>
+                    <td style="font-weight:700;color:#1e1b4b">
+                        @e.MonthlySalary.ToString("N0") <span style="font-size:.8rem;color:#94a3b8">@e.CurrencyLabel</span>
+                    </td>
+                    <td>
+                        @if (e.PaidThisMonth)
+                        { <span class="paid-chip"><i class="fas fa-check me-1"></i>مصروف</span> }
+                        else
+                        { <span class="unpaid-chip"><i class="fas fa-clock me-1"></i>لم يُصرف</span> }
+                    </td>
+                    <td style="font-size:.82rem;color:#64748b">
+                        @(e.LastPaidAt.HasValue ? e.LastPaidAt.Value.ToString("dd/MM/yyyy") : "—")
+                    </td>
+                    <td>
+                        <a asp-action="Details" asp-controller="Salary" asp-route-id="@e.SalaryId" class="btn-sm-action btn-detail">
+                            <i class="fas fa-eye"></i> إدارة
+                        </a>
+                    </td>
+                </tr>
+            }
+            @if (!Model.Employees.Any())
+            {
+                <tr><td colspan="6" class="text-center py-5 text-muted">لا يوجد موظفون مسجلون بعد</td></tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+</main>
+</div>

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TrainingCenterManagement_MVC.Data;
 
@@ -11,9 +12,11 @@ using TrainingCenterManagement_MVC.Data;
 namespace TrainingCenterManagement_MVC.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260507130633_AddPaymentCurrencyAndNotes")]
+    partial class AddPaymentCurrencyAndNotes
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -460,44 +463,6 @@ namespace TrainingCenterManagement_MVC.Migrations
                     b.ToTable("CourseTrainers");
                 });
 
-            modelBuilder.Entity("TrainingCenterManagement_MVC.Models.EmployeeSalary", b =>
-                {
-                    b.Property<Guid>("SalaryId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("Currency")
-                        .HasColumnType("int");
-
-                    b.Property<string>("EmployeeRole")
-                        .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("nvarchar(30)");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
-                    b.Property<decimal>("MonthlySalary")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("Notes")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("SalaryId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("EmployeeSalaries");
-                });
-
             modelBuilder.Entity("TrainingCenterManagement_MVC.Models.Exam", b =>
                 {
                     b.Property<Guid>("ExamId")
@@ -668,35 +633,6 @@ namespace TrainingCenterManagement_MVC.Migrations
                         .HasDatabaseName("UX_ExamQuestion_ExamId_QuestionId");
 
                     b.ToTable("ExamQuestions");
-                });
-
-            modelBuilder.Entity("TrainingCenterManagement_MVC.Models.ExchangeRate", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<int>("Currency")
-                        .HasColumnType("int");
-
-                    b.Property<decimal>("RateToSAR")
-                        .HasColumnType("decimal(18,6)");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("UpdatedByUserId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Currency")
-                        .IsUnique()
-                        .HasDatabaseName("UX_ExchangeRate_Currency");
-
-                    b.HasIndex("UpdatedByUserId");
-
-                    b.ToTable("ExchangeRates");
                 });
 
             modelBuilder.Entity("TrainingCenterManagement_MVC.Models.GroupMessage", b =>
@@ -1195,48 +1131,6 @@ namespace TrainingCenterManagement_MVC.Migrations
                     b.ToTable("Receptionists");
                 });
 
-            modelBuilder.Entity("TrainingCenterManagement_MVC.Models.SalaryPayment", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<decimal>("Amount")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<int>("Currency")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Month")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Notes")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<DateTime>("PaidAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("PaidByAdminId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<Guid>("SalaryId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<int>("Year")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PaidByAdminId");
-
-                    b.HasIndex("SalaryId", "Month", "Year")
-                        .IsUnique()
-                        .HasDatabaseName("UX_SalaryPayment_Salary_Month_Year");
-
-                    b.ToTable("SalaryPayments");
-                });
-
             modelBuilder.Entity("TrainingCenterManagement_MVC.Models.StudentAnswer", b =>
                 {
                     b.Property<Guid>("AnswerId")
@@ -1600,17 +1494,6 @@ namespace TrainingCenterManagement_MVC.Migrations
                     b.Navigation("Trainer");
                 });
 
-            modelBuilder.Entity("TrainingCenterManagement_MVC.Models.EmployeeSalary", b =>
-                {
-                    b.HasOne("TrainingCenterManagement_MVC.Models.ApplicationUser", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("TrainingCenterManagement_MVC.Models.Exam", b =>
                 {
                     b.HasOne("TrainingCenterManagement_MVC.Models.Course", "Course")
@@ -1666,16 +1549,6 @@ namespace TrainingCenterManagement_MVC.Migrations
                     b.Navigation("Exam");
 
                     b.Navigation("Question");
-                });
-
-            modelBuilder.Entity("TrainingCenterManagement_MVC.Models.ExchangeRate", b =>
-                {
-                    b.HasOne("TrainingCenterManagement_MVC.Models.ApplicationUser", "UpdatedBy")
-                        .WithMany()
-                        .HasForeignKey("UpdatedByUserId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.Navigation("UpdatedBy");
                 });
 
             modelBuilder.Entity("TrainingCenterManagement_MVC.Models.GroupMessage", b =>
@@ -1849,24 +1722,6 @@ namespace TrainingCenterManagement_MVC.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("TrainingCenterManagement_MVC.Models.SalaryPayment", b =>
-                {
-                    b.HasOne("TrainingCenterManagement_MVC.Models.ApplicationUser", "PaidByAdmin")
-                        .WithMany()
-                        .HasForeignKey("PaidByAdminId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("TrainingCenterManagement_MVC.Models.EmployeeSalary", "Salary")
-                        .WithMany("Payments")
-                        .HasForeignKey("SalaryId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("PaidByAdmin");
-
-                    b.Navigation("Salary");
-                });
-
             modelBuilder.Entity("TrainingCenterManagement_MVC.Models.StudentAnswer", b =>
                 {
                     b.HasOne("TrainingCenterManagement_MVC.Models.ExamAttempt", "Attempt")
@@ -1979,11 +1834,6 @@ namespace TrainingCenterManagement_MVC.Migrations
                     b.Navigation("Payments");
 
                     b.Navigation("Ratings");
-                });
-
-            modelBuilder.Entity("TrainingCenterManagement_MVC.Models.EmployeeSalary", b =>
-                {
-                    b.Navigation("Payments");
                 });
 
             modelBuilder.Entity("TrainingCenterManagement_MVC.Models.Exam", b =>

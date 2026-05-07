@@ -1,524 +1,1054 @@
-﻿
-@using TrainingCenterManagement_MVC.Resources
-@using Newtonsoft.Json
 @using TrainingCenterManagement_MVC.ViewModels
+@using Newtonsoft.Json
 @model TrainerDashboardViewModel
 
 @{
     ViewData["Title"] = "لوحة تحكم المدرب";
+    var today = DateTime.Now.ToString("dddd، d MMMM yyyy", new System.Globalization.CultureInfo("ar-SA"));
+    var avatarFallbackChar = Model.FullName?.Length > 0 ? Model.FullName[0].ToString() : "T";
 }
 
-<!-- إضافة مكتبة FullCalendar -->
 <link href='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css' rel='stylesheet' />
 <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js'></script>
-<!-- إضافة Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<!-- إضافة خط Roboto -->
-<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
-<!-- استدعاء ملف CSS المنفصل -->
 <link href="~/css/TrainerDashboard.css" rel="stylesheet" />
 
-<body>
-    <div class="dashboard-wrapper">
-        @await Html.PartialAsync("_TrainerSidebar")
-        <main class="dashboard-main">
-            <!-- النظرة العامة -->
-            <div class="profile-section">
-                <img src="@Model.ProfilePictureUrl" alt="الصورة الشخصية" class="profile-picture" />
-                <div>
+<style>
+    /* ===== Design Tokens ===== */
+    :root {
+        --primary: #4f46e5;
+        --primary-light: #6366f1;
+        --primary-pale: #eef2ff;
+        --secondary: #0ea5e9;
+        --success: #10b981;
+        --warning: #f59e0b;
+        --danger: #ef4444;
+        --body-bg: #f1f5f9;
+        --card-bg: #ffffff;
+        --text-1: #0f172a;
+        --text-2: #475569;
+        --text-3: #94a3b8;
+        --border-color: #e2e8f0;
+        --shadow-sm: 0 1px 3px rgba(0,0,0,.08);
+        --shadow-md: 0 4px 16px rgba(0,0,0,.08);
+        --shadow-lg: 0 8px 32px rgba(0,0,0,.12);
+        --radius: 14px;
+        --radius-sm: 8px;
+        --transition: .2s ease;
+    }
+
+    /* ===== Layout Reset ===== */
+    .dashboard-main {
+        flex: 1;
+        background: var(--body-bg);
+        padding: 28px 32px;
+        min-height: 100vh;
+        overflow-y: auto;
+        direction: rtl;
+        font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+    }
+
+    /* ===== Welcome Header ===== */
+    .td-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 24px;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+    .td-header-greeting h1 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--text-1);
+        margin: 0 0 2px;
+    }
+    .td-header-greeting p {
+        font-size: .875rem;
+        color: var(--text-2);
+        margin: 0;
+    }
+    .td-header-actions {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+    }
+    .td-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 9px 18px;
+        border-radius: var(--radius-sm);
+        font-size: .875rem;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: none;
+        border: none;
+        transition: var(--transition);
+    }
+    .td-btn-primary {
+        background: var(--primary);
+        color: #fff;
+    }
+    .td-btn-primary:hover { background: var(--primary-light); color: #fff; }
+    .td-btn-outline {
+        background: #fff;
+        color: var(--text-1);
+        border: 1.5px solid var(--border-color);
+    }
+    .td-btn-outline:hover { border-color: var(--primary); color: var(--primary); }
+
+    /* ===== Hero Profile Card ===== */
+    .td-hero {
+        background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #0ea5e9 100%);
+        border-radius: var(--radius);
+        padding: 32px;
+        margin-bottom: 24px;
+        position: relative;
+        overflow: hidden;
+        box-shadow: var(--shadow-lg);
+    }
+    .td-hero::before {
+        content: '';
+        position: absolute;
+        top: -60px; right: -60px;
+        width: 220px; height: 220px;
+        background: rgba(255,255,255,.07);
+        border-radius: 50%;
+    }
+    .td-hero::after {
+        content: '';
+        position: absolute;
+        bottom: -80px; left: -40px;
+        width: 280px; height: 280px;
+        background: rgba(255,255,255,.05);
+        border-radius: 50%;
+    }
+    .td-hero-inner {
+        display: flex;
+        align-items: center;
+        gap: 24px;
+        position: relative;
+        z-index: 1;
+        flex-wrap: wrap;
+    }
+    .td-hero-avatar {
+        width: 100px; height: 100px;
+        border-radius: 50%;
+        border: 4px solid rgba(255,255,255,.7);
+        object-fit: cover;
+        flex-shrink: 0;
+        box-shadow: 0 4px 12px rgba(0,0,0,.2);
+    }
+    .td-hero-info { flex: 1; color: #fff; }
+    .td-hero-info h2 {
+        font-size: 1.75rem;
+        font-weight: 700;
+        margin: 0 0 4px;
+        letter-spacing: -.5px;
+    }
+    .td-hero-info .td-hero-specialty {
+        font-size: .95rem;
+        opacity: .9;
+        margin: 0 0 12px;
+    }
+    .td-hero-badges {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+    .td-hero-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        background: rgba(255,255,255,.2);
+        backdrop-filter: blur(8px);
+        border-radius: 30px;
+        padding: 4px 14px;
+        font-size: .8rem;
+        color: #fff;
+        font-weight: 500;
+    }
+    .td-hero-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        z-index: 1;
+    }
+    .td-hero-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 9px 20px;
+        border-radius: var(--radius-sm);
+        font-size: .85rem;
+        font-weight: 600;
+        text-decoration: none;
+        border: none;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: var(--transition);
+    }
+    .td-hero-btn-white {
+        background: #fff;
+        color: var(--primary);
+    }
+    .td-hero-btn-white:hover { background: #f0f0ff; }
+    .td-hero-btn-glass {
+        background: rgba(255,255,255,.2);
+        backdrop-filter: blur(8px);
+        color: #fff;
+        border: 1.5px solid rgba(255,255,255,.4);
+    }
+    .td-hero-btn-glass:hover { background: rgba(255,255,255,.3); }
+    .td-hero-progress {
+        z-index: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+    }
+    .td-ring {
+        width: 90px; height: 90px;
+        transform: rotate(-90deg);
+    }
+    .td-ring-bg { fill: none; stroke: rgba(255,255,255,.2); stroke-width: 8; }
+    .td-ring-fill {
+        fill: none;
+        stroke: #fff;
+        stroke-width: 8;
+        stroke-linecap: round;
+        stroke-dasharray: 220;
+        stroke-dashoffset: calc(220 - (220 * var(--pct)) / 100);
+        transition: stroke-dashoffset .8s ease;
+    }
+    .td-ring-label {
+        position: absolute;
+        font-size: 1rem;
+        font-weight: 700;
+        color: #fff;
+        transform: rotate(90deg);
+    }
+    .td-ring-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .td-ring-caption {
+        font-size: .75rem;
+        color: rgba(255,255,255,.8);
+        text-align: center;
+    }
+
+    /* ===== KPI Cards ===== */
+    .td-kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 18px;
+        margin-bottom: 24px;
+    }
+    @@media (max-width: 1100px) { .td-kpi-grid { grid-template-columns: repeat(2, 1fr); } }
+    @@media (max-width: 600px) { .td-kpi-grid { grid-template-columns: 1fr; } }
+
+    .td-kpi-card {
+        background: var(--card-bg);
+        border-radius: var(--radius);
+        padding: 22px 20px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--border-color);
+        transition: var(--transition);
+    }
+    .td-kpi-card:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+    }
+    .td-kpi-icon {
+        width: 52px; height: 52px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.4rem;
+        flex-shrink: 0;
+    }
+    .td-kpi-icon.indigo { background: #eef2ff; color: #4f46e5; }
+    .td-kpi-icon.sky    { background: #e0f2fe; color: #0284c7; }
+    .td-kpi-icon.emerald{ background: #d1fae5; color: #059669; }
+    .td-kpi-icon.amber  { background: #fef3c7; color: #d97706; }
+
+    .td-kpi-body { flex: 1; }
+    .td-kpi-value {
+        font-size: 1.9rem;
+        font-weight: 800;
+        color: var(--text-1);
+        line-height: 1;
+        margin-bottom: 4px;
+    }
+    .td-kpi-label {
+        font-size: .8rem;
+        color: var(--text-2);
+        font-weight: 500;
+    }
+    .td-kpi-sub {
+        font-size: .75rem;
+        color: var(--success);
+        font-weight: 600;
+        margin-top: 2px;
+    }
+
+    /* ===== Two-column Row ===== */
+    .td-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        margin-bottom: 24px;
+    }
+    @@media (max-width: 900px) { .td-row { grid-template-columns: 1fr; } }
+
+    /* ===== Card Base ===== */
+    .td-card {
+        background: var(--card-bg);
+        border-radius: var(--radius);
+        padding: 22px;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--border-color);
+    }
+    .td-card-title {
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--text-1);
+        margin: 0 0 16px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .td-card-title i { color: var(--primary); }
+
+    /* ===== Course List ===== */
+    .td-course-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 0;
+        border-bottom: 1px solid var(--border-color);
+    }
+    .td-course-item:last-child { border-bottom: none; padding-bottom: 0; }
+    .td-course-icon {
+        width: 40px; height: 40px;
+        border-radius: 10px;
+        background: var(--primary-pale);
+        color: var(--primary);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.1rem;
+        flex-shrink: 0;
+    }
+    .td-course-info { flex: 1; }
+    .td-course-name {
+        font-size: .9rem;
+        font-weight: 600;
+        color: var(--text-1);
+        margin-bottom: 4px;
+    }
+    .td-progress-bar {
+        height: 6px;
+        background: var(--border-color);
+        border-radius: 999px;
+        overflow: hidden;
+    }
+    .td-progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, var(--primary), var(--primary-light));
+        border-radius: 999px;
+        transition: width .8s ease;
+    }
+    .td-course-meta {
+        font-size: .75rem;
+        color: var(--text-3);
+        margin-top: 3px;
+    }
+    .td-course-manage {
+        font-size: .8rem;
+        color: var(--primary);
+        text-decoration: none;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+    .td-course-manage:hover { text-decoration: underline; }
+
+    /* ===== Upcoming Events ===== */
+    .td-event-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 10px 0;
+        border-bottom: 1px solid var(--border-color);
+    }
+    .td-event-item:last-child { border-bottom: none; }
+    .td-event-date {
+        background: var(--primary-pale);
+        color: var(--primary);
+        border-radius: var(--radius-sm);
+        padding: 6px 10px;
+        text-align: center;
+        flex-shrink: 0;
+        min-width: 48px;
+    }
+    .td-event-date .day { font-size: 1.1rem; font-weight: 800; line-height: 1; }
+    .td-event-date .mon { font-size: .7rem; font-weight: 600; }
+    .td-event-body { flex: 1; }
+    .td-event-title { font-size: .9rem; font-weight: 600; color: var(--text-1); margin-bottom: 2px; }
+    .td-event-type {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 999px;
+        font-size: .7rem;
+        font-weight: 600;
+    }
+    .td-event-type.lecture { background: #dbeafe; color: #1d4ed8; }
+    .td-event-type.exam    { background: #fce7f3; color: #be185d; }
+
+    /* ===== Quick Actions ===== */
+    .td-quick-actions {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+    .td-qa-btn {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        padding: 16px;
+        border-radius: var(--radius);
+        border: 1.5px solid var(--border-color);
+        background: var(--card-bg);
+        text-decoration: none;
+        color: var(--text-1);
+        font-size: .8rem;
+        font-weight: 600;
+        transition: var(--transition);
+        cursor: pointer;
+    }
+    .td-qa-btn:hover { border-color: var(--primary); color: var(--primary); transform: translateY(-2px); box-shadow: var(--shadow-sm); }
+    .td-qa-btn i { font-size: 1.4rem; }
+    .td-qa-btn.q1 i { color: var(--primary); }
+    .td-qa-btn.q2 i { color: var(--success); }
+    .td-qa-btn.q3 i { color: var(--warning); }
+    .td-qa-btn.q4 i { color: var(--danger); }
+    .td-qa-btn.q5 i { color: #8b5cf6; }
+    .td-qa-btn.q6 i { color: var(--secondary); }
+
+    /* ===== Tabs ===== */
+    .td-tabs-wrapper {
+        background: var(--card-bg);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--border-color);
+        overflow: hidden;
+    }
+    .td-tabs-nav {
+        display: flex;
+        border-bottom: 2px solid var(--border-color);
+        background: #fafafa;
+        overflow-x: auto;
+        scrollbar-width: none;
+    }
+    .td-tabs-nav::-webkit-scrollbar { display: none; }
+    .td-tab-btn {
+        padding: 14px 20px;
+        font-size: .875rem;
+        font-weight: 600;
+        color: var(--text-2);
+        border: none;
+        background: transparent;
+        cursor: pointer;
+        white-space: nowrap;
+        border-bottom: 3px solid transparent;
+        margin-bottom: -2px;
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        transition: var(--transition);
+    }
+    .td-tab-btn:hover { color: var(--primary); }
+    .td-tab-btn.active {
+        color: var(--primary);
+        border-bottom-color: var(--primary);
+        background: transparent;
+    }
+    .td-tab-content { display: none; padding: 24px; }
+    .td-tab-content.active { display: block; }
+
+    /* ===== Students Table ===== */
+    .td-search-bar {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 16px;
+    }
+    .td-search-bar input {
+        flex: 1;
+        padding: 9px 14px;
+        border: 1.5px solid var(--border-color);
+        border-radius: var(--radius-sm);
+        font-size: .875rem;
+        outline: none;
+        transition: var(--transition);
+    }
+    .td-search-bar input:focus { border-color: var(--primary); }
+    .td-table { width: 100%; border-collapse: collapse; }
+    .td-table th {
+        background: var(--primary-pale);
+        color: var(--primary);
+        padding: 10px 14px;
+        font-size: .8rem;
+        font-weight: 700;
+        text-align: right;
+    }
+    .td-table th:first-child { border-radius: 0 var(--radius-sm) var(--radius-sm) 0; }
+    .td-table th:last-child  { border-radius: var(--radius-sm) 0 0 var(--radius-sm); }
+    .td-table td {
+        padding: 11px 14px;
+        font-size: .875rem;
+        color: var(--text-1);
+        border-bottom: 1px solid var(--border-color);
+    }
+    .td-table tr:last-child td { border-bottom: none; }
+    .td-table tr:hover td { background: #f8fafc; }
+    .td-badge {
+        display: inline-block;
+        padding: 3px 10px;
+        border-radius: 999px;
+        font-size: .75rem;
+        font-weight: 600;
+    }
+    .td-badge-green { background: #d1fae5; color: #065f46; }
+    .td-badge-red   { background: #fee2e2; color: #991b1b; }
+    .td-badge-yellow{ background: #fef3c7; color: #92400e; }
+    .td-course-section-title {
+        font-size: .95rem;
+        font-weight: 700;
+        color: var(--text-1);
+        margin: 18px 0 10px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .td-course-section-title::before {
+        content: '';
+        display: inline-block;
+        width: 4px;
+        height: 18px;
+        background: var(--primary);
+        border-radius: 999px;
+    }
+
+    /* ===== Attendance ===== */
+    .td-att-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 0;
+        border-bottom: 1px solid var(--border-color);
+    }
+    .td-att-row:last-child { border-bottom: none; }
+    .td-att-avatar {
+        width: 36px; height: 36px;
+        border-radius: 50%;
+        background: var(--primary-pale);
+        color: var(--primary);
+        display: flex; align-items: center; justify-content: center;
+        font-weight: 700;
+        font-size: .875rem;
+        flex-shrink: 0;
+    }
+    .td-att-name { flex: 1; font-size: .9rem; font-weight: 600; color: var(--text-1); }
+    .td-att-course { font-size: .78rem; color: var(--text-2); }
+    .td-att-link {
+        font-size: .8rem;
+        color: var(--primary);
+        text-decoration: none;
+        font-weight: 600;
+    }
+    .td-att-link:hover { text-decoration: underline; }
+
+    /* ===== Analytics ===== */
+    .td-chart-wrapper {
+        position: relative;
+        height: 300px;
+    }
+
+    /* ===== Certificates ===== */
+    .td-cert-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 16px;
+    }
+    .td-cert-card {
+        background: linear-gradient(135deg, #fef3c7, #fde68a);
+        border-radius: var(--radius);
+        padding: 20px;
+        text-align: center;
+        border: 1px solid #fcd34d;
+    }
+    .td-cert-card i { font-size: 2rem; color: #d97706; margin-bottom: 10px; display: block; }
+    .td-cert-name {
+        font-size: .875rem;
+        font-weight: 700;
+        color: #78350f;
+        margin-bottom: 12px;
+    }
+    .td-cert-card a {
+        font-size: .8rem;
+        background: #d97706;
+        color: #fff;
+        padding: 5px 14px;
+        border-radius: 6px;
+        text-decoration: none;
+        font-weight: 600;
+    }
+    .td-cert-card a:hover { background: #b45309; }
+    .td-empty {
+        text-align: center;
+        padding: 40px 20px;
+        color: var(--text-3);
+        font-size: .9rem;
+    }
+    .td-empty i { font-size: 2.5rem; display: block; margin-bottom: 10px; }
+
+    /* ===== Calendar Tab ===== */
+    #td-calendar { min-height: 400px; }
+
+    /* Scrollbar */
+    .td-tab-content { scrollbar-width: thin; scrollbar-color: var(--border-color) transparent; }
+</style>
+
+<div class="dashboard-wrapper">
+    @await Html.PartialAsync("_TrainerSidebar")
+
+    <main class="dashboard-main">
+
+        <!-- ① Welcome Header -->
+        <div class="td-header">
+            <div class="td-header-greeting">
+                <h1>مرحباً، @Model.FullName 👋</h1>
+                <p><i class="fas fa-calendar-day" style="margin-left:5px;color:#4f46e5;"></i>@today</p>
+            </div>
+            <div class="td-header-actions">
+                <a asp-controller="Lectures" asp-action="Create" class="td-btn td-btn-primary">
+                    <i class="fas fa-plus"></i> محاضرة جديدة
+                </a>
+                <a asp-controller="Profile" asp-action="Index" class="td-btn td-btn-outline">
+                    <i class="fas fa-user-edit"></i> تعديل الملف
+                </a>
+            </div>
+        </div>
+
+        <!-- ② Hero Profile Card -->
+        <div class="td-hero">
+            <div class="td-hero-inner">
+                <img src="@Model.ProfilePictureUrl" alt="@Model.FullName" class="td-hero-avatar"
+                     onerror="this.src='https://placehold.co/100/4f46e5/ffffff?text=@avatarFallbackChar'" />
+                <div class="td-hero-info">
                     <h2>@Model.FullName</h2>
-                    <p>التخصص: @Model.Specialization</p>
-                   @*  <p>التوافر: @Model.Availability</p> *@
+                    <p class="td-hero-specialty"><i class="fas fa-chalkboard-teacher" style="margin-left:6px;"></i>@Model.Specialization</p>
+                    <div class="td-hero-badges">
+                        <span class="td-hero-badge"><i class="fas fa-briefcase"></i> @Model.YearsOfExperience سنوات خبرة</span>
+                        <span class="td-hero-badge"><i class="fas fa-envelope"></i> @Model.Email</span>
+                        @if (!string.IsNullOrEmpty(Model.BusinessLink))
+                        {
+                            <a href="@Model.BusinessLink" target="_blank" class="td-hero-badge" style="text-decoration:none;">
+                                <i class="fas fa-link"></i> الموقع الإلكتروني
+                            </a>
+                        }
+                        <span class="td-hero-badge" style="background:rgba(16,185,129,.3);">
+                            <i class="fas fa-circle" style="font-size:.5rem;"></i> متاح
+                        </span>
+                    </div>
                 </div>
-                <div class="overall-progress">@Model.OverallProgress%</div>
+                <div class="td-hero-actions">
+                    <a asp-controller="Profile" asp-action="Index" class="td-hero-btn td-hero-btn-white">
+                        <i class="fas fa-user-edit"></i> تعديل الملف الشخصي
+                    </a>
+                    <a asp-controller="Certificates" asp-action="Index" class="td-hero-btn td-hero-btn-glass">
+                        <i class="fas fa-certificate"></i> إصدار شهادة
+                    </a>
+                </div>
+                <div class="td-hero-progress">
+                    <div class="td-ring-wrapper">
+                        <svg class="td-ring" viewBox="0 0 80 80">
+                            <circle class="td-ring-bg" cx="40" cy="40" r="34" />
+                            <circle class="td-ring-fill" cx="40" cy="40" r="34"
+                                    style="--pct: @Model.OverallProgress;" />
+                        </svg>
+                        <span class="td-ring-label">@Model.OverallProgress%</span>
+                    </div>
+                    <span class="td-ring-caption">معدل الحضور</span>
+                </div>
             </div>
+        </div>
 
-            <!-- مؤشرات الأداء -->
-            <div class="kpi-grid">
-                <div class="stat-card">
-                    <h4>الدورات الحالية</h4>
-                    <div class="stat-value" id="courses-value">@Model.KPIs.CurrentCourses</div>
-                </div>
-                <div class="stat-card">
-                    <h4>الطلاب المسجلون</h4>
-                    <div class="stat-value" id="students-value">@Model.KPIs.EnrolledStudents</div>
-                </div>
-                <div class="stat-card">
-                    <h4>متوسط الحضور</h4>
-                    <div class="stat-value">@Model.KPIs.AverageAttendance.ToString("F2")%</div>
-                </div>
-                @* <div class="stat-card">
-                    <h4>المهام غير المصححة</h4>
-                    <div class="stat-value">@Model.KPIs.UngradedAssignments</div>
-                </div> *@
-                <div class="stat-card">
-                    <h4>متوسط التقييم</h4>
-                    <div class="stat-value">@Model.KPIs.AverageRating</div>
+        <!-- ③ KPI Cards -->
+        <div class="td-kpi-grid">
+            <div class="td-kpi-card">
+                <div class="td-kpi-icon indigo"><i class="fas fa-book-open"></i></div>
+                <div class="td-kpi-body">
+                    <div class="td-kpi-value">@Model.KPIs.CurrentCourses</div>
+                    <div class="td-kpi-label">الدورات الحالية</div>
+                    <div class="td-kpi-sub">نشط الآن</div>
                 </div>
             </div>
-
-            <!-- الإشعارات -->
-            @* <div class="card">
-                <h3>الإشعارات</h3>
-                <ul class="notification-list">
-                    @foreach (var notif in Model.Notifications)
-                    {
-                        <li>@notif.Message - @notif.Time.ToString("MMM dd, yyyy HH:mm")</li>
-                    }
-                </ul>
-            </div> *@
-
-            <!-- التبويبات -->
-            <div class="tabs">
-                <button id="schedule-btn" class="tab-btn active">الجدول</button>
-                <button id="students-btn" class="tab-btn">إدارة الطلاب</button>
-                <!-- <button id="assignments-btn" class="tab-btn">المهام</button> -->
-                <button id="attendance-btn" class="tab-btn">الحضور</button>
-                <button id="analytics-btn" class="tab-btn">التحليلات والتقارير</button>
-                <!-- <button id="resources-btn" class="tab-btn">الموارد</button> -->
-                <button id="courses-btn" class="tab-btn">الدورات الحالية</button>
-               @*  <button id="recommended-btn" class="tab-btn">الدورات الموصى بها</button> *@
-                <button id="certificates-btn" class="tab-btn">الشهادات المصدرة</button>
+            <div class="td-kpi-card">
+                <div class="td-kpi-icon sky"><i class="fas fa-users"></i></div>
+                <div class="td-kpi-body">
+                    <div class="td-kpi-value">@Model.KPIs.EnrolledStudents</div>
+                    <div class="td-kpi-label">الطلاب المسجلون</div>
+                    <div class="td-kpi-sub">إجمالي الطلاب</div>
+                </div>
             </div>
-
-            <!-- محتوى التبويبات -->
-            <div id="schedule" class="tab-content card active">
-                <h3>الجدول</h3>
-                <div id="calendar"></div>
-                <!-- <button class="btn btn-primary mt-3" onclick="addEvent()">إضافة حدث</button> -->
+            <div class="td-kpi-card">
+                <div class="td-kpi-icon emerald"><i class="fas fa-chart-line"></i></div>
+                <div class="td-kpi-body">
+                    <div class="td-kpi-value">@Model.KPIs.AverageAttendance.ToString("F1")%</div>
+                    <div class="td-kpi-label">متوسط الحضور</div>
+                    <div class="td-kpi-sub">الشهر الماضي</div>
+                </div>
             </div>
+            <div class="td-kpi-card">
+                <div class="td-kpi-icon amber"><i class="fas fa-star"></i></div>
+                <div class="td-kpi-body">
+                    <div class="td-kpi-value">@Model.KPIs.AverageRating.ToString("F1")</div>
+                    <div class="td-kpi-label">متوسط التقييم</div>
+                    <div class="td-kpi-sub">من 5 نجوم</div>
+                </div>
+            </div>
+        </div>
 
-            <div id="students" class="tab-content card">
-                <h3>إدارة الطلاب</h3>
-                @foreach (var course in Model.StudentsByCourse)
+        <!-- ④ Two-column Row: Courses + Upcoming Events -->
+        <div class="td-row">
+            <!-- Active Courses -->
+            <div class="td-card">
+                <p class="td-card-title"><i class="fas fa-graduation-cap"></i> الدورات الحالية</p>
+                @if (Model.CurrentCourses.Any())
                 {
-                    <h4>الدورة: @course.Value[0].CourseName</h4>
-                    <table class="students-table">
-                        <thead>
-                            <tr>
-                                <th>الاسم</th>
-                                <th>حالة الحضور</th>
-                                <th>الدرجة</th>
-                                <th>معلومات التواصل</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var student in course.Value)
-                            {
-                                <tr>
-                                    <td>@student.Name</td>
-                                    <td>@student.AttendanceStatus</td>
-                                    <td>@student.Grade</td>
-                                    <td>@student.Contact</td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                }
-            </div>
-
-            <!-- <div id="assignments" class="tab-content card">
-                <h3>المهام</h3>
-                <button class="btn btn-primary mb-3" onclick="createAssignment()">إنشاء مهمة</button>
-                <ul class="course-list">
-            @foreach (var assign in Model.Assignments)
-            {
-                            <li>@assign.Title - الموعد النهائي: @assign.DueDate.ToString("MMM dd, yyyy") - النوع: @assign.Type</li>
-            }
-                </ul>
-            </div> -->
-
-            <div id="attendance" class="tab-content card">
-                <h3>الحضور</h3>
-                <button class="btn btn-primary mb-3" onclick="viewTraineeAttendance('47b0f901-d4d2-44a9-a045-6ea12d20c590', 'fdb196c0-9c76-429b-8ef3-45f94b93798f')">عرض تقرير حضور المتدرب المحدد</button>
-                <div id="attendance-report" class="attendance-report" style="display: none;"></div>
-                @foreach (var course in Model.StudentsByCourse)
-                {
-                    <h4>الدورة: @course.Value[0].CourseName</h4>
-                    <table class="students-table">
-                        <thead>
-                            <tr>
-                                <th>اسم المتدرب</th>
-                                <th>الإجراءات</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var student in course.Value)
-                            {
-                                <tr>
-                                    <td>@student.Name</td>
-                                    <td>
-                                        <a href="@Url.Action("TraineeAttendanceInCourse", "Presences",
-                                     new { traineeId = student.Id, courseId = course.Key })">
-                                            عرض تقرير الحضور
-                                        </a>
-                                    </td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                }
-            </div>
-
-            <div id="analytics" class="tab-content card">
-                <h3>التحليلات والتقارير</h3>
-                <canvas id="analytics-chart"></canvas>
-                <div class="loader" id="analytics-loader"></div>
-                <!-- <button class="btn btn-primary mt-3" onclick="exportReport('pdf')">تصدير PDF</button>
-                <button class="btn btn-primary mt-3" onclick="exportReport('excel')">تصدير Excel</button> -->
-            </div>
-
-            <!-- <div id="resources" class="tab-content card">
-                <h3>الموارد</h3>
-                <button class="btn btn-primary mb-3" onclick="uploadResource()">رفع مورد</button>
-                <ul class="course-list">
-            @foreach (var res in Model.Resources)
-            {
-                            <li><a href="@res.Url">@res.Name (@res.Type)</a></li>
-            }
-                </ul>
-            </div> -->
-
-            <div id="courses" class="tab-content card">
-                <h3>الدورات الحالية</h3>
-                <ul class="course-list">
                     @foreach (var course in Model.CurrentCourses)
                     {
-                        <li>
-                            <div>
-                                <strong>@course.Name</strong>
-                                <div class="progress-bar"><div class="progress-fill" style="width: @course.Progress%"></div></div>
-                                <small>@course.Remaining</small>
+                        <div class="td-course-item">
+                            <div class="td-course-icon"><i class="fas fa-book"></i></div>
+                            <div class="td-course-info">
+                                <div class="td-course-name">@course.Name</div>
+                                <div class="td-progress-bar">
+                                    <div class="td-progress-fill" style="width:@course.Progress%"></div>
+                                </div>
+                                <div class="td-course-meta">@course.Progress% اكتمال · @course.Remaining</div>
                             </div>
-                            <button class="btn btn-primary" onclick="manageCourse('@course.Id')">إدارة</button>
-                        </li>
-                    }
-                </ul>
-            </div>
-
-           @*  <div id="recommended" class="tab-content card">
-                <h3>الدورات الموصى بها</h3>
-                <div class="recommended-courses">
-                    @foreach (var course in Model.RecommendedCourses)
-                    {
-                        <div class="recommended-card">
-                            <h5>@course.Name</h5>
-                            <p>@course.Description</p>
-                            <button class="btn btn-success" onclick="assignCourse('@course.Id')">تعيين</button>
+                            <a href="/Courses/Details/@course.Id" class="td-course-manage">إدارة</a>
                         </div>
                     }
-                </div>
-            </div> *@
+                }
+                else
+                {
+                    <div class="td-empty"><i class="fas fa-book-open"></i> لا توجد دورات حالية</div>
+                }
+            </div>
 
-            <div id="certificates" class="tab-content card">
-                <h3>الشهادات المصدرة</h3>
-                <div class="certificates-list">
-                    @foreach (var cert in Model.Certificates)
+            <!-- Upcoming Events -->
+            <div class="td-card">
+                <p class="td-card-title"><i class="fas fa-calendar-alt"></i> الأحداث القادمة</p>
+                @if (Model.UpcomingEvents.Any())
+                {
+                    @foreach (var ev in Model.UpcomingEvents)
                     {
-                        <div class="certificate-card">
-                            <h5>@cert.Name</h5>
-                            <button class="issue-btn" onclick="viewCertificate('@cert.Id')">عرض</button>
+                        var evDate = DateTime.TryParse(ev.Date, out var d) ? d : DateTime.MinValue;
+                        <div class="td-event-item">
+                            <div class="td-event-date">
+                                <div class="day">@(evDate != DateTime.MinValue ? evDate.Day.ToString() : "-")</div>
+                                <div class="mon">@(evDate != DateTime.MinValue ? evDate.ToString("MMM") : "")</div>
+                            </div>
+                            <div class="td-event-body">
+                                <div class="td-event-title">@ev.Title</div>
+                                <span class="td-event-type lecture"><i class="fas fa-clock" style="margin-left:3px;font-size:.65rem;"></i>@(evDate != DateTime.MinValue ? evDate.ToString("HH:mm") : ev.Date)</span>
+                            </div>
                         </div>
                     }
+                }
+                else
+                {
+                    <div class="td-empty"><i class="fas fa-calendar-check"></i> لا توجد أحداث قادمة</div>
+                }
+            </div>
+        </div>
+
+        <!-- Quick Actions Row -->
+        <div class="td-card" style="margin-bottom:24px;">
+            <p class="td-card-title"><i class="fas fa-bolt"></i> الإجراءات السريعة</p>
+            <div class="td-quick-actions">
+                <a asp-controller="Lectures" asp-action="Index" class="td-qa-btn q1">
+                    <i class="fas fa-chalkboard-teacher"></i> المحاضرات
+                </a>
+                <a asp-controller="Exams" asp-action="Index" class="td-qa-btn q2">
+                    <i class="fas fa-file-alt"></i> الامتحانات
+                </a>
+                <a asp-controller="Presences" asp-action="Index" class="td-qa-btn q3">
+                    <i class="fas fa-clipboard-check"></i> سجل الحضور
+                </a>
+                <a asp-controller="Certificates" asp-action="Index" class="td-qa-btn q4">
+                    <i class="fas fa-certificate"></i> الشهادات
+                </a>
+                <a asp-controller="Exams" asp-action="QuestionBank" class="td-qa-btn q5">
+                    <i class="fas fa-database"></i> بنك الأسئلة
+                </a>
+                <a asp-controller="Chat" asp-action="Index" class="td-qa-btn q6">
+                    <i class="fas fa-comments"></i> المحادثات
+                </a>
+            </div>
+        </div>
+
+        <!-- ⑤ Tabbed Section -->
+        <div class="td-tabs-wrapper">
+            <div class="td-tabs-nav">
+                <button class="td-tab-btn active" data-tab="tab-calendar">
+                    <i class="fas fa-calendar-alt"></i> الجدول
+                </button>
+                <button class="td-tab-btn" data-tab="tab-students">
+                    <i class="fas fa-users"></i> الطلاب
+                </button>
+                <button class="td-tab-btn" data-tab="tab-attendance">
+                    <i class="fas fa-clipboard-check"></i> الحضور
+                </button>
+                <button class="td-tab-btn" data-tab="tab-analytics">
+                    <i class="fas fa-chart-bar"></i> التحليلات
+                </button>
+                <button class="td-tab-btn" data-tab="tab-certificates">
+                    <i class="fas fa-certificate"></i> الشهادات
+                </button>
+            </div>
+
+            <!-- Calendar Tab -->
+            <div id="tab-calendar" class="td-tab-content active">
+                <div id="td-calendar"></div>
+            </div>
+
+            <!-- Students Tab -->
+            <div id="tab-students" class="td-tab-content">
+                <div class="td-search-bar">
+                    <i class="fas fa-search" style="color:var(--text-3);"></i>
+                    <input type="text" id="student-search" placeholder="ابحث عن طالب..." oninput="filterStudents(this.value)" />
+                </div>
+                @if (Model.StudentsByCourse.Any())
+                {
+                    @foreach (var course in Model.StudentsByCourse)
+                    {
+                        <div class="td-course-section-title">@(course.Value.FirstOrDefault()?.CourseName ?? "دورة")</div>
+                        <table class="td-table">
+                            <thead>
+                                <tr>
+                                    <th>الطالب</th>
+                                    <th>حالة الحضور</th>
+                                    <th>معلومات التواصل</th>
+                                    <th>تقرير الحضور</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var student in course.Value)
+                                {
+                                    var pct = 0;
+                                    var badgeClass = "td-badge-yellow";
+                                    if (student.AttendanceStatus.Contains("%"))
+                                    {
+                                        var numStr = student.AttendanceStatus.Split('%')[0].Trim();
+                                        int.TryParse(numStr, out pct);
+                                        badgeClass = pct >= 75 ? "td-badge-green" : pct >= 50 ? "td-badge-yellow" : "td-badge-red";
+                                    }
+                                    <tr class="student-row">
+                                        <td>
+                                            <div style="display:flex;align-items:center;gap:8px;">
+                                                <div class="td-att-avatar">@(student.Name?.Length > 0 ? student.Name[0].ToString() : "؟")</div>
+                                                @student.Name
+                                            </div>
+                                        </td>
+                                        <td><span class="td-badge @badgeClass">@student.AttendanceStatus</span></td>
+                                        <td style="color:var(--text-2);">@(student.Contact ?? "—")</td>
+                                        <td>
+                                            <a asp-controller="Presences" asp-action="TraineeAttendanceInCourse"
+                                               asp-route-traineeId="@student.Id" asp-route-courseId="@course.Key"
+                                               class="td-att-link">
+                                                <i class="fas fa-eye" style="margin-left:4px;"></i>عرض
+                                            </a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                }
+                else
+                {
+                    <div class="td-empty"><i class="fas fa-users"></i> لا يوجد طلاب مسجلون حالياً</div>
+                }
+            </div>
+
+            <!-- Attendance Tab -->
+            <div id="tab-attendance" class="td-tab-content">
+                @if (Model.StudentsByCourse.Any())
+                {
+                    @foreach (var course in Model.StudentsByCourse)
+                    {
+                        <div class="td-course-section-title">@(course.Value.FirstOrDefault()?.CourseName ?? "دورة")</div>
+                        @foreach (var student in course.Value)
+                        {
+                            <div class="td-att-row">
+                                <div class="td-att-avatar">@(student.Name?.Length > 0 ? student.Name[0].ToString() : "؟")</div>
+                                <div>
+                                    <div class="td-att-name">@student.Name</div>
+                                    <div class="td-att-course">@student.AttendanceStatus</div>
+                                </div>
+                                <a asp-controller="Presences" asp-action="TraineeAttendanceInCourse"
+                                   asp-route-traineeId="@student.Id" asp-route-courseId="@course.Key"
+                                   class="td-att-link">
+                                    <i class="fas fa-chart-bar" style="margin-left:4px;"></i>تقرير تفصيلي
+                                </a>
+                            </div>
+                        }
+                    }
+                }
+                else
+                {
+                    <div class="td-empty"><i class="fas fa-clipboard-check"></i> لا توجد بيانات حضور</div>
+                }
+            </div>
+
+            <!-- Analytics Tab -->
+            <div id="tab-analytics" class="td-tab-content">
+                <div class="td-chart-wrapper">
+                    <canvas id="td-analytics-chart"></canvas>
                 </div>
             </div>
-        </main>
-    </div>
 
-    <script>
-        // التأكد من أن dashboardData ليس null
-        const dashboardData = @Html.Raw(JsonConvert.SerializeObject(Model)) || {};
-        const translations = {
-            coursesTeaching: 'الدورات الحالية',
-            activeStudents: 'الطلاب المسجلون',
-            issuedCertificates: 'الشهادات المصدرة',
-            upcomingEvents: 'الأحداث القادمة',
-            attendance: 'الحضور'
-        };
-
-        let charts = {};
-
-        // تحديث الإحصائيات
-        function updateStats(stats) {
-            console.log('Updating stats:', stats);
-            const coursesValue = document.getElementById('courses-value');
-            const studentsValue = document.getElementById('students-value');
-            const certificatesValue = document.getElementById('certificates-value');
-            const eventsValue = document.getElementById('events-value');
-
-            if (coursesValue && stats.TotalProgress !== undefined) {
-                coursesValue.textContent = stats.TotalProgress;
-            }
-            if (studentsValue && stats.CurrentCourses !== undefined) {
-                studentsValue.textContent = stats.CurrentCourses;
-            }
-            if (certificatesValue && stats.Certificates !== undefined) {
-                certificatesValue.textContent = stats.Certificates;
-            }
-            if (eventsValue && stats.UpcomingEvents !== undefined) {
-                eventsValue.textContent = stats.UpcomingEvents;
-            }
-        }
-
-        // عرض الرسم البياني
-        function renderChart(tabId) {
-            // التحقق من أن التبويب هو "التحليلات والتقارير"
-            if (tabId !== 'analytics') return;
-
-            // جلب عنصر الرسم البياني (canvas) وعنصر الـ loader
-            const canvas = document.getElementById('analytics-chart');
-            const loader = document.getElementById('analytics-loader');
-            if (!canvas || !loader) {
-                console.error('Analytics chart or loader not found');
-                return;
-            }
-
-            // إظهار الـ loader أثناء تحميل الرسم البياني
-            loader.style.display = 'block';
-
-            // تسجيل البيانات للتصحيح
-            console.log('dashboardData:', dashboardData);
-            console.log('ChartData:', dashboardData?.ChartData);
-            console.log('Analytics:', dashboardData?.ChartData?.Analytics);
-
-            // التحقق من وجود dashboardData وChartData وAnalytics
-            if (!dashboardData || !dashboardData.ChartData || !dashboardData.ChartData.Analytics) {
-                console.error('Chart data is not available');
-                loader.style.display = 'none';
-                canvas.style.display = 'none';
-                const errorDiv = document.createElement('div');
-                errorDiv.textContent = 'البيانات غير متوفرة. يرجى المحاولة لاحقًا.';
-                canvas.parentNode.appendChild(errorDiv);
-                return;
-            }
-
-            // جلب بيانات الرسم البياني مع توفير قيم افتراضية
-            let chartData = dashboardData.ChartData.Analytics;
-            let labels = (chartData.Labels || []).slice(-5); // تحديد آخر 5 تسميات
-            let values = (chartData.Values || []).slice(-5).map(v => isNaN(v) ? 0 : Number(v)); // تحويل القيم إلى أرقام
-
-            // تدمير الرسم البياني السابق إذا كان موجودًا
-            if (charts.analytics) {
-                charts.analytics.destroy();
-            }
-
-            // إنشاء الرسم البياني باستخدام Chart.js
-            const ctx = canvas.getContext('2d');
-            try {
-                charts.analytics = new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                        labels: labels,
-                        datasets: [{
-                            label: translations.attendance,
-                            data: values,
-                            borderColor: '#007bff',
-                            backgroundColor: window.matchMedia('(prefers-color-scheme: dark)').matches
-                                ? 'rgba(0, 123, 255, 0.3)'
-                                : 'rgba(0, 123, 255, 0.1)',
-                            fill: true,
-                            tension: 0.4
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                title: {
-                                    display: true,
-                                    text: 'نسبة الحضور (%)'
-                                }
-                            },
-                            x: {
-                                title: {
-                                    display: true,
-                                    text: 'الأسابيع'
-                                }
-                            }
-                        },
-                        plugins: {
-                            legend: { display: true, position: 'top' },
-                            title: {
-                                display: true,
-                                text: 'تحليلات الحضور الأسبوعية'
-                            }
+            <!-- Certificates Tab -->
+            <div id="tab-certificates" class="td-tab-content">
+                @if (Model.Certificates.Any())
+                {
+                    <div class="td-cert-grid">
+                        @foreach (var cert in Model.Certificates)
+                        {
+                            <div class="td-cert-card">
+                                <i class="fas fa-certificate"></i>
+                                <div class="td-cert-name">@cert.Name</div>
+                                <a href="/Certificates/Details/@cert.Id">عرض</a>
+                            </div>
                         }
-                    }
-                });
-            } catch (error) {
-                console.error('Error rendering chart:', error);
-                canvas.style.display = 'none';
-                const errorDiv = document.createElement('div');
-                errorDiv.textContent = 'فشل عرض الرسم البياني. يرجى المحاولة لاحقًا.';
-                canvas.parentNode.appendChild(errorDiv);
-            }
-
-            // إخفاء الـ loader بعد إنشاء الرسم البياني
-            loader.style.display = 'none';
-        }
-
-        // إعداد التقويم والتبويبات
-        document.addEventListener('DOMContentLoaded', function () {
-            console.log('DOM fully loaded');
-
-            // إعداد التقويم
-            const calendarEl = document.getElementById('calendar');
-            if (calendarEl) {
-                const calendar = new FullCalendar.Calendar(calendarEl, {
-                    initialView: 'dayGridMonth',
-                    events: @Html.Raw(JsonConvert.SerializeObject(Model.ScheduleEvents.Select(e => new
-            {
-                id = e.Id,
-                title = e.Title,
-                start = e.Start.ToString("o"),
-                end = e.End.ToString("o"),
-                url = e.Link
-            }))),
-                    eventClick: function(info) {
-                        if (info.event.url) {
-                            window.open(info.event.url, '_blank');
-                            info.jsEvent.preventDefault();
-                        }
-                    }
-                });
-                calendar.render();
-            } else {
-                console.error('Calendar element not found');
-            }
-
-            // إعداد التبويبات
-            const tabs = [
-                { btnId: 'schedule-btn', tabId: 'schedule' },
-                { btnId: 'students-btn', tabId: 'students' },
-                { btnId: 'attendance-btn', tabId: 'attendance' },
-                { btnId: 'analytics-btn', tabId: 'analytics' },
-                { btnId: 'courses-btn', tabId: 'courses' },
-                { btnId: 'recommended-btn', tabId: 'recommended' },
-                { btnId: 'certificates-btn', tabId: 'certificates' }
-                // { btnId: 'assignments-btn', tabId: 'assignments' }, // مشروط في HTML
-                // { btnId: 'resources-btn', tabId: 'resources' } // مشروط في HTML
-            ];
-
-            tabs.forEach(tab => {
-                const button = document.getElementById(tab.btnId);
-                const content = document.getElementById(tab.tabId);
-                if (!button) {
-                    console.error(`Button with ID ${tab.btnId} not found`);
-                    return;
+                    </div>
                 }
-                if (!content) {
-                    console.error(`Tab content with ID ${tab.tabId} not found`);
-                    return;
+                else
+                {
+                    <div class="td-empty"><i class="fas fa-certificate"></i> لم يتم إصدار شهادات بعد</div>
                 }
-                button.addEventListener('click', () => {
-                    console.log(`Clicked tab: ${tab.btnId}`);
-                    tabs.forEach(t => {
-                        const btn = document.getElementById(t.btnId);
-                        const cont = document.getElementById(t.tabId);
-                        if (btn && cont) {
-                            btn.classList.remove('active');
-                            cont.classList.remove('active');
-                        }
-                    });
-                    button.classList.add('active');
-                    content.classList.add('active');
-                    renderChart(tab.tabId);
-                });
+            </div>
+        </div>
+
+    </main>
+</div>
+
+<script>
+    // ─── Tab switching ───────────────────────────────────────────────────────────
+    document.querySelectorAll('.td-tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.td-tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.td-tab-content').forEach(c => c.classList.remove('active'));
+            btn.classList.add('active');
+            const target = document.getElementById(btn.dataset.tab);
+            if (target) target.classList.add('active');
+            if (btn.dataset.tab === 'tab-analytics') renderAnalyticsChart();
+        });
+    });
+
+    // ─── FullCalendar ────────────────────────────────────────────────────────────
+    document.addEventListener('DOMContentLoaded', function () {
+        const calEl = document.getElementById('td-calendar');
+        if (calEl) {
+            const calendar = new FullCalendar.Calendar(calEl, {
+                initialView: 'dayGridMonth',
+                direction: 'rtl',
+                locale: 'ar',
+                height: 460,
+                headerToolbar: {
+                    start: 'prev,next today',
+                    center: 'title',
+                    end: 'dayGridMonth,timeGridWeek,listWeek'
+                },
+                buttonText: { today: 'اليوم', month: 'شهر', week: 'أسبوع', list: 'قائمة' },
+                events: @Html.Raw(JsonConvert.SerializeObject(Model.ScheduleEvents.Select(e => new
+                {
+                    id = e.Id,
+                    title = e.Title,
+                    start = e.Start.ToString("o"),
+                    end = e.End.ToString("o"),
+                    color = e.Type == "Exam" ? "#be185d" : "#4f46e5",
+                    url = e.Link
+                }))),
+                eventClick: function (info) {
+                    if (info.event.url) {
+                        window.open(info.event.url, '_blank');
+                        info.jsEvent.preventDefault();
+                    }
+                }
             });
+            calendar.render();
+        }
+    });
 
-            // تحديث البيانات الأولية
-            if (dashboardData && dashboardData.Stats) {
-                updateStats(dashboardData.Stats);
-            } else {
-                console.warn('dashboardData or Stats not available');
+    // ─── Analytics Chart ─────────────────────────────────────────────────────────
+    let analyticsChart = null;
+    function renderAnalyticsChart() {
+        const canvas = document.getElementById('td-analytics-chart');
+        if (!canvas) return;
+        const chartData = @Html.Raw(JsonConvert.SerializeObject(Model.ChartData));
+        if (!chartData?.Analytics) return;
+        const labels = chartData.Analytics.Labels || [];
+        const values = (chartData.Analytics.Values || []).map(v => isNaN(v) ? 0 : Number(v));
+
+        if (analyticsChart) analyticsChart.destroy();
+        analyticsChart = new Chart(canvas.getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'نسبة الحضور (%)',
+                    data: values,
+                    borderColor: '#4f46e5',
+                    backgroundColor: 'rgba(79,70,229,.1)',
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: '#4f46e5',
+                    pointRadius: 5
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: true, position: 'top' },
+                    title: { display: true, text: 'تحليلات الحضور الأسبوعية' }
+                },
+                scales: {
+                    y: { beginAtZero: true, max: 100, title: { display: true, text: '%' } },
+                    x: { title: { display: true, text: 'الأسابيع' } }
+                }
             }
         });
+    }
 
-        // دالة جلب تقرير الحضور عبر AJAX
-        async function viewTraineeAttendance(courseId, traineeId) {
-            console.log(`جلب تقرير حضور المتدرب ${traineeId} في الدورة ${courseId}`);
-            const reportDiv = document.getElementById('attendance-report');
-            const loader = document.createElement('div');
-            loader.className = 'loader';
-            reportDiv.innerHTML = '';
-            reportDiv.appendChild(loader);
-            reportDiv.style.display = 'block';
-
-            try {
-                console.log(`/Presences/TraineeAttendanceInCourse/${traineeId}/${courseId}`);
-                const response = await fetch(`/Presences/TraineeAttendanceInCourse/${traineeId}/${courseId}`);
-
-                if (!response.ok) {
-                    console.error(`فشل جلب تقرير الحضور: ${response.status} ${response.statusText}`);
-                    if (response.status === 404) {
-                        alert('الدورة أو المتدرب غير موجود. يرجى التحقق من البيانات.');
-                    } else if (response.status === 401 || response.status === 403) {
-                        alert('غير مصرح لك بالوصول إلى تقرير الحضور. يرجى تسجيل الدخول كمدرب.');
-                    } else {
-                        alert(`خطأ في جلب تقرير الحضور: ${response.statusText}`);
-                    }
-                    reportDiv.style.display = 'none';
-                    return;
-                }
-
-                const data = await response.json();
-                console.log('البيانات المستلمة:', data);
-                reportDiv.innerHTML = `
-                    <h4>تقرير حضور المتدرب</h4>
-                    <p><strong>المتدرب:</strong> ${data.traineeName}</p>
-                    <p><strong>الدورة:</strong> ${data.courseName}</p>
-                    <p><strong>عدد المحاضرات التي حضرها:</strong> ${data.attended}</p>
-                    <p><strong>إجمالي المحاضرات:</strong> ${data.totalLectures}</p>
-                    <p><strong>نسبة الحضور:</strong> ${data.percentage}%</p>
-                `;
-            } catch (error) {
-                console.error('خطأ في جلب تقرير الحضور:', error);
-                alert('حدث خطأ أثناء جلب تقرير الحضور. يرجى المحاولة لاحقًا.');
-                reportDiv.style.display = 'none';
-            }
-        }
-
-        // دوال الإجراءات
-        function manageCourse(id) {
-            console.log(`إدارة الدورة ${id}`);
-            window.location.href = `/Courses/Details/${id}`;
-        }
-
-        // function assignCourse(id) {
-        //     console.log(`تعيين الدورة ${id}`);
-        //     window.location.href = `/Courses/Assign/${id}`;
-        // }
-
-        function viewCertificate(id) {
-            console.log(`عرض الشهادة ${id}`);
-            window.location.href = `/Certificates/Details/${id}`;
-        }
-
-        function addEvent() {
-            console.log('إضافة حدث جديد');
-            window.location.href = `/Events/Create`;
-        }
-
-        function createAssignment() {
-            console.log('إنشاء مهمة جديدة');
-            window.location.href = `/Assignments/Create`;
-        }
-
-        function uploadResource() {
-            console.log('رفع مورد جديد');
-            window.location.href = `/Resources/Upload`;
-        }
-
-        function exportReport(format) {
-            console.log(`تصدير تقرير بصيغة ${format}`);
-            const courseId = dashboardData.currentCourseId || '00000000-0000-0000-0000-000000000000';
-            if (format === 'pdf') {
-                window.location.href = `/Courses/ExportPdf/${courseId}`;
-            } else if (format === 'excel') {
-                window.location.href = `/Courses/CourseAttendance/${courseId}`;
-            }
-        }
-    </script>
-</body>
+    // ─── Student Search ──────────────────────────────────────────────────────────
+    function filterStudents(query) {
+        const q = query.toLowerCase();
+        document.querySelectorAll('.student-row').forEach(row => {
+            const name = row.querySelector('td')?.textContent?.toLowerCase() || '';
+            row.style.display = name.includes(q) ? '' : 'none';
+        });
+    }
+</script>

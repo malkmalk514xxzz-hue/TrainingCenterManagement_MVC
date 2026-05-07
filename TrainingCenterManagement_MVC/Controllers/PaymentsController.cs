@@ -134,7 +134,16 @@ namespace TrainingCenterManagement_MVC.Controllers
                 .FirstOrDefaultAsync(t => t.TraineeId == payment.TraineeId);
 
             var traineeName = trainee?.User?.FullName ?? "متدرب";
-            var notificationMessage = $"تم استلام دفعة بقيمة {payment.TotalAmount} ريال من {traineeName} لدورة {course.CourseName}";
+            var currencyLabel = payment.Currency switch
+            {
+                PaymentCurrency.USD => "USD",
+                PaymentCurrency.EUR => "EUR",
+                PaymentCurrency.EGP => "ج.م",
+                _                   => "ر.س"
+            };
+            var paymentDate  = payment.CreatedDate.ToString("dd/MM/yyyy");
+            var notificationTitle   = "إيداع دفعة مالية جديدة";
+            var notificationMessage = $"الطالب: {traineeName} | المبلغ: {payment.TotalAmount:N0} {currencyLabel} | الدورة: {course.CourseName} | التاريخ: {paymentDate}";
 
             var adminUsers = await _context.Users
                 .Where(u => u.Role == RoleType.Admin)
@@ -144,7 +153,7 @@ namespace TrainingCenterManagement_MVC.Controllers
             {
                 NotificationId = Guid.NewGuid(),
                 UserId = admin.Id,
-                Title = "دفعة جديدة",
+                Title = notificationTitle,
                 Message = notificationMessage,
                 Type = NotificationType.PaymentReceived,
                 IsRead = false,
@@ -168,7 +177,7 @@ namespace TrainingCenterManagement_MVC.Controllers
                     {
                         await _hubContext.Clients.Client(connId).SendAsync(
                             "ReceiveSystemNotification",
-                            "دفعة جديدة",
+                            notificationTitle,
                             notificationMessage);
                     }
                 }

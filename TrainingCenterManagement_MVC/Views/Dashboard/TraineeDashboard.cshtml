@@ -1,569 +1,664 @@
-﻿@using TrainingCenterManagement_MVC.Resources
-@using Newtonsoft.Json
 @using TrainingCenterManagement_MVC.ViewModels
+@using Newtonsoft.Json
 @model TraineeDashboardViewModel
 
 @{
-    ViewData["Title"] = SharedResource.TraineeDashboard_Title;
+    ViewData["Title"] = "لوحة تحكم الطالب";
+    var today = DateTime.Now.ToString("dddd، d MMMM yyyy", new System.Globalization.CultureInfo("ar-SA"));
+    var avatarChar = Model.FullName?.Length > 0 ? Model.FullName[0].ToString() : "T";
 }
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link href="~/css/TraineeDashboard.css" rel="stylesheet" />
+
 <style>
-    .dashboard-wrapper {
-        display: flex;
-        direction: @((System.Threading.Thread.CurrentThread.CurrentUICulture.TextInfo.IsRightToLeft ? "rtl" : "ltr"));
+    /* ===== Design Tokens ===== */
+    :root {
+        --primary: #0d9488;
+        --primary-light: #14b8a6;
+        --primary-pale: #f0fdfa;
+        --secondary: #6366f1;
+        --success: #10b981;
+        --warning: #f59e0b;
+        --danger: #ef4444;
+        --body-bg: #f1f5f9;
+        --card-bg: #ffffff;
+        --text-1: #0f172a;
+        --text-2: #475569;
+        --text-3: #94a3b8;
+        --border-color: #e2e8f0;
+        --shadow-sm: 0 1px 3px rgba(0,0,0,.08);
+        --shadow-md: 0 4px 16px rgba(0,0,0,.08);
+        --shadow-lg: 0 8px 32px rgba(0,0,0,.12);
+        --radius: 14px;
+        --radius-sm: 8px;
+        --transition: .2s ease;
     }
 
     .dashboard-main {
-        flex-grow: 1;
-        padding: 20px;
+        flex: 1;
+        background: var(--body-bg);
+        padding: 28px 32px;
+        min-height: 100vh;
+        overflow-y: auto;
+        direction: rtl;
+        font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
     }
 
-    .dashboard-header {
+    /* ===== Welcome Header ===== */
+    .td-header {
         display: flex;
         align-items: center;
-        margin-bottom: 20px;
-    }
-
-    .profile-picture {
-        width: 60px;
-        height: 60px;
-        border-radius: 50%;
-        margin-right: 15px;
-    }
-
-    .welcome-message {
-        font-size: 18px;
-        color: #555;
-    }
-
-    .overall-progress {
-        margin-left: auto;
-        font-size: 24px;
-        font-weight: bold;
-        color: #007bff;
-    }
-
-    .dashboard-stats {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-        gap: 15px;
-        margin-bottom: 20px;
-    }
-
-    .stat-card {
-        background: #fff;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        padding: 15px;
-        text-align: center;
-    }
-
-    .stat-value {
-        font-size: 20px;
-        font-weight: bold;
-        color: #007bff;
-    }
-
-    .tabs {
-        display: flex;
-        gap: 10px;
-        margin-bottom: 20px;
-    }
-
-    .tab-btn {
-        padding: 10px 20px;
-        border: none;
-        background: #f1f1f1;
-        cursor: pointer;
-        border-radius: 5px;
-    }
-
-        .tab-btn.active {
-            background: #007bff;
-            color: #fff;
-        }
-
-    .tab-content {
-        display: none;
-    }
-
-        .tab-content.active {
-            display: block;
-        }
-
-    .card {
-        background: #fff;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        padding: 20px;
-        margin-bottom: 20px;
-    }
-
-    .progress-bar {
-        background-color: #e9ecef;
-        border-radius: 5px;
-        height: 10px;
-        margin-top: 5px;
-    }
-
-    .progress-fill {
-        background-color: #28a745;
-        height: 100%;
-        border-radius: 5px;
-    }
-
-    .course-list {
-        list-style: none;
-        padding: 0;
-    }
-
-        .course-list li {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-
-    .resume-btn {
-        padding: 5px 10px;
-        background: #007bff;
-        color: #fff;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-    }
-
-    .recommended-courses {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 15px;
-    }
-
-    .recommended-card {
-        background: #fff;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        padding: 15px;
-        text-align: center;
-    }
-
-    .enroll-btn {
-        margin-top: 10px;
-        padding: 5px 10px;
-        background: #28a745;
-        color: #fff;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-    }
-
-    .upcoming-events {
-        list-style: none;
-        padding: 0;
-    }
-
-        .upcoming-events li {
-            margin-bottom: 10px;
-            padding: 10px;
-            background: #f8f9fa;
-            border-radius: 5px;
-        }
-    <!-- إضافة خط Roboto -->
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet" >
-
-    .certificates-list {
-        display: flex;
+        justify-content: space-between;
+        margin-bottom: 24px;
         flex-wrap: wrap;
-        gap: 10px;
+        gap: 12px;
     }
-
-    .certificate-card {
-        background: #fff;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        padding: 10px;
-        width: 150px;
-        text-align: center;
+    .td-header h1 { font-size: 1.5rem; font-weight: 700; color: var(--text-1); margin: 0 0 2px; }
+    .td-header p  { font-size: .875rem; color: var(--text-2); margin: 0; }
+    .td-header-actions { display: flex; gap: 10px; align-items: center; }
+    .td-btn {
+        display: inline-flex; align-items: center; gap: 6px;
+        padding: 9px 18px; border-radius: var(--radius-sm);
+        font-size: .875rem; font-weight: 600; cursor: pointer;
+        text-decoration: none; border: none; transition: var(--transition);
     }
+    .td-btn-primary { background: var(--primary); color: #fff; }
+    .td-btn-primary:hover { background: var(--primary-light); color: #fff; }
+    .td-btn-outline { background: #fff; color: var(--text-1); border: 1.5px solid var(--border-color); }
+    .td-btn-outline:hover { border-color: var(--primary); color: var(--primary); }
 
-    .download-btn {
-        margin-top: 5px;
-        padding: 5px 10px;
-        background: #ffc107;
-        color: #000;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
+    /* ===== Hero Card ===== */
+    .td-hero {
+        background: linear-gradient(135deg, #0d9488 0%, #0891b2 50%, #6366f1 100%);
+        border-radius: var(--radius);
+        padding: 32px;
+        margin-bottom: 24px;
+        position: relative;
+        overflow: hidden;
+        box-shadow: var(--shadow-lg);
     }
-
-    .loader {
-        border: 4px solid #f3f3f3;
-        border-top: 4px solid #007bff;
-        border-radius: 50%;
-        width: 30px;
-        height: 30px;
-        animation: spin 1s linear infinite;
-        margin: 20px auto;
-        display: none;
+    .td-hero::before {
+        content: '';
+        position: absolute; top: -60px; right: -60px;
+        width: 220px; height: 220px;
+        background: rgba(255,255,255,.07); border-radius: 50%;
     }
+    .td-hero::after {
+        content: '';
+        position: absolute; bottom: -80px; left: -40px;
+        width: 280px; height: 280px;
+        background: rgba(255,255,255,.05); border-radius: 50%;
+    }
+    .td-hero-inner {
+        display: flex; align-items: center; gap: 24px;
+        position: relative; z-index: 1; flex-wrap: wrap;
+    }
+    .td-hero-avatar {
+        width: 100px; height: 100px; border-radius: 50%;
+        border: 4px solid rgba(255,255,255,.7);
+        object-fit: cover; flex-shrink: 0;
+        box-shadow: 0 4px 12px rgba(0,0,0,.2);
+    }
+    .td-hero-info { flex: 1; color: #fff; }
+    .td-hero-info h2 { font-size: 1.75rem; font-weight: 700; margin: 0 0 4px; }
+    .td-hero-info .td-hero-sub { font-size: .9rem; opacity: .9; margin: 0 0 12px; }
+    .td-hero-badges { display: flex; gap: 10px; flex-wrap: wrap; }
+    .td-hero-badge {
+        display: inline-flex; align-items: center; gap: 5px;
+        background: rgba(255,255,255,.2); backdrop-filter: blur(8px);
+        border-radius: 30px; padding: 4px 14px;
+        font-size: .8rem; color: #fff; font-weight: 500;
+        text-decoration: none;
+    }
+    .td-hero-actions { display: flex; flex-direction: column; gap: 10px; z-index: 1; }
+    .td-hero-btn {
+        display: inline-flex; align-items: center; gap: 6px;
+        padding: 9px 20px; border-radius: var(--radius-sm);
+        font-size: .85rem; font-weight: 600; text-decoration: none;
+        border: none; cursor: pointer; white-space: nowrap; transition: var(--transition);
+    }
+    .td-hero-btn-white { background: #fff; color: var(--primary); }
+    .td-hero-btn-white:hover { background: #f0fdfa; }
+    .td-hero-btn-glass {
+        background: rgba(255,255,255,.2); backdrop-filter: blur(8px);
+        color: #fff; border: 1.5px solid rgba(255,255,255,.4);
+    }
+    .td-hero-btn-glass:hover { background: rgba(255,255,255,.3); }
+    .td-ring-wrapper { position: relative; display: flex; align-items: center; justify-content: center; }
+    .td-ring { width: 90px; height: 90px; transform: rotate(-90deg); }
+    .td-ring-bg { fill: none; stroke: rgba(255,255,255,.2); stroke-width: 8; }
+    .td-ring-fill {
+        fill: none; stroke: #fff; stroke-width: 8; stroke-linecap: round;
+        stroke-dasharray: 220;
+        stroke-dashoffset: calc(220 - (220 * var(--pct)) / 100);
+        transition: stroke-dashoffset .8s ease;
+    }
+    .td-ring-label { position: absolute; font-size: 1rem; font-weight: 700; color: #fff; transform: rotate(90deg); }
+    .td-ring-caption { font-size: .75rem; color: rgba(255,255,255,.8); text-align: center; }
+    .td-hero-progress { z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; }
 
-    canvas {
-        height: 400px !important;
-        width: 100% !important;
+    /* ===== KPI Cards ===== */
+    .td-kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 18px; margin-bottom: 24px;
+    }
+    @@media (max-width: 1100px) { .td-kpi-grid { grid-template-columns: repeat(2, 1fr); } }
+    @@media (max-width: 600px)  { .td-kpi-grid { grid-template-columns: 1fr; } }
+    .td-kpi-card {
+        background: var(--card-bg); border-radius: var(--radius);
+        padding: 22px 20px; display: flex; align-items: center; gap: 16px;
+        box-shadow: var(--shadow-sm); border: 1px solid var(--border-color);
+        transition: var(--transition);
+    }
+    .td-kpi-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+    .td-kpi-icon {
+        width: 52px; height: 52px; border-radius: 12px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.4rem; flex-shrink: 0;
+    }
+    .td-kpi-icon.teal    { background: #f0fdfa; color: #0d9488; }
+    .td-kpi-icon.sky     { background: #e0f2fe; color: #0284c7; }
+    .td-kpi-icon.emerald { background: #d1fae5; color: #059669; }
+    .td-kpi-icon.violet  { background: #ede9fe; color: #7c3aed; }
+    .td-kpi-value { font-size: 1.9rem; font-weight: 800; color: var(--text-1); line-height: 1; margin-bottom: 4px; }
+    .td-kpi-label { font-size: .8rem; color: var(--text-2); font-weight: 500; }
+    .td-kpi-sub   { font-size: .75rem; color: var(--success); font-weight: 600; margin-top: 2px; }
+
+    /* ===== Two-column Row ===== */
+    .td-row {
+        display: grid; grid-template-columns: 1fr 1fr;
+        gap: 20px; margin-bottom: 24px;
+    }
+    @@media (max-width: 900px) { .td-row { grid-template-columns: 1fr; } }
+
+    /* ===== Card ===== */
+    .td-card {
+        background: var(--card-bg); border-radius: var(--radius);
+        padding: 22px; box-shadow: var(--shadow-sm); border: 1px solid var(--border-color);
+    }
+    .td-card-title {
+        font-size: 1rem; font-weight: 700; color: var(--text-1);
+        margin: 0 0 16px; display: flex; align-items: center; gap: 8px;
+    }
+    .td-card-title i { color: var(--primary); }
+
+    /* ===== Course Items ===== */
+    .td-course-item {
+        display: flex; align-items: center; gap: 12px;
+        padding: 12px 0; border-bottom: 1px solid var(--border-color);
+    }
+    .td-course-item:last-child { border-bottom: none; padding-bottom: 0; }
+    .td-course-icon {
+        width: 40px; height: 40px; border-radius: 10px;
+        background: var(--primary-pale); color: var(--primary);
+        display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0;
+    }
+    .td-course-info { flex: 1; }
+    .td-course-name { font-size: .9rem; font-weight: 600; color: var(--text-1); margin-bottom: 4px; }
+    .td-progress-bar { height: 6px; background: var(--border-color); border-radius: 999px; overflow: hidden; }
+    .td-progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, var(--primary), var(--primary-light));
+        border-radius: 999px; transition: width .8s ease;
+    }
+    .td-course-meta { font-size: .75rem; color: var(--text-3); margin-top: 3px; }
+    .td-course-link { font-size: .8rem; color: var(--primary); text-decoration: none; font-weight: 600; white-space: nowrap; }
+    .td-course-link:hover { text-decoration: underline; }
+
+    /* ===== Events ===== */
+    .td-event-item {
+        display: flex; align-items: flex-start; gap: 12px;
+        padding: 10px 0; border-bottom: 1px solid var(--border-color);
+    }
+    .td-event-item:last-child { border-bottom: none; }
+    .td-event-date {
+        background: var(--primary-pale); color: var(--primary);
+        border-radius: var(--radius-sm); padding: 6px 10px;
+        text-align: center; flex-shrink: 0; min-width: 48px;
+    }
+    .td-event-date .day { font-size: 1.1rem; font-weight: 800; line-height: 1; }
+    .td-event-date .mon { font-size: .7rem; font-weight: 600; }
+    .td-event-title { font-size: .9rem; font-weight: 600; color: var(--text-1); margin-bottom: 2px; }
+    .td-event-time  { font-size: .78rem; color: var(--text-2); }
+
+    /* ===== Quick Actions ===== */
+    .td-quick-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    @@media (max-width: 700px) { .td-quick-grid { grid-template-columns: repeat(2, 1fr); } }
+    .td-qa-btn {
+        display: flex; flex-direction: column; align-items: center; gap: 8px;
+        padding: 16px; border-radius: var(--radius);
+        border: 1.5px solid var(--border-color); background: var(--card-bg);
+        text-decoration: none; color: var(--text-1);
+        font-size: .8rem; font-weight: 600; transition: var(--transition); cursor: pointer;
+    }
+    .td-qa-btn:hover { border-color: var(--primary); color: var(--primary); transform: translateY(-2px); box-shadow: var(--shadow-sm); }
+    .td-qa-btn i { font-size: 1.4rem; }
+    .td-qa-btn.q1 i { color: var(--primary); }
+    .td-qa-btn.q2 i { color: var(--secondary); }
+    .td-qa-btn.q3 i { color: var(--success); }
+    .td-qa-btn.q4 i { color: var(--warning); }
+    .td-qa-btn.q5 i { color: var(--danger); }
+    .td-qa-btn.q6 i { color: #0284c7; }
+
+    /* ===== Tabs ===== */
+    .td-tabs-wrapper {
+        background: var(--card-bg); border-radius: var(--radius);
+        box-shadow: var(--shadow-sm); border: 1px solid var(--border-color); overflow: hidden;
+    }
+    .td-tabs-nav {
+        display: flex; border-bottom: 2px solid var(--border-color);
+        background: #fafafa; overflow-x: auto; scrollbar-width: none;
+    }
+    .td-tabs-nav::-webkit-scrollbar { display: none; }
+    .td-tab-btn {
+        padding: 14px 20px; font-size: .875rem; font-weight: 600; color: var(--text-2);
+        border: none; background: transparent; cursor: pointer; white-space: nowrap;
+        border-bottom: 3px solid transparent; margin-bottom: -2px;
+        display: flex; align-items: center; gap: 7px; transition: var(--transition);
+    }
+    .td-tab-btn:hover { color: var(--primary); }
+    .td-tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
+    .td-tab-content { display: none; padding: 24px; }
+    .td-tab-content.active { display: block; }
+
+    /* ===== Recommended Courses Grid ===== */
+    .td-rec-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
+    .td-rec-card {
+        background: #fff; border-radius: var(--radius);
+        border: 1.5px solid var(--border-color); padding: 20px;
+        transition: var(--transition);
+    }
+    .td-rec-card:hover { border-color: var(--primary); box-shadow: var(--shadow-md); }
+    .td-rec-icon {
+        width: 44px; height: 44px; border-radius: 10px;
+        background: var(--primary-pale); color: var(--primary);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.2rem; margin-bottom: 12px;
+    }
+    .td-rec-name { font-size: .9rem; font-weight: 700; color: var(--text-1); margin-bottom: 6px; }
+    .td-rec-desc { font-size: .8rem; color: var(--text-2); margin-bottom: 14px; line-height: 1.5;
+        display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .td-rec-link {
+        display: inline-flex; align-items: center; gap: 4px;
+        font-size: .8rem; font-weight: 600; color: var(--primary); text-decoration: none;
+    }
+    .td-rec-link:hover { text-decoration: underline; }
+
+    /* ===== Certificates ===== */
+    .td-cert-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; }
+    .td-cert-card {
+        background: linear-gradient(135deg, #fef3c7, #fde68a);
+        border-radius: var(--radius); padding: 20px;
+        text-align: center; border: 1px solid #fcd34d;
+    }
+    .td-cert-card i { font-size: 2rem; color: #d97706; margin-bottom: 10px; display: block; }
+    .td-cert-name { font-size: .875rem; font-weight: 700; color: #78350f; margin-bottom: 12px; }
+    .td-cert-card a {
+        font-size: .8rem; background: #d97706; color: #fff;
+        padding: 5px 14px; border-radius: 6px; text-decoration: none; font-weight: 600;
+    }
+    .td-cert-card a:hover { background: #b45309; }
+
+    /* ===== Analytics ===== */
+    .td-chart-wrapper { position: relative; height: 320px; }
+
+    /* ===== Empty States ===== */
+    .td-empty { text-align: center; padding: 40px 20px; color: var(--text-3); font-size: .9rem; }
+    .td-empty i { font-size: 2.5rem; display: block; margin-bottom: 10px; }
+
+    /* ===== Section Title ===== */
+    .td-section-title {
+        font-size: .95rem; font-weight: 700; color: var(--text-1);
+        margin: 18px 0 10px; display: flex; align-items: center; gap: 8px;
+    }
+    .td-section-title::before {
+        content: ''; display: inline-block;
+        width: 4px; height: 18px; background: var(--primary); border-radius: 999px;
     }
 </style>
-<link href="~/css/TraineeDashboard.css" rel="stylesheet" />
 
-<body>
-    <div class="dashboard-wrapper">
-        @*  @await Html.PartialAsync("_TraineeSidebar")  <!-- Assuming a sidebar partial for trainee --> *@
-        @await Html.PartialAsync("_TraineeSidebar")  <!-- Assuming a sidebar partial for trainee -->
+<div class="dashboard-wrapper">
+    @await Html.PartialAsync("_TraineeSidebar")
 
-        <main class="dashboard-main">
-            <div class="dashboard-header">
-                <img src="@Model.ProfilePictureUrl" alt="Profile Picture" class="profile-picture" />
+    <main class="dashboard-main">
+
+        <!-- ① Header -->
+        <div class="td-header">
+            <div>
+                <h1>مرحباً، @Model.FullName 🎓</h1>
+                <p><i class="fas fa-calendar-day" style="margin-left:5px;color:#0d9488;"></i>@today</p>
+            </div>
+            <div class="td-header-actions">
+                <a asp-controller="Trainees" asp-action="MyCourses" class="td-btn td-btn-primary">
+                    <i class="fas fa-book-open"></i> دوراتي
+                </a>
+                <a asp-controller="Profile" asp-action="Index" class="td-btn td-btn-outline">
+                    <i class="fas fa-user-edit"></i> تعديل الملف
+                </a>
+            </div>
+        </div>
+
+        <!-- ② Hero Card -->
+        <div class="td-hero">
+            <div class="td-hero-inner">
+                <img src="@Model.ProfilePictureUrl" alt="@Model.FullName" class="td-hero-avatar"
+                     onerror="this.src='https://placehold.co/100/0d9488/ffffff?text=@avatarChar'" />
+                <div class="td-hero-info">
+                    <h2>@Model.FullName</h2>
+                    <p class="td-hero-sub"><i class="fas fa-user-graduate" style="margin-left:6px;"></i>@Model.WelcomeMessage</p>
+                    <div class="td-hero-badges">
+                        <span class="td-hero-badge"><i class="fas fa-envelope"></i> @Model.Email</span>
+                        <span class="td-hero-badge"><i class="fas fa-book"></i> @Model.Stats?.EnrolledCourses دورات مسجلة</span>
+                        <span class="td-hero-badge"><i class="fas fa-certificate"></i> @Model.Stats?.CompletedExams شهادات</span>
+                    </div>
+                </div>
+                <div class="td-hero-actions">
+                    <a asp-controller="Profile" asp-action="Index" class="td-hero-btn td-hero-btn-white">
+                        <i class="fas fa-user-edit"></i> تعديل الملف الشخصي
+                    </a>
+                    <a asp-controller="Chat" asp-action="Index" class="td-hero-btn td-hero-btn-glass">
+                        <i class="fas fa-comments"></i> التواصل والدعم
+                    </a>
+                </div>
+                <div class="td-hero-progress">
+                    <div class="td-ring-wrapper">
+                        <svg class="td-ring" viewBox="0 0 80 80">
+                            <circle class="td-ring-bg" cx="40" cy="40" r="34" />
+                            <circle class="td-ring-fill" cx="40" cy="40" r="34"
+                                    style="--pct: @Model.OverallProgress;" />
+                        </svg>
+                        <span class="td-ring-label">@Model.OverallProgress%</span>
+                    </div>
+                    <span class="td-ring-caption">التقدم الكلي</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ③ KPI Cards -->
+        <div class="td-kpi-grid">
+            <div class="td-kpi-card">
+                <div class="td-kpi-icon teal"><i class="fas fa-book-open"></i></div>
                 <div>
-                    <h1>@SharedResource.TraineeDashboard_Header, @Model.FullName!</h1>
-                    <p class="welcome-message">@Model.WelcomeMessage</p>
-                </div>
-                <div class="overall-progress">@Model.OverallProgress%</div>
-            </div>
-
-            <div class="dashboard-stats">
-                <div class="stat-card">
-                    <h4>@SharedResource.Stat_TotalProgress</h4>
-                    <div class="stat-value" id="progress-value"></div>
-                </div>
-                <div class="stat-card">
-                    <h4>@SharedResource.Stat_EnrolledCourses</h4>
-                    <div class="stat-value" id="courses-value"></div>
-                </div>
-                <div class="stat-card">
-                    <h4>@SharedResource.Stat_CompletedHours</h4>
-                    <div class="stat-value" id="hours-value"></div>
-                </div>
-                <div class="stat-card">
-                    <h4>@SharedResource.Stat_CompletedExams</h4>
-                    <div class="stat-value" id="exams-value"></div>
-                </div>
-                <div class="stat-card">
-                    <h4>@SharedResource.Stat_AttendanceRate</h4>
-                    <div class="stat-value" id="attendance-value"></div>
+                    <div class="td-kpi-value">@(Model.Stats?.EnrolledCourses ?? 0)</div>
+                    <div class="td-kpi-label">الدورات المسجلة</div>
+                    <div class="td-kpi-sub">نشط الآن</div>
                 </div>
             </div>
-
-            <div class="dashboard-tabs">
-                <div class="tabs">
-                    <button id="progress-btn" class="tab-btn active" data-tab="progress">@SharedResource.Tab_Progress</button>
-                    <button id="recommended-btn" class="tab-btn" data-tab="recommended">@SharedResource.Tab_Recommended</button>
-                    <button id="upcoming-btn" class="tab-btn" data-tab="upcoming">@SharedResource.Tab_Upcoming</button>
-                    <button id="certificates-btn" class="tab-btn" data-tab="certificates">@SharedResource.Tab_Certificates</button>
-                    <button id="analytics-btn" class="tab-btn" data-tab="analytics">@SharedResource.Tab_Analytics</button>
-                    <button id="feedback-btn" class="tab-btn" data-tab="feedback">@SharedResource.Tab_Feedback</button>
+            <div class="td-kpi-card">
+                <div class="td-kpi-icon sky"><i class="fas fa-clock"></i></div>
+                <div>
+                    <div class="td-kpi-value">@(Model.Stats?.CompletedHours ?? 0)</div>
+                    <div class="td-kpi-label">المحاضرات المكتملة</div>
+                    <div class="td-kpi-sub">ساعات تعليمية</div>
                 </div>
-
-                <div class="tab-content active" id="progress">
-                    <div class="card">
-                        <h3>@SharedResource.CurrentCoursesProgress</h3>
-                        <ul class="course-list" id="current-courses-list">
-                            <!-- Dynamically populated -->
-                        </ul>
-                       
-                    </div>
+            </div>
+            <div class="td-kpi-card">
+                <div class="td-kpi-icon emerald"><i class="fas fa-certificate"></i></div>
+                <div>
+                    <div class="td-kpi-value">@(Model.Stats?.CompletedExams ?? 0)</div>
+                    <div class="td-kpi-label">الشهادات المكتسبة</div>
+                    <div class="td-kpi-sub">إنجازات</div>
                 </div>
+            </div>
+            <div class="td-kpi-card">
+                <div class="td-kpi-icon violet"><i class="fas fa-chart-line"></i></div>
+                <div>
+                    <div class="td-kpi-value">@(Model.Stats?.AttendanceRate ?? 0)%</div>
+                    <div class="td-kpi-label">نسبة الحضور</div>
+                    <div class="td-kpi-sub">الإجمالي</div>
+                </div>
+            </div>
+        </div>
 
-                <div class="tab-content" id="recommended">
-                    <div class="card">
-                        <h3>@SharedResource.RecommendedCourses</h3>
-                        <div class="recommended-courses" id="recommended-courses-grid">
-                            <!-- Dynamically populated -->
+        <!-- ④ Two-column: Courses + Events -->
+        <div class="td-row">
+            <div class="td-card">
+                <p class="td-card-title"><i class="fas fa-graduation-cap"></i> تقدمي في الدورات</p>
+                @if (Model.CurrentCourses.Any())
+                {
+                    @foreach (var c in Model.CurrentCourses)
+                    {
+                        <div class="td-course-item">
+                            <div class="td-course-icon"><i class="fas fa-book"></i></div>
+                            <div class="td-course-info">
+                                <div class="td-course-name">@c.Name</div>
+                                <div class="td-progress-bar">
+                                    <div class="td-progress-fill" style="width:@c.Progress%"></div>
+                                </div>
+                                <div class="td-course-meta">@c.Progress% اكتمال · @c.Remaining</div>
+                            </div>
+                            <a asp-controller="Courses" asp-action="Details" asp-route-id="@c.Id" class="td-course-link">عرض</a>
                         </div>
-                    </div>
-                </div>
-
-                <div class="tab-content" id="upcoming">
-                    <div class="card">
-                        <h3>@SharedResource.UpcomingActivities</h3>
-                        <ul class="upcoming-events" id="upcoming-events-list">
-                            <!-- Dynamically populated -->
-                        </ul>
-                    </div>
-                </div>
-
-                <div class="tab-content" id="certificates">
-                    <div class="card">
-                        <h3>@SharedResource.CertificatesAndAchievements</h3>
-                        <div class="certificates-list" id="certificates-grid">
-                            <!-- Dynamically populated -->
-                        </div>
-                    </div>
-                </div>
-
-                <div class="tab-content" id="analytics">
-                    <div class="card">
-                        <h3>@SharedResource.LearningAnalytics</h3>
-                        <div class="loader" id="analytics-loader"></div>
-                        <canvas id="analytics-chart"></canvas>
-                        <p class="error-message" id="analytics-error" style="display: none; color: red;">@SharedResource.Error_LoadingData</p>
-                    </div>
-                </div>
-
-                <div class="tab-content" id="feedback">
-                    <div class="card">
-                        <h3>@SharedResource.FeedbackAndSupport</h3>
-                        @* <form id="feedback-form">
-                            <textarea placeholder="@SharedResource.SubmitFeedback"></textarea>
-                            <button type="submit">@SharedResource.SubmitFeedback</button>
-                        </form> *@
-                        <a asp-controller="Chat" asp-action="CustomerSupportChat">@SharedResource.Support_Link</a>
-
-                    </div>
-                </div>
-            </div>
-        </main>
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <script>
-               const translations = {
-            resume: '@Html.Raw(SharedResource.Resume)',
-            remaining: '@Html.Raw(SharedResource.Remaining)',
-            enroll: '@Html.Raw(SharedResource.Enroll)',
-            preview: '@Html.Raw(SharedResource.Preview)',
-            join: '@Html.Raw(SharedResource.JoinSession)',
-            download: '@Html.Raw(SharedResource.DownloadCertificate)',
-            progress: '@Html.Raw(SharedResource.Tab_Progress)',
-            noCoursesAvailable: '@Html.Raw(SharedResource.NoCoursesAvailable)' // إضافة ترجمة جديدة
-        };
-
-        document.addEventListener('DOMContentLoaded', () => {
-            let dashboardData;
-            try {
-                dashboardData = @Html.Raw(Json.Serialize(Model));
-                console.log('Dashboard Data:', dashboardData);
-            } catch (error) {
-                console.error('Error parsing dashboard data:', error);
-                dashboardData = {};
-            }
-
-            function updateStats(data) {
-                try {
-                    document.getElementById('progress-value').textContent = `${data.overallProgress || 0}%`;
-                    document.getElementById('courses-value').textContent = data.enrolledCourses || 0;
-                    document.getElementById('hours-value').textContent = data.completedHours || 0;
-                    document.getElementById('exams-value').textContent = data.completedExams || 0;
-                    document.getElementById('attendance-value').textContent = `${data.attendanceRate || 0}%`;
-                } catch (error) {
-                    console.error('Error updating stats:', error);
-                }
-            }
-
-                  function populateCurrentCourses(courses) {
-            courses = Array.isArray(courses) ? courses : (courses && courses.$values) || [];
-            console.log('Current Courses:', courses); // للتصحيح
-            const list = document.getElementById('current-courses-list');
-            if (!list) {
-                console.error('Element with ID current-courses-list not found');
-                return;
-            }
-            list.innerHTML = '';
-            if (courses.length === 0) {
-                list.innerHTML = '<li><span>' + translations.noCoursesAvailable + '</span></li>';
-                return;
-            }
-            courses.forEach(course => {
-                if (!course.id || !course.name || course.progress === undefined) {
-                    console.warn('Invalid course data:', course);
-                    return;
-                }
-                const li = document.createElement('li');
-                li.innerHTML = `
-                    <span>${course.name} — ${course.progress}% ${translations.resume}</span>
-                    <div class="progress-bar"><div class="progress-fill" style="width: ${course.progress}%"></div></div>
-                    <span>${course.remaining || 'N/A'} ${translations.remaining}</span>
-                    <button class="resume-btn" onclick="resumeCourse('${course.id}')">${translations.resume}</button>
-                `;
-                list.appendChild(li);
-            });
-        }
-
-            function populateRecommendedCourses(courses) {
-                courses = Array.isArray(courses) ? courses : (courses && courses.$values) || [];
-                console.log('Recommended Courses:', courses);
-                const grid = document.getElementById('recommended-courses-grid');
-                grid.innerHTML = '';
-                courses.forEach(course => {
-                    const card = document.createElement('div');
-                    card.classList.add('recommended-card');
-                    card.innerHTML = `
-                        <h4>${course.name}</h4>
-                        <p>${course.description}</p>
-                       
-                        <button onclick="previewCourse('${course.id}')">${translations.preview}</button>
-                    `;
-                    grid.appendChild(card);
-                });
-            }
-
-            function populateUpcomingEvents(events) {
-                events = Array.isArray(events) ? events : (events && events.$values) || [];
-                console.log('Upcoming Events:', events);
-                const list = document.getElementById('upcoming-events-list');
-                list.innerHTML = '';
-                events.forEach(event => {
-                    const li = document.createElement('li');
-                    li.innerHTML = `
-                        <span>${event.title} - ${event.date}</span>
-                        <button onclick="joinSession('${event.link}')">${translations.join}</button>
-                    `;
-                    list.appendChild(li);
-                });
-            }
-
-            function populateCertificates(certificates) {
-                certificates = Array.isArray(certificates) ? certificates : (certificates && certificates.$values) || [];
-                console.log('Certificates:', certificates);
-                const grid = document.getElementById('certificates-grid');
-                grid.innerHTML = '';
-                certificates.forEach(cert => {
-                    const card = document.createElement('div');
-                    card.classList.add('certificate-card');
-                    card.innerHTML = `
-                        <h4>${cert.name}</h4>
-                        <button class="download-btn" onclick="downloadCertificate('${cert.id}')">${translations.download}</button>
-                    `;
-                    grid.appendChild(card);
-                });
-            }
-
-            const charts = {};
-            function renderChart(tab) {
-                if (tab !== 'analytics') return;
-                const loader = document.getElementById('analytics-loader');
-                const errorMessage = document.getElementById('analytics-error');
-                const canvas = document.getElementById('analytics-chart');
-
-                loader.style.display = 'block';
-                errorMessage.style.display = 'none';
-
-                let chartData = dashboardData && dashboardData.chartData && dashboardData.chartData.analytics
-                    ? dashboardData.chartData.analytics
-                    : { labels: [], values: [] };
-                console.log('Chart Data for Analytics:', chartData);
-
-                let labels = chartData.labels || [];
-                if (!Array.isArray(labels) && labels.$values) {
-                    labels = labels.$values;
-                }
-                if (!Array.isArray(labels) || labels.length === 0) {
-                    labels = ['Week 1', 'Week 2', 'Week 3', 'Week 4'];
-                }
-
-                let values = chartData.values || [];
-                if (!Array.isArray(values) && values.$values) {
-                    values = values.$values;
-                }
-                if (!Array.isArray(values) || values.length === 0) {
-                    values = [0, 0, 0, 0];
-                }
-
-                console.log('Chart Labels:', labels, 'Chart Values:', values);
-
-                if (charts.analytics) {
-                    charts.analytics.destroy();
-                }
-
-                const ctx = canvas.getContext('2d');
-                charts.analytics = new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                        labels: labels,
-                        datasets: [{
-                            label: translations.progress,
-                            data: values,
-                            borderColor: '#007bff',
-                            backgroundColor: 'rgba(0, 123, 255, 0.1)',
-                            fill: true,
-                            tension: 0.4
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        scales: { y: { beginAtZero: true } },
-                        plugins: { legend: { display: true, position: 'top' } }
                     }
-                });
-
-                loader.style.display = 'none';
-            }
-
-            if (dashboardData && dashboardData.stats) {
-                updateStats(dashboardData.stats);
-            }
-
-            if (dashboardData && dashboardData.currentCourses) {
-                populateCurrentCourses(dashboardData.currentCourses);
-            }
-
-            if (dashboardData && dashboardData.recommendedCourses) {
-                populateRecommendedCourses(dashboardData.recommendedCourses);
-            }
-
-            if (dashboardData && dashboardData.upcomingEvents) {
-                populateUpcomingEvents(dashboardData.upcomingEvents);
-            }
-
-            if (dashboardData && dashboardData.certificates) {
-                populateCertificates(dashboardData.certificates);
-            }
-
-            const tabs = [
-                { btnId: 'progress-btn', tabId: 'progress' },
-                { btnId: 'recommended-btn', tabId: 'recommended' },
-                { btnId: 'upcoming-btn', tabId: 'upcoming' },
-                { btnId: 'certificates-btn', tabId: 'certificates' },
-                { btnId: 'analytics-btn', tabId: 'analytics' },
-                { btnId: 'feedback-btn', tabId: 'feedback' }
-            ];
-
-            tabs.forEach(tab => {
-                const button = document.getElementById(tab.btnId);
-                if (!button) {
-                    console.error(`Button with ID ${tab.btnId} not found`);
-                    return;
                 }
-                button.addEventListener('click', () => {
-                    tabs.forEach(t => {
-                        const btn = document.getElementById(t.btnId);
-                        const content = document.getElementById(t.tabId);
-                        if (btn && content) {
-                            btn.classList.remove('active');
-                            content.classList.remove('active');
+                else
+                {
+                    <div class="td-empty"><i class="fas fa-book-open"></i> لا توجد دورات مسجلة حالياً</div>
+                }
+            </div>
+
+            <div class="td-card">
+                <p class="td-card-title"><i class="fas fa-calendar-alt"></i> الأحداث القادمة</p>
+                @if (Model.UpcomingEvents.Any())
+                {
+                    @foreach (var ev in Model.UpcomingEvents)
+                    {
+                        var evDate = DateTime.TryParse(ev.Date, out var d) ? d : DateTime.MinValue;
+                        <div class="td-event-item">
+                            <div class="td-event-date">
+                                <div class="day">@(evDate != DateTime.MinValue ? evDate.Day.ToString() : "-")</div>
+                                <div class="mon">@(evDate != DateTime.MinValue ? evDate.ToString("MMM") : "")</div>
+                            </div>
+                            <div>
+                                <div class="td-event-title">@ev.Title</div>
+                                <div class="td-event-time">
+                                    <i class="fas fa-clock" style="margin-left:3px;font-size:.65rem;"></i>
+                                    @(evDate != DateTime.MinValue ? evDate.ToString("HH:mm") : ev.Date)
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="td-empty"><i class="fas fa-calendar-check"></i> لا توجد أحداث قادمة</div>
+                }
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="td-card" style="margin-bottom:24px;">
+            <p class="td-card-title"><i class="fas fa-bolt"></i> الإجراءات السريعة</p>
+            <div class="td-quick-grid">
+                <a asp-controller="Trainees" asp-action="MyCourses" class="td-qa-btn q1">
+                    <i class="fas fa-book"></i> دوراتي
+                </a>
+                <a asp-controller="Exams" asp-action="MyExams" class="td-qa-btn q2">
+                    <i class="fas fa-file-alt"></i> امتحاناتي
+                </a>
+                <a asp-controller="Trainees" asp-action="TrackAttendance" class="td-qa-btn q3">
+                    <i class="fas fa-calendar-check"></i> سجل حضوري
+                </a>
+                <a asp-controller="Trainees" asp-action="MyCertificates" class="td-qa-btn q4">
+                    <i class="fas fa-certificate"></i> شهاداتي
+                </a>
+                <a asp-controller="Profile" asp-action="Index" class="td-qa-btn q5">
+                    <i class="fas fa-user-circle"></i> ملفي الشخصي
+                </a>
+                <a asp-controller="Chat" asp-action="Index" class="td-qa-btn q6">
+                    <i class="fas fa-comments"></i> المحادثات
+                </a>
+            </div>
+        </div>
+
+        <!-- ⑤ Tabs -->
+        <div class="td-tabs-wrapper">
+            <div class="td-tabs-nav">
+                <button class="td-tab-btn active" data-tab="tab-progress">
+                    <i class="fas fa-chart-bar"></i> التقدم
+                </button>
+                <button class="td-tab-btn" data-tab="tab-recommended">
+                    <i class="fas fa-lightbulb"></i> دورات مقترحة
+                </button>
+                <button class="td-tab-btn" data-tab="tab-certificates">
+                    <i class="fas fa-certificate"></i> الشهادات
+                </button>
+                <button class="td-tab-btn" data-tab="tab-analytics">
+                    <i class="fas fa-chart-line"></i> التحليلات
+                </button>
+                <button class="td-tab-btn" data-tab="tab-support">
+                    <i class="fas fa-headset"></i> الدعم
+                </button>
+            </div>
+
+            <!-- Progress Tab -->
+            <div id="tab-progress" class="td-tab-content active">
+                @if (Model.CurrentCourses.Any())
+                {
+                    @foreach (var c in Model.CurrentCourses)
+                    {
+                        <div style="margin-bottom:20px;">
+                            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+                                <span style="font-weight:700;color:var(--text-1);">@c.Name</span>
+                                <span style="font-size:.8rem;color:var(--primary);font-weight:600;">@c.Progress%</span>
+                            </div>
+                            <div class="td-progress-bar" style="height:10px;">
+                                <div class="td-progress-fill" style="width:@c.Progress%;"></div>
+                            </div>
+                            <div style="font-size:.78rem;color:var(--text-3);margin-top:4px;">@c.Remaining</div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="td-empty"><i class="fas fa-graduation-cap"></i> لا توجد دورات مسجلة حالياً</div>
+                }
+            </div>
+
+            <!-- Recommended Tab -->
+            <div id="tab-recommended" class="td-tab-content">
+                @if (Model.RecommendedCourses.Any())
+                {
+                    <div class="td-rec-grid">
+                        @foreach (var rc in Model.RecommendedCourses)
+                        {
+                            <div class="td-rec-card">
+                                <div class="td-rec-icon"><i class="fas fa-star"></i></div>
+                                <div class="td-rec-name">@rc.Name</div>
+                                <div class="td-rec-desc">@rc.Description</div>
+                                <a asp-controller="Courses" asp-action="Details" asp-route-id="@rc.Id" class="td-rec-link">
+                                    <i class="fas fa-arrow-left"></i> عرض التفاصيل
+                                </a>
+                            </div>
                         }
-                    });
-                    button.classList.add('active');
-                    const tabContent = document.getElementById(tab.tabId);
-                    if (tabContent) {
-                        tabContent.classList.add('active');
-                    } else {
-                        console.error(`Tab content with ID ${tab.tabId} not found`);
-                    }
-                    renderChart(tab.tabId);
-                });
-            });
+                    </div>
+                }
+                else
+                {
+                    <div class="td-empty"><i class="fas fa-lightbulb"></i> لا توجد دورات مقترحة حالياً</div>
+                }
+            </div>
 
-            // Initial render for analytics if it's the active tab (but starts with progress)
-            // No initial call needed unless analytics is default
+            <!-- Certificates Tab -->
+            <div id="tab-certificates" class="td-tab-content">
+                @if (Model.Certificates.Any())
+                {
+                    <div class="td-cert-grid">
+                        @foreach (var cert in Model.Certificates)
+                        {
+                            <div class="td-cert-card">
+                                <i class="fas fa-certificate"></i>
+                                <div class="td-cert-name">@cert.Name</div>
+                                <a asp-controller="Certificates" asp-action="Details" asp-route-id="@cert.Id">عرض</a>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="td-empty"><i class="fas fa-certificate"></i> لم تحصل على شهادات بعد</div>
+                }
+            </div>
+
+            <!-- Analytics Tab -->
+            <div id="tab-analytics" class="td-tab-content">
+                <div class="td-chart-wrapper">
+                    <canvas id="td-analytics-chart"></canvas>
+                </div>
+            </div>
+
+            <!-- Support Tab -->
+            <div id="tab-support" class="td-tab-content">
+                <div style="max-width:500px;margin:0 auto;text-align:center;padding:20px 0;">
+                    <div style="font-size:3rem;color:var(--primary);margin-bottom:16px;"><i class="fas fa-headset"></i></div>
+                    <h3 style="font-size:1.2rem;font-weight:700;color:var(--text-1);margin-bottom:8px;">هل تحتاج إلى مساعدة؟</h3>
+                    <p style="color:var(--text-2);margin-bottom:20px;line-height:1.7;">
+                        يمكنك التواصل مع فريق الدعم عبر المحادثة المباشرة أو إرسال رسالة للمستقبل.
+                    </p>
+                    <a asp-controller="Chat" asp-action="Index" class="td-btn td-btn-primary" style="margin:0 auto;">
+                        <i class="fas fa-comments"></i> فتح المحادثة
+                    </a>
+                </div>
+            </div>
+        </div>
+
+    </main>
+</div>
+
+<script>
+    // ─── Tab switching ────────────────────────────────────────────────────────
+    document.querySelectorAll('.td-tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.td-tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.td-tab-content').forEach(c => c.classList.remove('active'));
+            btn.classList.add('active');
+            const target = document.getElementById(btn.dataset.tab);
+            if (target) target.classList.add('active');
+            if (btn.dataset.tab === 'tab-analytics') renderAnalyticsChart();
         });
+    });
 
-        // Placeholder functions for actions
-        function resumeCourse(id) { console.log(`Resuming course ${id}`); window.location.href = `/Courses/Resume/${id}`; }
-        function enrollCourse(id) { console.log(`Enrolling in course ${id}`); window.location.href = `/Courses/Enroll/${id}`; }
-        function previewCourse(id) { console.log(`Previewing course ${id}`); window.location.href = `/Courses/Preview/${id}`; }
-        function joinSession(link) { console.log(`Joining session ${link}`); window.open(link, '_blank'); }
-        function downloadCertificate(id) { console.log(`Downloading certificate ${id}`); window.location.href = `/Certificates/Download/${id}`; }
+    // ─── Analytics Chart ─────────────────────────────────────────────────────
+    let analyticsChart = null;
+    function renderAnalyticsChart() {
+        const canvas = document.getElementById('td-analytics-chart');
+        if (!canvas) return;
+        const chartData = @Html.Raw(JsonConvert.SerializeObject(Model.ChartData));
+        if (!chartData?.Analytics) return;
 
+        const labels = chartData.Analytics.Labels || [];
+        const values = (chartData.Analytics.Values || []).map(v => isNaN(v) ? 0 : Number(v));
 
-
-    </script>
-    </body>
+        if (analyticsChart) analyticsChart.destroy();
+        analyticsChart = new Chart(canvas.getContext('2d'), {
+            type: 'line',
+            data: {
+                labels,
+                datasets: [{
+                    label: 'نسبة الحضور الأسبوعية',
+                    data: values,
+                    borderColor: '#0d9488',
+                    backgroundColor: 'rgba(13,148,136,.1)',
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: '#0d9488',
+                    pointRadius: 5
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: true, position: 'top' },
+                    title: { display: true, text: 'تحليلات الحضور الأسبوعية' }
+                },
+                scales: {
+                    y: { beginAtZero: true, title: { display: true, text: 'عدد المحاضرات' } },
+                    x: { title: { display: true, text: 'الأسابيع' } }
+                }
+            }
+        });
+    }
+</script>

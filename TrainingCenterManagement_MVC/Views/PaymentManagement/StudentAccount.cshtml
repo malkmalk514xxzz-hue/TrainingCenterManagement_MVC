@@ -1,0 +1,200 @@
+@model TrainingCenterManagement_MVC.ViewModels.StudentAccountDetailsViewModel
+@{
+    ViewData["Title"] = $"حساب {Model.Name}";
+    var avatarChar = Model.Name.Length > 0 ? Model.Name[0].ToString() : "؟";
+    var paidPct = Model.TotalOwed > 0 ? (double)(Model.TotalPaid / Model.TotalOwed * 100) : 100;
+    var paidPctC = Math.Min(paidPct, 100);
+}
+
+<style>
+    .sa-back { display:inline-flex; align-items:center; gap:6px; color:#64748b; text-decoration:none; font-size:.88rem; margin-bottom:20px; }
+    .sa-back:hover { color:#1d4ed8; }
+    .sa-hero { background:#fff; border-radius:16px; padding:28px; box-shadow:0 4px 20px rgba(0,0,0,.07); border:1px solid #e2e8f0; display:flex; align-items:center; gap:24px; margin-bottom:24px; }
+    .sa-avatar { width:72px; height:72px; border-radius:50%; object-fit:cover; }
+    .sa-avatar-fallback { width:72px; height:72px; border-radius:50%; background:linear-gradient(135deg,#1d4ed8,#3b82f6); color:#fff; font-size:1.8rem; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+    .sa-info h2 { margin:0; font-size:1.3rem; font-weight:700; color:#0f172a; }
+    .sa-info p  { margin:4px 0 0; color:#64748b; font-size:.88rem; }
+    .sa-kpis { display:flex; gap:16px; margin-right:auto; }
+    .sa-kpi { text-align:center; background:#f8fafc; border-radius:10px; padding:12px 20px; }
+    .sa-kpi .val { font-size:1.3rem; font-weight:800; color:#0f172a; }
+    .sa-kpi .lbl { font-size:.75rem; color:#64748b; margin-top:2px; }
+    .sa-kpi.danger .val { color:#ef4444; }
+    .sa-kpi.success .val { color:#10b981; }
+    /* Progress */
+    .sa-progress-wrap { margin-bottom:24px; }
+    .sa-progress-bar-bg { background:#e2e8f0; border-radius:20px; height:10px; overflow:hidden; }
+    .sa-progress-bar-fg { height:10px; border-radius:20px; background:linear-gradient(90deg,#10b981,#059669); transition:width 1s ease; }
+    /* Courses grid */
+    .sa-courses { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:16px; margin-bottom:28px; }
+    .sa-course-card { background:#fff; border-radius:12px; box-shadow:0 2px 12px rgba(0,0,0,.06); border:1px solid #e2e8f0; padding:18px; }
+    .sa-course-card h4 { margin:0 0 12px; font-size:.95rem; font-weight:700; color:#0f172a; display:flex; align-items:center; gap:8px; }
+    .sa-course-card h4 i { color:#1d4ed8; }
+    .sa-course-row { display:flex; justify-content:space-between; font-size:.83rem; margin-bottom:6px; }
+    .sa-course-row .k { color:#64748b; }
+    .sa-course-row .v { font-weight:600; color:#0f172a; }
+    .sa-course-row .v.red { color:#ef4444; }
+    .sa-course-row .v.green { color:#10b981; }
+    .sa-course-progress { background:#f1f5f9; border-radius:20px; height:6px; overflow:hidden; margin-top:10px; }
+    .sa-course-progress-fill { height:6px; border-radius:20px; }
+    .paid-badge   { background:#d1fae5; color:#065f46; border-radius:20px; padding:3px 10px; font-size:.75rem; font-weight:700; display:inline-block; }
+    .unpaid-badge { background:#fee2e2; color:#991b1b; border-radius:20px; padding:3px 10px; font-size:.75rem; font-weight:700; display:inline-block; }
+    /* History Table */
+    .sa-history { background:#fff; border-radius:14px; box-shadow:0 2px 16px rgba(0,0,0,.06); border:1px solid #e2e8f0; overflow:hidden; }
+    .sa-history-head { padding:16px 20px; border-bottom:1px solid #e2e8f0; font-size:1rem; font-weight:700; color:#0f172a; display:flex; align-items:center; gap:8px; }
+    .sa-history-head i { color:#1d4ed8; }
+    .sa-table { width:100%; border-collapse:collapse; font-size:.88rem; }
+    .sa-table th { padding:10px 16px; background:#f8fafc; color:#64748b; font-weight:600; font-size:.78rem; text-transform:uppercase; border-bottom:1px solid #e2e8f0; }
+    .sa-table td { padding:12px 16px; border-bottom:1px solid #f1f5f9; vertical-align:middle; }
+    .sa-table tr:last-child td { border-bottom:none; }
+    .amount-cell { font-weight:700; color:#059669; }
+    .currency-chip { background:#dbeafe; color:#1e40af; border-radius:4px; padding:2px 7px; font-size:.75rem; font-weight:600; }
+</style>
+
+<div class="dashboard-wrapper" style="display:flex;direction:rtl;min-height:100vh">
+@await Html.PartialAsync("_AdminSidebar")
+<main style="flex:1;padding:28px 32px;background:#f8fafc;overflow-x:hidden">
+
+<a asp-action="Index" asp-controller="PaymentManagement" class="sa-back">
+    <i class="fas fa-arrow-right"></i> العودة إلى قائمة الطلاب
+</a>
+
+<!-- Hero -->
+<div class="sa-hero">
+    @if (!string.IsNullOrEmpty(Model.ProfilePic))
+    {
+        <img src="@Model.ProfilePic" class="sa-avatar" alt="">
+    }
+    else
+    {
+        <div class="sa-avatar-fallback">@avatarChar</div>
+    }
+    <div class="sa-info">
+        <h2>@Model.Name</h2>
+        <p><i class="fas fa-envelope me-1"></i>@Model.Email</p>
+    </div>
+    <div class="sa-kpis">
+        <div class="sa-kpi">
+            <div class="val">@Model.TotalOwed.ToString("N0")</div>
+            <div class="lbl">إجمالي المطلوب (ر.س)</div>
+        </div>
+        <div class="sa-kpi success">
+            <div class="val">@Model.TotalPaid.ToString("N0")</div>
+            <div class="lbl">إجمالي المدفوع (ر.س)</div>
+        </div>
+        <div class="sa-kpi @(Model.RemainingBalance > 0 ? "danger" : "success")">
+            <div class="val">@(Model.RemainingBalance > 0 ? Model.RemainingBalance.ToString("N0") : "✓ مسدّد")</div>
+            <div class="lbl">الرصيد المتبقي (ر.س)</div>
+        </div>
+    </div>
+</div>
+
+<!-- Overall Progress -->
+<div class="sa-progress-wrap">
+    <div style="display:flex;justify-content:space-between;margin-bottom:6px;font-size:.85rem;font-weight:600;color:#374151">
+        <span>نسبة السداد الإجمالية</span>
+        <span>@paidPctC.ToString("F1")%</span>
+    </div>
+    <div class="sa-progress-bar-bg">
+        <div class="sa-progress-bar-fg" id="overallBar" style="width:0%"></div>
+    </div>
+</div>
+
+<!-- Courses -->
+<h3 style="font-size:1rem;font-weight:700;color:#0f172a;margin-bottom:14px;display:flex;align-items:center;gap:8px">
+    <i class="fas fa-book-open" style="color:#1d4ed8"></i> الدورات المسجلة وحالة السداد
+</h3>
+<div class="sa-courses">
+    @foreach (var c in Model.Courses)
+    {
+        var cp = c.CoursePrice > 0 ? (double)(c.TotalPaidSAR / c.CoursePrice * 100) : 100;
+        var cpC = Math.Min(cp, 100);
+        var cpColor = cpC >= 100 ? "#10b981" : cpC >= 50 ? "#f59e0b" : "#ef4444";
+        <div class="sa-course-card">
+            <h4><i class="fas fa-graduation-cap"></i>@c.CourseName</h4>
+            <div class="sa-course-row">
+                <span class="k">سعر الدورة</span>
+                <span class="v">@c.CoursePrice.ToString("N0") ر.س</span>
+            </div>
+            <div class="sa-course-row">
+                <span class="k">المدفوع</span>
+                <span class="v green">@c.TotalPaidSAR.ToString("N0") ر.س</span>
+            </div>
+            <div class="sa-course-row">
+                <span class="k">المتبقي</span>
+                <span class="v @(c.RemainingDebt > 0 ? "red" : "green")">
+                    @(c.RemainingDebt > 0 ? $"{c.RemainingDebt:N0} ر.س" : "مسدّد بالكامل")
+                </span>
+            </div>
+            <div style="margin-top:10px">
+                @if (c.IsFullyPaid)
+                { <span class="paid-badge"><i class="fas fa-check me-1"></i>مسدّد بالكامل</span> }
+                else
+                { <span class="unpaid-badge"><i class="fas fa-clock me-1"></i>لم يكتمل</span> }
+            </div>
+            <div class="sa-course-progress">
+                <div class="sa-course-progress-fill" style="width:@cpC.ToString("F0")%;background:@cpColor"></div>
+            </div>
+        </div>
+    }
+    @if (!Model.Courses.Any())
+    {
+        <p class="text-muted">لا توجد دورات مسجلة.</p>
+    }
+</div>
+
+<!-- Payment History -->
+<div class="sa-history">
+    <div class="sa-history-head">
+        <i class="fas fa-history"></i> سجل الدفعات
+    </div>
+    <table class="sa-table">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>الدورة</th>
+                <th>المبلغ الأصلي</th>
+                <th>العملة</th>
+                <th>المعادل (ر.س)</th>
+                <th>التاريخ</th>
+                <th>ملاحظات</th>
+            </tr>
+        </thead>
+        <tbody>
+            @{ int idx = 1; }
+            @foreach (var p in Model.PaymentHistory)
+            {
+                <tr>
+                    <td style="color:#94a3b8">@idx</td>
+                    <td>@p.CourseName</td>
+                    <td class="amount-cell">@p.OriginalAmount.ToString("N0")</td>
+                    <td><span class="currency-chip">@p.OriginalCurrency</span></td>
+                    <td class="amount-cell">@p.AmountInSAR.ToString("N0") ر.س</td>
+                    <td style="color:#64748b;font-size:.83rem">@p.Date.ToString("dd/MM/yyyy hh:mm tt")</td>
+                    <td style="color:#94a3b8;font-size:.82rem">@(string.IsNullOrEmpty(p.Notes) ? "—" : p.Notes)</td>
+                </tr>
+                idx++;
+            }
+            @if (!Model.PaymentHistory.Any())
+            {
+                <tr><td colspan="7" class="text-center py-4 text-muted">لا توجد دفعات مسجلة</td></tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<div style="margin-top:20px">
+    <a asp-action="Create" asp-controller="Payments" class="btn btn-primary btn-sm fw-semibold">
+        <i class="fas fa-plus me-1"></i> إضافة دفعة جديدة لهذا الطالب
+    </a>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        setTimeout(() => {
+            document.getElementById('overallBar').style.width = '@paidPctC.ToString("F0")%';
+        }, 100);
+    });
+</script>
+
+</main>
+</div>

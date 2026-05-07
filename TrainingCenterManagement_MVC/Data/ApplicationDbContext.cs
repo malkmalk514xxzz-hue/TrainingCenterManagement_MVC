@@ -47,6 +47,11 @@ namespace TrainingCenterManagement_MVC.Data
         // ── Course Ratings ───────────────────────────────────────────
         public DbSet<CourseRating> CourseRatings { get; set; }
 
+        // ── Finance & Salary ─────────────────────────────────────────
+        public DbSet<ExchangeRate>   ExchangeRates   { get; set; }
+        public DbSet<EmployeeSalary> EmployeeSalaries { get; set; }
+        public DbSet<SalaryPayment>  SalaryPayments  { get; set; }
+
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
@@ -456,6 +461,48 @@ namespace TrainingCenterManagement_MVC.Data
         builder.Entity<CourseRating>()
             .HasIndex(r => r.CourseId)
             .HasDatabaseName("IX_CourseRating_CourseId");
+
+        // ══════════════════════════════════════════════════════════
+        //  FINANCE & SALARY SYSTEM — Fluent API
+        // ══════════════════════════════════════════════════════════
+
+        // ExchangeRate: one row per currency (no SAR entry — SAR is base)
+        builder.Entity<ExchangeRate>()
+            .HasIndex(er => er.Currency)
+            .IsUnique()
+            .HasDatabaseName("UX_ExchangeRate_Currency");
+
+        builder.Entity<ExchangeRate>()
+            .HasOne(er => er.UpdatedBy)
+            .WithMany()
+            .HasForeignKey(er => er.UpdatedByUserId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        // EmployeeSalary
+        builder.Entity<EmployeeSalary>()
+            .HasOne(es => es.User)
+            .WithMany()
+            .HasForeignKey(es => es.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // SalaryPayment
+        builder.Entity<SalaryPayment>()
+            .HasOne(sp => sp.Salary)
+            .WithMany(es => es.Payments)
+            .HasForeignKey(sp => sp.SalaryId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<SalaryPayment>()
+            .HasOne(sp => sp.PaidByAdmin)
+            .WithMany()
+            .HasForeignKey(sp => sp.PaidByAdminId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        // Unique: one salary payment per employee per month/year
+        builder.Entity<SalaryPayment>()
+            .HasIndex(sp => new { sp.SalaryId, sp.Month, sp.Year })
+            .IsUnique()
+            .HasDatabaseName("UX_SalaryPayment_Salary_Month_Year");
 
         }
     }

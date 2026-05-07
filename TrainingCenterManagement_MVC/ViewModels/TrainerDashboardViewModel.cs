@@ -5,9 +5,13 @@ namespace TrainingCenterManagement_MVC.ViewModels
 {
     public class TrainerDashboardViewModel
     {
+        public Guid TrainerId { get; set; }
         public string FullName { get; set; }
+        public string Email { get; set; } = string.Empty;
         public string ProfilePictureUrl { get; set; } = "/images/default-profile.png";
         public string Specialization { get; set; } = "General Trainer";
+        public int YearsOfExperience { get; set; }
+        public string? BusinessLink { get; set; }
         public string Availability { get; set; } = "Available"; // "Available" or "Busy"
         public string WelcomeMessage { get; set; }
         public int OverallProgress { get; set; } // e.g., Average Attendance %

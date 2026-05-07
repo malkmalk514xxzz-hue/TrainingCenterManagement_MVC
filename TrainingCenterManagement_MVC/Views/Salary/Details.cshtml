@@ -1,0 +1,209 @@
+@model TrainingCenterManagement_MVC.ViewModels.SalaryDetailsViewModel
+@{
+    ViewData["Title"] = $"راتب {Model.Name}";
+    var now = DateTime.UtcNow;
+    var avatarChar = Model.Name.Length > 0 ? Model.Name[0].ToString() : "؟";
+    var monthNames = new[] { "", "يناير","فبراير","مارس","أبريل","مايو","يونيو","يوليو","أغسطس","سبتمبر","أكتوبر","نوفمبر","ديسمبر" };
+    bool paidThisMonth = Model.PaymentHistory.Any(p => p.Month == now.Month && p.Year == now.Year);
+}
+
+<style>
+    .sd-back { display:inline-flex; align-items:center; gap:6px; color:#64748b; text-decoration:none; font-size:.88rem; margin-bottom:20px; }
+    .sd-back:hover { color:#7c3aed; }
+    .sd-hero { background:#fff; border-radius:16px; padding:28px; box-shadow:0 4px 20px rgba(124,58,237,.09); border:1px solid #ede9fe; display:flex; align-items:center; gap:24px; margin-bottom:24px; flex-wrap:wrap; }
+    .sd-avatar { width:72px; height:72px; border-radius:50%; object-fit:cover; flex-shrink:0; }
+    .sd-avatar-fb { width:72px; height:72px; border-radius:50%; background:linear-gradient(135deg,#7c3aed,#a78bfa); color:#fff; font-size:1.8rem; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+    .sd-info h2 { margin:0; font-size:1.3rem; font-weight:700; color:#1e1b4b; }
+    .sd-info p  { margin:4px 0 0; color:#64748b; font-size:.88rem; }
+    .sd-kpis { display:flex; gap:16px; flex-wrap:wrap; margin-right:auto; }
+    .sd-kpi { background:#f5f3ff; border-radius:10px; padding:12px 20px; text-align:center; min-width:110px; }
+    .sd-kpi .val { font-size:1.2rem; font-weight:800; color:#1e1b4b; }
+    .sd-kpi .lbl { font-size:.75rem; color:#7c3aed; margin-top:2px; }
+    /* Pay Form */
+    .sd-pay-form { background:#fff; border-radius:14px; box-shadow:0 4px 20px rgba(124,58,237,.09); border:1px solid #ede9fe; padding:24px; margin-bottom:24px; }
+    .sd-pay-form h3 { margin:0 0 18px; font-size:1rem; font-weight:700; color:#1e1b4b; display:flex; align-items:center; gap:8px; }
+    .sd-pay-form h3 i { color:#7c3aed; }
+    .sd-form-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; }
+    .sd-form-group label { font-size:.82rem; font-weight:600; color:#374151; display:block; margin-bottom:5px; }
+    .sd-form-group .form-control, .sd-form-group .form-select { border-radius:8px; border:1.5px solid #e2e8f0; padding:9px 12px; font-size:.9rem; transition:border-color .2s; width:100%; }
+    .sd-form-group .form-control:focus, .sd-form-group .form-select:focus { outline:none; border-color:#7c3aed; box-shadow:0 0 0 3px rgba(124,58,237,.1); }
+    .sd-pay-btn { background:linear-gradient(135deg,#7c3aed,#6d28d9); color:#fff; border:none; border-radius:10px; padding:11px 24px; font-weight:700; font-size:.92rem; cursor:pointer; width:100%; margin-top:4px; transition:opacity .2s; }
+    .sd-pay-btn:hover { opacity:.9; }
+    .sd-pay-btn:disabled { opacity:.5; cursor:not-allowed; }
+    .already-paid { background:#d1fae5; border:1px solid #a7f3d0; border-radius:10px; padding:14px 20px; color:#065f46; font-weight:600; display:flex; align-items:center; gap:10px; margin-bottom:24px; }
+    /* History */
+    .sd-history { background:#fff; border-radius:14px; box-shadow:0 4px 20px rgba(124,58,237,.09); border:1px solid #ede9fe; overflow:hidden; }
+    .sd-history-head { padding:16px 20px; border-bottom:1px solid #ede9fe; display:flex; align-items:center; justify-content:space-between; }
+    .sd-history-head h3 { margin:0; font-size:1rem; font-weight:700; color:#1e1b4b; display:flex; align-items:center; gap:8px; }
+    .sd-history-head h3 i { color:#7c3aed; }
+    .sd-table { width:100%; border-collapse:collapse; font-size:.88rem; }
+    .sd-table th { padding:10px 16px; background:#f5f3ff; color:#7c3aed; font-weight:600; font-size:.78rem; text-transform:uppercase; border-bottom:1px solid #ede9fe; }
+    .sd-table td { padding:12px 16px; border-bottom:1px solid #f5f3ff; vertical-align:middle; }
+    .sd-table tr:last-child td { border-bottom:none; }
+    .month-badge { background:#ede9fe; color:#5b21b6; border-radius:20px; padding:3px 12px; font-size:.82rem; font-weight:700; }
+    .amount-cell { font-weight:700; color:#059669; }
+    .deact-btn { background:#fff; border:1.5px solid #fca5a5; color:#ef4444; border-radius:8px; padding:8px 16px; font-size:.85rem; font-weight:600; cursor:pointer; margin-top:16px; display:flex; align-items:center; gap:6px; }
+    .deact-btn:hover { background:#fef2f2; }
+</style>
+
+<div class="dashboard-wrapper" style="display:flex;direction:rtl;min-height:100vh">
+@await Html.PartialAsync("_AdminSidebar")
+<main style="flex:1;padding:28px 32px;background:#faf5ff;overflow-x:hidden">
+
+<a asp-action="Index" asp-controller="Salary" class="sd-back">
+    <i class="fas fa-arrow-right"></i> العودة إلى قائمة الموظفين
+</a>
+
+<!-- Hero -->
+<div class="sd-hero">
+    @if (!string.IsNullOrEmpty(Model.ProfilePic))
+    { <img src="@Model.ProfilePic" class="sd-avatar" alt=""> }
+    else
+    { <div class="sd-avatar-fb">@avatarChar</div> }
+    <div class="sd-info">
+        <h2>@Model.Name</h2>
+        <p><i class="fas fa-envelope me-1"></i>@Model.Email</p>
+        <p style="margin-top:4px">
+            <span class="@(Model.Role == "Trainer" ? "badge bg-purple" : "badge bg-primary")" style="font-size:.8rem;padding:4px 10px;border-radius:6px;background:@(Model.Role=="Trainer"?"#7c3aed":"#1d4ed8")">
+                @(Model.Role == "Trainer" ? "مدرب" : "موظف استقبال")
+            </span>
+            @if (!string.IsNullOrEmpty(Model.Specialty))
+            { <span style="margin-right:6px;font-size:.82rem;color:#7c3aed">@Model.Specialty</span> }
+        </p>
+    </div>
+    <div class="sd-kpis">
+        <div class="sd-kpi">
+            <div class="val">@Model.MonthlySalary.ToString("N0")</div>
+            <div class="lbl">الراتب الشهري (@Model.CurrencyLabel)</div>
+        </div>
+        <div class="sd-kpi">
+            <div class="val">@Model.PaymentHistory.Count</div>
+            <div class="lbl">شهر مدفوع</div>
+        </div>
+        <div class="sd-kpi">
+            <div class="val">@Model.TotalPaid.ToString("N0")</div>
+            <div class="lbl">إجمالي المصروف</div>
+        </div>
+    </div>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show mb-3">
+        <i class="fas fa-check-circle me-2"></i>@TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show mb-3">
+        <i class="fas fa-exclamation-circle me-2"></i>@TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<!-- Pay Form -->
+@if (paidThisMonth)
+{
+    <div class="already-paid">
+        <i class="fas fa-check-circle fa-lg"></i>
+        تم صرف راتب @(monthNames[now.Month]) @now.Year لهذا الموظف بالفعل.
+    </div>
+}
+else
+{
+    <div class="sd-pay-form">
+        <h3><i class="fas fa-hand-holding-usd"></i> صرف الراتب</h3>
+        <form asp-action="Pay" asp-controller="Salary" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="SalaryId" value="@Model.SalaryId" />
+            <div class="sd-form-grid">
+                <div class="sd-form-group">
+                    <label>الشهر</label>
+                    <select name="Month" class="form-select">
+                        @for (int m = 1; m <= 12; m++)
+                        {
+                            <option value="@m" selected="@(m == now.Month)">@monthNames[m]</option>
+                        }
+                    </select>
+                </div>
+                <div class="sd-form-group">
+                    <label>السنة</label>
+                    <input type="number" name="Year" class="form-control" value="@now.Year" min="2020" max="2099" />
+                </div>
+                <div class="sd-form-group">
+                    <label>العملة</label>
+                    <select name="Currency" class="form-select">
+                        <option value="1" selected="@(Model.Currency == TrainingCenterManagement_MVC.Models.PaymentCurrency.SAR)">ر.س (SAR)</option>
+                        <option value="2" selected="@(Model.Currency == TrainingCenterManagement_MVC.Models.PaymentCurrency.USD)">USD ($)</option>
+                        <option value="3" selected="@(Model.Currency == TrainingCenterManagement_MVC.Models.PaymentCurrency.EUR)">EUR (€)</option>
+                        <option value="4" selected="@(Model.Currency == TrainingCenterManagement_MVC.Models.PaymentCurrency.EGP)">ج.م (EGP)</option>
+                    </select>
+                </div>
+                <div class="sd-form-group">
+                    <label>المبلغ</label>
+                    <input type="number" name="Amount" class="form-control" value="@Model.MonthlySalary" step="0.01" min="0" />
+                </div>
+                <div class="sd-form-group" style="grid-column:span 2">
+                    <label>ملاحظات (اختياري)</label>
+                    <input type="text" name="Notes" class="form-control" placeholder="أي ملاحظات..." />
+                </div>
+            </div>
+            <button type="submit" class="sd-pay-btn">
+                <i class="fas fa-money-bill-wave me-2"></i>صرف الراتب الآن
+            </button>
+        </form>
+    </div>
+}
+
+<!-- History -->
+<div class="sd-history">
+    <div class="sd-history-head">
+        <h3><i class="fas fa-history"></i> سجل صرف الرواتب</h3>
+        <span style="font-size:.82rem;color:#94a3b8">إجمالي: @Model.TotalPaid.ToString("N0") ر.س</span>
+    </div>
+    <table class="sd-table">
+        <thead>
+            <tr>
+                <th>الشهر / السنة</th>
+                <th>المبلغ المصروف</th>
+                <th>العملة</th>
+                <th>تاريخ الصرف</th>
+                <th>بواسطة</th>
+                <th>ملاحظات</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var p in Model.PaymentHistory)
+            {
+                <tr>
+                    <td><span class="month-badge">@(monthNames[p.Month]) @p.Year</span></td>
+                    <td class="amount-cell">@p.Amount.ToString("N0")</td>
+                    <td><span style="background:#f5f3ff;color:#7c3aed;border-radius:4px;padding:2px 7px;font-size:.75rem;font-weight:600">@p.CurrencyLabel</span></td>
+                    <td style="color:#64748b;font-size:.83rem">@p.PaidAt.ToString("dd/MM/yyyy hh:mm tt")</td>
+                    <td style="font-size:.83rem;color:#475569">@p.PaidByName</td>
+                    <td style="font-size:.82rem;color:#94a3b8">@(string.IsNullOrEmpty(p.Notes) ? "—" : p.Notes)</td>
+                </tr>
+            }
+            @if (!Model.PaymentHistory.Any())
+            {
+                <tr><td colspan="6" class="text-center py-4 text-muted">لا توجد مدفوعات بعد</td></tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@if (Model.IsActive)
+{
+    <form asp-action="Deactivate" asp-controller="Salary" method="post" class="d-inline"
+          onsubmit="return confirm('هل تريد إيقاف تفعيل راتب هذا الموظف؟')">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="id" value="@Model.SalaryId" />
+        <button type="submit" class="deact-btn">
+            <i class="fas fa-ban"></i> إيقاف تفعيل الراتب
+        </button>
+    </form>
+}
+
+</main>
+</div>

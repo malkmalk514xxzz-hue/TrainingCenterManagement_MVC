@@ -1,179 +1,447 @@
-﻿@using TrainingCenterManagement_MVC.Resources
-@using Microsoft.AspNetCore.Mvc.Rendering
-@model dynamic
-
+@model TrainingCenterManagement_MVC.ViewModels.ReceptionistDashboardViewModel
 @{
-    ViewData["Title"] = SharedResource.Dashboard;
+    ViewData["Title"] = "لوحة موظف الاستقبال";
+    var avatarChar = Model.ReceptionistName?.Length > 0 ? Model.ReceptionistName[0].ToString() : "R";
 }
 
 <style>
-    .dashboard-wrapper {
+    :root {
+        --rc-primary:   #0ea5e9;
+        --rc-primary-d: #0284c7;
+        --rc-accent:    #06b6d4;
+        --rc-success:   #10b981;
+        --rc-warning:   #f59e0b;
+        --rc-danger:    #ef4444;
+        --rc-purple:    #8b5cf6;
+        --rc-bg:        #f0f9ff;
+        --rc-card:      #ffffff;
+        --rc-text:      #0f172a;
+        --rc-muted:     #64748b;
+        --rc-border:    #e0f2fe;
+        --rc-shadow:    0 4px 24px rgba(14,165,233,.10);
+    }
+
+    .rc-wrapper { display: flex; direction: rtl; min-height: 100vh; background: var(--rc-bg); font-family: 'Segoe UI', Tahoma, sans-serif; }
+    .rc-main    { flex: 1; padding: 28px 32px; overflow-x: hidden; }
+
+    /* ── Welcome Banner ── */
+    .rc-banner {
+        background: linear-gradient(135deg, #0c4a6e 0%, #0ea5e9 55%, #06b6d4 100%);
+        border-radius: 16px;
+        padding: 32px 36px;
+        color: #fff;
         display: flex;
-        direction: @(System.Threading.Thread.CurrentThread.CurrentUICulture.TextInfo.IsRightToLeft ? "rtl" : "ltr");
+        align-items: center;
+        gap: 24px;
+        margin-bottom: 28px;
+        position: relative;
+        overflow: hidden;
+    }
+    .rc-banner::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    }
+    .rc-banner-avatar {
+        width: 72px; height: 72px; border-radius: 50%;
+        border: 3px solid rgba(255,255,255,.4);
+        object-fit: cover; flex-shrink: 0; position: relative; z-index: 1;
+    }
+    .rc-banner-info { flex: 1; position: relative; z-index: 1; }
+    .rc-banner-info h1 { font-size: 1.6rem; font-weight: 700; margin: 0 0 4px; }
+    .rc-banner-info p  { margin: 0; opacity: .85; font-size: .95rem; }
+    .rc-banner-badge {
+        background: rgba(255,255,255,.15);
+        border: 1px solid rgba(255,255,255,.3);
+        border-radius: 20px; padding: 6px 16px;
+        font-size: .85rem; backdrop-filter: blur(4px);
+        position: relative; z-index: 1;
     }
 
-    .dashboard-main {
-        flex-grow: 1;
-        padding: 20px;
+    /* ── KPI Cards ── */
+    .rc-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; margin-bottom: 28px; }
+    .rc-stat-card {
+        background: var(--rc-card);
+        border-radius: 14px;
+        padding: 20px 22px;
+        box-shadow: var(--rc-shadow);
+        border: 1px solid var(--rc-border);
+        display: flex; flex-direction: column; gap: 10px;
+        transition: transform .2s, box-shadow .2s;
+    }
+    .rc-stat-card:hover { transform: translateY(-3px); box-shadow: 0 8px 32px rgba(14,165,233,.18); }
+    .rc-stat-top { display: flex; align-items: center; justify-content: space-between; }
+    .rc-stat-icon {
+        width: 48px; height: 48px; border-radius: 12px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.2rem; color: #fff;
+    }
+    .rc-stat-change {
+        font-size: .78rem; font-weight: 600; padding: 3px 8px;
+        border-radius: 20px; display: flex; align-items: center; gap: 4px;
+    }
+    .rc-stat-change.pos  { background: #d1fae5; color: #065f46; }
+    .rc-stat-change.neg  { background: #fee2e2; color: #991b1b; }
+    .rc-stat-change.neu  { background: #f1f5f9; color: #475569; }
+    .rc-stat-value { font-size: 1.8rem; font-weight: 800; color: var(--rc-text); line-height: 1; }
+    .rc-stat-label { font-size: .85rem; color: var(--rc-muted); font-weight: 500; }
+
+    /* ── Quick Actions ── */
+    .rc-quick-title { font-size: 1.1rem; font-weight: 700; color: var(--rc-text); margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+    .rc-quick-title i { color: var(--rc-primary); }
+    .rc-actions { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 28px; }
+    .rc-action-btn {
+        background: var(--rc-card);
+        border: 1.5px solid var(--rc-border);
+        border-radius: 12px; padding: 18px 14px;
+        text-align: center; text-decoration: none;
+        color: var(--rc-text); font-weight: 600; font-size: .88rem;
+        transition: all .2s; display: flex; flex-direction: column;
+        align-items: center; gap: 10px; cursor: pointer;
+    }
+    .rc-action-btn:hover { border-color: var(--rc-primary); color: var(--rc-primary); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(14,165,233,.15); text-decoration: none; }
+    .rc-action-btn .act-icon {
+        width: 46px; height: 46px; border-radius: 12px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.2rem; color: #fff;
     }
 
-    .dashboard-stats {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 20px;
-        margin-bottom: 20px;
+    /* ── Content Grid ── */
+    .rc-content { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; margin-bottom: 28px; }
+
+    /* ── Section Cards ── */
+    .rc-section {
+        background: var(--rc-card);
+        border-radius: 14px;
+        box-shadow: var(--rc-shadow);
+        border: 1px solid var(--rc-border);
+        overflow: hidden;
+    }
+    .rc-section-head {
+        padding: 16px 20px;
+        border-bottom: 1px solid var(--rc-border);
+        display: flex; align-items: center; justify-content: space-between;
+    }
+    .rc-section-head h3 { margin: 0; font-size: 1rem; font-weight: 700; color: var(--rc-text); display: flex; align-items: center; gap: 8px; }
+    .rc-section-head h3 i { color: var(--rc-primary); }
+    .rc-section-head a { font-size: .82rem; color: var(--rc-primary); text-decoration: none; }
+    .rc-section-head a:hover { text-decoration: underline; }
+    .rc-section-body { padding: 0; }
+
+    /* ── Payments Table ── */
+    .rc-pay-table { width: 100%; border-collapse: collapse; font-size: .88rem; }
+    .rc-pay-table th { padding: 10px 16px; background: #f8fafc; color: var(--rc-muted); font-weight: 600; font-size: .78rem; text-transform: uppercase; border-bottom: 1px solid var(--rc-border); }
+    .rc-pay-table td { padding: 11px 16px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+    .rc-pay-table tr:last-child td { border-bottom: none; }
+    .rc-pay-table tr:hover td { background: #f0f9ff; }
+    .trainee-avatar {
+        width: 32px; height: 32px; border-radius: 50%;
+        background: linear-gradient(135deg, var(--rc-primary), var(--rc-accent));
+        color: #fff; font-size: .8rem; font-weight: 700;
+        display: inline-flex; align-items: center; justify-content: center;
+        margin-left: 8px; flex-shrink: 0;
+    }
+    .trainee-cell { display: flex; align-items: center; }
+    .amount-badge {
+        background: #d1fae5; color: #065f46;
+        border-radius: 20px; padding: 3px 10px;
+        font-size: .82rem; font-weight: 700; display: inline-block;
+    }
+    .currency-tag {
+        background: #e0f2fe; color: #0369a1;
+        border-radius: 4px; padding: 2px 6px;
+        font-size: .75rem; font-weight: 600; display: inline-block;
+        margin-right: 4px;
+    }
+    .date-text { color: var(--rc-muted); font-size: .82rem; }
+    .empty-row td { text-align: center; padding: 32px; color: var(--rc-muted); }
+
+    /* ── Courses List ── */
+    .rc-course-item {
+        display: flex; align-items: center; gap: 14px;
+        padding: 13px 20px; border-bottom: 1px solid #f1f5f9;
+    }
+    .rc-course-item:last-child { border-bottom: none; }
+    .rc-course-icon {
+        width: 40px; height: 40px; border-radius: 10px;
+        background: linear-gradient(135deg, var(--rc-primary), var(--rc-accent));
+        display: flex; align-items: center; justify-content: center;
+        color: #fff; font-size: 1rem; flex-shrink: 0;
+    }
+    .rc-course-info { flex: 1; }
+    .rc-course-info .name { font-weight: 600; font-size: .9rem; color: var(--rc-text); }
+    .rc-course-info .meta { font-size: .78rem; color: var(--rc-muted); margin-top: 2px; }
+    .rc-course-count {
+        background: #e0f2fe; color: #0369a1;
+        border-radius: 20px; padding: 3px 10px;
+        font-size: .8rem; font-weight: 700;
     }
 
-    .stat-card {
-        background: #fff;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        padding: 20px;
+    /* ── Today Banner ── */
+    .rc-today-list { padding: 8px 0; }
+    .rc-today-item {
+        display: flex; align-items: center; gap: 12px;
+        padding: 10px 20px;
     }
+    .rc-today-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--rc-success); flex-shrink: 0; }
+    .rc-today-info .name  { font-size: .88rem; font-weight: 600; color: var(--rc-text); }
+    .rc-today-info .course { font-size: .78rem; color: var(--rc-muted); }
+    .rc-today-time { margin-right: auto; font-size: .78rem; color: var(--rc-muted); }
+    .rc-today-empty { padding: 28px 20px; text-align: center; color: var(--rc-muted); font-size: .9rem; }
 
-    .card {
-        background: #fff;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        padding: 20px;
-        margin-bottom: 20px;
-        display: none;
-    }
+    /* ── Full-width payment section ── */
+    .rc-payments-full { background: var(--rc-card); border-radius: 14px; box-shadow: var(--rc-shadow); border: 1px solid var(--rc-border); overflow: hidden; }
 
-        .card.active {
-            display: block;
-        }
-
-    .form-group {
-        margin-bottom: 15px;
-    }
-
-    .btn {
-        margin-top: 10px;
-    }
+    @@media (max-width: 1200px) { .rc-stats { grid-template-columns: repeat(2, 1fr); } .rc-actions { grid-template-columns: repeat(2, 1fr); } }
+    @@media (max-width: 900px)  { .rc-content { grid-template-columns: 1fr; } }
+    @@media (max-width: 600px)  { .rc-main { padding: 16px; } .rc-stats { grid-template-columns: 1fr 1fr; } .rc-banner { flex-direction: column; text-align: center; } }
 </style>
 
-<div class="dashboard-wrapper">
+<div class="rc-wrapper">
     @await Html.PartialAsync("_ReceptionistSidebar")
 
-    <main class="dashboard-main">
-       
+    <main class="rc-main">
 
-        <div id="dashboard-stats" class="card active">
-            <h3>@SharedResource.Statistics</h3>
-            <div class="dashboard-stats">
-                <div class="stat-card">
-                    <h3>@SharedResource.ActiveStudents</h3>
-                    <div class="stat-value">@ViewBag.ActiveStudents</div>
+        <!-- Welcome Banner -->
+        <div class="rc-banner">
+            <img src="@Model.ProfilePic" class="rc-banner-avatar"
+                 onerror="this.onerror=null;this.src='https://placehold.co/72/0ea5e9/fff?text=@avatarChar';" alt="avatar">
+            <div class="rc-banner-info">
+                <h1>مرحباً، @Model.ReceptionistName</h1>
+                <p><i class="fas fa-envelope me-1"></i>@Model.ReceptionistEmail</p>
+            </div>
+            <div class="rc-banner-badge">
+                <i class="fas fa-headset me-1"></i> موظف استقبال
+            </div>
+        </div>
+
+        <!-- KPI Stats -->
+        <div class="rc-stats">
+            <div class="rc-stat-card">
+                <div class="rc-stat-top">
+                    <div class="rc-stat-icon" style="background:linear-gradient(135deg,#0ea5e9,#06b6d4)">
+                        <i class="fas fa-user-graduate"></i>
+                    </div>
+                    @{ var sc = Model.Stats.StudentsChange; }
+                    <span class="rc-stat-change @(sc > 0 ? "pos" : sc < 0 ? "neg" : "neu")">
+                        <i class="fas fa-arrow-@(sc >= 0 ? "up" : "down")"></i> @Math.Abs(sc)
+                    </span>
                 </div>
-                <div class="stat-card">
-                    <h3>@SharedResource.MonthlyRevenue</h3>
-                    <div class="stat-value">$@ViewBag.MonthlyRevenue</div>
+                <div class="rc-stat-value">@Model.Stats.TotalStudents.ToString("N0")</div>
+                <div class="rc-stat-label">إجمالي الطلاب النشطين</div>
+            </div>
+
+            <div class="rc-stat-card">
+                <div class="rc-stat-top">
+                    <div class="rc-stat-icon" style="background:linear-gradient(135deg,#8b5cf6,#6d28d9)">
+                        <i class="fas fa-book-open"></i>
+                    </div>
+                    @{ var cc = Model.Stats.CoursesChange; }
+                    <span class="rc-stat-change @(cc > 0 ? "pos" : cc < 0 ? "neg" : "neu")">
+                        <i class="fas fa-arrow-@(cc >= 0 ? "up" : "down")"></i> @Math.Abs(cc)
+                    </span>
                 </div>
-                <div class="stat-card">
-                    <h3>@SharedResource.TotalCourses</h3>
-                    <div class="stat-value">@ViewBag.TotalCourses</div>
+                <div class="rc-stat-value">@Model.Stats.TotalCourses</div>
+                <div class="rc-stat-label">الدورات المتاحة</div>
+            </div>
+
+            <div class="rc-stat-card">
+                <div class="rc-stat-top">
+                    <div class="rc-stat-icon" style="background:linear-gradient(135deg,#10b981,#059669)">
+                        <i class="fas fa-coins"></i>
+                    </div>
+                    @{ var rv = Model.Stats.RevenueChange; }
+                    <span class="rc-stat-change @(rv > 0 ? "pos" : rv < 0 ? "neg" : "neu")">
+                        <i class="fas fa-arrow-@(rv >= 0 ? "up" : "down")"></i> @Math.Abs(rv).ToString("N0")%
+                    </span>
+                </div>
+                <div class="rc-stat-value">@Model.Stats.MonthlyRevenue.ToString("N0")</div>
+                <div class="rc-stat-label">إيرادات هذا الشهر (ر.س)</div>
+            </div>
+
+            <div class="rc-stat-card">
+                <div class="rc-stat-top">
+                    <div class="rc-stat-icon" style="background:linear-gradient(135deg,#f59e0b,#d97706)">
+                        <i class="fas fa-receipt"></i>
+                    </div>
+                    <span class="rc-stat-change neu"><i class="fas fa-calendar-day"></i> اليوم</span>
+                </div>
+                <div class="rc-stat-value">@Model.Stats.TodayPayments</div>
+                <div class="rc-stat-label">دفعات اليوم</div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="rc-quick-title"><i class="fas fa-bolt"></i> إجراءات سريعة</div>
+        <div class="rc-actions">
+            <a asp-action="Create" asp-controller="Payments" class="rc-action-btn">
+                <div class="act-icon" style="background:linear-gradient(135deg,#10b981,#059669)">
+                    <i class="fas fa-plus-circle"></i>
+                </div>
+                إضافة دفعة مالية
+            </a>
+            <a asp-action="Register" asp-controller="Account" class="rc-action-btn">
+                <div class="act-icon" style="background:linear-gradient(135deg,#0ea5e9,#0284c7)">
+                    <i class="fas fa-user-plus"></i>
+                </div>
+                تسجيل طالب جديد
+            </a>
+            <a asp-action="RegisterTraineeToCourse" asp-controller="Receptionists" class="rc-action-btn">
+                <div class="act-icon" style="background:linear-gradient(135deg,#8b5cf6,#6d28d9)">
+                    <i class="fas fa-user-check"></i>
+                </div>
+                تسجيل في دورة
+            </a>
+            <a asp-action="UnregisterTraineeFromCourse" asp-controller="Receptionists" class="rc-action-btn">
+                <div class="act-icon" style="background:linear-gradient(135deg,#ef4444,#dc2626)">
+                    <i class="fas fa-user-times"></i>
+                </div>
+                إلغاء تسجيل
+            </a>
+            <a asp-action="PaymentReports" asp-controller="Receptionists" class="rc-action-btn">
+                <div class="act-icon" style="background:linear-gradient(135deg,#f59e0b,#d97706)">
+                    <i class="fas fa-file-invoice-dollar"></i>
+                </div>
+                تقارير المدفوعات
+            </a>
+            <a asp-action="AttendanceReports" asp-controller="Receptionists" class="rc-action-btn">
+                <div class="act-icon" style="background:linear-gradient(135deg,#06b6d4,#0891b2)">
+                    <i class="fas fa-clipboard-check"></i>
+                </div>
+                تقارير الحضور
+            </a>
+            <a asp-action="ContactTrainees" asp-controller="Receptionists" class="rc-action-btn">
+                <div class="act-icon" style="background:linear-gradient(135deg,#ec4899,#db2777)">
+                    <i class="fas fa-envelope"></i>
+                </div>
+                التواصل مع الطلاب
+            </a>
+            <a asp-action="Index" asp-controller="Notifications" class="rc-action-btn">
+                <div class="act-icon" style="background:linear-gradient(135deg,#64748b,#475569)">
+                    <i class="fas fa-bell"></i>
+                </div>
+                الإشعارات
+            </a>
+        </div>
+
+        <!-- Content Grid: Today's Activity + Active Courses -->
+        <div class="rc-content">
+            <!-- Today's Activity -->
+            <div class="rc-section">
+                <div class="rc-section-head">
+                    <h3><i class="fas fa-clock"></i> نشاط اليوم</h3>
+                </div>
+                <div class="rc-section-body">
+                    @if (Model.TodayEnrollments.Any())
+                    {
+                        <div class="rc-today-list">
+                            @foreach (var item in Model.TodayEnrollments)
+                            {
+                                <div class="rc-today-item">
+                                    <div class="rc-today-dot"></div>
+                                    <div class="rc-today-info">
+                                        <div class="name">@item.TraineeName</div>
+                                        <div class="course">@item.CourseName</div>
+                                    </div>
+                                    <div class="rc-today-time">@item.EnrolledAt.ToString("hh:mm tt")</div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="rc-today-empty">
+                            <i class="fas fa-moon fa-2x mb-2 d-block" style="color:#e2e8f0"></i>
+                            لا توجد دفعات اليوم بعد
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Active Courses -->
+            <div class="rc-section">
+                <div class="rc-section-head">
+                    <h3><i class="fas fa-book-open"></i> الدورات المتاحة</h3>
+                    <a asp-action="Index" asp-controller="Courses">عرض الكل</a>
+                </div>
+                <div class="rc-section-body">
+                    @foreach (var course in Model.ActiveCourses.Take(6))
+                    {
+                        <div class="rc-course-item">
+                            <div class="rc-course-icon"><i class="fas fa-graduation-cap"></i></div>
+                            <div class="rc-course-info">
+                                <div class="name">@course.CourseName</div>
+                                <div class="meta">@course.Price.ToString("N0") ر.س</div>
+                            </div>
+                            <span class="rc-course-count">@course.EnrolledCount طالب</span>
+                        </div>
+                    }
+                    @if (!Model.ActiveCourses.Any())
+                    {
+                        <div class="rc-today-empty">لا توجد دورات متاحة</div>
+                    }
                 </div>
             </div>
         </div>
 
-        <div id="register" class="card">
-            <h3>@SharedResource.RegisterNewCustomer</h3>
-            <a asp-action="Register" asp-controller="Account" class="btn btn-primary">@SharedResource.RegisterNewCustomer</a>
+        <!-- Recent Payments Full-width -->
+        <div class="rc-payments-full">
+            <div class="rc-section-head" style="padding:16px 20px;border-bottom:1px solid var(--rc-border);display:flex;align-items:center;justify-content:space-between;">
+                <h3 style="margin:0;font-size:1rem;font-weight:700;color:var(--rc-text);display:flex;align-items:center;gap:8px;">
+                    <i class="fas fa-money-bill-wave" style="color:var(--rc-primary)"></i>
+                    آخر الدفعات المالية المُودَعة
+                </h3>
+                <a asp-action="PaymentReports" asp-controller="Receptionists" style="font-size:.82rem;color:var(--rc-primary);text-decoration:none;">عرض التقرير الكامل</a>
+            </div>
+            <div style="overflow-x:auto">
+                <table class="rc-pay-table">
+                    <thead>
+                        <tr>
+                            <th>الطالب</th>
+                            <th>الدورة</th>
+                            <th>المبلغ</th>
+                            <th>العملة</th>
+                            <th>التاريخ</th>
+                            <th>الوقت</th>
+                            <th>ملاحظات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.RecentPayments.Any())
+                        {
+                            @foreach (var p in Model.RecentPayments)
+                            {
+                                var initials = p.TraineeName.Length > 0 ? p.TraineeName[0].ToString() : "؟";
+                                <tr>
+                                    <td>
+                                        <div class="trainee-cell">
+                                            <div class="trainee-avatar">@initials</div>
+                                            <span>@p.TraineeName</span>
+                                        </div>
+                                    </td>
+                                    <td>@p.CourseName</td>
+                                    <td><span class="amount-badge">@p.Amount.ToString("N0")</span></td>
+                                    <td><span class="currency-tag">@p.Currency</span></td>
+                                    <td><span class="date-text">@p.Date.ToString("dd/MM/yyyy")</span></td>
+                                    <td><span class="date-text">@p.Date.ToString("hh:mm tt")</span></td>
+                                    <td><span class="date-text">@(string.IsNullOrEmpty(p.Notes) ? "—" : p.Notes)</span></td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr class="empty-row">
+                                <td colspan="7">
+                                    <i class="fas fa-inbox fa-2x mb-2 d-block" style="color:#e2e8f0"></i>
+                                    لا توجد دفعات مسجلة بعد
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
         </div>
 
-        <div id="register-course" class="card">
-            <h3>@SharedResource.RegisterCourse</h3>
-            <form asp-action="RegisterTraineeToCourse" asp-controller="Receptionists" method="post">
-                <div class="form-group">
-                    <label>@SharedResource.SelectCourse</label>
-                    <select name="CourseId" class="form-control" asp-items="@ViewBag.CourseId"></select>
-                </div>
-                <div class="form-group">
-                    <label>@SharedResource.SelectTrainee</label>
-                    <select name="TraineeId" class="form-control" asp-items="@ViewBag.TraineeId"></select>
-                </div>
-                <button type="submit" class="btn btn-primary">@SharedResource.RegisterCourse</button>
-            </form>
-            <form asp-action="UnregisterTraineeFromCourse" asp-controller="Receptionists" method="post">
-                <div class="form-group">
-                    <label>@SharedResource.SelectCourse</label>
-                    <select name="CourseId" class="form-control" asp-items="@ViewBag.CourseId"></select>
-                </div>
-                <div class="form-group">
-                    <label>@SharedResource.SelectTrainee</label>
-                    <select name="TraineeId" class="form-control" asp-items="@ViewBag.TraineeId"></select>
-                </div>
-                <button type="submit" class="btn btn-danger">@SharedResource.UnregisterCourse</button>
-            </form>
-        </div>
-
-        <div id="add-payment" class="card">
-            <h3>@SharedResource.AddPayment</h3>
-            <a asp-action="Create" asp-controller="Payments" class="btn btn-primary">@SharedResource.AddPayment</a>
-            <a asp-action="PaymentReports" asp-controller="Receptionists" class="btn btn-info">@SharedResource.PaymentReports</a>
-            <a asp-action="PaymentReportPdf" asp-controller="Receptionists" class="btn btn-secondary">@SharedResource.ExportPaymentReport</a>
-        </div>
-
-        <div id="attendance-reports" class="card">
-            <h3>@SharedResource.AttendanceReports</h3>
-            <a asp-action="AttendanceReports" asp-controller="Receptionists" class="btn btn-info">@SharedResource.AttendanceReports</a>
-            <a asp-action="AttendanceReportPdf" asp-controller="Receptionists" class="btn btn-secondary">@SharedResource.ExportAttendanceReport</a>
-        </div>
-
-        <div id="course-details" class="card">
-            <h3>@SharedResource.CourseDetails</h3>
-            <form asp-action="Details" asp-controller="Courses" method="get">
-                <div class="form-group">
-                    <label>@SharedResource.SelectCourse</label>
-                    <select name="id" class="form-control" asp-items="@ViewBag.CourseId"></select>
-                </div>
-                <button type="submit" class="btn btn-primary">@SharedResource.ViewDetails</button>
-            </form>
-        </div>
-
-        <div id="contact-trainees" class="card">
-            <h3>@SharedResource.ContactTrainees</h3>
-            <a asp-action="ContactTrainees" asp-controller="Receptionists" class="btn btn-primary">@SharedResource.ContactTrainees</a>
-        </div>
     </main>
 </div>
-
-<script>
-    // Show/hide sections based on tab click
-    const tabButtons = document.querySelectorAll('.tab-btn');
-    const sections = document.querySelectorAll('.card');
-
-    // Ensure only one section is visible initially
-    sections.forEach(section => section.classList.remove('active'));
-    document.getElementById('dashboard-stats').classList.add('active');
-
-    tabButtons.forEach(button => {
-        button.addEventListener('click', (e) => {
-            e.preventDefault();
-            const tabId = button.getAttribute('data-tab');
-
-            // Hide all sections
-            sections.forEach(section => section.classList.remove('active'));
-
-            // Show the selected section
-            const targetSection = document.getElementById(tabId);
-            if (targetSection) {
-                targetSection.classList.add('active');
-            }
-
-            // Update active tab
-            tabButtons.forEach(btn => btn.parentElement.classList.remove('active'));
-            button.parentElement.classList.add('active');
-        });
-    });
-
-    // Validate course selection form
-    document.querySelector('form[action*="Details"]').addEventListener('submit', function (e) {
-        const select = document.querySelector('select[name="id"]');
-        if (!select.value) {
-            e.preventDefault();
-            alert('@SharedResource.SelectCourseError');
-        }
-    });
-</script>

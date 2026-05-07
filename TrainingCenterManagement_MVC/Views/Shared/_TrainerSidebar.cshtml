@@ -81,7 +81,12 @@
     </div>
     <nav class="sidebar-nav">
         <ul>
-          
+            <li class="@(currentPage == "trainerdashboard" ? "active" : "")">
+                <a asp-action="TrainerDashboard" asp-controller="Dashboard">
+                    <i class="fas fa-home"></i>
+                    <span>لوحة التحكم</span>
+                </a>
+            </li>
             <li class="@(currentPage == "lectures" ? "active" : "")">
                 <a asp-action="Index" asp-controller="Lectures">
                     <i class="fas fa-chalkboard-teacher"></i>

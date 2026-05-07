@@ -1,0 +1,171 @@
+@model TrainingCenterManagement_MVC.ViewModels.StudentAccountsIndexViewModel
+@{
+    ViewData["Title"] = "الذمم المالية للطلاب";
+}
+
+<style>
+    :root { --pm-primary:#1d4ed8; --pm-success:#10b981; --pm-danger:#ef4444; --pm-warning:#f59e0b; }
+    .pm-header { background:linear-gradient(135deg,#0f172a,#1d4ed8 60%,#3b82f6); border-radius:16px; padding:28px 32px; color:#fff; margin-bottom:24px; display:flex; align-items:center; gap:16px; }
+    .pm-header h1 { margin:0; font-size:1.5rem; font-weight:700; }
+    .pm-header p  { margin:4px 0 0; opacity:.8; }
+    .pm-header-icon { width:56px; height:56px; border-radius:14px; background:rgba(255,255,255,.15); display:flex; align-items:center; justify-content:center; font-size:1.5rem; flex-shrink:0; }
+    .pm-stats { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:24px; }
+    .pm-stat { background:#fff; border-radius:12px; padding:18px 20px; box-shadow:0 2px 12px rgba(0,0,0,.06); border:1px solid #e2e8f0; }
+    .pm-stat .val { font-size:1.6rem; font-weight:800; color:#0f172a; }
+    .pm-stat .lbl { font-size:.82rem; color:#64748b; margin-top:4px; }
+    .pm-stat .icon { font-size:1.3rem; margin-bottom:8px; }
+    /* Search */
+    .pm-toolbar { display:flex; align-items:center; gap:12px; margin-bottom:18px; }
+    .pm-search { flex:1; border:1.5px solid #e2e8f0; border-radius:10px; padding:10px 16px 10px 42px; font-size:.92rem; background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2394a3b8' stroke-width='2'%3E%3Cpath d='M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z'/%3E%3C/svg%3E") no-repeat 12px center/18px; }
+    .pm-search:focus { outline:none; border-color:#1d4ed8; }
+    /* Table */
+    .pm-table-wrap { background:#fff; border-radius:14px; box-shadow:0 2px 16px rgba(0,0,0,.06); border:1px solid #e2e8f0; overflow:hidden; }
+    .pm-table { width:100%; border-collapse:collapse; font-size:.88rem; }
+    .pm-table th { padding:12px 16px; background:#f8fafc; color:#64748b; font-weight:600; font-size:.78rem; text-transform:uppercase; letter-spacing:.04em; border-bottom:1px solid #e2e8f0; }
+    .pm-table td { padding:13px 16px; border-bottom:1px solid #f1f5f9; vertical-align:middle; }
+    .pm-table tr:last-child td { border-bottom:none; }
+    .pm-table tr:hover td { background:#f0f9ff; }
+    .student-avatar { width:36px; height:36px; border-radius:50%; object-fit:cover; }
+    .student-avatar-fallback { width:36px; height:36px; border-radius:50%; background:linear-gradient(135deg,#1d4ed8,#3b82f6); color:#fff; font-size:.85rem; font-weight:700; display:inline-flex; align-items:center; justify-content:center; }
+    .student-cell { display:flex; align-items:center; gap:10px; }
+    .student-info .name  { font-weight:600; color:#0f172a; }
+    .student-info .email { font-size:.78rem; color:#94a3b8; }
+    .balance-positive { color:#ef4444; font-weight:700; }
+    .balance-zero     { color:#10b981; font-weight:700; }
+    .progress-bar-wrap { background:#f1f5f9; border-radius:20px; height:8px; overflow:hidden; min-width:80px; }
+    .progress-bar-fill { height:8px; border-radius:20px; }
+    .btn-detail { background:#eff6ff; color:#1d4ed8; border:none; border-radius:8px; padding:6px 14px; font-size:.8rem; font-weight:600; text-decoration:none; transition:background .2s; }
+    .btn-detail:hover { background:#dbeafe; color:#1d4ed8; }
+    @@media (max-width:900px) { .pm-stats { grid-template-columns:1fr 1fr; } }
+</style>
+
+<div class="dashboard-wrapper" style="display:flex;direction:rtl;min-height:100vh">
+@await Html.PartialAsync("_AdminSidebar")
+<main style="flex:1;padding:28px 32px;background:#f0f9ff;overflow-x:hidden">
+
+<div class="pm-header">
+    <div class="pm-header-icon"><i class="fas fa-wallet"></i></div>
+    <div>
+        <h1>الذمم المالية للطلاب</h1>
+        <p>متابعة ما دفعه كل طالب والرصيد المتبقي عليه بعد احتساب أسعار الصرف</p>
+    </div>
+    <div class="ms-auto">
+        <a asp-action="Index" asp-controller="ExchangeRates" class="btn btn-light btn-sm fw-semibold">
+            <i class="fas fa-exchange-alt me-1"></i> أسعار الصرف
+        </a>
+    </div>
+</div>
+
+<!-- KPI Cards -->
+<div class="pm-stats">
+    <div class="pm-stat">
+        <div class="icon" style="color:#1d4ed8"><i class="fas fa-users"></i></div>
+        <div class="val">@Model.Students.Count</div>
+        <div class="lbl">إجمالي الطلاب</div>
+    </div>
+    <div class="pm-stat">
+        <div class="icon" style="color:#10b981"><i class="fas fa-check-circle"></i></div>
+        <div class="val">@Model.TotalRevenue.ToString("N0") ر.س</div>
+        <div class="lbl">إجمالي المحصّل</div>
+    </div>
+    <div class="pm-stat">
+        <div class="icon" style="color:#ef4444"><i class="fas fa-exclamation-circle"></i></div>
+        <div class="val">@Model.TotalPending.ToString("N0") ر.س</div>
+        <div class="lbl">إجمالي المتبقي</div>
+    </div>
+    <div class="pm-stat">
+        <div class="icon" style="color:#f59e0b"><i class="fas fa-user-clock"></i></div>
+        <div class="val">@Model.StudentsWithDebt</div>
+        <div class="lbl">طلاب لديهم رصيد متبقي</div>
+    </div>
+</div>
+
+<!-- Toolbar -->
+<div class="pm-toolbar">
+    <input type="text" id="searchInput" class="pm-search" placeholder="ابحث باسم الطالب أو الإيميل..." oninput="filterStudents()">
+    <select id="filterBalance" class="form-select" style="width:160px;font-size:.88rem" onchange="filterStudents()">
+        <option value="all">كل الطلاب</option>
+        <option value="debt">لديهم رصيد</option>
+        <option value="clear">مدفوع بالكامل</option>
+    </select>
+</div>
+
+<!-- Table -->
+<div class="pm-table-wrap">
+    <table class="pm-table" id="studentsTable">
+        <thead>
+            <tr>
+                <th>الطالب</th>
+                <th>الدورات المسجلة</th>
+                <th>إجمالي المطلوب</th>
+                <th>إجمالي المدفوع</th>
+                <th>الرصيد المتبقي</th>
+                <th>نسبة السداد</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var s in Model.Students)
+            {
+                var paidPct = s.TotalOwed > 0 ? (double)(s.TotalPaid / s.TotalOwed * 100) : 100;
+                var paidPctClamped = Math.Min(paidPct, 100);
+                var barColor = paidPct >= 100 ? "#10b981" : paidPct >= 50 ? "#f59e0b" : "#ef4444";
+                var initials = s.Name.Length > 0 ? s.Name[0].ToString() : "؟";
+                <tr data-name="@s.Name.ToLower()" data-email="@s.Email.ToLower()" data-balance="@(s.RemainingBalance > 0 ? "debt" : "clear")">
+                    <td>
+                        <div class="student-cell">
+                            @if (!string.IsNullOrEmpty(s.ProfilePic))
+                            {
+                                <img src="@s.ProfilePic" class="student-avatar" alt="">
+                            }
+                            else
+                            {
+                                <div class="student-avatar-fallback">@initials</div>
+                            }
+                            <div class="student-info">
+                                <div class="name">@s.Name</div>
+                                <div class="email">@s.Email</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>@s.EnrolledCourses دورة</td>
+                    <td>@s.TotalOwed.ToString("N0") ر.س</td>
+                    <td>@s.TotalPaid.ToString("N0") ر.س</td>
+                    <td class="@(s.RemainingBalance > 0 ? "balance-positive" : "balance-zero")">
+                        @(s.RemainingBalance > 0 ? $"{s.RemainingBalance:N0} ر.س" : "✓ مسدّد")
+                    </td>
+                    <td style="min-width:100px">
+                        <div style="font-size:.78rem;color:#64748b;margin-bottom:4px;">@paidPctClamped.ToString("F0")%</div>
+                        <div class="progress-bar-wrap">
+                            <div class="progress-bar-fill" style="width:@paidPctClamped.ToString("F0")%;background:@barColor"></div>
+                        </div>
+                    </td>
+                    <td>
+                        <a asp-action="StudentAccount" asp-controller="PaymentManagement" asp-route-id="@s.TraineeId" class="btn-detail">
+                            <i class="fas fa-eye me-1"></i>التفاصيل
+                        </a>
+                    </td>
+                </tr>
+            }
+            @if (!Model.Students.Any())
+            {
+                <tr><td colspan="7" class="text-center py-5 text-muted">لا يوجد طلاب مسجلون</td></tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<script>
+function filterStudents() {
+    var q       = document.getElementById('searchInput').value.toLowerCase();
+    var balance = document.getElementById('filterBalance').value;
+    document.querySelectorAll('#studentsTable tbody tr[data-name]').forEach(row => {
+        var matchQ = (row.dataset.name + ' ' + row.dataset.email).includes(q);
+        var matchB = balance === 'all' || row.dataset.balance === balance;
+        row.style.display = (matchQ && matchB) ? '' : 'none';
+    });
+}
+</script>
+
+</main>
+</div>

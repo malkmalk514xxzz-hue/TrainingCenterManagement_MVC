@@ -77,6 +77,10 @@ builder.Services.AddSignalR(options =>
 // Custom Services
 builder.Services.AddScoped<ISettingsService, SettingsService>();
 builder.Services.AddScoped<DashboardHelper>();
+builder.Services.AddScoped<TraineeDashboardHelper>();
+builder.Services.AddScoped<TrainerDashboardHelper>();
+builder.Services.AddScoped<AdminDashboardHelper>();
+builder.Services.AddScoped<ReceptionistDashboardHelper>();
 builder.Services.AddScoped<IUserHelper, UserHelper>();
 builder.Services.AddScoped<RoleInitializer>();
 builder.Services.AddScoped<TrainingCenterManagement_MVC.Services.IExamService,

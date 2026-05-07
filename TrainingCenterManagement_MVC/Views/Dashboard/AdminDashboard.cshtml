@@ -1,1004 +1,739 @@
-﻿@* @using TrainingCenterManagement_MVC.Resources
-@using Newtonsoft.Json
 @using TrainingCenterManagement_MVC.ViewModels
+@using Newtonsoft.Json
 @model AdminDashboardViewModelModel
 
 @{
-    ViewData["Title"] = SharedResource.AdminDashboard_Title;
+    ViewData["Title"] = "لوحة تحكم الإدارة";
+    var today = DateTime.Now.ToString("dddd، d MMMM yyyy", new System.Globalization.CultureInfo("ar-SA"));
+    var avatarChar = Model.AdminName?.Length > 0 ? Model.AdminName[0].ToString() : "A";
+    var stats = Model.Stats;
 }
 
-<style>
-    .dashboard-wrapper {
-        display: flex;
-        direction: @((System.Threading.Thread.CurrentThread.CurrentUICulture.TextInfo.IsRightToLeft ? "rtl" : "ltr"));
-    }
-
-    .dashboard-main {
-        flex-grow: 1;
-        padding: 20px;
-    }
-
-    .dashboard-stats {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 20px;
-        margin-bottom: 20px;
-    }
-
-    .stat-card {
-        background: #fff;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        padding: 20px;
-    }
-
-    .stat-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-    .stat-value {
-        font-size: 24px;
-        font-weight: bold;
-        color: #007bff;
-    }
-
-    .stat-change {
-        color: #28a745;
-    }
-
-        .stat-change.negative {
-            color: red;
-        }
-
-    .tabs {
-        display: flex;
-        gap: 10px;
-        margin-bottom: 20px;
-    }
-
-    .tab-btn {
-        padding: 10px 20px;
-        border: none;
-        background: #f1f1f1;
-        cursor: pointer;
-        border-radius: 5px;
-    }
-
-        .tab-btn.active {
-            background: #007bff;
-            color: #fff;
-        }
-
-    .tab-content {
-        display: none;
-    }
-
-        .tab-content.active {
-            display: block;
-        }
-
-    .card {
-        background: #fff;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        padding: 20px;
-    }
-
-    .loader {
-        border: 4px solid #f3f3f3;
-        border-top: 4px solid #007bff;
-        border-radius: 50%;
-        width: 30px;
-        height: 30px;
-        animation: spin 1s linear infinite;
-        margin: 20px auto;
-        display: none;
-    }
-  
-</style>
-
-<body>
-    <div class="dashboard-wrapper">
-        @await Html.PartialAsync("_AdminSidebar")
-
-        <main class="dashboard-main">
-            <div class="dashboard-header">
-                <h1>@SharedResource.AdminDashboard_Header</h1>
-                <p>@SharedResource.AdminDashboard_Description</p>
-            </div>
-
-            <div class="dashboard-stats">
-                <div class="card stat-card" id="total-courses">
-                    <div class="stat-header">
-                        <h3>@SharedResource.Stat_TotalCourses</h3>
-                        <i class="fas fa-book"></i>
-                    </div>
-                    <div class="stat-content">
-                        <div class="stat-value" id="courses-value"></div>
-                        <p class="stat-change" id="courses-change"></p>
-                    </div>
-                </div>
-                <div class="card stat-card" id="active-students">
-                    <div class="stat-header">
-                        <h3>@SharedResource.Stat_ActiveStudents</h3>
-                        <i class="fas fa-users"></i>
-                    </div>
-                    <div class="stat-content">
-                        <div class="stat-value" id="students-value"></div>
-                        <p class="stat-change" id="students-change"></p>
-                    </div>
-                </div>
-                <div class="card stat-card" id="monthly-revenue">
-                    <div class="stat-header">
-                        <h3>@SharedResource.Stat_MonthlyRevenue</h3>
-                        <i class="fas fa-credit-card"></i>
-                    </div>
-                    <div class="stat-content">
-                        <div class="stat-value" id="revenue-value"></div>
-                        <p class="stat-change" id="revenue-change"></p>
-                    </div>
-                </div>
-                <div class="card stat-card" id="active-institutes">
-                    <div class="stat-header">
-                        <h3>@SharedResource.Stat_ActiveInstitutes</h3>
-                        <i class="fas fa-school"></i>
-                    </div>
-                    <div class="stat-content">
-                        <div class="stat-value" id="institutes-value"></div>
-                        <p class="stat-change" id="institutes-change"></p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="dashboard-tabs">
-                <div class="tabs">
-                    <button id="overview-btn" class="tab-btn active" data-tab="overview">@SharedResource.Tab_Overview</button>
-                    <button id="courses-btn" class="tab-btn" data-tab="courses">@SharedResource.Tab_Courses</button>
-                    <button id="students-btn" class="tab-btn" data-tab="students">@SharedResource.Tab_Students</button>
-                    <button id="revenue-btn" class="tab-btn" data-tab="revenue">@SharedResource.Tab_Revenue</button>
-                    <button id="featured-courses-btn" class="tab-btn" data-tab="featured-courses" 
-                        onclick="window.location.href='@Url.Action("ManageFeaturedCourses", "Admin")'">
-                        @SharedResource.FeaturedCourses</button>
-                </div>
-                <div class="tab-content active" id="overview">
-                    <div class="card">
-                        <div class="card-header">
-                            <h3>@SharedResource.Growth_PlatformTitle</h3>
-                            <p>@SharedResource.Growth_PlatformDescription</p>
-                        </div>
-                        <div class="card-content">
-                            <div class="loader" id="overview-loader"></div>
-                            <canvas id="overview-chart"></canvas>
-                            <p class="error-message" id="overview-error" style="display: none; color: red;">@SharedResource.Error_LoadingData</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="tab-content" id="courses">
-                    <div class="card">
-                        <div class="card-header">
-                            <h3>@SharedResource.Analytics_CoursesTitle</h3>
-                            <p>@SharedResource.Analytics_CoursesDescription</p>
-                        </div>
-                        <div class="card-content">
-                            <div class="loader" id="courses-loader"></div>
-                            <canvas id="courses-chart"></canvas>
-                            <p class="error-message" id="courses-error" style="display: none; color: red;">@SharedResource.Error_LoadingData</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="tab-content" id="students">
-                    <div class="card">
-                        <div class="card-header">
-                            <h3>@SharedResource.Analytics_StudentsTitle</h3>
-                            <p>@SharedResource.Analytics_StudentsDescription</p>
-                        </div>
-                        <div class="card-content">
-                            <div class="loader" id="students-loader"></div>
-                            <canvas id="students-chart"></canvas>
-                            <p class="error-message" id="students-error" style="display: none; color: red;">@SharedResource.Error_LoadingData</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="tab-content" id="revenue">
-                    <div class="card">
-                        <div class="card-header">
-                            <h3>@SharedResource.Analytics_RevenueTitle</h3>
-                            <p>@SharedResource.Analytics_RevenueDescription</p>
-                        </div>
-                        <div class="card-content">
-                            <div class="loader" id="revenue-loader"></div>
-                            <canvas id="revenue-chart"></canvas>
-                            <p class="error-message" id="revenue-error" style="display: none; color: red;">@SharedResource.Error_LoadingData</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="tab-content" id="featured-courses">
-    <div class="card">
-        <div class="card-header">
-            <h3>Manage Featured Courses</h3>
-            <p>Select courses to display on the home page.</p>
-        </div>
-        <div class="card-content">
-            <div class="loader" id="featured-courses-loader"></div>
-            <form id="featured-courses-form" asp-action="UpdateFeaturedCourses" asp-controller="Admin" method="post"> <!-- افترض كونترولر AdminController -->
-                <table class="table table-striped">
-                    <thead>
-                        <tr>
-                            <th>Select</th>
-                            <th>Course Name</th>
-                            <th>Description</th>
-                            <th>Duration (Weeks)</th>
-                        </tr>
-                    </thead>
-                    <tbody id="courses-list">
-                        <!-- سيتم ملء هذا عبر JavaScript أو Razor -->
-                    </tbody>
-                </table>
-                <button type="submit" class="btn btn-primary">Save Changes</button>
-            </form>
-            <p class="error-message" id="featured-courses-error" style="display: none; color: red;">Error loading data.</p>
-        </div>
-    </div>
-</div>
-            </div>
-        </main>
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <script>
-        const translations = {
-            thisMonth: '@Html.Raw(SharedResource.ThisMonth)',
-            lastMonth: '@Html.Raw(SharedResource.LastMonth)',
-            growthPlatformTitle: '@Html.Raw(SharedResource.Growth_PlatformTitle)',
-            courses: '@Html.Raw(SharedResource.Courses)',
-            students: '@Html.Raw(SharedResource.Students)',
-            revenue: '@Html.Raw(SharedResource.Revenue)'
-        };
-
-        document.addEventListener('DOMContentLoaded', () => {
-            let dashboardData;
-            try {
-                dashboardData = @Html.Raw(Json.Serialize(Model ?? new AdminDashboardViewModelModel()));
-                console.log('Dashboard Data:', dashboardData);
-            } catch (error) {
-                console.error('Error parsing dashboard data:', error);
-                dashboardData = { stats: {}, chartData: {} };
-            }
-
-            function updateStats(data) {
-                try {
-                    console.log('Updating stats with data:', data);
-                    const elements = {
-                        coursesValue: document.getElementById('courses-value'),
-                        coursesChange: document.getElementById('courses-change'),
-                        studentsValue: document.getElementById('students-value'),
-                        studentsChange: document.getElementById('students-change'),
-                        revenueValue: document.getElementById('revenue-value'),
-                        revenueChange: document.getElementById('revenue-change'),
-                        institutesValue: document.getElementById('institutes-value'),
-                        institutesChange: document.getElementById('institutes-change')
-                    };
-
-                    Object.keys(elements).forEach(key => {
-                        if (!elements[key]) {
-                            console.error(`Element ${key} not found`);
-                        }
-                    });
-
-                    if (!Object.values(elements).every(el => el)) {
-                        console.error('One or more stat elements not found');
-                        return;
-                    }
-
-                    elements.coursesValue.textContent = (data.totalCourses || 0).toLocaleString();
-                    elements.coursesChange.textContent = `${data.coursesChange >= 0 ? '+' : ''}${data.coursesChange || 0} ${translations.thisMonth}`;
-                    elements.coursesChange.classList.toggle('negative', (data.coursesChange || 0) < 0);
-                    elements.studentsValue.textContent = (data.activeStudents || 0).toLocaleString();
-                    elements.studentsChange.textContent = `${data.studentsChange >= 0 ? '+' : ''}${data.studentsChange || 0} ${translations.thisMonth}`;
-                    elements.studentsChange.classList.toggle('negative', (data.studentsChange || 0) < 0);
-                    elements.revenueValue.textContent = `$${(data.monthlyRevenue || 0).toLocaleString()}`;
-                    elements.revenueChange.textContent = `${data.revenueChange >= 0 ? '+' : ''}${parseFloat(data.revenueChange || 0).toFixed(1)}% ${translations.lastMonth}`;
-                    elements.revenueChange.classList.toggle('negative', (data.revenueChange || 0) < 0);
-                    elements.institutesValue.textContent = (data.activeInstitutes || 0).toLocaleString();
-                    elements.institutesChange.textContent = `${data.institutesChange >= 0 ? '+' : ''}${data.institutesChange || 0} ${translations.thisMonth}`;
-                    elements.institutesChange.classList.toggle('negative', (data.institutesChange || 0) < 0);
-                } catch (error) {
-                    console.error('Error updating stats:', error);
-                }
-            }
-
-            const charts = {};
-            function renderChart(tab) {
-                const loader = document.getElementById(`${tab}-loader`);
-                const errorMessage = document.getElementById(`${tab}-error`);
-                const canvas = document.getElementById(`${tab}-chart`);
-
-                if (!canvas) {
-                    console.error(`Canvas element for ${tab}-chart not found`);
-                    errorMessage.style.display = 'block';
-                    return;
-                }
-
-                loader.style.display = 'block';
-                errorMessage.style.display = 'none';
-
-                const chartData = dashboardData && dashboardData.chartData && dashboardData.chartData[tab]
-                    ? dashboardData.chartData[tab]
-                    : { labels: { $values: ['March', 'April', 'May', 'June', 'July', 'August'] }, values: { $values: [0, 0, 0, 0, 0, 0] } };
-
-                const labels = chartData.labels && chartData.labels.$values && Array.isArray(chartData.labels.$values)
-                    ? chartData.labels.$values
-                    : ['March', 'April', 'May', 'June', 'July', 'August'];
-                const values = chartData.values && chartData.values.$values && Array.isArray(chartData.values.$values)
-                    ? chartData.values.$values
-                    : [0, 0, 0, 0, 0, 0];
-
-                console.log(`Rendering chart for ${tab}:`, { labels, values });
-
-                if (!labels.length || !values.length) {
-                    console.error(`Invalid chart data for ${tab}:`, { labels, values });
-                    loader.style.display = 'none';
-                    errorMessage.style.display = 'block';
-                    return;
-                }
-
-                if (charts[tab]) {
-                    charts[tab].destroy();
-                }
-
-                const ctx = canvas.getContext('2d');
-                charts[tab] = new Chart(ctx, {
-                    type: tab === 'revenue' ? 'bar' : 'line',
-                    data: {
-                        labels: labels,
-                        datasets: [{
-                            label: tab === 'overview' ? translations.growthPlatformTitle :
-                                   tab === 'courses' ? translations.courses :
-                                   tab === 'students' ? translations.students :
-                                   translations.revenue,
-                            data: values,
-                            borderColor: '#007bff',
-                            backgroundColor: tab === 'revenue' ? '#007bff' : 'rgba(0, 123, 255, 0.1)',
-                            fill: tab !== 'revenue',
-                            tension: 0.4
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        scales: {
-                            y: { beginAtZero: true }
-                        },
-                        plugins: {
-                            legend: { display: true, position: 'top' }
-                        }
-                    }
-                });
-
-                loader.style.display = 'none';
-            }
-
-            if (dashboardData && dashboardData.stats) {
-                updateStats(dashboardData.stats);
-            } else {
-                console.error('No valid stats data available');
-                updateStats({});
-            }
-
-            const tabs = [
-                { btnId: 'overview-btn', tabId: 'overview' },
-                { btnId: 'courses-btn', tabId: 'courses' },
-                { btnId: 'students-btn', tabId: 'students' },
-                { btnId: 'revenue-btn', tabId: 'revenue' }
-            ];
-
-            tabs.forEach(tab => {
-                const button = document.getElementById(tab.btnId);
-                if (!button) {
-                    console.error(`Button with ID ${tab.btnId} not found`);
-                    return;
-                }
-
-                button.addEventListener('click', (event) => {
-                    event.preventDefault();
-                    tabs.forEach(t => {
-                        const btn = document.getElementById(t.btnId);
-                        const content = document.getElementById(t.tabId);
-                        if (btn && content) {
-                            btn.classList.remove('active');
-                            content.classList.remove('active');
-                        }
-                    });
-
-                    button.classList.add('active');
-                    const tabContent = document.getElementById(tab.tabId);
-                    if (tabContent) {
-                        tabContent.classList.add('active');
-                    } else {
-                        console.error(`Tab content with ID ${tab.tabId} not found`);
-                    }
-
-                    document.querySelectorAll('.error-message').forEach(error => error.style.display = 'none');
-                    renderChart(tab.tabId);
-                });
-            });
-
-            renderChart('overview');
-        });
-    </script>
-</body> *@
-
-
-
-@using TrainingCenterManagement_MVC.Resources
-@using Newtonsoft.Json
-@using TrainingCenterManagement_MVC.ViewModels
-@model AdminDashboardViewModelModel
-
-@{
-    ViewData["Title"] = SharedResource.AdminDashboard_Title;
-}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
 <style>
     :root {
-        --primary-color: #007bff;
-        --secondary-color: #f1f1f1;
-        --background-color: #f4f7f9;
-        --card-background: #fff;
-        --text-color: #333;
-        --label-color: #777;
-        --border-color: #e0e0e0;
-        --positive-growth: #28a745;
-        --negative-growth: red;
-        --shadow-light: 0 2px 4px rgba(0, 0, 0, 0.05);
-        --shadow-medium: 0 4px 12px rgba(0, 0, 0, 0.1);
-    }
-
-    body {
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-        background-color: var(--background-color);
-        color: var(--text-color);
-        margin: 0;
-    }
-
-    .dashboard-wrapper {
-        display: flex;
-        direction: @((System.Threading.Thread.CurrentThread.CurrentUICulture.TextInfo.IsRightToLeft ? "rtl" : "ltr"));
-        min-height: 100vh;
+        --primary: #1d4ed8;
+        --primary-light: #3b82f6;
+        --primary-pale: #eff6ff;
+        --success: #10b981;
+        --warning: #f59e0b;
+        --danger: #ef4444;
+        --violet: #7c3aed;
+        --body-bg: #f1f5f9;
+        --card-bg: #ffffff;
+        --text-1: #0f172a;
+        --text-2: #475569;
+        --text-3: #94a3b8;
+        --border: #e2e8f0;
+        --shadow-sm: 0 1px 3px rgba(0,0,0,.08);
+        --shadow-md: 0 4px 16px rgba(0,0,0,.08);
+        --shadow-lg: 0 8px 32px rgba(0,0,0,.12);
+        --radius: 14px;
+        --radius-sm: 8px;
+        --tr: .2s ease;
     }
 
     .dashboard-main {
-        flex-grow: 1;
-        padding: 30px;
+        flex: 1; background: var(--body-bg); padding: 28px 32px;
+        min-height: 100vh; overflow-y: auto; direction: rtl;
+        font-family: 'Segoe UI','Helvetica Neue',Arial,sans-serif;
     }
 
-    .dashboard-header {
-        margin-bottom: 30px;
+    /* ── Header ── */
+    .ad-header {
+        display: flex; align-items: center; justify-content: space-between;
+        margin-bottom: 24px; flex-wrap: wrap; gap: 12px;
+    }
+    .ad-header h1 { font-size: 1.5rem; font-weight: 700; color: var(--text-1); margin: 0 0 2px; }
+    .ad-header p  { font-size: .875rem; color: var(--text-2); margin: 0; }
+    .ad-btn {
+        display: inline-flex; align-items: center; gap: 6px;
+        padding: 9px 18px; border-radius: var(--radius-sm);
+        font-size: .875rem; font-weight: 600; cursor: pointer;
+        text-decoration: none; border: none; transition: var(--tr);
+    }
+    .ad-btn-primary { background: var(--primary); color: #fff; }
+    .ad-btn-primary:hover { background: var(--primary-light); color: #fff; }
+    .ad-btn-outline { background: #fff; color: var(--text-1); border: 1.5px solid var(--border); }
+    .ad-btn-outline:hover { border-color: var(--primary); color: var(--primary); }
+    .ad-btn-danger  { background: #fee2e2; color: #b91c1c; border: 1.5px solid #fca5a5; }
+    .ad-btn-danger:hover { background: #fecaca; }
+
+    /* ── Hero Banner ── */
+    .ad-hero {
+        background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 55%, #1d4ed8 100%);
+        border-radius: var(--radius); padding: 28px 32px; margin-bottom: 24px;
+        position: relative; overflow: hidden; box-shadow: var(--shadow-lg);
+        display: flex; align-items: center; gap: 24px; flex-wrap: wrap;
+    }
+    .ad-hero::before {
+        content: ''; position: absolute; top: -80px; left: -60px;
+        width: 280px; height: 280px; background: rgba(255,255,255,.04); border-radius: 50%;
+    }
+    .ad-hero-avatar {
+        width: 80px; height: 80px; border-radius: 50%;
+        border: 3px solid rgba(255,255,255,.5); object-fit: cover; flex-shrink: 0;
+    }
+    .ad-hero-text { flex: 1; color: #fff; position: relative; z-index: 1; }
+    .ad-hero-text h2 { font-size: 1.6rem; font-weight: 700; margin: 0 0 4px; }
+    .ad-hero-text p  { font-size: .9rem; opacity: .8; margin: 0 0 12px; }
+    .ad-hero-badges  { display: flex; gap: 10px; flex-wrap: wrap; }
+    .ad-hero-badge {
+        display: inline-flex; align-items: center; gap: 5px;
+        background: rgba(255,255,255,.15); border-radius: 30px;
+        padding: 3px 12px; font-size: .78rem; color: #fff; font-weight: 500;
+    }
+    .ad-hero-actions { display: flex; gap: 10px; z-index: 1; flex-wrap: wrap; }
+    .ad-hero-btn {
+        display: inline-flex; align-items: center; gap: 6px;
+        padding: 8px 18px; border-radius: var(--radius-sm);
+        font-size: .85rem; font-weight: 600; text-decoration: none;
+        border: none; cursor: pointer; transition: var(--tr);
+    }
+    .ad-hero-btn-white { background: #fff; color: var(--primary); }
+    .ad-hero-btn-white:hover { background: #eff6ff; }
+    .ad-hero-btn-glass {
+        background: rgba(255,255,255,.15); color: #fff;
+        border: 1.5px solid rgba(255,255,255,.35); backdrop-filter: blur(4px);
+    }
+    .ad-hero-btn-glass:hover { background: rgba(255,255,255,.25); }
+
+    /* ── KPI Grid (6 cards, 3+3) ── */
+    .ad-kpi-grid {
+        display: grid; grid-template-columns: repeat(3, 1fr);
+        gap: 18px; margin-bottom: 24px;
+    }
+    @@media(max-width:1000px){ .ad-kpi-grid{ grid-template-columns: repeat(2,1fr); } }
+    @@media(max-width:600px) { .ad-kpi-grid{ grid-template-columns: 1fr; } }
+    .ad-kpi-card {
+        background: var(--card-bg); border-radius: var(--radius);
+        padding: 20px; display: flex; align-items: center; gap: 16px;
+        box-shadow: var(--shadow-sm); border: 1px solid var(--border); transition: var(--tr);
+    }
+    .ad-kpi-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+    .ad-kpi-icon {
+        width: 52px; height: 52px; border-radius: 12px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.4rem; flex-shrink: 0;
+    }
+    .c-blue   { background: #eff6ff; color: #1d4ed8; }
+    .c-sky    { background: #e0f2fe; color: #0284c7; }
+    .c-green  { background: #d1fae5; color: #059669; }
+    .c-amber  { background: #fef3c7; color: #d97706; }
+    .c-violet { background: #ede9fe; color: #7c3aed; }
+    .c-rose   { background: #fff1f2; color: #be123c; }
+    .ad-kpi-body {}
+    .ad-kpi-value { font-size: 1.8rem; font-weight: 800; color: var(--text-1); line-height: 1; margin-bottom: 3px; }
+    .ad-kpi-label { font-size: .8rem; color: var(--text-2); font-weight: 500; }
+    .ad-kpi-change {
+        display: inline-flex; align-items: center; gap: 3px;
+        font-size: .75rem; font-weight: 600; margin-top: 3px;
+    }
+    .pos { color: var(--success); } .neg { color: var(--danger); } .neu { color: var(--text-3); }
+
+    /* ── Two-column row ── */
+    .ad-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
+    @@media(max-width:900px){ .ad-row{ grid-template-columns:1fr; } }
+    .ad-row-3col { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-bottom: 24px; }
+    @@media(max-width:900px){ .ad-row-3col{ grid-template-columns:1fr; } }
+
+    /* ── Card ── */
+    .ad-card {
+        background: var(--card-bg); border-radius: var(--radius);
+        padding: 22px; box-shadow: var(--shadow-sm); border: 1px solid var(--border);
+    }
+    .ad-card-title {
+        font-size: 1rem; font-weight: 700; color: var(--text-1);
+        margin: 0 0 16px; display: flex; align-items: center; justify-content: space-between;
+    }
+    .ad-card-title span { display: flex; align-items: center; gap: 8px; }
+    .ad-card-title i { color: var(--primary); }
+    .ad-card-link { font-size: .8rem; color: var(--primary); text-decoration: none; font-weight: 600; }
+    .ad-card-link:hover { text-decoration: underline; }
+
+    /* ── Activity Timeline ── */
+    .ad-timeline { display: flex; flex-direction: column; gap: 0; }
+    .ad-tl-item {
+        display: flex; gap: 14px; padding: 10px 0;
+        border-bottom: 1px solid var(--border); position: relative;
+    }
+    .ad-tl-item:last-child { border-bottom: none; }
+    .ad-tl-dot {
+        width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
+        display: flex; align-items: center; justify-content: center;
+        font-size: .85rem; color: #fff; margin-top: 2px;
+    }
+    .ad-tl-content { flex: 1; }
+    .ad-tl-title  { font-size: .875rem; font-weight: 600; color: var(--text-1); }
+    .ad-tl-desc   { font-size: .78rem; color: var(--text-2); margin: 2px 0; line-height: 1.4; }
+    .ad-tl-time   { font-size: .72rem; color: var(--text-3); }
+
+    /* ── Tables ── */
+    .ad-table { width: 100%; border-collapse: collapse; }
+    .ad-table th {
+        background: var(--primary-pale); color: var(--primary);
+        padding: 9px 12px; font-size: .78rem; font-weight: 700; text-align: right;
+    }
+    .ad-table th:first-child { border-radius: 0 var(--radius-sm) var(--radius-sm) 0; }
+    .ad-table th:last-child  { border-radius: var(--radius-sm) 0 0 var(--radius-sm); }
+    .ad-table td {
+        padding: 10px 12px; font-size: .85rem; color: var(--text-1);
+        border-bottom: 1px solid var(--border);
+    }
+    .ad-table tr:last-child td { border-bottom: none; }
+    .ad-table tr:hover td { background: #f8fafc; }
+    .ad-stars { color: #f59e0b; font-size: .75rem; }
+
+    /* ── Top Courses ── */
+    .ad-course-rank {
+        display: inline-flex; align-items: center; justify-content: center;
+        width: 24px; height: 24px; background: var(--primary-pale);
+        color: var(--primary); font-weight: 700; font-size: .75rem; border-radius: 6px;
+    }
+    .ad-progress-bar { height: 5px; background: var(--border); border-radius: 999px; overflow: hidden; margin-top: 3px; }
+    .ad-progress-fill { height: 100%; background: linear-gradient(90deg,var(--primary),var(--primary-light)); border-radius: 999px; }
+
+    /* ── Top Trainers ── */
+    .ad-trainer-list { display: flex; flex-direction: column; gap: 0; }
+    .ad-trainer-item {
+        display: flex; align-items: center; gap: 12px;
+        padding: 10px 0; border-bottom: 1px solid var(--border);
+    }
+    .ad-trainer-item:last-child { border-bottom: none; }
+    .ad-trainer-avatar {
+        width: 42px; height: 42px; border-radius: 50%; flex-shrink: 0;
+        object-fit: cover; border: 2px solid var(--border);
+    }
+    .ad-trainer-avatar-fallback {
+        width: 42px; height: 42px; border-radius: 50%; flex-shrink: 0;
+        background: var(--primary-pale); color: var(--primary);
+        display: flex; align-items: center; justify-content: center;
+        font-weight: 700; font-size: .95rem;
+    }
+    .ad-trainer-name { font-size: .9rem; font-weight: 600; color: var(--text-1); }
+    .ad-trainer-meta { font-size: .75rem; color: var(--text-2); }
+    .ad-trainer-badges { display: flex; gap: 6px; margin-right: auto; }
+    .ad-mini-badge {
+        display: inline-flex; align-items: center; gap: 3px;
+        background: var(--primary-pale); color: var(--primary);
+        padding: 2px 8px; border-radius: 999px; font-size: .72rem; font-weight: 600;
     }
 
-        .dashboard-header h1 {
-            font-size: 2rem;
-            font-weight: 600;
-            margin-bottom: 5px;
-            color: var(--text-color);
-        }
-
-        .dashboard-header p {
-            font-size: 1rem;
-            color: var(--label-color);
-        }
-
-    .dashboard-stats {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-        gap: 20px;
-        margin-bottom: 30px;
+    /* ── Quick Management Grid ── */
+    .ad-mgmt-grid {
+        display: grid; grid-template-columns: repeat(auto-fill,minmax(160px,1fr));
+        gap: 14px; margin-bottom: 24px;
+    }
+    .ad-mgmt-card {
+        background: var(--card-bg); border-radius: var(--radius);
+        border: 1.5px solid var(--border); padding: 18px 14px;
+        display: flex; flex-direction: column; align-items: center; gap: 10px;
+        text-decoration: none; color: var(--text-1); font-size: .82rem; font-weight: 600;
+        transition: var(--tr); text-align: center;
+    }
+    .ad-mgmt-card:hover { border-color: var(--primary); color: var(--primary); transform: translateY(-2px); box-shadow: var(--shadow-md); }
+    .ad-mgmt-icon {
+        width: 48px; height: 48px; border-radius: 12px;
+        display: flex; align-items: center; justify-content: center; font-size: 1.3rem;
     }
 
-    .stat-card {
-        background: var(--card-background);
-        border-radius: 12px;
-        box-shadow: var(--shadow-light);
-        padding: 25px;
-        transition: transform 0.2s, box-shadow 0.2s;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
+    /* ── Charts Tabs ── */
+    .ad-tabs-wrapper {
+        background: var(--card-bg); border-radius: var(--radius);
+        box-shadow: var(--shadow-sm); border: 1px solid var(--border);
+        overflow: hidden; margin-bottom: 24px;
     }
-
-        .stat-card:hover {
-            transform: translateY(-5px);
-            box-shadow: var(--shadow-medium);
-        }
-
-    .stat-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 15px;
+    .ad-tabs-nav {
+        display: flex; border-bottom: 2px solid var(--border);
+        background: #fafafa; overflow-x: auto; scrollbar-width: none;
     }
-
-        .stat-header h3 {
-            font-size: 1rem;
-            color: var(--label-color);
-            margin: 0;
-        }
-
-        .stat-header i {
-            font-size: 1.5rem;
-            color: var(--primary-color);
-        }
-
-    .stat-value {
-        font-size: 2.2rem;
-        font-weight: 700;
-        color: var(--text-color);
+    .ad-tabs-nav::-webkit-scrollbar { display: none; }
+    .ad-tab-btn {
+        padding: 13px 20px; font-size: .875rem; font-weight: 600; color: var(--text-2);
+        border: none; background: transparent; cursor: pointer; white-space: nowrap;
+        border-bottom: 3px solid transparent; margin-bottom: -2px;
+        display: flex; align-items: center; gap: 7px; transition: var(--tr);
     }
+    .ad-tab-btn:hover { color: var(--primary); }
+    .ad-tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
+    .ad-tab-content { display: none; padding: 24px; }
+    .ad-tab-content.active { display: block; }
+    .ad-chart-wrapper { position: relative; height: 320px; }
 
-    .stat-change {
-        font-size: 0.9rem;
-        font-weight: 500;
-        margin-top: 5px;
-        white-space: nowrap;
+    /* ── Payment Status Badge ── */
+    .ad-badge {
+        display: inline-block; padding: 3px 10px; border-radius: 999px;
+        font-size: .72rem; font-weight: 600;
     }
+    .ad-badge-green  { background: #d1fae5; color: #065f46; }
+    .ad-badge-yellow { background: #fef3c7; color: #92400e; }
+    .ad-badge-red    { background: #fee2e2; color: #991b1b; }
 
-        .stat-change.positive {
-            color: var(--positive-growth);
-        }
-
-        .stat-change.negative {
-            color: var(--negative-growth);
-        }
-
-    .dashboard-tabs {
-        background: var(--card-background);
-        border-radius: 12px;
-        box-shadow: var(--shadow-light);
-        padding: 20px;
-    }
-
-    .tabs {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-        border-bottom: 1px solid var(--border-color);
-        margin-bottom: 20px;
-    }
-
-    .tab-btn {
-        padding: 12px 20px;
-        border: none;
-        background: transparent;
-        cursor: pointer;
-        font-size: 1rem;
-        font-weight: 500;
-        color: var(--label-color);
-        position: relative;
-        transition: color 0.3s;
-    }
-
-        .tab-btn::after {
-            content: '';
-            position: absolute;
-            bottom: -1px;
-            left: 0;
-            width: 100%;
-            height: 2px;
-            background-color: transparent;
-            transition: background-color 0.3s;
-        }
-
-        .tab-btn.active {
-            color: var(--primary-color);
-            font-weight: 600;
-        }
-
-            .tab-btn.active::after {
-                background-color: var(--primary-color);
-            }
-
-    .tab-content {
-        display: none;
-    }
-
-        .tab-content.active {
-            display: block;
-        }
-
-    .card {
-        padding: 0;
-    }
-
-    .card-header {
-        margin-bottom: 20px;
-    }
-
-        .card-header h3 {
-            font-size: 1.5rem;
-            font-weight: 600;
-            margin-bottom: 5px;
-        }
-
-        .card-header p {
-            color: var(--label-color);
-            margin: 0;
-        }
-
-    .loader {
-        border: 4px solid var(--border-color);
-        border-top: 4px solid var(--primary-color);
-        border-radius: 50%;
-        width: 40px;
-        height: 40px;
-        animation: spin 1s linear infinite;
-        margin: 40px auto;
-        display: none;
-    }
-
-    .error-message {
-        text-align: center;
-        font-weight: 500;
-        padding: 20px;
-    }
-
-    #overview-chart,
-    #courses-chart,
-    #students-chart,
-    #revenue-chart {
-        height: 400px;
-        width: 100%;
-    }
-
-    @@keyframes spin {
-        0% {
-            transform: rotate(0deg);
-        }
-
-        100% {
-            transform: rotate(360deg);
-        }
-    }
-
+    /* ── Section divider ── */
+    .ad-section-sep { height: 1px; background: var(--border); margin: 4px 0 16px; }
 </style>
 
-<body>
-    <div class="dashboard-wrapper">
-        @await Html.PartialAsync("_AdminSidebar")
+<div class="dashboard-wrapper">
+    @await Html.PartialAsync("_AdminSidebar")
 
-        <main class="dashboard-main">
-            <div class="dashboard-header">
-                <h1>@SharedResource.AdminDashboard_Header</h1>
-                <p>@SharedResource.AdminDashboard_Description</p>
+    <main class="dashboard-main">
+
+        <!-- ① Header -->
+        <div class="ad-header">
+            <div>
+                <h1>لوحة تحكم الإدارة</h1>
+                <p><i class="fas fa-calendar-day" style="margin-left:5px;color:var(--primary);"></i>@today</p>
             </div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                <a asp-controller="Courses" asp-action="Create" class="ad-btn ad-btn-primary">
+                    <i class="fas fa-plus"></i> دورة جديدة
+                </a>
+                <a asp-controller="Trainees" asp-action="Index" class="ad-btn ad-btn-outline">
+                    <i class="fas fa-users"></i> إدارة الطلاب
+                </a>
+                <a asp-controller="Profile" asp-action="Index" class="ad-btn ad-btn-outline">
+                    <i class="fas fa-user-cog"></i> الملف الشخصي
+                </a>
+            </div>
+        </div>
 
-            <div class="dashboard-stats">
-                <div class="stat-card" id="total-courses">
-                    <div class="stat-header">
-                        <h3>@SharedResource.Stat_TotalCourses</h3>
-                        <i class="fas fa-book"></i>
-                    </div>
-                    <div class="stat-content">
-                        <div class="stat-value" id="courses-value"></div>
-                        <p class="stat-change" id="courses-change"></p>
-                    </div>
-                </div>
-                <div class="stat-card" id="active-students">
-                    <div class="stat-header">
-                        <h3>@SharedResource.Stat_ActiveStudents</h3>
-                        <i class="fas fa-users"></i>
-                    </div>
-                    <div class="stat-content">
-                        <div class="stat-value" id="students-value"></div>
-                        <p class="stat-change" id="students-change"></p>
-                    </div>
-                </div>
-                <div class="stat-card" id="monthly-revenue">
-                    <div class="stat-header">
-                        <h3>@SharedResource.Stat_MonthlyRevenue</h3>
-                        <i class="fas fa-credit-card"></i>
-                    </div>
-                    <div class="stat-content">
-                        <div class="stat-value" id="revenue-value"></div>
-                        <p class="stat-change" id="revenue-change"></p>
-                    </div>
-                </div>
-                <div class="stat-card" id="active-institutes">
-                    <div class="stat-header">
-                        <h3>@SharedResource.Stat_ActiveInstitutes</h3>
-                        <i class="fas fa-school"></i>
-                    </div>
-                    <div class="stat-content">
-                        <div class="stat-value" id="institutes-value"></div>
-                        <p class="stat-change" id="institutes-change"></p>
-                    </div>
+        <!-- ② Hero Banner -->
+        <div class="ad-hero">
+            <img src="@Model.AdminProfilePic" alt="Admin" class="ad-hero-avatar"
+                 onerror="this.src='https://placehold.co/80/1d4ed8/ffffff?text=@avatarChar'" />
+            <div class="ad-hero-text">
+                <h2>مرحباً، @Model.AdminName</h2>
+                <p>منصة مركز التدريب · صلاحيات الإدارة الكاملة</p>
+                <div class="ad-hero-badges">
+                    <span class="ad-hero-badge"><i class="fas fa-book-open"></i> @stats.TotalCourses دورة</span>
+                    <span class="ad-hero-badge"><i class="fas fa-users"></i> @stats.ActiveStudents طالب</span>
+                    <span class="ad-hero-badge"><i class="fas fa-chalkboard-teacher"></i> @stats.ActiveInstitutes مدرب</span>
+                    <span class="ad-hero-badge" style="background:rgba(16,185,129,.3);">
+                        <i class="fas fa-circle" style="font-size:.5rem;"></i> نشط
+                    </span>
                 </div>
             </div>
+            <div class="ad-hero-actions">
+                <a asp-controller="Courses" asp-action="Index" class="ad-hero-btn ad-hero-btn-white">
+                    <i class="fas fa-th-list"></i> عرض الدورات
+                </a>
+                <a asp-controller="Payments" asp-action="Index" class="ad-hero-btn ad-hero-btn-glass">
+                    <i class="fas fa-money-bill-wave"></i> المدفوعات
+                </a>
+            </div>
+        </div>
 
-            <div class="dashboard-tabs">
-                <div class="tabs">
-                    <button id="overview-btn" class="tab-btn active" data-tab="overview">@SharedResource.Tab_Overview</button>
-                    <button id="courses-btn" class="tab-btn" data-tab="courses">@SharedResource.Tab_Courses</button>
-                    <button id="students-btn" class="tab-btn" data-tab="students">@SharedResource.Tab_Students</button>
-                    <button id="revenue-btn" class="tab-btn" data-tab="revenue">@SharedResource.Tab_Revenue</button>
-                    <button id="featured-courses-btn" class="tab-btn" data-tab="featured-courses"
-                            onclick="window.location.href='@Url.Action("ManageFeaturedCourses", "Admin")'">
-                        @SharedResource.FeaturedCourses
-                    </button>
-                </div>
-                <div class="tab-content active" id="overview">
-                    <div class="card">
-                        <div class="card-header">
-                            <h3>@SharedResource.Growth_PlatformTitle</h3>
-                            <p>@SharedResource.Growth_PlatformDescription</p>
-                        </div>
-                        <div class="card-content">
-                            <div class="loader" id="overview-loader"></div>
-                            <canvas id="overview-chart"></canvas>
-                            <p class="error-message" id="overview-error" style="display: none;">@SharedResource.Error_LoadingData</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="tab-content" id="courses">
-                    <div class="card">
-                        <div class="card-header">
-                            <h3>@SharedResource.Analytics_CoursesTitle</h3>
-                            <p>@SharedResource.Analytics_CoursesDescription</p>
-                        </div>
-                        <div class="card-content">
-                            <div class="loader" id="courses-loader"></div>
-                            <canvas id="courses-chart"></canvas>
-                            <p class="error-message" id="courses-error" style="display: none;">@SharedResource.Error_LoadingData</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="tab-content" id="students">
-                    <div class="card">
-                        <div class="card-header">
-                            <h3>@SharedResource.Analytics_StudentsTitle</h3>
-                            <p>@SharedResource.Analytics_StudentsDescription</p>
-                        </div>
-                        <div class="card-content">
-                            <div class="loader" id="students-loader"></div>
-                            <canvas id="students-chart"></canvas>
-                            <p class="error-message" id="students-error" style="display: none;">@SharedResource.Error_LoadingData</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="tab-content" id="revenue">
-                    <div class="card">
-                        <div class="card-header">
-                            <h3>@SharedResource.Analytics_RevenueTitle</h3>
-                            <p>@SharedResource.Analytics_RevenueDescription</p>
-                        </div>
-                        <div class="card-content">
-                            <div class="loader" id="revenue-loader"></div>
-                            <canvas id="revenue-chart"></canvas>
-                            <p class="error-message" id="revenue-error" style="display: none;">@SharedResource.Error_LoadingData</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="tab-content" id="featured-courses">
-                    <div class="card">
-                        <div class="card-header">
-                            <h3>Manage Featured Courses</h3>
-                            <p>Select courses to display on the home page.</p>
-                        </div>
-                        <div class="card-content">
-                            <div class="loader" id="featured-courses-loader"></div>
-                            <form id="featured-courses-form" asp-action="UpdateFeaturedCourses" asp-controller="Admin" method="post">
-                                <table class="table table-striped">
-                                    <thead>
-                                        <tr>
-                                            <th>Select</th>
-                                            <th>Course Name</th>
-                                            <th>Description</th>
-                                            <th>Duration (Weeks)</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="courses-list">
-                                    </tbody>
-                                </table>
-                                <button type="submit" class="btn btn-primary">Save Changes</button>
-                            </form>
-                            <p class="error-message" id="featured-courses-error" style="display: none;">Error loading data.</p>
-                        </div>
+        <!-- ③ 6 KPI Cards -->
+        <div class="ad-kpi-grid">
+            @{
+                string ChangeLabel(int v) => v > 0 ? $"+{v} هذا الشهر" : v < 0 ? $"{v} هذا الشهر" : "لا تغيير";
+                string ChangeClass(int v) => v > 0 ? "pos" : v < 0 ? "neg" : "neu";
+                string ChangeIcon(int v)  => v > 0 ? "fas fa-arrow-up" : v < 0 ? "fas fa-arrow-down" : "fas fa-minus";
+                string RevClass(decimal v) => v > 0 ? "pos" : v < 0 ? "neg" : "neu";
+            }
+            <div class="ad-kpi-card">
+                <div class="ad-kpi-icon c-blue"><i class="fas fa-book-open"></i></div>
+                <div class="ad-kpi-body">
+                    <div class="ad-kpi-value">@stats.TotalCourses</div>
+                    <div class="ad-kpi-label">إجمالي الدورات</div>
+                    <div class="ad-kpi-change @ChangeClass(stats.CoursesChange)">
+                        <i class="@ChangeIcon(stats.CoursesChange)"></i> @ChangeLabel(stats.CoursesChange)
                     </div>
                 </div>
             </div>
-        </main>
-    </div>
-    <form asp-action="UpdateFeaturedCourses" asp-controller="Admin">
-    </form>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <script>
-        const translations = {
-            thisMonth: '@Html.Raw(SharedResource.ThisMonth)',
-            lastMonth: '@Html.Raw(SharedResource.LastMonth)',
-            growthPlatformTitle: '@Html.Raw(SharedResource.Growth_PlatformTitle)',
-            courses: '@Html.Raw(SharedResource.Courses)',
-            students: '@Html.Raw(SharedResource.Students)',
-            revenue: '@Html.Raw(SharedResource.Revenue)'
+            <div class="ad-kpi-card">
+                <div class="ad-kpi-icon c-sky"><i class="fas fa-user-graduate"></i></div>
+                <div class="ad-kpi-body">
+                    <div class="ad-kpi-value">@stats.ActiveStudents</div>
+                    <div class="ad-kpi-label">الطلاب المسجلون</div>
+                    <div class="ad-kpi-change @ChangeClass(stats.StudentsChange)">
+                        <i class="@ChangeIcon(stats.StudentsChange)"></i> @ChangeLabel(stats.StudentsChange)
+                    </div>
+                </div>
+            </div>
+            <div class="ad-kpi-card">
+                <div class="ad-kpi-icon c-green"><i class="fas fa-money-bill-wave"></i></div>
+                <div class="ad-kpi-body">
+                    <div class="ad-kpi-value">@stats.MonthlyRevenue.ToString("N0") ر.س</div>
+                    <div class="ad-kpi-label">إيرادات هذا الشهر</div>
+                    <div class="ad-kpi-change @RevClass(stats.RevenueChange)">
+                        <i class="@(stats.RevenueChange >= 0 ? "fas fa-arrow-up" : "fas fa-arrow-down")"></i>
+                        @(stats.RevenueChange >= 0 ? "+" : "")@stats.RevenueChange.ToString("F1")% مقارنة بالشهر الماضي
+                    </div>
+                </div>
+            </div>
+            <div class="ad-kpi-card">
+                <div class="ad-kpi-icon c-amber"><i class="fas fa-chalkboard-teacher"></i></div>
+                <div class="ad-kpi-body">
+                    <div class="ad-kpi-value">@stats.ActiveInstitutes</div>
+                    <div class="ad-kpi-label">المدربون النشطون</div>
+                    <div class="ad-kpi-change @ChangeClass(stats.InstitutesChange)">
+                        <i class="@ChangeIcon(stats.InstitutesChange)"></i> @ChangeLabel(stats.InstitutesChange)
+                    </div>
+                </div>
+            </div>
+            <div class="ad-kpi-card">
+                <div class="ad-kpi-icon c-violet"><i class="fas fa-certificate"></i></div>
+                <div class="ad-kpi-body">
+                    <div class="ad-kpi-value">@Model.Health.TotalCertificates</div>
+                    <div class="ad-kpi-label">الشهادات المُصدَرة</div>
+                    <div class="ad-kpi-change neu"><i class="fas fa-check-circle"></i> إجمالي المنجزة</div>
+                </div>
+            </div>
+            <div class="ad-kpi-card">
+                <div class="ad-kpi-icon c-rose"><i class="fas fa-video"></i></div>
+                <div class="ad-kpi-body">
+                    <div class="ad-kpi-value">@Model.Health.TotalLectures</div>
+                    <div class="ad-kpi-label">إجمالي المحاضرات</div>
+                    <div class="ad-kpi-change neu">
+                        <i class="fas fa-clipboard-check"></i> @Model.Health.TotalPresences حضور مسجّل
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ④ Quick Management Links -->
+        <div class="ad-mgmt-grid">
+            <a asp-controller="Courses" asp-action="Index" class="ad-mgmt-card">
+                <div class="ad-mgmt-icon c-blue"><i class="fas fa-book-open"></i></div>
+                إدارة الدورات
+            </a>
+            <a asp-controller="Trainees" asp-action="Index" class="ad-mgmt-card">
+                <div class="ad-mgmt-icon c-sky"><i class="fas fa-user-graduate"></i></div>
+                إدارة الطلاب
+            </a>
+            <a asp-controller="Trainers" asp-action="Index" class="ad-mgmt-card">
+                <div class="ad-mgmt-icon c-amber"><i class="fas fa-chalkboard-teacher"></i></div>
+                إدارة المدربين
+            </a>
+            <a asp-controller="Payments" asp-action="Index" class="ad-mgmt-card">
+                <div class="ad-mgmt-icon c-green"><i class="fas fa-money-bill-wave"></i></div>
+                المدفوعات
+            </a>
+            <a asp-controller="Certificates" asp-action="Index" class="ad-mgmt-card">
+                <div class="ad-mgmt-icon c-violet"><i class="fas fa-certificate"></i></div>
+                الشهادات
+            </a>
+            <a asp-controller="Lectures" asp-action="Index" class="ad-mgmt-card">
+                <div class="ad-mgmt-icon c-rose"><i class="fas fa-video"></i></div>
+                المحاضرات
+            </a>
+            <a asp-controller="Receptionists" asp-action="Index" class="ad-mgmt-card">
+                <div class="ad-mgmt-icon" style="background:#f0fdf4;color:#15803d;"><i class="fas fa-headset"></i></div>
+                الموظفون
+            </a>
+            <a asp-controller="Chat" asp-action="AdminCustomerSupportChats" class="ad-mgmt-card">
+                <div class="ad-mgmt-icon" style="background:#fff7ed;color:#c2410c;"><i class="fas fa-comments"></i></div>
+                محادثات الدعم
+            </a>
+        </div>
+
+        <!-- ⑤ Activity + Top Courses -->
+        <div class="ad-row-3col">
+            <!-- Recent Activity -->
+            <div class="ad-card">
+                <div class="ad-card-title">
+                    <span><i class="fas fa-stream"></i> آخر النشاطات</span>
+                    <a asp-controller="Payments" asp-action="Index" class="ad-card-link">عرض الكل</a>
+                </div>
+                @if (Model.RecentActivity.Any())
+                {
+                    <div class="ad-timeline">
+                        @foreach (var act in Model.RecentActivity)
+                        {
+                            <div class="ad-tl-item">
+                                <div class="ad-tl-dot" style="background:@act.Color;">
+                                    <i class="@act.Icon"></i>
+                                </div>
+                                <div class="ad-tl-content">
+                                    <div class="ad-tl-title">@act.Title</div>
+                                    <div class="ad-tl-desc">@act.Description</div>
+                                    <div class="ad-tl-time">
+                                        <i class="fas fa-clock" style="margin-left:3px;"></i>
+                                        @act.Time.ToString("dd/MM/yyyy HH:mm")
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div style="text-align:center;padding:30px;color:var(--text-3);">
+                        <i class="fas fa-inbox" style="font-size:2rem;display:block;margin-bottom:8px;"></i>
+                        لا توجد نشاطات حديثة
+                    </div>
+                }
+            </div>
+
+            <!-- Top Courses -->
+            <div class="ad-card">
+                <div class="ad-card-title">
+                    <span><i class="fas fa-trophy"></i> أفضل الدورات</span>
+                    <a asp-controller="Courses" asp-action="Index" class="ad-card-link">عرض الكل</a>
+                </div>
+                @{int rank = 0;}
+                @foreach (var c in Model.TopCourses)
+                {
+                    rank++;
+                    int barW = Model.TopCourses.Max(x => x.EnrollmentCount) > 0
+                        ? (int)((c.EnrollmentCount * 100.0) / Model.TopCourses.Max(x => x.EnrollmentCount))
+                        : 0;
+                    <div style="margin-bottom:14px;">
+                        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+                            <span class="ad-course-rank">@rank</span>
+                            <a asp-controller="Courses" asp-action="Details" asp-route-id="@c.CourseId"
+                               style="font-size:.875rem;font-weight:600;color:var(--text-1);text-decoration:none;flex:1;">
+                                @c.CourseName
+                            </a>
+                            <span style="font-size:.75rem;color:var(--text-3);">@c.EnrollmentCount طالب</span>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:6px;">
+                            <div class="ad-progress-bar" style="flex:1;">
+                                <div class="ad-progress-fill" style="width:@barW%;"></div>
+                            </div>
+                            @if (c.AverageRating > 0)
+                            {
+                                <span class="ad-stars">
+                                    @for (int s = 1; s <= 5; s++)
+                                    {
+                                        <i class="@(s <= (int)c.AverageRating ? "fas" : "far") fa-star"></i>
+                                    }
+                                </span>
+                            }
+                        </div>
+                    </div>
+                }
+                @if (!Model.TopCourses.Any())
+                {
+                    <div style="text-align:center;padding:20px;color:var(--text-3);">لا توجد دورات</div>
+                }
+            </div>
+        </div>
+
+        <!-- ⑥ Recent Payments + Top Trainers -->
+        <div class="ad-row">
+            <!-- Recent Payments -->
+            <div class="ad-card">
+                <div class="ad-card-title">
+                    <span><i class="fas fa-receipt"></i> آخر المدفوعات</span>
+                    <a asp-controller="Payments" asp-action="Index" class="ad-card-link">عرض الكل</a>
+                </div>
+                @if (Model.RecentPayments.Any())
+                {
+                    <table class="ad-table">
+                        <thead>
+                            <tr>
+                                <th>الطالب</th>
+                                <th>الدورة</th>
+                                <th>المبلغ</th>
+                                <th>التاريخ</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var p in Model.RecentPayments)
+                            {
+                                <tr>
+                                    <td>
+                                        <div style="display:flex;align-items:center;gap:8px;">
+                                            <div style="width:30px;height:30px;border-radius:50%;background:var(--primary-pale);color:var(--primary);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.78rem;">
+                                                @(p.TraineeName?.Length > 0 ? p.TraineeName[0].ToString() : "؟")
+                                            </div>
+                                            @p.TraineeName
+                                        </div>
+                                    </td>
+                                    <td style="color:var(--text-2);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">@p.CourseName</td>
+                                    <td style="font-weight:700;color:var(--success);">@p.Amount.ToString("N0") ر.س</td>
+                                    <td style="color:var(--text-3);font-size:.78rem;">@p.Date.ToString("dd/MM/yyyy")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <div style="text-align:center;padding:30px;color:var(--text-3);">
+                        <i class="fas fa-credit-card" style="font-size:2rem;display:block;margin-bottom:8px;"></i>
+                        لا توجد مدفوعات حديثة
+                    </div>
+                }
+            </div>
+
+            <!-- Top Trainers -->
+            <div class="ad-card">
+                <div class="ad-card-title">
+                    <span><i class="fas fa-medal"></i> أفضل المدربين</span>
+                    <a asp-controller="Trainers" asp-action="Index" class="ad-card-link">عرض الكل</a>
+                </div>
+                <div class="ad-trainer-list">
+                    @foreach (var t in Model.TopTrainers)
+                    {
+                        <div class="ad-trainer-item">
+                            @if (!string.IsNullOrEmpty(t.ProfilePic))
+                            {
+                                <img src="@t.ProfilePic" alt="@t.Name" class="ad-trainer-avatar"
+                                     onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
+                                <div class="ad-trainer-avatar-fallback" style="display:none;">@(t.Name.Length > 0 ? t.Name[0].ToString() : "؟")</div>
+                            }
+                            else
+                            {
+                                <div class="ad-trainer-avatar-fallback">@(t.Name.Length > 0 ? t.Name[0].ToString() : "؟")</div>
+                            }
+                            <div style="flex:1;">
+                                <div class="ad-trainer-name">@t.Name</div>
+                                <div class="ad-trainer-meta">@t.Specialty</div>
+                            </div>
+                            <div class="ad-trainer-badges">
+                                <span class="ad-mini-badge"><i class="fas fa-users"></i> @t.StudentCount</span>
+                                <span class="ad-mini-badge" style="background:#ede9fe;color:#7c3aed;"><i class="fas fa-book"></i> @t.CourseCount</span>
+                            </div>
+                        </div>
+                    }
+                    @if (!Model.TopTrainers.Any())
+                    {
+                        <div style="text-align:center;padding:30px;color:var(--text-3);">لا توجد بيانات مدربين</div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- ⑦ Analytics Charts -->
+        <div class="ad-tabs-wrapper">
+            <div class="ad-tabs-nav">
+                <button class="ad-tab-btn active" data-tab="ad-tab-overview">
+                    <i class="fas fa-chart-line"></i> النمو العام
+                </button>
+                <button class="ad-tab-btn" data-tab="ad-tab-courses">
+                    <i class="fas fa-book-open"></i> الدورات
+                </button>
+                <button class="ad-tab-btn" data-tab="ad-tab-students">
+                    <i class="fas fa-users"></i> الطلاب
+                </button>
+                <button class="ad-tab-btn" data-tab="ad-tab-revenue">
+                    <i class="fas fa-money-bill-wave"></i> الإيرادات
+                </button>
+            </div>
+
+            <div id="ad-tab-overview" class="ad-tab-content active">
+                <div style="margin-bottom:12px;">
+                    <p style="font-weight:700;font-size:1rem;color:var(--text-1);margin:0 0 2px;">نمو المنصة خلال 6 أشهر</p>
+                    <p style="font-size:.82rem;color:var(--text-2);margin:0;">عدد الدورات الجديدة شهرياً</p>
+                </div>
+                <div class="ad-chart-wrapper"><canvas id="chart-overview"></canvas></div>
+            </div>
+            <div id="ad-tab-courses" class="ad-tab-content">
+                <div style="margin-bottom:12px;">
+                    <p style="font-weight:700;font-size:1rem;color:var(--text-1);margin:0 0 2px;">تحليلات الدورات</p>
+                    <p style="font-size:.82rem;color:var(--text-2);margin:0;">عدد الدورات المضافة شهرياً</p>
+                </div>
+                <div class="ad-chart-wrapper"><canvas id="chart-courses"></canvas></div>
+            </div>
+            <div id="ad-tab-students" class="ad-tab-content">
+                <div style="margin-bottom:12px;">
+                    <p style="font-weight:700;font-size:1rem;color:var(--text-1);margin:0 0 2px;">تحليلات الطلاب</p>
+                    <p style="font-size:.82rem;color:var(--text-2);margin:0;">عدد الطلاب الجدد شهرياً</p>
+                </div>
+                <div class="ad-chart-wrapper"><canvas id="chart-students"></canvas></div>
+            </div>
+            <div id="ad-tab-revenue" class="ad-tab-content">
+                <div style="margin-bottom:12px;">
+                    <p style="font-weight:700;font-size:1rem;color:var(--text-1);margin:0 0 2px;">تحليلات الإيرادات</p>
+                    <p style="font-size:.82rem;color:var(--text-2);margin:0;">الإيرادات الشهرية بالريال السعودي</p>
+                </div>
+                <div class="ad-chart-wrapper"><canvas id="chart-revenue"></canvas></div>
+            </div>
+        </div>
+
+    </main>
+</div>
+
+<script>
+    // ─── Chart data from server ───────────────────────────────────────────────
+    const chartData = @Html.Raw(JsonConvert.SerializeObject(Model.ChartData));
+
+    function getLabels(key) {
+        return chartData?.[key]?.Labels || chartData?.[key]?.labels || [];
+    }
+    function getValues(key) {
+        const raw = chartData?.[key]?.Values || chartData?.[key]?.values || [];
+        return raw.map(v => isNaN(v) ? 0 : Number(v));
+    }
+
+    const chartInstances = {};
+
+    function renderChart(tab) {
+        const configs = {
+            'ad-tab-overview': { canvasId: 'chart-overview', key: 'overview', type: 'line', label: 'نمو الدورات', color: '#1d4ed8' },
+            'ad-tab-courses':  { canvasId: 'chart-courses',  key: 'courses',  type: 'bar',  label: 'الدورات الجديدة', color: '#7c3aed' },
+            'ad-tab-students': { canvasId: 'chart-students', key: 'students', type: 'line', label: 'الطلاب الجدد', color: '#0284c7' },
+            'ad-tab-revenue':  { canvasId: 'chart-revenue',  key: 'revenue',  type: 'bar',  label: 'الإيرادات (ر.س)', color: '#059669' }
         };
 
-        document.addEventListener('DOMContentLoaded', () => {
-            let dashboardData;
-            try {
-                dashboardData = @Html.Raw(Json.Serialize(Model ?? new AdminDashboardViewModelModel()));
-                console.log('Dashboard Data:', dashboardData);
-            } catch (error) {
-                console.error('Error parsing dashboard data:', error);
-                dashboardData = { stats: {}, chartData: {} };
-            }
+        const cfg = configs[tab];
+        if (!cfg) return;
 
-            function updateStats(data) {
-                try {
-                    console.log('Updating stats with data:', data);
-                    const elements = {
-                        coursesValue: document.getElementById('courses-value'),
-                        coursesChange: document.getElementById('courses-change'),
-                        studentsValue: document.getElementById('students-value'),
-                        studentsChange: document.getElementById('students-change'),
-                        revenueValue: document.getElementById('revenue-value'),
-                        revenueChange: document.getElementById('revenue-change'),
-                        institutesValue: document.getElementById('institutes-value'),
-                        institutesChange: document.getElementById('institutes-change')
-                    };
+        const canvas = document.getElementById(cfg.canvasId);
+        if (!canvas) return;
 
-                    Object.keys(elements).forEach(key => {
-                        if (!elements[key]) {
-                            console.error(`Element ${key} not found`);
-                            return;
-                        }
-                    });
+        const labels = getLabels(cfg.key);
+        const values = getValues(cfg.key);
 
-                    if (!Object.values(elements).every(el => el)) {
-                        console.error('One or more stat elements not found');
-                        return;
+        if (chartInstances[tab]) chartInstances[tab].destroy();
+
+        const isBar = cfg.type === 'bar';
+        chartInstances[tab] = new Chart(canvas.getContext('2d'), {
+            type: cfg.type,
+            data: {
+                labels,
+                datasets: [{
+                    label: cfg.label,
+                    data: values,
+                    borderColor: cfg.color,
+                    backgroundColor: isBar
+                        ? `${cfg.color}cc`
+                        : `${cfg.color}18`,
+                    fill: !isBar,
+                    tension: 0.4,
+                    borderRadius: isBar ? 6 : 0,
+                    pointBackgroundColor: cfg.color,
+                    pointRadius: isBar ? 0 : 5,
+                    pointHoverRadius: isBar ? 0 : 7,
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: true, position: 'top' },
+                    tooltip: {
+                        backgroundColor: 'rgba(15,23,42,.9)',
+                        titleColor: '#fff', bodyColor: '#cbd5e1',
+                        padding: 12, cornerRadius: 8
                     }
-
-                    elements.coursesValue.textContent = (data.totalCourses || 0).toLocaleString();
-                    elements.coursesChange.textContent = `${data.coursesChange >= 0 ? '+' : ''}${data.coursesChange || 0} ${translations.thisMonth}`;
-                    elements.coursesChange.classList.toggle('negative', (data.coursesChange || 0) < 0);
-                    elements.coursesChange.classList.toggle('positive', (data.coursesChange || 0) >= 0);
-
-                    elements.studentsValue.textContent = (data.activeStudents || 0).toLocaleString();
-                    elements.studentsChange.textContent = `${data.studentsChange >= 0 ? '+' : ''}${data.studentsChange || 0} ${translations.thisMonth}`;
-                    elements.studentsChange.classList.toggle('negative', (data.studentsChange || 0) < 0);
-                    elements.studentsChange.classList.toggle('positive', (data.studentsChange || 0) >= 0);
-
-                    elements.revenueValue.textContent = `$${(data.monthlyRevenue || 0).toLocaleString()}`;
-                    elements.revenueChange.textContent = `${data.revenueChange >= 0 ? '+' : ''}${parseFloat(data.revenueChange || 0).toFixed(1)}% ${translations.lastMonth}`;
-                    elements.revenueChange.classList.toggle('negative', (data.revenueChange || 0) < 0);
-                    elements.revenueChange.classList.toggle('positive', (data.revenueChange || 0) >= 0);
-
-                    elements.institutesValue.textContent = (data.activeInstitutes || 0).toLocaleString();
-                    elements.institutesChange.textContent = `${data.institutesChange >= 0 ? '+' : ''}${data.institutesChange || 0} ${translations.thisMonth}`;
-                    elements.institutesChange.classList.toggle('negative', (data.institutesChange || 0) < 0);
-                    elements.institutesChange.classList.toggle('positive', (data.institutesChange || 0) >= 0);
-
-                } catch (error) {
-                    console.error('Error updating stats:', error);
+                },
+                scales: {
+                    y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,.04)' },
+                         ticks: { color: '#64748b' } },
+                    x: { grid: { display: false }, ticks: { color: '#64748b' } }
                 }
             }
-
-            const charts = {};
-            function renderChart(tab) {
-                const loader = document.getElementById(`${tab}-loader`);
-                const errorMessage = document.getElementById(`${tab}-error`);
-                const canvas = document.getElementById(`${tab}-chart`);
-
-                if (!canvas) {
-                    console.error(`Canvas element for ${tab}-chart not found`);
-                    if (errorMessage) errorMessage.style.display = 'block';
-                    return;
-                }
-
-                if (loader) loader.style.display = 'block';
-                if (errorMessage) errorMessage.style.display = 'none';
-
-                const chartData = dashboardData?.chartData?.[tab];
-
-                const labels = chartData?.labels?.$values || ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
-                const values = chartData?.values?.$values || [0, 0, 0, 0, 0, 0];
-
-                console.log(`Rendering chart for ${tab}:`, { labels, values });
-
-                if (charts[tab]) {
-                    charts[tab].destroy();
-                }
-
-                const ctx = canvas.getContext('2d');
-                charts[tab] = new Chart(ctx, {
-                    type: tab === 'revenue' ? 'bar' : 'line',
-                    data: {
-                        labels: labels,
-                        datasets: [{
-                            label: tab === 'overview' ? translations.growthPlatformTitle :
-                                   tab === 'courses' ? translations.courses :
-                                   tab === 'students' ? translations.students :
-                                   translations.revenue,
-                            data: values,
-                            borderColor: '#007bff',
-                            backgroundColor: tab === 'revenue' ? 'rgba(0, 123, 255, 0.8)' : 'rgba(0, 123, 255, 0.1)',
-                            fill: tab !== 'revenue',
-                            tension: 0.4,
-                            pointRadius: 5,
-                            pointHoverRadius: 7,
-                            pointBackgroundColor: '#007bff',
-                            pointBorderColor: '#fff',
-                            pointBorderWidth: 2
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        scales: {
-                            y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } },
-                            x: { grid: { display: false } }
-                        },
-                        plugins: {
-                            legend: { display: true, position: 'top' },
-                            tooltip: {
-                                backgroundColor: 'rgba(0, 0, 0, 0.7)',
-                                titleColor: '#fff',
-                                bodyColor: '#fff',
-                                borderColor: 'rgba(0, 0, 0, 0.2)',
-                                borderWidth: 1,
-                                padding: 10
-                            }
-                        }
-                    }
-                });
-                if (loader) loader.style.display = 'none';
-            }
-
-            if (dashboardData && dashboardData.stats) {
-                updateStats(dashboardData.stats);
-            } else {
-                console.error('No valid stats data available');
-                updateStats({});
-            }
-
-            const tabs = [
-                { btnId: 'overview-btn', tabId: 'overview' },
-                { btnId: 'courses-btn', tabId: 'courses' },
-                { btnId: 'students-btn', tabId: 'students' },
-                { btnId: 'revenue-btn', tabId: 'revenue' }
-            ];
-
-            tabs.forEach(tab => {
-                const button = document.getElementById(tab.btnId);
-                if (!button) {
-                    console.error(`Button with ID ${tab.btnId} not found`);
-                    return;
-                }
-                button.addEventListener('click', (event) => {
-                    event.preventDefault();
-                    tabs.forEach(t => {
-                        const btn = document.getElementById(t.btnId);
-                        const content = document.getElementById(t.tabId);
-                        if (btn && content) {
-                            btn.classList.remove('active');
-                            content.classList.remove('active');
-                        }
-                    });
-
-                    button.classList.add('active');
-                    const tabContent = document.getElementById(tab.tabId);
-                    if (tabContent) {
-                        tabContent.classList.add('active');
-                        document.querySelectorAll('.error-message').forEach(error => error.style.display = 'none');
-                        renderChart(tab.tabId);
-                    } else {
-                        console.error(`Tab content with ID ${tab.tabId} not found`);
-                    }
-                });
-            });
-
-            renderChart('overview');
         });
-    </script>
-    
-</body>
+    }
+
+    // ─── Tabs ────────────────────────────────────────────────────────────────
+    document.querySelectorAll('.ad-tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.ad-tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.ad-tab-content').forEach(c => c.classList.remove('active'));
+            btn.classList.add('active');
+            const target = document.getElementById(btn.dataset.tab);
+            if (target) { target.classList.add('active'); renderChart(btn.dataset.tab); }
+        });
+    });
+
+    // Initial render
+    document.addEventListener('DOMContentLoaded', () => renderChart('ad-tab-overview'));
+</script>

@@ -24,23 +24,47 @@ namespace TrainingCenterManagement_MVC.Migrations
                 table: "Exams",
                 newName: "StartDateTime");
 
-            migrationBuilder.AlterColumn<string>(
-                name: "Title",
-                table: "Notifications",
-                type: "nvarchar(200)",
-                maxLength: 200,
-                nullable: false,
-                oldClrType: typeof(string),
-                oldType: "nvarchar(max)");
+            // Create Notifications table if it doesn't exist (missing from earlier migrations),
+            // otherwise alter the columns to their correct sizes.
+            migrationBuilder.Sql(@"
+                IF OBJECT_ID(N'[Notifications]', N'U') IS NULL
+                BEGIN
+                    CREATE TABLE [Notifications] (
+                        [NotificationId] uniqueidentifier NOT NULL,
+                        [UserId] nvarchar(450) NOT NULL,
+                        [Title] nvarchar(200) NOT NULL DEFAULT N'',
+                        [Message] nvarchar(1000) NOT NULL DEFAULT N'',
+                        [Type] int NOT NULL DEFAULT 0,
+                        [IsRead] bit NOT NULL DEFAULT 0,
+                        [CreatedAt] datetime2 NOT NULL DEFAULT GETUTCDATE(),
+                        [RelatedId] nvarchar(max) NULL,
+                        CONSTRAINT [PK_Notifications] PRIMARY KEY ([NotificationId]),
+                        CONSTRAINT [FK_Notifications_AspNetUsers_UserId]
+                            FOREIGN KEY ([UserId]) REFERENCES [AspNetUsers] ([Id]) ON DELETE CASCADE
+                    );
+                    CREATE INDEX [IX_Notifications_UserId] ON [Notifications] ([UserId]);
+                END
+                ELSE
+                BEGIN
+                    DECLARE @v1 sysname;
+                    SELECT @v1 = d.name FROM sys.default_constraints d
+                        INNER JOIN sys.columns c ON d.parent_column_id = c.column_id
+                            AND d.parent_object_id = c.object_id
+                        WHERE d.parent_object_id = OBJECT_ID(N'[Notifications]')
+                          AND c.name = N'Title';
+                    IF @v1 IS NOT NULL EXEC(N'ALTER TABLE [Notifications] DROP CONSTRAINT [' + @v1 + '];');
+                    ALTER TABLE [Notifications] ALTER COLUMN [Title] nvarchar(200) NOT NULL;
 
-            migrationBuilder.AlterColumn<string>(
-                name: "Message",
-                table: "Notifications",
-                type: "nvarchar(1000)",
-                maxLength: 1000,
-                nullable: false,
-                oldClrType: typeof(string),
-                oldType: "nvarchar(max)");
+                    DECLARE @v2 sysname;
+                    SELECT @v2 = d.name FROM sys.default_constraints d
+                        INNER JOIN sys.columns c ON d.parent_column_id = c.column_id
+                            AND d.parent_object_id = c.object_id
+                        WHERE d.parent_object_id = OBJECT_ID(N'[Notifications]')
+                          AND c.name = N'Message';
+                    IF @v2 IS NOT NULL EXEC(N'ALTER TABLE [Notifications] DROP CONSTRAINT [' + @v2 + '];');
+                    ALTER TABLE [Notifications] ALTER COLUMN [Message] nvarchar(1000) NOT NULL;
+                END
+            ");
 
             migrationBuilder.AlterColumn<string>(
                 name: "ExamName",

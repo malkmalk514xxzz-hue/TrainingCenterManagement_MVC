@@ -4,6 +4,14 @@ using TrainingCenterManagement_MVC.Models;
 
 namespace TrainingCenterManagement_MVC.Models
 {
+    public enum PaymentCurrency
+    {
+        SAR = 1,
+        USD = 2,
+        EUR = 3,
+        EGP = 4
+    }
+
     public class Payment
     {
         [Key]
@@ -11,6 +19,10 @@ namespace TrainingCenterManagement_MVC.Models
 
         [Required]
         public decimal TotalAmount { get; set; }
+
+        public PaymentCurrency Currency { get; set; } = PaymentCurrency.SAR;
+
+        public string? Notes { get; set; }
 
         public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
 

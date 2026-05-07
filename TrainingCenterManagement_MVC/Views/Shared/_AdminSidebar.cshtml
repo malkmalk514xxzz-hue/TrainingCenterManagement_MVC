@@ -1,81 +1,43 @@
-﻿@using System.Globalization
+@using System.Globalization
 @using TrainingCenterManagement_MVC.Resources
 @using Microsoft.AspNetCore.Identity
 @using TrainingCenterManagement_MVC.Models
 @inject UserManager<ApplicationUser> UserManager
-@inject Microsoft.AspNetCore.Mvc.Rendering.IHtmlHelper HtmlHelper
 @{
-    string currentPage = ViewContext.RouteData.Values["action"]?.ToString()?.ToLower();
+    var ctrl = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+    var action = ViewContext.RouteData.Values["action"]?.ToString()?.ToLower() ?? "";
     var user = await UserManager.GetUserAsync(User);
-    var profilePic = !string.IsNullOrEmpty(user?.ProfilePictureUrl) 
-        ? user.ProfilePictureUrl 
-        : "https://placehold.co/100/e2e8f0/60758a?text=User";
+    var profilePic = !string.IsNullOrEmpty(user?.ProfilePictureUrl)
+        ? user.ProfilePictureUrl
+        : "https://placehold.co/100/e2e8f0/1e293b?text=A";
+
+    bool IsActive(string controller, string act = "") =>
+        ctrl.Equals(controller, StringComparison.OrdinalIgnoreCase) &&
+        (string.IsNullOrEmpty(act) || action == act.ToLower());
 }
 
 <style>
-    html[dir="rtl"] .sidebar-nav ul li a i {
-        margin-left: 8px; 
-    }
-
-    html[dir="ltr"] .sidebar-nav ul li a i {
-        margin-right: 8px;
-    }
-
-    .language-switcher {
-        margin-top: 15px;
-        position: relative;
-        text-align: center;
-    }
-
+    html[dir="rtl"] .sidebar-nav ul li a i { margin-left: 8px; }
+    html[dir="ltr"]  .sidebar-nav ul li a i { margin-right: 8px; }
+    .language-switcher { margin-top: 15px; position: relative; text-align: center; }
     .language-btn {
-        background: none;
-        border: 1px solid #ccc;
-        padding: 6px 12px;
-        border-radius: 6px;
-        cursor: pointer;
-        width: 100%;
-        text-align: left;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        font-size: 14px;
-        color: #333;
+        background: none; border: 1px solid #ccc; padding: 6px 12px; border-radius: 6px;
+        cursor: pointer; width: 100%; text-align: left; display: flex;
+        justify-content: space-between; align-items: center; font-size: 14px; color: #333;
     }
-
     .language-dropdown {
-        display: none;
-        position: absolute;
-        bottom: 100%;
-        left: 0;
-        width: 100%;
-        background: #fff;
-        border: 1px solid #ddd;
-        border-radius: 6px;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
-        z-index: 10;
-        padding: 0;
-        list-style: none;
+        display: none; position: absolute; bottom: 100%; left: 0; width: 100%;
+        background: #fff; border: 1px solid #ddd; border-radius: 6px;
+        box-shadow: 0 4px 10px rgba(0,0,0,.05); z-index: 10; padding: 0; list-style: none;
     }
-
-        .language-dropdown li a {
-            display: block;
-            padding: 8px 12px;
-            color: #333;
-            text-decoration: none;
-        }
-
-            .language-dropdown li a:hover {
-                background-color: #f5f5f5;
-            }
-
+    .language-dropdown li a { display: block; padding: 8px 12px; color: #333; text-decoration: none; }
+    .language-dropdown li a:hover { background: #f5f5f5; }
 </style>
 
 <aside class="sidebar">
     <div class="sidebar-header">
         <div class="logo">
-            <a href="/">
-                <span class="logo-text">@SharedResource.TrainersControll</span>
-            </a>
+            <a href="/"><span class="logo-text">Training Center</span></a>
         </div>
         <button class="sidebar-toggle" aria-label="Toggle Sidebar">
             <i class="fas fa-bars"></i>
@@ -83,68 +45,67 @@
     </div>
     <nav class="sidebar-nav">
         <ul>
-            <li class="@(currentPage == "dashboard" ? "active" : "")">
+            <li class="@(IsActive("Dashboard", "AdminDashboard") ? "active" : "")">
                 <a asp-action="AdminDashboard" asp-controller="Dashboard">
-                    <i class="fas fa-home"></i>
-                    <span>@SharedResource.Dashboard</span>
+                    <i class="fas fa-home"></i><span>لوحة التحكم</span>
                 </a>
             </li>
-            <li class="@(currentPage == "courses" ? "active" : "")">
-            <li>
-                <a asp-controller="Chat" asp-action="AdminCustomerSupportChats">
-                    <i class="fas fa-building"></i>
-            <span>AdminContactUsChats</span>
-                </a>
-            </li>
-            <li class="@(currentPage == "students" ? "active" : "")">
-                <a asp-action="Index" asp-controller="Trainees">
-                    <i class="fas fa-users"></i>
-                    <span>@SharedResource.Students</span>
-                </a>
-            </li>
-            <li class="@(currentPage == "Trainers" ? "active" : "")">
-                <a asp-action="Index" asp-controller="Trainers">
-                    <i class="fas fa-credit-card"></i>
-                    <span>@SharedResource.TrainersControll</span>
-                </a>
-            </li>
-            <li class="@(currentPage == "Payments" ? "active" : "")">
-                <a asp-action="Index" asp-controller="Payments">
-                    <i class="fas fa-money-bill"></i>
-                    <span>@SharedResource.PaymentRequests</span>
-                </a>
-            </li>
-            @* <li class="@(currentPage == "Presences" ? "active" : "")">
-                <a asp-action="Index" asp-controller="Presences">
-                    <i class="fas fa-chart-bar"></i>
-                    <span>@SharedResource.PresencesControll</span>
-                </a>
-            </li> *@
-            <li class="@(currentPage == "Receptionists" ? "active" : "")">
-                <a asp-action="Index" asp-controller="Receptionists">
-                    <i class="fas fa-globe"></i>
-                    <span>@SharedResource.ReceptionistsControll</span>
-                </a>
-            </li>
-            <li class="@(currentPage == "Lectures" ? "active" : "")">
-                <a asp-action="Index" asp-controller="Lectures">
-                    <i class="fas fa-wallet"></i>
-                    <span>@SharedResource.LecturesControll</span>
-                </a>
-            </li>
-            <li class="@(currentPage == "Courses" ? "active" : "")">
+            <li class="@(IsActive("Courses") ? "active" : "")">
                 <a asp-action="Index" asp-controller="Courses">
-                    <i class="fas fa-cog"></i>
-                    <span>@SharedResource.Courses</span>
+                    <i class="fas fa-book-open"></i><span>@SharedResource.Courses</span>
                 </a>
             </li>
-            <li class="@(currentPage == "Certificates" ? "active" : "")">
+            <li class="@(IsActive("Trainees") ? "active" : "")">
+                <a asp-action="Index" asp-controller="Trainees">
+                    <i class="fas fa-user-graduate"></i><span>@SharedResource.Students</span>
+                </a>
+            </li>
+            <li class="@(IsActive("Trainers") ? "active" : "")">
+                <a asp-action="Index" asp-controller="Trainers">
+                    <i class="fas fa-chalkboard-teacher"></i><span>@SharedResource.TrainersControll</span>
+                </a>
+            </li>
+            <li class="@(IsActive("Receptionists") ? "active" : "")">
+                <a asp-action="Index" asp-controller="Receptionists">
+                    <i class="fas fa-headset"></i><span>@SharedResource.ReceptionistsControll</span>
+                </a>
+            </li>
+            <li class="@(IsActive("Payments") ? "active" : "")">
+                <a asp-action="Index" asp-controller="Payments">
+                    <i class="fas fa-money-bill-wave"></i><span>@SharedResource.PaymentRequests</span>
+                </a>
+            </li>
+            <li class="@(IsActive("Lectures") ? "active" : "")">
+                <a asp-action="Index" asp-controller="Lectures">
+                    <i class="fas fa-video"></i><span>@SharedResource.LecturesControll</span>
+                </a>
+            </li>
+            <li class="@(IsActive("Certificates") ? "active" : "")">
                 <a asp-action="Index" asp-controller="Certificates">
-                    <i class="fas fa-shield-alt"></i>
-                    <span>@SharedResource.CertificatesControll</span>
+                    <i class="fas fa-certificate"></i><span>@SharedResource.CertificatesControll</span>
                 </a>
             </li>
-            <li class="@(currentPage == "index" && ViewContext.RouteData.Values["controller"]?.ToString() == "Notifications" ? "active" : "")">
+            <li class="@(IsActive("PaymentManagement") ? "active" : "")">
+                <a asp-action="Index" asp-controller="PaymentManagement">
+                    <i class="fas fa-wallet"></i><span>الذمم المالية</span>
+                </a>
+            </li>
+            <li class="@(IsActive("ExchangeRates") ? "active" : "")">
+                <a asp-action="Index" asp-controller="ExchangeRates">
+                    <i class="fas fa-exchange-alt"></i><span>أسعار الصرف</span>
+                </a>
+            </li>
+            <li class="@(IsActive("Salary") ? "active" : "")">
+                <a asp-action="Index" asp-controller="Salary">
+                    <i class="fas fa-money-check-alt"></i><span>رواتب الموظفين</span>
+                </a>
+            </li>
+            <li class="@(IsActive("Chat") ? "active" : "")">
+                <a asp-action="AdminCustomerSupportChats" asp-controller="Chat">
+                    <i class="fas fa-comments"></i><span>محادثات الدعم</span>
+                </a>
+            </li>
+            <li class="@(IsActive("Notifications") ? "active" : "")">
                 <a asp-action="Index" asp-controller="Notifications" style="position:relative;">
                     <i class="fas fa-bell"></i>
                     <span class="sn-badge" data-hidden="true" aria-label="إشعارات غير مقروءة">0</span>
@@ -156,13 +117,13 @@
     <div class="sidebar-footer">
         <div class="user-info">
             <div class="user-avatar">
-                <img src="@profilePic" alt="User Avatar" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
+                <img src="@profilePic" alt="Admin" style="width:40px;height:40px;border-radius:50%;object-fit:cover;">
             </div>
             <div class="user-details">
-                <span class="user-name">@(user?.FullName ?? SharedResource.AdminUser)</span>
-                <span class="user-email">@(user?.Email ?? SharedResource.AdminEmail)</span>
+                <span class="user-name">@(user?.FullName ?? "Admin")</span>
+                <span class="user-email">@(user?.Email ?? "")</span>
             </div>
-            <a asp-controller="Profile" asp-action="Index" class="user-settings" aria-label="User settings" style="color: inherit; text-decoration: none;">
+            <a asp-controller="Profile" asp-action="Index" class="user-settings" style="color:inherit;text-decoration:none;">
                 <i class="fas fa-cog"></i>
             </a>
         </div>
@@ -172,54 +133,24 @@
                 <i class="fas fa-chevron-down"></i>
             </button>
             <ul class="language-dropdown" id="languageList">
-                <li>
-                    <a asp-controller="Language" asp-action="ChangeLanguage" asp-route-lang="en">English</a>
-                </li>
-                <li>
-                    <a asp-controller="Language" asp-action="ChangeLanguage" asp-route-lang="ar">العربية</a>
-                </li>
+                <li><a asp-controller="Language" asp-action="ChangeLanguage" asp-route-lang="en">English</a></li>
+                <li><a asp-controller="Language" asp-action="ChangeLanguage" asp-route-lang="ar">العربية</a></li>
             </ul>
         </div>
-
     </div>
 </aside>
 
+@await Html.PartialAsync("_NotificationsScript")
 
 <script>
-    const sidebarToggle = document.querySelector('.sidebar-toggle');
-    const dashboardWrapper = document.querySelector('.dashboard-wrapper');
+    document.querySelector('.sidebar-toggle')?.addEventListener('click', () =>
+        document.querySelector('.dashboard-wrapper')?.classList.toggle('sidebar-collapsed'));
 
-    sidebarToggle.addEventListener('click', () => {
-      dashboardWrapper.classList.toggle('sidebar-collapsed');
-    });
-
-    const tabButtons = document.querySelectorAll('.tab-btn');
-    const tabContents = document.querySelectorAll('.tab-content');
-
-    tabButtons.forEach(button => {
-      button.addEventListener('click', () => {
-        tabButtons.forEach(btn => btn.classList.remove('active'));
-        tabContents.forEach(content => content.classList.remove('active'));
-
-        button.classList.add('active');
-        const tabId = button.getAttribute('data-tab');
-        document.getElementById(tabId).classList.add('active');
-      });
-    });
-</script>
-
-<script>
     const langBtn = document.getElementById('languageToggle');
     const langList = document.getElementById('languageList');
-
-    langBtn.addEventListener('click', function (e) {
+    langBtn?.addEventListener('click', e => {
         e.stopPropagation();
         langList.style.display = langList.style.display === 'block' ? 'none' : 'block';
     });
-
-    document.addEventListener('click', function () {
-        langList.style.display = 'none';
-    });
+    document.addEventListener('click', () => { if (langList) langList.style.display = 'none'; });
 </script>
-
-@await Html.PartialAsync("_NotificationsScript")

@@ -1,0 +1,131 @@
+@model TrainingCenterManagement_MVC.ViewModels.ExchangeRateIndexViewModel
+@{
+    ViewData["Title"] = "إدارة أسعار الصرف";
+}
+
+<style>
+    :root { --ex-primary:#1d4ed8; --ex-bg:#f8fafc; --ex-card:#fff; --ex-border:#e2e8f0; --ex-shadow:0 4px 20px rgba(29,78,216,.08); }
+    .ex-header { background:linear-gradient(135deg,#0f172a 0%,#1d4ed8 60%,#3b82f6 100%); border-radius:16px; padding:28px 32px; color:#fff; margin-bottom:28px; display:flex; align-items:center; gap:16px; }
+    .ex-header h1 { margin:0; font-size:1.5rem; font-weight:700; }
+    .ex-header p  { margin:4px 0 0; opacity:.8; font-size:.92rem; }
+    .ex-header-icon { width:56px; height:56px; border-radius:14px; background:rgba(255,255,255,.15); display:flex; align-items:center; justify-content:center; font-size:1.5rem; flex-shrink:0; }
+    .ex-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(340px,1fr)); gap:20px; margin-bottom:32px; }
+    .ex-card { background:var(--ex-card); border-radius:14px; box-shadow:var(--ex-shadow); border:1px solid var(--ex-border); overflow:hidden; transition:transform .2s,box-shadow .2s; }
+    .ex-card:hover { transform:translateY(-2px); box-shadow:0 8px 32px rgba(29,78,216,.14); }
+    .ex-card-head { padding:16px 20px; border-bottom:1px solid var(--ex-border); display:flex; align-items:center; gap:12px; }
+    .ex-flag { width:44px; height:44px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1.4rem; flex-shrink:0; }
+    .ex-card-head h3 { margin:0; font-size:1rem; font-weight:700; color:#0f172a; }
+    .ex-card-head span { font-size:.8rem; color:#64748b; }
+    .ex-rate-display { padding:16px 20px; display:flex; gap:12px; }
+    .ex-rate-box { flex:1; background:#f8fafc; border-radius:10px; padding:12px 14px; text-align:center; }
+    .ex-rate-box .label { font-size:.75rem; color:#64748b; font-weight:600; text-transform:uppercase; letter-spacing:.04em; }
+    .ex-rate-box .value { font-size:1.4rem; font-weight:800; color:#1d4ed8; margin-top:2px; }
+    .ex-rate-box .sub   { font-size:.75rem; color:#94a3b8; margin-top:1px; }
+    .ex-edit-form { padding:0 20px 20px; }
+    .ex-edit-form label { font-size:.82rem; font-weight:600; color:#374151; display:block; margin-bottom:5px; }
+    .ex-input-row { display:flex; gap:8px; }
+    .ex-input-row input { flex:1; border:1.5px solid var(--ex-border); border-radius:8px; padding:9px 12px; font-size:.92rem; transition:border-color .2s; }
+    .ex-input-row input:focus { outline:none; border-color:#1d4ed8; box-shadow:0 0 0 3px rgba(29,78,216,.1); }
+    .ex-save-btn { background:#1d4ed8; color:#fff; border:none; border-radius:8px; padding:9px 18px; font-size:.88rem; font-weight:600; cursor:pointer; transition:opacity .2s; white-space:nowrap; }
+    .ex-save-btn:hover { opacity:.88; }
+    .ex-updated { font-size:.75rem; color:#94a3b8; padding:0 20px 14px; display:flex; align-items:center; gap:4px; }
+    /* SAR card */
+    .sar-card { background:linear-gradient(135deg,#065f46,#059669); color:#fff; border-radius:14px; padding:24px; display:flex; align-items:center; gap:16px; margin-bottom:32px; }
+    .sar-card h3 { margin:0; font-size:1.1rem; font-weight:700; }
+    .sar-card p { margin:4px 0 0; opacity:.85; font-size:.88rem; }
+    .sar-value { font-size:2.5rem; font-weight:900; margin-right:auto; }
+    @@media (max-width:600px) { .ex-grid { grid-template-columns:1fr; } }
+</style>
+
+<div class="dashboard-wrapper" style="display:flex;direction:rtl;min-height:100vh">
+@await Html.PartialAsync("_AdminSidebar")
+<main style="flex:1;padding:28px 32px;background:#f8fafc;overflow-x:hidden">
+
+<div class="ex-header">
+    <div class="ex-header-icon"><i class="fas fa-exchange-alt"></i></div>
+    <div>
+        <h1>إدارة أسعار الصرف</h1>
+        <p>حدّد قيمة كل عملة مقابل الريال السعودي — يُستخدم لحساب الذمم المالية للطلاب</p>
+    </div>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show mb-3" role="alert">
+        <i class="fas fa-check-circle me-2"></i>@TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show mb-3" role="alert">
+        <i class="fas fa-exclamation-circle me-2"></i>@TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<!-- SAR Base -->
+<div class="sar-card">
+    <div>
+        <h3><i class="fas fa-star me-2"></i>الريال السعودي — العملة الأساسية</h3>
+        <p>جميع الأسعار تُحوَّل إلى ريال سعودي لحساب الذمم المالية</p>
+    </div>
+    <div class="sar-value">1.00 ر.س</div>
+</div>
+
+<!-- Currency Cards -->
+<div class="ex-grid">
+    @foreach (var rate in Model.Rates)
+    {
+        <div class="ex-card">
+            <div class="ex-card-head">
+                <div class="ex-flag" style="background:@(rate.Currency == TrainingCenterManagement_MVC.Models.PaymentCurrency.USD ? "#dbeafe" : rate.Currency == TrainingCenterManagement_MVC.Models.PaymentCurrency.EUR ? "#ede9fe" : "#fef3c7")">
+                    @(rate.Currency == TrainingCenterManagement_MVC.Models.PaymentCurrency.USD ? "🇺🇸" : rate.Currency == TrainingCenterManagement_MVC.Models.PaymentCurrency.EUR ? "🇪🇺" : "🇪🇬")
+                </div>
+                <div>
+                    <h3>@rate.CurrencyLabel</h3>
+                    <span>@rate.CurrencySymbol</span>
+                </div>
+            </div>
+            <div class="ex-rate-display">
+                <div class="ex-rate-box">
+                    <div class="label">1 @rate.CurrencySymbol يساوي</div>
+                    <div class="value">@rate.RateToSAR.ToString("F4")</div>
+                    <div class="sub">ريال سعودي</div>
+                </div>
+                <div class="ex-rate-box">
+                    <div class="label">1 ر.س يساوي</div>
+                    <div class="value">@rate.RateFromSAR.ToString("F4")</div>
+                    <div class="sub">@rate.CurrencySymbol</div>
+                </div>
+            </div>
+            <div class="ex-edit-form">
+                <form asp-action="Update" asp-controller="ExchangeRates" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="currency" value="@((int)rate.Currency)" />
+                    <label>تحديث السعر: كم ريال = 1 @rate.CurrencySymbol</label>
+                    <div class="ex-input-row">
+                        <input type="number" name="rateToSar" value="@rate.RateToSAR.ToString("F4")"
+                               step="0.0001" min="0.0001" placeholder="مثال: 3.7500" />
+                        <button type="submit" class="ex-save-btn">
+                            <i class="fas fa-save me-1"></i>حفظ
+                        </button>
+                    </div>
+                </form>
+            </div>
+            <div class="ex-updated">
+                <i class="fas fa-clock"></i>
+                آخر تحديث: @rate.UpdatedAt.ToString("dd/MM/yyyy hh:mm tt")
+                @if (rate.UpdatedByName != "—") { <span>— @rate.UpdatedByName</span> }
+            </div>
+        </div>
+    }
+</div>
+
+<div class="alert alert-info" style="border-radius:12px;">
+    <i class="fas fa-info-circle me-2"></i>
+    <strong>ملاحظة:</strong> أسعار الصرف تؤثر على حساب الذمم المالية فقط — لا تؤثر على المبالغ المسجلة في الدفعات القديمة.
+</div>
+
+</main>
+</div>

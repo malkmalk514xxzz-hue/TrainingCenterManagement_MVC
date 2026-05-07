@@ -1,64 +1,133 @@
-﻿@model TrainingCenterManagement_MVC.Models.Payment
+@model TrainingCenterManagement_MVC.Models.Payment
 
 @{
-    ViewData["Title"] = "Create Payment";
+    ViewData["Title"] = "إضافة دفعة مالية";
 }
 
-<h1>Create Payment</h1>
-<hr />
+<style>
+    .payment-form-card {
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0,0,0,.08);
+        padding: 32px;
+        max-width: 560px;
+        margin: 32px auto;
+    }
+    .payment-form-card h2 {
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: #1e293b;
+        margin-bottom: 24px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .payment-form-card h2 i { color: #0ea5e9; }
+    .form-label { font-weight: 600; color: #374151; font-size: .9rem; }
+    .form-control, .form-select {
+        border-radius: 8px;
+        border: 1.5px solid #e2e8f0;
+        padding: 10px 14px;
+        font-size: .95rem;
+        transition: border-color .2s;
+    }
+    .form-control:focus, .form-select:focus { border-color: #0ea5e9; box-shadow: 0 0 0 3px rgba(14,165,233,.1); }
+    .currency-amount-row { display: flex; gap: 12px; }
+    .currency-amount-row .amount-col { flex: 1; }
+    .currency-amount-row .currency-col { width: 130px; }
+    .btn-submit {
+        background: linear-gradient(135deg, #0ea5e9, #0284c7);
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        padding: 12px 28px;
+        font-weight: 600;
+        font-size: .95rem;
+        cursor: pointer;
+        transition: opacity .2s;
+        width: 100%;
+    }
+    .btn-submit:hover { opacity: .9; }
+    .btn-back {
+        display: block;
+        text-align: center;
+        margin-top: 12px;
+        color: #64748b;
+        font-size: .9rem;
+        text-decoration: none;
+    }
+    .btn-back:hover { color: #0ea5e9; }
+    .alert { border-radius: 8px; }
+</style>
 
-<!-- Success / Error Messages -->
-@if (TempData["SuccessMessage"] != null)
-{
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
-        @TempData["SuccessMessage"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-}
-@if (TempData["ErrorMessage"] != null)
-{
-    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-        @TempData["ErrorMessage"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-}
+<div class="payment-form-card">
+    <h2><i class="fas fa-money-bill-wave"></i> إضافة دفعة مالية جديدة</h2>
 
-<div class="row">
-    <div class="col-md-6">
-        <form asp-action="Create" method="post">
-            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>@TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i>@TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
 
-            <!-- Trainee selection -->
-            <div class="form-group mb-3">
-                <label asp-for="TraineeId" class="control-label">Trainee</label>
-                <select asp-for="TraineeId" class="form-control select2" asp-items="ViewBag.TraineeId">
-                    <option value="">-- Select Trainee --</option>
-                </select>
-                <span asp-validation-for="TraineeId" class="text-danger"></span>
+    <form asp-action="Create" method="post">
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-3"></div>
+
+        <div class="mb-3">
+            <label class="form-label"><i class="fas fa-user-graduate me-1 text-muted"></i>اسم الطالب</label>
+            <select asp-for="TraineeId" class="form-select select2" asp-items="ViewBag.TraineeId">
+                <option value="">-- اختر الطالب --</option>
+            </select>
+            <span asp-validation-for="TraineeId" class="text-danger small"></span>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label"><i class="fas fa-book-open me-1 text-muted"></i>الدورة</label>
+            <select asp-for="CourseId" class="form-select select2" asp-items="ViewBag.CourseId">
+                <option value="">-- اختر الدورة --</option>
+            </select>
+            <span asp-validation-for="CourseId" class="text-danger small"></span>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label"><i class="fas fa-coins me-1 text-muted"></i>المبلغ والعملة</label>
+            <div class="currency-amount-row">
+                <div class="amount-col">
+                    <input asp-for="TotalAmount" class="form-control" type="number" step="0.01" min="0" placeholder="0.00" />
+                    <span asp-validation-for="TotalAmount" class="text-danger small"></span>
+                </div>
+                <div class="currency-col">
+                    <select asp-for="Currency" class="form-select">
+                        <option value="1">ر.س (SAR)</option>
+                        <option value="2">USD ($)</option>
+                        <option value="3">EUR (€)</option>
+                        <option value="4">ج.م (EGP)</option>
+                    </select>
+                </div>
             </div>
+        </div>
 
-            <!-- Course selection -->
-            <div class="form-group mb-3">
-                <label asp-for="CourseId" class="control-label">Course</label>
-                <select asp-for="CourseId" class="form-control select2" asp-items="ViewBag.CourseId">
-                    <option value="">-- Select Course --</option>
-                </select>
-                <span asp-validation-for="CourseId" class="text-danger"></span>
-            </div>
+        <div class="mb-4">
+            <label class="form-label"><i class="fas fa-sticky-note me-1 text-muted"></i>ملاحظات (اختياري)</label>
+            <textarea asp-for="Notes" class="form-control" rows="2" placeholder="أي ملاحظات إضافية..."></textarea>
+        </div>
 
-            <!-- Total Amount -->
-            <div class="form-group mb-3">
-                <label asp-for="TotalAmount" class="control-label">Payment Amount</label>
-                <input asp-for="TotalAmount" class="form-control" type="number" step="0.01" min="0" />
-                <span asp-validation-for="TotalAmount" class="text-danger"></span>
-            </div>
+        <button type="submit" class="btn-submit">
+            <i class="fas fa-save me-2"></i>حفظ الدفعة وإشعار الإدارة
+        </button>
+    </form>
 
-            <div class="form-group mt-3">
-                <input type="submit" value="Create Payment" class="btn btn-primary" />
-                <a asp-action="Index" class="btn btn-secondary ms-2">Back to List</a>
-            </div>
-        </form>
-    </div>
+    <a asp-action="Index" class="btn-back">
+        <i class="fas fa-arrow-right me-1"></i>العودة إلى قائمة الدفعات
+    </a>
 </div>
 
 @section Scripts {
@@ -67,11 +136,8 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script>
-        $(document).ready(function() {
-            $('.select2').select2({
-                placeholder: "Select an option",
-                allowClear: true
-            });
+        $(document).ready(function () {
+            $('.select2').select2({ placeholder: "اختر...", allowClear: true });
         });
     </script>
 }
