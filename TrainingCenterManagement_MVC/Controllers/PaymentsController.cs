@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using TrainingCenterManagement_MVC.Data;
+using TrainingCenterManagement_MVC.Helpers;
 using TrainingCenterManagement_MVC.Models;
 
 namespace TrainingCenterManagement_MVC.Controllers
@@ -17,11 +18,13 @@ namespace TrainingCenterManagement_MVC.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly IHubContext<ChatHub> _hubContext;
+        private readonly ISettingsService _settings;
 
-        public PaymentsController(ApplicationDbContext context, IHubContext<ChatHub> hubContext)
+        public PaymentsController(ApplicationDbContext context, IHubContext<ChatHub> hubContext, ISettingsService settings)
         {
             _context = context;
             _hubContext = hubContext;
+            _settings = settings;
         }
 
         // GET: Payments
@@ -63,17 +66,58 @@ namespace TrainingCenterManagement_MVC.Controllers
         }
 
         // GET: Payments/Create
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
-            ViewData["CourseId"] = new SelectList(_context.Courses, "CourseId", "CourseName");
+            await PopulateCreateViewDataAsync();
+            return View(new Payment());
+        }
 
+        // GET: Payments/GetRemainingBalance?traineeId=...&courseId=...
+        [HttpGet]
+        public async Task<IActionResult> GetRemainingBalance(Guid traineeId, Guid courseId)
+        {
+            var course = await _context.Courses.FindAsync(courseId);
+            if (course == null) return Json(new { error = true });
+
+            var dbRates = await _context.ExchangeRates.ToListAsync();
+            var rates   = new Dictionary<PaymentCurrency, decimal>(CurrencyHelper.DefaultRates);
+            foreach (var r in dbRates) rates[r.Currency] = r.RateToSYP;
+
+            var existingPayments = await _context.Payments
+                .Where(p => p.TraineeId == traineeId && p.CourseId == courseId && !p.IsDeleted)
+                .ToListAsync();
+
+            decimal totalPaidSYP = existingPayments.Sum(p => CurrencyHelper.ToSYP(p.TotalAmount, p.Currency, rates));
+            decimal remainingSYP = Math.Max(0m, course.Price - totalPaidSYP);
+
+            return Json(new
+            {
+                coursePrice          = course.Price,
+                coursePriceFormatted = $"{course.Price:N0} ل.س",
+                totalPaid            = totalPaidSYP,
+                totalPaidFormatted   = $"{totalPaidSYP:N0} ل.س",
+                remaining            = remainingSYP,
+                remainingFormatted   = $"{remainingSYP:N0} ل.س",
+                isFullyPaid          = remainingSYP <= 0,
+                rates                = new
+                {
+                    usd = rates.GetValueOrDefault(PaymentCurrency.USD, CurrencyHelper.DefaultRates[PaymentCurrency.USD]),
+                    eur = rates.GetValueOrDefault(PaymentCurrency.EUR, CurrencyHelper.DefaultRates[PaymentCurrency.EUR])
+                }
+            });
+        }
+
+        private async Task PopulateCreateViewDataAsync(Guid? selectedCourseId = null, Guid? selectedTraineeId = null)
+        {
+            ViewData["CourseId"] = new SelectList(_context.Courses, "CourseId", "CourseName", selectedCourseId);
             ViewData["TraineeId"] = new SelectList(
-                _context.Trainees.Include(t => t.User).ToList(),
+                await _context.Trainees.Include(t => t.User).ToListAsync(),
                 "TraineeId",
-                "User.FullName"
+                "User.FullName",
+                selectedTraineeId
             );
-
-            return View();
+            var defaultCurrencyStr = await _settings.GetAsync("DefaultCurrency") ?? "SYP";
+            ViewBag.DefaultCurrency = (int)CurrencyHelper.ParseDefault(defaultCurrencyStr);
         }
 
         // POST: Payments/Create
@@ -82,68 +126,79 @@ namespace TrainingCenterManagement_MVC.Controllers
         public async Task<IActionResult> Create(Payment payment)
         {
             var course = await _context.Courses.FindAsync(payment.CourseId);
-            var trianeePayments = await _context.Payments
-                .Where(p => p.TraineeId == payment.TraineeId && p.CourseId == payment.CourseId)
+            if (course == null)
+            {
+                TempData["ErrorMessage"] = "الدورة غير موجودة.";
+                await PopulateCreateViewDataAsync(payment.CourseId, payment.TraineeId);
+                return View(payment);
+            }
+
+            // Load exchange rates — all comparisons happen in SYP (base currency)
+            var dbRates = await _context.ExchangeRates.ToListAsync();
+            var rates   = new Dictionary<PaymentCurrency, decimal>(CurrencyHelper.DefaultRates);
+            foreach (var r in dbRates) rates[r.Currency] = r.RateToSYP;
+
+            // Sum existing payments for this trainee+course, converted to SYP
+            var existingPayments = await _context.Payments
+                .Where(p => p.TraineeId == payment.TraineeId && p.CourseId == payment.CourseId && !p.IsDeleted)
                 .ToListAsync();
 
-            decimal totalAmount = trianeePayments.Count > 0 ? trianeePayments.Sum(p => p.TotalAmount) : 0;
+            decimal totalPaidSYP  = existingPayments.Sum(p => CurrencyHelper.ToSYP(p.TotalAmount, p.Currency, rates));
+            decimal newPaymentSYP = CurrencyHelper.ToSYP(payment.TotalAmount, payment.Currency, rates);
 
-            if (totalAmount == course.Price)
+            if (totalPaidSYP >= course.Price)
             {
-                TempData["ErrorMessage"] = "The total amount to Course is Complete";
+                TempData["ErrorMessage"] = "تم سداد كامل قيمة الدورة مسبقاً، لا يمكن إضافة دفعة جديدة.";
+                await PopulateCreateViewDataAsync(payment.CourseId, payment.TraineeId);
                 return View(payment);
             }
 
-            var modifiedAmount = course.Price - totalAmount;
+            decimal remainingSYP = course.Price - totalPaidSYP;
 
-            if (modifiedAmount < payment.TotalAmount)
+            if (newPaymentSYP > remainingSYP)
             {
-                TempData["ErrorMessage"] = "The modifiedAmount less than Payment.";
+                decimal remainingInChosenCurrency = payment.Currency == PaymentCurrency.SYP
+                    ? remainingSYP
+                    : Math.Round(remainingSYP / rates[payment.Currency], 2);
+                var sym = CurrencyHelper.GetSymbol(payment.Currency);
+                TempData["ErrorMessage"] = $"المبلغ يتجاوز المتبقي على الطالب. الحد الأقصى المسموح به: {remainingInChosenCurrency:N0} {sym}";
+                await PopulateCreateViewDataAsync(payment.CourseId, payment.TraineeId);
                 return View(payment);
             }
 
-            if (payment.TotalAmount + totalAmount <= course.Price)
-            {
-                try
-                {
-                    _context.Add(payment);
-                    await _context.SaveChangesAsync();
+            _context.Add(payment);
+            await _context.SaveChangesAsync();
 
-                    await SendPaymentNotificationsAsync(payment, course);
+            await SendPaymentNotificationsAsync(payment, course, rates);
 
-                    TempData["SuccessMessage"] = "Payment created successfully.";
-                    return RedirectToAction(nameof(Index));
-                }
-                catch
-                {
-                    TempData["ErrorMessage"] = "An error occurred while creating the payment.";
-                    return View(payment);
-                }
-            }
-            else
-            {
-                TempData["ErrorMessage"] = "The total amount Big than modified";
-                return View(payment);
-            }
+            TempData["SuccessMessage"] = "تم تسجيل الدفعة بنجاح وتم إشعار الإدارة.";
+            return RedirectToAction(nameof(Index));
         }
 
-        private async Task SendPaymentNotificationsAsync(Payment payment, Course course)
+        private async Task SendPaymentNotificationsAsync(Payment payment, Course course,
+            Dictionary<PaymentCurrency, decimal> rates)
         {
             var trainee = await _context.Trainees
                 .Include(t => t.User)
                 .FirstOrDefaultAsync(t => t.TraineeId == payment.TraineeId);
 
-            var traineeName = trainee?.User?.FullName ?? "متدرب";
-            var currencyLabel = payment.Currency switch
-            {
-                PaymentCurrency.USD => "USD",
-                PaymentCurrency.EUR => "EUR",
-                PaymentCurrency.EGP => "ج.م",
-                _                   => "ر.س"
-            };
+            var traineeName  = trainee?.User?.FullName ?? "متدرب";
+            var sym          = CurrencyHelper.GetSymbol(payment.Currency);
             var paymentDate  = payment.CreatedDate.ToString("dd/MM/yyyy");
-            var notificationTitle   = "إيداع دفعة مالية جديدة";
-            var notificationMessage = $"الطالب: {traineeName} | المبلغ: {payment.TotalAmount:N0} {currencyLabel} | الدورة: {course.CourseName} | التاريخ: {paymentDate}";
+            var notificationTitle = "إيداع دفعة مالية جديدة";
+
+            string amountText;
+            if (payment.Currency == PaymentCurrency.SYP)
+            {
+                amountText = $"{payment.TotalAmount:N0} ل.س";
+            }
+            else
+            {
+                var sypEquiv = CurrencyHelper.ToSYP(payment.TotalAmount, payment.Currency, rates);
+                amountText = $"{payment.TotalAmount:N0} {sym} (≈ {sypEquiv:N0} ل.س)";
+            }
+
+            var notificationMessage = $"الطالب: {traineeName} | المبلغ: {amountText} | الدورة: {course.CourseName} | التاريخ: {paymentDate}";
 
             var adminUsers = await _context.Users
                 .Where(u => u.Role == RoleType.Admin)

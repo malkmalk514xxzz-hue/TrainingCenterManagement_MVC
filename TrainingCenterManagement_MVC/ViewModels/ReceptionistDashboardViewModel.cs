@@ -30,7 +30,7 @@ namespace TrainingCenterManagement_MVC.ViewModels
         public string TraineeName { get; set; } = string.Empty;
         public string CourseName { get; set; } = string.Empty;
         public decimal Amount { get; set; }
-        public string Currency { get; set; } = "ر.س";
+        public string Currency { get; set; } = "ل.س";
         public string? Notes { get; set; }
         public DateTime Date { get; set; }
     }

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using TrainingCenterManagement_MVC.Data;
+using TrainingCenterManagement_MVC.Helpers;
 using TrainingCenterManagement_MVC.Models;
 using TrainingCenterManagement_MVC.ViewModels;
 
@@ -12,57 +13,45 @@ namespace TrainingCenterManagement_MVC.Controllers
     public class ExchangeRatesController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly ISettingsService    _settings;
 
-        public ExchangeRatesController(ApplicationDbContext context)
+        public ExchangeRatesController(ApplicationDbContext context, ISettingsService settings)
         {
-            _context = context;
+            _context  = context;
+            _settings = settings;
         }
 
         // GET: ExchangeRates
         public async Task<IActionResult> Index()
         {
-            var rates = await _context.ExchangeRates
+            var dbRates = await _context.ExchangeRates
                 .Include(er => er.UpdatedBy)
-                .OrderBy(er => er.Currency)
                 .ToListAsync();
 
-            var rows = rates.Select(r => new ExchangeRateRow
-            {
-                Id             = r.Id,
-                Currency       = r.Currency,
-                CurrencyLabel  = GetCurrencyLabel(r.Currency),
-                CurrencySymbol = GetCurrencySymbol(r.Currency),
-                RateToSAR      = r.RateToSAR,
-                RateFromSAR    = r.RateToSAR > 0 ? Math.Round(1m / r.RateToSAR, 6) : 0,
-                UpdatedAt      = r.UpdatedAt,
-                UpdatedByName  = r.UpdatedBy?.FullName ?? "—"
-            }).ToList();
+            var defaultCurrency = await _settings.GetAsync("DefaultCurrency") ?? "SYP";
 
-            // Add missing currencies with default rates
-            var existingCurrencies = rates.Select(r => r.Currency).ToHashSet();
-            foreach (var c in Enum.GetValues<PaymentCurrency>().Where(c => c != PaymentCurrency.SAR))
+            var rows = new List<ExchangeRateRow>();
+
+            foreach (var c in new[] { PaymentCurrency.USD, PaymentCurrency.EUR })
             {
-                if (!existingCurrencies.Contains(c))
+                var dbEntry = dbRates.FirstOrDefault(r => r.Currency == c);
+                var rate    = dbEntry?.RateToSYP ?? CurrencyHelper.DefaultRates[c];
+
+                rows.Add(new ExchangeRateRow
                 {
-                    rows.Add(new ExchangeRateRow
-                    {
-                        Id             = Guid.Empty,
-                        Currency       = c,
-                        CurrencyLabel  = GetCurrencyLabel(c),
-                        CurrencySymbol = GetCurrencySymbol(c),
-                        RateToSAR      = GetDefaultRate(c),
-                        RateFromSAR    = GetDefaultRate(c) > 0 ? Math.Round(1m / GetDefaultRate(c), 6) : 0,
-                        UpdatedAt      = DateTime.UtcNow,
-                        UpdatedByName  = "—"
-                    });
-                }
+                    Id             = dbEntry?.Id ?? Guid.Empty,
+                    Currency       = c,
+                    CurrencyLabel  = CurrencyHelper.GetLabel(c),
+                    CurrencySymbol = CurrencyHelper.GetSymbol(c),
+                    RateToSYP      = rate,
+                    RateFromSYP    = rate > 0 ? Math.Round(1m / rate, 8) : 0,
+                    UpdatedAt      = dbEntry?.UpdatedAt ?? DateTime.UtcNow,
+                    UpdatedByName  = dbEntry?.UpdatedBy?.FullName ?? "—"
+                });
             }
 
-            return View(new ExchangeRateIndexViewModel
-            {
-                Rates   = rows.OrderBy(r => r.Currency).ToList(),
-                SarRate = 1m
-            });
+            ViewBag.DefaultCurrency = defaultCurrency;
+            return View(new ExchangeRateIndexViewModel { Rates = rows });
         }
 
         // POST: ExchangeRates/Update
@@ -70,61 +59,48 @@ namespace TrainingCenterManagement_MVC.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Update(PaymentCurrency currency, decimal rateToSar)
         {
-            if (currency == PaymentCurrency.SAR || rateToSar <= 0)
+            if (currency == PaymentCurrency.SYP || rateToSar <= 0)
             {
                 TempData["Error"] = "قيمة غير صالحة.";
                 return RedirectToAction(nameof(Index));
             }
 
-            var adminId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var existing = await _context.ExchangeRates
-                .FirstOrDefaultAsync(er => er.Currency == currency);
+            var adminId  = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var existing = await _context.ExchangeRates.FirstOrDefaultAsync(er => er.Currency == currency);
 
             if (existing != null)
             {
-                existing.RateToSAR      = rateToSar;
-                existing.UpdatedAt      = DateTime.UtcNow;
+                existing.RateToSYP       = rateToSar;
+                existing.UpdatedAt       = DateTime.UtcNow;
                 existing.UpdatedByUserId = adminId;
             }
             else
             {
                 _context.ExchangeRates.Add(new ExchangeRate
                 {
-                    Currency       = currency,
-                    RateToSAR      = rateToSar,
-                    UpdatedAt      = DateTime.UtcNow,
+                    Currency        = currency,
+                    RateToSYP       = rateToSar,
+                    UpdatedAt       = DateTime.UtcNow,
                     UpdatedByUserId = adminId
                 });
             }
 
             await _context.SaveChangesAsync();
-            TempData["Success"] = $"تم تحديث سعر صرف {GetCurrencyLabel(currency)} بنجاح.";
+            TempData["Success"] = $"تم تحديث سعر صرف {CurrencyHelper.GetLabel(currency)} بنجاح.";
             return RedirectToAction(nameof(Index));
         }
 
-        // ─── Helpers ─────────────────────────────────────────────────────────
-        public static string GetCurrencyLabel(PaymentCurrency c) => c switch
+        // POST: ExchangeRates/SetDefault
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SetDefault(string currency)
         {
-            PaymentCurrency.USD => "دولار أمريكي (USD)",
-            PaymentCurrency.EUR => "يورو (EUR)",
-            PaymentCurrency.EGP => "جنيه مصري (EGP)",
-            _                   => "ريال سعودي (SAR)"
-        };
-
-        public static string GetCurrencySymbol(PaymentCurrency c) => c switch
-        {
-            PaymentCurrency.USD => "$",
-            PaymentCurrency.EUR => "€",
-            PaymentCurrency.EGP => "ج.م",
-            _                   => "ر.س"
-        };
-
-        private static decimal GetDefaultRate(PaymentCurrency c) => c switch
-        {
-            PaymentCurrency.USD => 3.75m,
-            PaymentCurrency.EUR => 4.08m,
-            PaymentCurrency.EGP => 0.071m,
-            _                   => 1m
-        };
+            if (currency == "SYP" || currency == "USD" || currency == "EUR")
+            {
+                await _settings.SetAsync("DefaultCurrency", currency);
+                TempData["Success"] = $"تم تعيين {CurrencyHelper.GetLabel(CurrencyHelper.ParseDefault(currency))} كعملة افتراضية.";
+            }
+            return RedirectToAction(nameof(Index));
+        }
     }
 }

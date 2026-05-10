@@ -4,9 +4,9 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace TrainingCenterManagement_MVC.Models
 {
     /// <summary>
-    /// Stores how many SAR = 1 unit of the given currency.
-    /// E.g. Currency=USD, RateToSAR=3.75 means 1 USD = 3.75 SAR.
-    /// SAR itself is the base and has no entry here.
+    /// Stores how many SYP = 1 unit of the given currency.
+    /// E.g. Currency=USD, RateToSYP=13000 means 1 USD = 13,000 ل.س.
+    /// SYP itself is the base and has no entry here.
     /// </summary>
     public class ExchangeRate
     {
@@ -16,10 +16,10 @@ namespace TrainingCenterManagement_MVC.Models
         [Required]
         public PaymentCurrency Currency { get; set; }
 
-        /// <summary>How many SAR equals 1 unit of this currency.</summary>
+        /// <summary>How many SYP equals 1 unit of this currency.</summary>
         [Required]
-        [Column(TypeName = "decimal(18,6)")]
-        public decimal RateToSAR { get; set; }
+        [Column(TypeName = "decimal(18,4)")]
+        public decimal RateToSYP { get; set; }
 
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 

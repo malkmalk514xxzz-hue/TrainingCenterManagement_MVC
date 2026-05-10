@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using TrainingCenterManagement_MVC.Data;
+using TrainingCenterManagement_MVC.Helpers;
 using TrainingCenterManagement_MVC.Models;
 using TrainingCenterManagement_MVC.ViewModels;
 
@@ -94,13 +95,7 @@ namespace TrainingCenterManagement_MVC.Helpers
                 TraineeName = p.Trainee?.User?.FullName ?? "—",
                 CourseName  = p.Course?.CourseName ?? "—",
                 Amount      = p.TotalAmount,
-                Currency    = p.Currency switch
-                {
-                    PaymentCurrency.USD => "USD",
-                    PaymentCurrency.EUR => "EUR",
-                    PaymentCurrency.EGP => "ج.م",
-                    _                   => "ر.س"
-                },
+                Currency    = CurrencyHelper.GetSymbol(p.Currency),
                 Notes = p.Notes,
                 Date  = p.CreatedDate
             }).ToList();

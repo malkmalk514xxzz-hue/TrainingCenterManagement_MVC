@@ -23,7 +23,7 @@ namespace TrainingCenterManagement_MVC.Models
         [Column(TypeName = "decimal(18,2)")]
         public decimal Amount { get; set; }
 
-        public PaymentCurrency Currency { get; set; } = PaymentCurrency.SAR;
+        public PaymentCurrency Currency { get; set; } = PaymentCurrency.SYP;
 
         public DateTime PaidAt { get; set; } = DateTime.UtcNow;
 

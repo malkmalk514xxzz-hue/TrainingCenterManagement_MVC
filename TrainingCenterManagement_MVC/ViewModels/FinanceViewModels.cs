@@ -7,7 +7,7 @@ namespace TrainingCenterManagement_MVC.ViewModels
     public class ExchangeRateIndexViewModel
     {
         public List<ExchangeRateRow> Rates { get; set; } = new();
-        public decimal SarRate { get; set; } = 1m; // always 1
+        public string DefaultCurrency { get; set; } = "SYP";
     }
 
     public class ExchangeRateRow
@@ -16,8 +16,8 @@ namespace TrainingCenterManagement_MVC.ViewModels
         public PaymentCurrency Currency { get; set; }
         public string CurrencyLabel { get; set; } = string.Empty;
         public string CurrencySymbol { get; set; } = string.Empty;
-        public decimal RateToSAR { get; set; }       // 1 unit = X SAR
-        public decimal RateFromSAR { get; set; }     // 1 SAR = X units
+        public decimal RateToSYP { get; set; }       // 1 unit = X ل.س (SYP)
+        public decimal RateFromSYP { get; set; }     // 1 ل.س = X units
         public DateTime UpdatedAt { get; set; }
         public string UpdatedByName { get; set; } = string.Empty;
     }
@@ -72,7 +72,7 @@ namespace TrainingCenterManagement_MVC.ViewModels
         public Guid PaymentId { get; set; }
         public string CourseName { get; set; } = string.Empty;
         public decimal OriginalAmount { get; set; }
-        public string OriginalCurrency { get; set; } = "ر.س";
+        public string OriginalCurrency { get; set; } = "ل.س";
         public decimal AmountInSAR { get; set; }
         public string? Notes { get; set; }
         public DateTime Date { get; set; }
@@ -100,7 +100,7 @@ namespace TrainingCenterManagement_MVC.ViewModels
         public string Role { get; set; } = string.Empty;
         public string Specialty { get; set; } = string.Empty;
         public decimal MonthlySalary { get; set; }
-        public string CurrencyLabel { get; set; } = "ر.س";
+        public string CurrencyLabel { get; set; } = "ل.س";
         public PaymentCurrency Currency { get; set; }
         public bool PaidThisMonth { get; set; }
         public DateTime? LastPaidAt { get; set; }
@@ -118,7 +118,7 @@ namespace TrainingCenterManagement_MVC.ViewModels
         public string Specialty { get; set; } = string.Empty;
         public decimal MonthlySalary { get; set; }
         public PaymentCurrency Currency { get; set; }
-        public string CurrencyLabel { get; set; } = "ر.س";
+        public string CurrencyLabel { get; set; } = "ل.س";
         public string? Notes { get; set; }
         public bool IsActive { get; set; }
         public List<SalaryPaymentRow> PaymentHistory { get; set; } = new();
@@ -131,7 +131,7 @@ namespace TrainingCenterManagement_MVC.ViewModels
         public int Month { get; set; }
         public int Year { get; set; }
         public decimal Amount { get; set; }
-        public string CurrencyLabel { get; set; } = "ر.س";
+        public string CurrencyLabel { get; set; } = "ل.س";
         public DateTime PaidAt { get; set; }
         public string PaidByName { get; set; } = string.Empty;
         public string? Notes { get; set; }
@@ -143,7 +143,7 @@ namespace TrainingCenterManagement_MVC.ViewModels
     {
         public string UserId { get; set; } = string.Empty;
         public decimal MonthlySalary { get; set; }
-        public PaymentCurrency Currency { get; set; } = PaymentCurrency.SAR;
+        public PaymentCurrency Currency { get; set; } = PaymentCurrency.SYP;
         public string? Notes { get; set; }
     }
 
@@ -153,7 +153,7 @@ namespace TrainingCenterManagement_MVC.ViewModels
         public int Month { get; set; }
         public int Year { get; set; }
         public decimal Amount { get; set; }
-        public PaymentCurrency Currency { get; set; } = PaymentCurrency.SAR;
+        public PaymentCurrency Currency { get; set; } = PaymentCurrency.SYP;
         public string? Notes { get; set; }
     }
 }

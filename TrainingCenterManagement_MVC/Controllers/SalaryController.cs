@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using TrainingCenterManagement_MVC.Data;
+using TrainingCenterManagement_MVC.Helpers;
 using TrainingCenterManagement_MVC.Models;
 using TrainingCenterManagement_MVC.ViewModels;
 
@@ -56,7 +57,7 @@ namespace TrainingCenterManagement_MVC.Controllers
                     Role          = es.EmployeeRole,
                     Specialty     = specialty,
                     MonthlySalary = es.MonthlySalary,
-                    CurrencyLabel = GetSymbol(es.Currency),
+                    CurrencyLabel = CurrencyHelper.GetSymbol(es.Currency),
                     Currency      = es.Currency,
                     PaidThisMonth = paidThisMonth,
                     LastPaidAt    = lastPaid?.PaidAt,
@@ -110,7 +111,7 @@ namespace TrainingCenterManagement_MVC.Controllers
                     Month        = p.Month,
                     Year         = p.Year,
                     Amount       = p.Amount,
-                    CurrencyLabel = GetSymbol(p.Currency),
+                    CurrencyLabel = CurrencyHelper.GetSymbol(p.Currency),
                     PaidAt       = p.PaidAt,
                     PaidByName   = p.PaidByAdmin?.FullName ?? "—",
                     Notes        = p.Notes
@@ -126,7 +127,7 @@ namespace TrainingCenterManagement_MVC.Controllers
                 Specialty      = specialty,
                 MonthlySalary  = es.MonthlySalary,
                 Currency       = es.Currency,
-                CurrencyLabel  = GetSymbol(es.Currency),
+                CurrencyLabel  = CurrencyHelper.GetSymbol(es.Currency),
                 Notes          = es.Notes,
                 IsActive       = es.IsActive,
                 PaymentHistory = history,
@@ -255,14 +256,6 @@ namespace TrainingCenterManagement_MVC.Controllers
                 Text  = $"{e.FullName} ({(e.Role == RoleType.Trainer ? "مدرب" : "موظف استقبال")}) — {e.Email}"
             }).ToList();
         }
-
-        private static string GetSymbol(PaymentCurrency c) => c switch
-        {
-            PaymentCurrency.USD => "USD",
-            PaymentCurrency.EUR => "EUR",
-            PaymentCurrency.EGP => "ج.م",
-            _                   => "ر.س"
-        };
 
         private static string GetMonthName(int m) => m switch
         {

@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TrainingCenterManagement_MVC.Helpers;
-using System.Threading.Tasks;
+using TrainingCenterManagement_MVC.Models;
 
 namespace TrainingCenterManagement_MVC.Controllers
 {
@@ -18,24 +18,49 @@ namespace TrainingCenterManagement_MVC.Controllers
         [HttpGet]
         public async Task<IActionResult> Edit()
         {
-            var key = await _settingsService.GetAsync("JwtKey");
-            ViewBag.JwtKey = key ?? string.Empty;
+            var key             = await _settingsService.GetAsync("JwtKey");
+            var defaultCurrency = await _settingsService.GetAsync("DefaultCurrency") ?? "SYP";
+
+            ViewBag.JwtKey          = key ?? string.Empty;
+            ViewBag.DefaultCurrency = defaultCurrency;
             return View();
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(string JwtKey)
+        public async Task<IActionResult> Edit(string JwtKey, string DefaultCurrency)
         {
-            if (string.IsNullOrWhiteSpace(JwtKey) || System.Text.Encoding.UTF8.GetByteCount(JwtKey) < 32)
+            if (!string.IsNullOrWhiteSpace(JwtKey))
             {
-                ModelState.AddModelError("JwtKey", "The JWT key must be at least 32 bytes long.");
-                ViewBag.JwtKey = JwtKey;
-                return View();
+                if (System.Text.Encoding.UTF8.GetByteCount(JwtKey) < 32)
+                {
+                    ModelState.AddModelError("JwtKey", "The JWT key must be at least 32 bytes long.");
+                    ViewBag.JwtKey          = JwtKey;
+                    ViewBag.DefaultCurrency = DefaultCurrency;
+                    return View();
+                }
+                await _settingsService.SetAsync("JwtKey", JwtKey);
             }
 
-            await _settingsService.SetAsync("JwtKey", JwtKey);
-            TempData["SuccessMessage"] = "JWT key updated successfully. Restart may be required for Bearer validation depending on configuration.";
+            if (DefaultCurrency == "SYP" || DefaultCurrency == "USD" || DefaultCurrency == "EUR")
+                await _settingsService.SetAsync("DefaultCurrency", DefaultCurrency);
+
+            TempData["SuccessMessage"] = "تم حفظ الإعدادات بنجاح.";
+            return RedirectToAction("Edit");
+        }
+
+        // GET /Settings/SetDefaultCurrency — quick AJAX-friendly endpoint for Admin Dashboard
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SetDefaultCurrency(string currency)
+        {
+            if (currency == "SYP" || currency == "USD" || currency == "EUR")
+            {
+                await _settingsService.SetAsync("DefaultCurrency", currency);
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                    return Json(new { success = true, currency });
+                TempData["SuccessMessage"] = "تم تحديث العملة الافتراضية.";
+            }
             return RedirectToAction("Edit");
         }
     }

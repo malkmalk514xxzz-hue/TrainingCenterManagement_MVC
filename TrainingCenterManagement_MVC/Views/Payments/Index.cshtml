@@ -1,43 +1,225 @@
-﻿@model IEnumerable<IGrouping<dynamic, TrainingCenterManagement_MVC.Models.Payment>>
+@model IEnumerable<IGrouping<dynamic, TrainingCenterManagement_MVC.Models.Payment>>
 
 @{
-    ViewData["Title"] = "Payments";
+    ViewData["Title"] = "سجل الدفعات المالية";
+    var monthNames = new[] { "", "يناير","فبراير","مارس","أبريل","مايو","يونيو","يوليو","أغسطس","سبتمبر","أكتوبر","نوفمبر","ديسمبر" };
+    var allPayments = Model.SelectMany(g => g).ToList();
+    var totalRevenue = allPayments.Sum(p => p.TotalAmount);
+    var totalCount   = allPayments.Count;
 }
 
-<h1 class="mb-4">Payments by Month</h1>
-<p>
-    <a asp-action="Create" class="btn btn-primary">Add New Payment</a>
-</p>
+<style>
+    .pay-header { background:linear-gradient(135deg,#0f172a 0%,#0369a1 60%,#0ea5e9 100%); border-radius:16px; padding:26px 32px; color:#fff; margin-bottom:28px; display:flex; align-items:center; gap:16px; }
+    .pay-header h1 { margin:0; font-size:1.4rem; font-weight:700; }
+    .pay-header p  { margin:4px 0 0; opacity:.8; font-size:.88rem; }
+    .pay-header-icon { width:54px; height:54px; border-radius:14px; background:rgba(255,255,255,.15); display:flex; align-items:center; justify-content:center; font-size:1.5rem; flex-shrink:0; }
+    .pay-kpis { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:16px; margin-bottom:28px; }
+    .pay-kpi { background:#fff; border-radius:12px; box-shadow:0 2px 12px rgba(0,0,0,.06); border:1px solid #e2e8f0; padding:18px 20px; display:flex; align-items:center; gap:14px; }
+    .pay-kpi-icon { width:42px; height:42px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1.1rem; flex-shrink:0; }
+    .pay-kpi .val { font-size:1.3rem; font-weight:800; color:#0f172a; }
+    .pay-kpi .lbl { font-size:.78rem; color:#64748b; margin-top:1px; }
+    /* Month section */
+    .month-section { background:#fff; border-radius:14px; box-shadow:0 2px 12px rgba(0,0,0,.06); border:1px solid #e2e8f0; overflow:hidden; margin-bottom:20px; }
+    .month-head { padding:14px 20px; background:linear-gradient(90deg,#f8fafc,#fff); border-bottom:1px solid #e2e8f0; display:flex; align-items:center; gap:12px; cursor:pointer; user-select:none; }
+    .month-badge { background:#0ea5e9; color:#fff; border-radius:8px; padding:4px 14px; font-size:.85rem; font-weight:700; }
+    .month-head .month-title { font-size:1rem; font-weight:700; color:#0f172a; flex:1; }
+    .month-head .month-meta { font-size:.82rem; color:#64748b; display:flex; gap:16px; }
+    .month-head .toggle-icon { color:#94a3b8; transition:transform .25s; }
+    .month-head.collapsed .toggle-icon { transform:rotate(-90deg); }
+    .pay-table { width:100%; border-collapse:collapse; font-size:.88rem; }
+    .pay-table th { padding:10px 16px; background:#f8fafc; color:#475569; font-weight:600; font-size:.78rem; text-transform:uppercase; letter-spacing:.03em; border-bottom:1px solid #e2e8f0; }
+    .pay-table td { padding:12px 16px; border-bottom:1px solid #f1f5f9; vertical-align:middle; color:#374151; }
+    .pay-table tr:last-child td { border-bottom:none; }
+    .pay-table tr:hover td { background:#fafbff; }
+    .trainee-cell { display:flex; align-items:center; gap:8px; }
+    .trainee-avatar { width:30px; height:30px; border-radius:50%; background:linear-gradient(135deg,#0ea5e9,#0284c7); color:#fff; display:flex; align-items:center; justify-content:center; font-size:.8rem; font-weight:700; flex-shrink:0; }
+    .amount-cell { font-weight:700; color:#059669; font-size:.92rem; }
+    .currency-badge { display:inline-block; background:#e0f2fe; color:#0369a1; border-radius:4px; padding:2px 7px; font-size:.72rem; font-weight:700; margin-right:4px; }
+    .note-cell { font-size:.8rem; color:#94a3b8; font-style:italic; }
+    .action-btn { display:inline-flex; align-items:center; gap:4px; border-radius:6px; padding:5px 10px; font-size:.78rem; font-weight:600; text-decoration:none; border:none; cursor:pointer; }
+    .btn-details { background:#e0f2fe; color:#0369a1; }
+    .btn-details:hover { background:#bae6fd; color:#0369a1; }
+    .btn-delete  { background:#fee2e2; color:#dc2626; }
+    .btn-delete:hover  { background:#fecaca; color:#dc2626; }
+    .add-btn { background:linear-gradient(135deg,#0ea5e9,#0284c7); color:#fff; border:none; border-radius:10px; padding:10px 22px; font-weight:700; font-size:.9rem; text-decoration:none; display:inline-flex; align-items:center; gap:8px; transition:opacity .2s; }
+    .add-btn:hover { opacity:.9; color:#fff; }
+    .empty-state { text-align:center; padding:48px 24px; color:#94a3b8; }
+    .empty-state i { font-size:2.5rem; margin-bottom:12px; display:block; }
+    @@media (max-width:640px) { .pay-kpis { grid-template-columns:1fr 1fr; } .month-head .month-meta { display:none; } }
+</style>
 
-@foreach (var monthGroup in Model)
+<div class="dashboard-wrapper" style="display:flex;direction:rtl;min-height:100vh">
+@await Html.PartialAsync("_AdminSidebar")
+<main style="flex:1;padding:28px 32px;background:#f8fafc;overflow-x:hidden">
+
+<!-- Header -->
+<div class="pay-header">
+    <div class="pay-header-icon"><i class="fas fa-money-bill-wave"></i></div>
+    <div style="flex:1">
+        <h1>سجل الدفعات المالية</h1>
+        <p>عرض جميع الدفعات المسجلة مجمعةً حسب الشهر</p>
+    </div>
+    <a asp-action="Create" class="add-btn">
+        <i class="fas fa-plus"></i> إضافة دفعة جديدة
+    </a>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
 {
-    <h3 class="mt-5">@System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(monthGroup.Key.Month) @monthGroup.Key.Year</h3>
-    <table class="table table-bordered table-striped table-hover">
-        <thead class="table-dark">
-            <tr>
-                <th>Total Amount</th>
-                <th>Created Date</th>
-                <th>Is Deleted</th>
-                <th>Trainee</th>
-                <th>Course</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var item in monthGroup)
-            {
-                <tr>
-                    <td>@item.TotalAmount</td>
-                    <td>@item.CreatedDate.ToString("yyyy-MM-dd")</td>
-                    <td>@Html.DisplayFor(m => item.IsDeleted)</td>
-                    <td>@(item.Trainee?.User?.FullName ?? "N/A")</td>
-                    <td>@(item.Course?.CourseName ?? "N/A")</td>
-                    <td>
-                        <a asp-action="Details" asp-route-id="@item.PaymentId" class="btn btn-sm btn-info mx-1">Details</a>
-                        <a asp-action="Delete" asp-route-id="@item.PaymentId" class="btn btn-sm btn-danger">Delete</a>
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
+    <div class="alert alert-success alert-dismissible fade show mb-3">
+        <i class="fas fa-check-circle me-2"></i>@TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
 }
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show mb-3">
+        <i class="fas fa-exclamation-circle me-2"></i>@TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<!-- KPIs -->
+<div class="pay-kpis">
+    <div class="pay-kpi">
+        <div class="pay-kpi-icon" style="background:#e0f2fe;color:#0369a1"><i class="fas fa-receipt"></i></div>
+        <div>
+            <div class="val">@totalCount</div>
+            <div class="lbl">إجمالي الدفعات</div>
+        </div>
+    </div>
+    <div class="pay-kpi">
+        <div class="pay-kpi-icon" style="background:#dcfce7;color:#16a34a"><i class="fas fa-calendar-alt"></i></div>
+        <div>
+            <div class="val">@Model.Count()</div>
+            <div class="lbl">شهر نشاط</div>
+        </div>
+    </div>
+    <div class="pay-kpi">
+        <div class="pay-kpi-icon" style="background:#fef3c7;color:#d97706"><i class="fas fa-users"></i></div>
+        <div>
+            <div class="val">@allPayments.Select(p => p.TraineeId).Distinct().Count()</div>
+            <div class="lbl">طالب دافع</div>
+        </div>
+    </div>
+    <div class="pay-kpi">
+        <div class="pay-kpi-icon" style="background:#ede9fe;color:#7c3aed"><i class="fas fa-coins"></i></div>
+        <div>
+            <div class="val">@totalRevenue.ToString("N0")</div>
+            <div class="lbl">مجموع المبالغ المسجلة</div>
+        </div>
+    </div>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="month-section">
+        <div class="empty-state">
+            <i class="fas fa-inbox"></i>
+            <p style="font-size:1rem;font-weight:600;margin:0">لا توجد دفعات مسجلة بعد</p>
+            <p style="margin-top:6px;font-size:.88rem">ابدأ بإضافة أول دفعة مالية</p>
+            <a asp-action="Create" class="add-btn mt-3" style="margin:16px auto 0;width:fit-content">
+                <i class="fas fa-plus"></i> إضافة دفعة
+            </a>
+        </div>
+    </div>
+}
+else
+{
+    int groupIdx = 0;
+    foreach (var monthGroup in Model)
+    {
+        groupIdx++;
+        var groupTotal = monthGroup.Sum(p => p.TotalAmount);
+        var groupCount = monthGroup.Count();
+        <div class="month-section">
+            <div class="month-head" onclick="toggleGroup('@groupIdx')" id="head-@groupIdx">
+                <span class="month-badge">@monthNames[monthGroup.Key.Month] @monthGroup.Key.Year</span>
+                <span class="month-title"></span>
+                <div class="month-meta">
+                    <span><i class="fas fa-receipt me-1"></i>@groupCount دفعة</span>
+                    <span><i class="fas fa-coins me-1"></i>@groupTotal.ToString("N0")</span>
+                </div>
+                <i class="fas fa-chevron-down toggle-icon"></i>
+            </div>
+            <div id="body-@groupIdx">
+                <table class="pay-table">
+                    <thead>
+                        <tr>
+                            <th>الطالب</th>
+                            <th>الدورة</th>
+                            <th>المبلغ</th>
+                            <th>التاريخ</th>
+                            <th>ملاحظات</th>
+                            <th>الإجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in monthGroup.OrderByDescending(p => p.CreatedDate))
+                        {
+                            var traineeName = item.Trainee?.User?.FullName ?? "—";
+                            var avatarChar  = traineeName.Length > 0 ? traineeName[0].ToString() : "؟";
+                            var currSymbol  = item.Currency switch
+                            {
+                                TrainingCenterManagement_MVC.Models.PaymentCurrency.USD => "$",
+                                TrainingCenterManagement_MVC.Models.PaymentCurrency.EUR => "€",
+                                _ => "ل.س"
+                            };
+                            var currCode = item.Currency switch
+                            {
+                                TrainingCenterManagement_MVC.Models.PaymentCurrency.USD => "USD",
+                                TrainingCenterManagement_MVC.Models.PaymentCurrency.EUR => "EUR",
+                                _ => "SYP"
+                            };
+                            <tr>
+                                <td>
+                                    <div class="trainee-cell">
+                                        <div class="trainee-avatar">@avatarChar</div>
+                                        <span>@traineeName</span>
+                                    </div>
+                                </td>
+                                <td>@(item.Course?.CourseName ?? "—")</td>
+                                <td>
+                                    <span class="amount-cell">@item.TotalAmount.ToString("N0")</span>
+                                    <span class="currency-badge">@currCode</span>
+                                </td>
+                                <td style="color:#64748b;font-size:.82rem">@item.CreatedDate.ToString("dd/MM/yyyy")</td>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(item.Notes))
+                                    { <span class="note-cell">@item.Notes</span> }
+                                    else
+                                    { <span style="color:#e2e8f0">—</span> }
+                                </td>
+                                <td>
+                                    <a asp-action="Details" asp-route-id="@item.PaymentId" class="action-btn btn-details">
+                                        <i class="fas fa-eye"></i> تفاصيل
+                                    </a>
+                                    <a asp-action="Delete" asp-route-id="@item.PaymentId" class="action-btn btn-delete me-1">
+                                        <i class="fas fa-trash"></i> حذف
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+}
+
+</main>
+</div>
+
+<script>
+function toggleGroup(idx) {
+    var head = document.getElementById('head-' + idx);
+    var body = document.getElementById('body-' + idx);
+    if (body.style.display === 'none') {
+        body.style.display = '';
+        head.classList.remove('collapsed');
+    } else {
+        body.style.display = 'none';
+        head.classList.add('collapsed');
+    }
+}
+</script>

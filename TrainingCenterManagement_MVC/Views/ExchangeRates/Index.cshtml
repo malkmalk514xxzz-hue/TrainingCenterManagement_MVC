@@ -1,6 +1,7 @@
 @model TrainingCenterManagement_MVC.ViewModels.ExchangeRateIndexViewModel
 @{
     ViewData["Title"] = "إدارة أسعار الصرف";
+    var defaultCurrency = ViewBag.DefaultCurrency as string ?? "SYP";
 }
 
 <style>
@@ -29,12 +30,21 @@
     .ex-save-btn { background:#1d4ed8; color:#fff; border:none; border-radius:8px; padding:9px 18px; font-size:.88rem; font-weight:600; cursor:pointer; transition:opacity .2s; white-space:nowrap; }
     .ex-save-btn:hover { opacity:.88; }
     .ex-updated { font-size:.75rem; color:#94a3b8; padding:0 20px 14px; display:flex; align-items:center; gap:4px; }
-    /* SAR card */
-    .sar-card { background:linear-gradient(135deg,#065f46,#059669); color:#fff; border-radius:14px; padding:24px; display:flex; align-items:center; gap:16px; margin-bottom:32px; }
-    .sar-card h3 { margin:0; font-size:1.1rem; font-weight:700; }
-    .sar-card p { margin:4px 0 0; opacity:.85; font-size:.88rem; }
-    .sar-value { font-size:2.5rem; font-weight:900; margin-right:auto; }
-    @@media (max-width:600px) { .ex-grid { grid-template-columns:1fr; } }
+    /* SYP base card */
+    .syp-card { background:linear-gradient(135deg,#065f46,#059669); color:#fff; border-radius:14px; padding:24px; display:flex; align-items:center; gap:16px; margin-bottom:32px; flex-wrap:wrap; }
+    .syp-card h3 { margin:0; font-size:1.1rem; font-weight:700; }
+    .syp-card p { margin:4px 0 0; opacity:.85; font-size:.88rem; }
+    .syp-value { font-size:2.5rem; font-weight:900; margin-right:auto; }
+    /* Default currency section */
+    .default-section { background:#fff; border-radius:14px; box-shadow:var(--ex-shadow); border:1px solid var(--ex-border); padding:20px 24px; margin-bottom:24px; }
+    .default-section h3 { margin:0 0 14px; font-size:.95rem; font-weight:700; color:#0f172a; display:flex; align-items:center; gap:8px; }
+    .default-section h3 i { color:#1d4ed8; }
+    .currency-pills { display:flex; gap:10px; flex-wrap:wrap; }
+    .currency-pill { display:flex; align-items:center; gap:8px; border:2px solid #e2e8f0; border-radius:10px; padding:9px 18px; background:#f8fafc; cursor:pointer; font-size:.88rem; font-weight:600; color:#475569; transition:all .2s; }
+    .currency-pill.active { border-color:#1d4ed8; background:#dbeafe; color:#1d4ed8; }
+    .currency-pill form { display:contents; }
+    .currency-pill button { all:unset; cursor:pointer; display:flex; align-items:center; gap:8px; }
+    @@media (max-width:600px) { .ex-grid { grid-template-columns:1fr; } .currency-pills { flex-direction:column; } }
 </style>
 
 <div class="dashboard-wrapper" style="display:flex;direction:rtl;min-height:100vh">
@@ -45,7 +55,7 @@
     <div class="ex-header-icon"><i class="fas fa-exchange-alt"></i></div>
     <div>
         <h1>إدارة أسعار الصرف</h1>
-        <p>حدّد قيمة كل عملة مقابل الريال السعودي — يُستخدم لحساب الذمم المالية للطلاب</p>
+        <p>حدّد قيمة كل عملة مقابل الليرة السورية — يُستخدم لحساب الذمم المالية للطلاب</p>
     </div>
 </div>
 
@@ -64,24 +74,53 @@
     </div>
 }
 
-<!-- SAR Base -->
-<div class="sar-card">
-    <div>
-        <h3><i class="fas fa-star me-2"></i>الريال السعودي — العملة الأساسية</h3>
-        <p>جميع الأسعار تُحوَّل إلى ريال سعودي لحساب الذمم المالية</p>
+<!-- Default Currency Selector -->
+<div class="default-section">
+    <h3><i class="fas fa-star"></i>العملة الافتراضية للنظام</h3>
+    <p style="font-size:.84rem;color:#64748b;margin:0 0 14px">تُستخدم عند إضافة دفعات جديدة كقيمة مبدئية محددة تلقائياً</p>
+    <div class="currency-pills">
+        <div class="currency-pill @(defaultCurrency == "SYP" ? "active" : "")">
+            <form asp-action="SetDefault" asp-controller="ExchangeRates" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="currency" value="SYP" />
+                <button type="submit">🇸🇾 ليرة سورية (ل.س)</button>
+            </form>
+        </div>
+        <div class="currency-pill @(defaultCurrency == "USD" ? "active" : "")">
+            <form asp-action="SetDefault" asp-controller="ExchangeRates" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="currency" value="USD" />
+                <button type="submit">🇺🇸 دولار أمريكي (USD)</button>
+            </form>
+        </div>
+        <div class="currency-pill @(defaultCurrency == "EUR" ? "active" : "")">
+            <form asp-action="SetDefault" asp-controller="ExchangeRates" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="currency" value="EUR" />
+                <button type="submit">🇪🇺 يورو (EUR)</button>
+            </form>
+        </div>
     </div>
-    <div class="sar-value">1.00 ر.س</div>
+</div>
+
+<!-- SYP Base Card -->
+<div class="syp-card">
+    <div>
+        <h3><i class="fas fa-star me-2"></i>الليرة السورية — العملة الأساسية</h3>
+        <p>جميع الأسعار تُحوَّل إلى ليرة سورية لحساب الذمم المالية</p>
+    </div>
+    <div class="syp-value">1.00 ل.س</div>
 </div>
 
 <!-- Currency Cards -->
 <div class="ex-grid">
     @foreach (var rate in Model.Rates)
     {
+        var flag = rate.Currency == TrainingCenterManagement_MVC.Models.PaymentCurrency.USD ? "🇺🇸" : "🇪🇺";
+        var flagBg = rate.Currency == TrainingCenterManagement_MVC.Models.PaymentCurrency.USD ? "#dbeafe" : "#ede9fe";
         <div class="ex-card">
             <div class="ex-card-head">
-                <div class="ex-flag" style="background:@(rate.Currency == TrainingCenterManagement_MVC.Models.PaymentCurrency.USD ? "#dbeafe" : rate.Currency == TrainingCenterManagement_MVC.Models.PaymentCurrency.EUR ? "#ede9fe" : "#fef3c7")">
-                    @(rate.Currency == TrainingCenterManagement_MVC.Models.PaymentCurrency.USD ? "🇺🇸" : rate.Currency == TrainingCenterManagement_MVC.Models.PaymentCurrency.EUR ? "🇪🇺" : "🇪🇬")
-                </div>
+                <div class="ex-flag" style="background:@flagBg">@flag</div>
                 <div>
                     <h3>@rate.CurrencyLabel</h3>
                     <span>@rate.CurrencySymbol</span>
@@ -90,12 +129,12 @@
             <div class="ex-rate-display">
                 <div class="ex-rate-box">
                     <div class="label">1 @rate.CurrencySymbol يساوي</div>
-                    <div class="value">@rate.RateToSAR.ToString("F4")</div>
-                    <div class="sub">ريال سعودي</div>
+                    <div class="value">@rate.RateToSYP.ToString("N0")</div>
+                    <div class="sub">ليرة سورية</div>
                 </div>
                 <div class="ex-rate-box">
-                    <div class="label">1 ر.س يساوي</div>
-                    <div class="value">@rate.RateFromSAR.ToString("F4")</div>
+                    <div class="label">1 ل.س يساوي</div>
+                    <div class="value">@rate.RateFromSYP.ToString("F6")</div>
                     <div class="sub">@rate.CurrencySymbol</div>
                 </div>
             </div>
@@ -103,10 +142,10 @@
                 <form asp-action="Update" asp-controller="ExchangeRates" method="post">
                     @Html.AntiForgeryToken()
                     <input type="hidden" name="currency" value="@((int)rate.Currency)" />
-                    <label>تحديث السعر: كم ريال = 1 @rate.CurrencySymbol</label>
+                    <label>تحديث السعر: كم ل.س = 1 @rate.CurrencySymbol</label>
                     <div class="ex-input-row">
-                        <input type="number" name="rateToSar" value="@rate.RateToSAR.ToString("F4")"
-                               step="0.0001" min="0.0001" placeholder="مثال: 3.7500" />
+                        <input type="number" name="rateToSar" value="@rate.RateToSYP.ToString("F0")"
+                               step="1" min="1" placeholder="مثال: 13000" />
                         <button type="submit" class="ex-save-btn">
                             <i class="fas fa-save me-1"></i>حفظ
                         </button>

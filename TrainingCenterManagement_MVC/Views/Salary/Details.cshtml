@@ -134,10 +134,9 @@ else
                 <div class="sd-form-group">
                     <label>العملة</label>
                     <select name="Currency" class="form-select">
-                        <option value="1" selected="@(Model.Currency == TrainingCenterManagement_MVC.Models.PaymentCurrency.SAR)">ر.س (SAR)</option>
+                        <option value="1" selected="@(Model.Currency == TrainingCenterManagement_MVC.Models.PaymentCurrency.SYP)">ل.س (SYP)</option>
                         <option value="2" selected="@(Model.Currency == TrainingCenterManagement_MVC.Models.PaymentCurrency.USD)">USD ($)</option>
                         <option value="3" selected="@(Model.Currency == TrainingCenterManagement_MVC.Models.PaymentCurrency.EUR)">EUR (€)</option>
-                        <option value="4" selected="@(Model.Currency == TrainingCenterManagement_MVC.Models.PaymentCurrency.EGP)">ج.م (EGP)</option>
                     </select>
                 </div>
                 <div class="sd-form-group">
@@ -160,7 +159,7 @@ else
 <div class="sd-history">
     <div class="sd-history-head">
         <h3><i class="fas fa-history"></i> سجل صرف الرواتب</h3>
-        <span style="font-size:.82rem;color:#94a3b8">إجمالي: @Model.TotalPaid.ToString("N0") ر.س</span>
+        <span style="font-size:.82rem;color:#94a3b8">إجمالي: @Model.TotalPaid.ToString("N0") @Model.CurrencyLabel</span>
     </div>
     <table class="sd-table">
         <thead>

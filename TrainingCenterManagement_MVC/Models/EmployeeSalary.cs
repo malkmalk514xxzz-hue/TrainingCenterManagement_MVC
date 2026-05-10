@@ -20,7 +20,7 @@ namespace TrainingCenterManagement_MVC.Models
         [Column(TypeName = "decimal(18,2)")]
         public decimal MonthlySalary { get; set; }
 
-        public PaymentCurrency Currency { get; set; } = PaymentCurrency.SAR;
+        public PaymentCurrency Currency { get; set; } = PaymentCurrency.SYP;
 
         [MaxLength(500)]
         public string? Notes { get; set; }

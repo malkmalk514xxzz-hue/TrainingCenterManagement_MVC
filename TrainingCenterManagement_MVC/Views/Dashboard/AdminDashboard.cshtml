@@ -355,7 +355,7 @@
             <div class="ad-kpi-card">
                 <div class="ad-kpi-icon c-green"><i class="fas fa-money-bill-wave"></i></div>
                 <div class="ad-kpi-body">
-                    <div class="ad-kpi-value">@stats.MonthlyRevenue.ToString("N0") ر.س</div>
+                    <div class="ad-kpi-value">@stats.MonthlyRevenue.ToString("N0") ل.س</div>
                     <div class="ad-kpi-label">إيرادات هذا الشهر</div>
                     <div class="ad-kpi-change @RevClass(stats.RevenueChange)">
                         <i class="@(stats.RevenueChange >= 0 ? "fas fa-arrow-up" : "fas fa-arrow-down")"></i>
@@ -544,7 +544,7 @@
                                         </div>
                                     </td>
                                     <td style="color:var(--text-2);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">@p.CourseName</td>
-                                    <td style="font-weight:700;color:var(--success);">@p.Amount.ToString("N0") ر.س</td>
+                                    <td style="font-weight:700;color:var(--success);">@p.Amount.ToString("N0") ل.س</td>
                                     <td style="color:var(--text-3);font-size:.78rem;">@p.Date.ToString("dd/MM/yyyy")</td>
                                 </tr>
                             }
@@ -667,7 +667,7 @@
             'ad-tab-overview': { canvasId: 'chart-overview', key: 'overview', type: 'line', label: 'نمو الدورات', color: '#1d4ed8' },
             'ad-tab-courses':  { canvasId: 'chart-courses',  key: 'courses',  type: 'bar',  label: 'الدورات الجديدة', color: '#7c3aed' },
             'ad-tab-students': { canvasId: 'chart-students', key: 'students', type: 'line', label: 'الطلاب الجدد', color: '#0284c7' },
-            'ad-tab-revenue':  { canvasId: 'chart-revenue',  key: 'revenue',  type: 'bar',  label: 'الإيرادات (ر.س)', color: '#059669' }
+            'ad-tab-revenue':  { canvasId: 'chart-revenue',  key: 'revenue',  type: 'bar',  label: 'الإيرادات (ل.س)', color: '#059669' }
         };
 
         const cfg = configs[tab];

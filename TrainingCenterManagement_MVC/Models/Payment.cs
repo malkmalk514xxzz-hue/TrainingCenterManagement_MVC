@@ -6,10 +6,9 @@ namespace TrainingCenterManagement_MVC.Models
 {
     public enum PaymentCurrency
     {
-        SAR = 1,
-        USD = 2,
-        EUR = 3,
-        EGP = 4
+        SYP = 1,  // ليرة سورية
+        USD = 2,  // دولار أمريكي
+        EUR = 3   // يورو
     }
 
     public class Payment
@@ -20,7 +19,7 @@ namespace TrainingCenterManagement_MVC.Models
         [Required]
         public decimal TotalAmount { get; set; }
 
-        public PaymentCurrency Currency { get; set; } = PaymentCurrency.SAR;
+        public PaymentCurrency Currency { get; set; } = PaymentCurrency.SYP;
 
         public string? Notes { get; set; }
 

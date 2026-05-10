@@ -2,125 +2,153 @@
 
 @{
     ViewData["Title"] = "إضافة دفعة مالية";
+    var defaultCurrency = (int)(ViewBag.DefaultCurrency ?? 1);
 }
 
 <style>
-    .payment-form-card {
-        background: #fff;
-        border-radius: 12px;
-        box-shadow: 0 4px 20px rgba(0,0,0,.08);
-        padding: 32px;
-        max-width: 560px;
-        margin: 32px auto;
+    .pf-card {
+        background:#fff; border-radius:14px; box-shadow:0 4px 24px rgba(0,0,0,.09);
+        padding:32px; max-width:580px; margin:32px auto;
     }
-    .payment-form-card h2 {
-        font-size: 1.4rem;
-        font-weight: 700;
-        color: #1e293b;
-        margin-bottom: 24px;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-    .payment-form-card h2 i { color: #0ea5e9; }
-    .form-label { font-weight: 600; color: #374151; font-size: .9rem; }
+    .pf-card h2 { font-size:1.35rem; font-weight:700; color:#0f172a; margin-bottom:24px; display:flex; align-items:center; gap:10px; }
+    .pf-card h2 i { color:#0ea5e9; }
+    .form-label { font-weight:600; color:#374151; font-size:.88rem; }
     .form-control, .form-select {
-        border-radius: 8px;
-        border: 1.5px solid #e2e8f0;
-        padding: 10px 14px;
-        font-size: .95rem;
-        transition: border-color .2s;
+        border-radius:8px; border:1.5px solid #e2e8f0; padding:10px 14px; font-size:.92rem; transition:border-color .2s;
     }
-    .form-control:focus, .form-select:focus { border-color: #0ea5e9; box-shadow: 0 0 0 3px rgba(14,165,233,.1); }
-    .currency-amount-row { display: flex; gap: 12px; }
-    .currency-amount-row .amount-col { flex: 1; }
-    .currency-amount-row .currency-col { width: 130px; }
+    .form-control:focus, .form-select:focus { border-color:#0ea5e9; box-shadow:0 0 0 3px rgba(14,165,233,.1); }
+    /* Balance panel */
+    .balance-panel {
+        background:#f0f9ff; border:1.5px solid #bae6fd; border-radius:10px;
+        padding:14px 18px; margin-bottom:18px; display:none;
+    }
+    .balance-panel.fully-paid { background:#f0fdf4; border-color:#86efac; }
+    .balance-panel-title {
+        font-size:.82rem; font-weight:700; color:#0369a1; margin-bottom:10px;
+        display:flex; align-items:center; gap:6px;
+    }
+    .balance-panel.fully-paid .balance-panel-title { color:#15803d; }
+    .balance-kpis { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; }
+    .balance-kpi { background:#fff; border-radius:8px; padding:8px 10px; text-align:center; }
+    .balance-kpi .k { font-size:.72rem; color:#64748b; margin-bottom:2px; }
+    .balance-kpi .v { font-size:.9rem; font-weight:700; }
+    .balance-kpi .v.green { color:#059669; }
+    .balance-kpi .v.red   { color:#dc2626; }
+    .balance-kpi .v.blue  { color:#1d4ed8; }
+    .balance-hint {
+        margin-top:10px; font-size:.8rem; font-weight:600; color:#0369a1;
+        background:#e0f2fe; border-radius:6px; padding:6px 10px; display:none;
+    }
+    .balance-hint.fully-paid-msg { background:#dcfce7; color:#15803d; display:block; }
+    /* Amount row */
+    .amount-row { display:flex; gap:10px; }
+    .amount-row .amount-col { flex:1; }
+    .amount-row .currency-col { width:130px; }
+    /* Submit */
     .btn-submit {
-        background: linear-gradient(135deg, #0ea5e9, #0284c7);
-        color: #fff;
-        border: none;
-        border-radius: 8px;
-        padding: 12px 28px;
-        font-weight: 600;
-        font-size: .95rem;
-        cursor: pointer;
-        transition: opacity .2s;
-        width: 100%;
+        background:linear-gradient(135deg,#0ea5e9,#0284c7); color:#fff; border:none;
+        border-radius:8px; padding:12px 28px; font-weight:700; font-size:.95rem;
+        cursor:pointer; transition:opacity .2s; width:100%;
     }
-    .btn-submit:hover { opacity: .9; }
-    .btn-back {
-        display: block;
-        text-align: center;
-        margin-top: 12px;
-        color: #64748b;
-        font-size: .9rem;
-        text-decoration: none;
-    }
-    .btn-back:hover { color: #0ea5e9; }
-    .alert { border-radius: 8px; }
+    .btn-submit:hover { opacity:.88; }
+    .btn-submit:disabled { opacity:.45; cursor:not-allowed; }
+    .btn-back { display:block; text-align:center; margin-top:12px; color:#64748b; font-size:.88rem; text-decoration:none; }
+    .btn-back:hover { color:#0ea5e9; }
+    .alert { border-radius:8px; }
+    .spinner { display:inline-block; width:14px; height:14px; border:2px solid #bae6fd; border-top-color:#0ea5e9; border-radius:50%; animation:spin .6s linear infinite; vertical-align:middle; }
+    @@keyframes spin { to { transform:rotate(360deg); } }
 </style>
 
-<div class="payment-form-card">
+<div class="pf-card">
     <h2><i class="fas fa-money-bill-wave"></i> إضافة دفعة مالية جديدة</h2>
 
     @if (TempData["SuccessMessage"] != null)
     {
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <div class="alert alert-success alert-dismissible fade show">
             <i class="fas fa-check-circle me-2"></i>@TempData["SuccessMessage"]
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     }
     @if (TempData["ErrorMessage"] != null)
     {
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <div class="alert alert-danger alert-dismissible fade show">
             <i class="fas fa-exclamation-circle me-2"></i>@TempData["ErrorMessage"]
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     }
 
-    <form asp-action="Create" method="post">
+    <form asp-action="Create" method="post" id="paymentForm">
         <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-3"></div>
 
+        <!-- Trainee -->
         <div class="mb-3">
             <label class="form-label"><i class="fas fa-user-graduate me-1 text-muted"></i>اسم الطالب</label>
-            <select asp-for="TraineeId" class="form-select select2" asp-items="ViewBag.TraineeId">
+            <select asp-for="TraineeId" id="TraineeId" class="form-select select2" asp-items="ViewBag.TraineeId">
                 <option value="">-- اختر الطالب --</option>
             </select>
             <span asp-validation-for="TraineeId" class="text-danger small"></span>
         </div>
 
+        <!-- Course -->
         <div class="mb-3">
             <label class="form-label"><i class="fas fa-book-open me-1 text-muted"></i>الدورة</label>
-            <select asp-for="CourseId" class="form-select select2" asp-items="ViewBag.CourseId">
+            <select asp-for="CourseId" id="CourseId" class="form-select select2" asp-items="ViewBag.CourseId">
                 <option value="">-- اختر الدورة --</option>
             </select>
             <span asp-validation-for="CourseId" class="text-danger small"></span>
         </div>
 
+        <!-- Balance panel (shown after selecting trainee + course) -->
+        <div class="balance-panel" id="balancePanel">
+            <div class="balance-panel-title" id="balanceTitle">
+                <i class="fas fa-info-circle"></i>
+                <span id="balanceTitleText">حالة ذمة الطالب في هذه الدورة</span>
+                <span class="spinner" id="balanceSpinner"></span>
+            </div>
+            <div id="balanceContent" style="display:none">
+                <div class="balance-kpis">
+                    <div class="balance-kpi">
+                        <div class="k">سعر الدورة</div>
+                        <div class="v blue" id="bPrice"></div>
+                    </div>
+                    <div class="balance-kpi">
+                        <div class="k">المدفوع سابقاً</div>
+                        <div class="v green" id="bPaid"></div>
+                    </div>
+                    <div class="balance-kpi">
+                        <div class="k">المتبقي</div>
+                        <div class="v red" id="bRemaining"></div>
+                    </div>
+                </div>
+                <div class="balance-hint" id="balanceHint"></div>
+            </div>
+        </div>
+
+        <!-- Amount + Currency -->
         <div class="mb-3">
             <label class="form-label"><i class="fas fa-coins me-1 text-muted"></i>المبلغ والعملة</label>
-            <div class="currency-amount-row">
+            <div class="amount-row">
                 <div class="amount-col">
-                    <input asp-for="TotalAmount" class="form-control" type="number" step="0.01" min="0" placeholder="0.00" />
+                    <input asp-for="TotalAmount" id="TotalAmount" class="form-control" type="number" step="0.01" min="0.01" placeholder="0.00" />
                     <span asp-validation-for="TotalAmount" class="text-danger small"></span>
                 </div>
                 <div class="currency-col">
-                    <select asp-for="Currency" class="form-select">
-                        <option value="1">ر.س (SAR)</option>
+                    <select asp-for="Currency" id="Currency" class="form-select">
+                        <option value="1">ل.س (SYP)</option>
                         <option value="2">USD ($)</option>
                         <option value="3">EUR (€)</option>
-                        <option value="4">ج.م (EGP)</option>
                     </select>
                 </div>
             </div>
         </div>
 
+        <!-- Notes -->
         <div class="mb-4">
             <label class="form-label"><i class="fas fa-sticky-note me-1 text-muted"></i>ملاحظات (اختياري)</label>
             <textarea asp-for="Notes" class="form-control" rows="2" placeholder="أي ملاحظات إضافية..."></textarea>
         </div>
 
-        <button type="submit" class="btn-submit">
+        <button type="submit" class="btn-submit" id="submitBtn">
             <i class="fas fa-save me-2"></i>حفظ الدفعة وإشعار الإدارة
         </button>
     </form>
@@ -133,11 +161,127 @@
 @section Scripts {
     @await Html.PartialAsync("_ValidationScriptsPartial")
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script>
+        var remainingSYP = 0;
+        var rateUSD = 13000;
+        var rateEUR = 14000;
+        var isFullyPaid = false;
+        var balanceUrl = '@Url.Action("GetRemainingBalance", "Payments")';
+        var balanceRequest = null;
+
+        function syncBalancePanel() {
+            var traineeId = $('#TraineeId').val();
+            var courseId = $('#CourseId').val();
+
+            if (traineeId && courseId) {
+                fetchBalance(traineeId, courseId);
+                return;
+            }
+
+            if (balanceRequest && balanceRequest.readyState !== 4) {
+                balanceRequest.abort();
+            }
+
+            $('#balancePanel').hide().removeClass('fully-paid');
+            $('#balanceContent').hide();
+            $('#balanceHint').removeClass('fully-paid-msg').hide().empty();
+            $('#balanceTitleText').text('حالة ذمة الطالب في هذه الدورة');
+            $('#balanceSpinner').hide();
+            $('#submitBtn').prop('disabled', false);
+        }
+
+        function fetchBalance(traineeId, courseId) {
+            $('#balancePanel').show().removeClass('fully-paid');
+            $('#balanceSpinner').show();
+            $('#balanceContent').hide();
+            $('#balanceTitleText').text('جاري التحميل...');
+            $('#submitBtn').prop('disabled', false);
+
+            if (balanceRequest && balanceRequest.readyState !== 4) {
+                balanceRequest.abort();
+            }
+
+            balanceRequest = $.ajax({
+                url: balanceUrl,
+                type: 'GET',
+                data: { traineeId: traineeId, courseId: courseId },
+                dataType: 'json',
+                success: function (data) {
+                    remainingSYP = data.remaining;
+                    rateUSD      = data.rates.usd;
+                    rateEUR      = data.rates.eur;
+                    isFullyPaid  = data.isFullyPaid;
+
+                    $('#balanceSpinner').hide();
+                    $('#bPrice').text(data.coursePriceFormatted);
+                    $('#bPaid').text(data.totalPaidFormatted);
+
+                    if (data.isFullyPaid) {
+                        $('#bRemaining').text('مسدّد بالكامل').css('color', '#059669');
+                        $('#balancePanel').addClass('fully-paid');
+                        $('#balanceTitleText').text('ذمة الطالب مسدّدة بالكامل');
+                        $('#balanceHint').text('لا يمكن إضافة دفعة جديدة لهذه الدورة.').addClass('fully-paid-msg').show();
+                        $('#submitBtn').prop('disabled', true);
+                    } else {
+                        $('#bRemaining').text(data.remainingFormatted).css('color', '#dc2626');
+                        $('#balanceTitleText').text('حالة ذمة الطالب في هذه الدورة');
+                        $('#balanceHint').removeClass('fully-paid-msg');
+                        $('#submitBtn').prop('disabled', false);
+                        updateHint();
+                    }
+
+                    $('#balanceContent').show();
+                },
+                error: function (xhr, status) {
+                    if (status === 'abort') {
+                        return;
+                    }
+
+                    $('#balanceSpinner').hide();
+                    $('#balanceTitleText').text('تعذّر تحميل بيانات الذمة');
+                }
+            });
+        }
+
+        function updateHint() {
+            if (remainingSYP <= 0 || isFullyPaid) return;
+
+            var curr = parseInt($('#Currency').val());
+            var maxText = '';
+            if (curr === 1)      maxText = formatNum(remainingSYP) + ' ل.س';
+            else if (curr === 2) maxText = formatNum(Math.floor(remainingSYP / rateUSD * 100) / 100) + ' USD';
+            else if (curr === 3) maxText = formatNum(Math.floor(remainingSYP / rateEUR * 100) / 100) + ' EUR';
+
+            $('#balanceHint').html('<i class="fas fa-arrow-left me-1"></i>الحد الأقصى للدفعة بالعملة المختارة: <strong>' + maxText + '</strong>').show();
+        }
+
+        function formatNum(n) {
+            return parseFloat(n).toLocaleString('en');
+        }
+
         $(document).ready(function () {
-            $('.select2').select2({ placeholder: "اختر...", allowClear: true });
+            var $trainee = $('#TraineeId');
+            var $course = $('#CourseId');
+            var $currency = $('#Currency');
+
+            $trainee.on('change.balance select2:select.balance select2:clear.balance select2:unselect.balance', syncBalancePanel);
+            $course.on('change.balance select2:select.balance select2:clear.balance select2:unselect.balance', syncBalancePanel);
+            $currency.on('change.balance', function () { updateHint(); });
+
+            // Init select2
+            $trainee.add($course).select2({ placeholder: 'اختر...', allowClear: true });
+
+            // Set currency: model value (POST return) or admin default (GET)
+            var modelCurrency = parseInt('@((int)(Model?.Currency ?? 0))');
+            var defaultCurr   = parseInt('@defaultCurrency');
+            $currency.val(modelCurrency > 0 ? modelCurrency : defaultCurr);
+
+            // Run a few sync attempts because selected values may appear
+            // before or shortly after Select2 completes its initialization.
+            syncBalancePanel();
+            setTimeout(syncBalancePanel, 100);
+            setTimeout(syncBalancePanel, 300);
         });
     </script>
 }

@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TrainingCenterManagement_MVC.Data;
+using TrainingCenterManagement_MVC.Helpers;
 using TrainingCenterManagement_MVC.Models;
 using TrainingCenterManagement_MVC.ViewModels;
 
@@ -41,7 +42,7 @@ namespace TrainingCenterManagement_MVC.Controllers
 
                 var totalPaid = t.Payments
                     .Where(p => !p.IsDeleted && !p.Course.IsDeleted)
-                    .Sum(p => ConvertToSAR(p.TotalAmount, p.Currency, rates));
+                    .Sum(p => CurrencyHelper.ToSYP(p.TotalAmount, p.Currency, rates));
 
                 var remaining = totalOwed - totalPaid;
                 totalRevenue += totalPaid;
@@ -89,7 +90,7 @@ namespace TrainingCenterManagement_MVC.Controllers
                 {
                     var paidSAR = trainee.Payments
                         .Where(p => !p.IsDeleted && p.CourseId == ct.CourseId)
-                        .Sum(p => ConvertToSAR(p.TotalAmount, p.Currency, rates));
+                        .Sum(p => CurrencyHelper.ToSYP(p.TotalAmount, p.Currency, rates));
 
                     return new CourseDebtEntry
                     {
@@ -109,8 +110,8 @@ namespace TrainingCenterManagement_MVC.Controllers
                     PaymentId        = p.PaymentId,
                     CourseName       = p.Course?.CourseName ?? "—",
                     OriginalAmount   = p.TotalAmount,
-                    OriginalCurrency = GetSymbol(p.Currency),
-                    AmountInSAR      = ConvertToSAR(p.TotalAmount, p.Currency, rates),
+                    OriginalCurrency = CurrencyHelper.GetSymbol(p.Currency),
+                    AmountInSAR      = CurrencyHelper.ToSYP(p.TotalAmount, p.Currency, rates),
                     Notes            = p.Notes,
                     Date             = p.CreatedDate
                 }).ToList();
@@ -136,31 +137,10 @@ namespace TrainingCenterManagement_MVC.Controllers
         private async Task<Dictionary<PaymentCurrency, decimal>> GetRatesAsync()
         {
             var dbRates = await _context.ExchangeRates.ToListAsync();
-            var dict = new Dictionary<PaymentCurrency, decimal>
-            {
-                [PaymentCurrency.SAR] = 1m,
-                [PaymentCurrency.USD] = 3.75m,
-                [PaymentCurrency.EUR] = 4.08m,
-                [PaymentCurrency.EGP] = 0.071m
-            };
+            var dict = new Dictionary<PaymentCurrency, decimal>(CurrencyHelper.DefaultRates);
             foreach (var r in dbRates)
-                dict[r.Currency] = r.RateToSAR;
+                dict[r.Currency] = r.RateToSYP;
             return dict;
         }
-
-        private static decimal ConvertToSAR(decimal amount, PaymentCurrency currency,
-            Dictionary<PaymentCurrency, decimal> rates)
-        {
-            if (currency == PaymentCurrency.SAR) return amount;
-            return rates.TryGetValue(currency, out var rate) ? amount * rate : amount;
-        }
-
-        private static string GetSymbol(PaymentCurrency c) => c switch
-        {
-            PaymentCurrency.USD => "USD",
-            PaymentCurrency.EUR => "EUR",
-            PaymentCurrency.EGP => "ج.م",
-            _                   => "ر.س"
-        };
     }
 }
