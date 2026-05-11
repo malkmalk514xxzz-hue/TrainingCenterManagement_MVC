@@ -47,6 +47,7 @@
     <Folder Include="wwwroot\photo\profile\" />
     <Folder Include="wwwroot\uploads\images\" />
     <Folder Include="wwwroot\uploads\audio\" />
+    <Folder Include="wwwroot\uploads\resources\" />
     <Folder Include="wwwroot\uploads\videos\" />
   </ItemGroup>
 

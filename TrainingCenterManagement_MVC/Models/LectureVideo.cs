@@ -27,7 +27,7 @@ namespace TrainingCenterManagement_MVC.Models
         /// وصف الفيديو
         /// </summary>
         [MaxLength(2000)]
-        public string Description { get; set; }
+        public string? Description { get; set; }
 
         /// <summary>
         /// نوع الفيديو: Uploaded أو YouTube
@@ -38,13 +38,13 @@ namespace TrainingCenterManagement_MVC.Models
         /// <summary>
         /// مسار الفيديو المحمل (محلي) أو null إذا كان من YouTube
         /// </summary>
-        public string LocalFilePath { get; set; }
+        public string? LocalFilePath { get; set; }
 
         /// <summary>
         /// معرف الفيديو على YouTube
         /// يتم استخراجه من الرابط
         /// </summary>
-        public string YouTubeVideoId { get; set; }
+        public string? YouTubeVideoId { get; set; }
 
         /// <summary>
         /// الرابط الكامل للفيديو (YouTube أو محلي)
@@ -65,7 +65,7 @@ namespace TrainingCenterManagement_MVC.Models
         /// <summary>
         /// صورة مصغرة للفيديو
         /// </summary>
-        public string ThumbnailUrl { get; set; }
+        public string? ThumbnailUrl { get; set; }
 
         /// <summary>
         /// ترتيب الفيديو في الدرس (إذا كان هناك أكثر من فيديو واحد)
@@ -100,14 +100,14 @@ namespace TrainingCenterManagement_MVC.Models
         /// <summary>
         /// من قام برفع الفيديو (معرف المدرب)
         /// </summary>
-        public Guid UploadedByTrainerId { get; set; }
-        public Trainer UploadedByTrainer { get; set; }
+        public Guid? UploadedByTrainerId { get; set; }
+        public Trainer? UploadedByTrainer { get; set; }
 
         /// <summary>
         /// ملاحظات إدارية
         /// </summary>
         [MaxLength(500)]
-        public string AdminNotes { get; set; }
+        public string? AdminNotes { get; set; }
 
         /// <summary>
         /// هل الفيديو محذوف (soft delete)

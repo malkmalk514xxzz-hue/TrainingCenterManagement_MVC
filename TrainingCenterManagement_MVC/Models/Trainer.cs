@@ -31,5 +31,8 @@ namespace TrainingCenterManagement_MVC.Models
         // Video Management System
         public ICollection<LectureVideo> LectureVideos { get; set; } = new List<LectureVideo>();
         public ICollection<LectureMaterial> LectureMaterials { get; set; } = new List<LectureMaterial>();
+
+        // Lecture Resources (new system)
+        public ICollection<LectureResource> LectureResources { get; set; } = new List<LectureResource>();
     }
 }

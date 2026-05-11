@@ -47,6 +47,8 @@ namespace TrainingCenterManagement_MVC.ViewModels
         public int TotalLectures { get; set; }
         public int TotalExams { get; set; }
         public int TotalPresences { get; set; }
+        public int TotalLectureResources { get; set; }
+        public int TotalResourceDownloads { get; set; }
     }
 
     // ─── Recent Activity ─────────────────────────────────────────────────────────

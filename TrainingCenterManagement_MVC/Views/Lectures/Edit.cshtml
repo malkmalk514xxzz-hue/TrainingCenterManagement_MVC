@@ -1,443 +1,266 @@
-﻿@* @model TrainingCenterManagement_MVC.Models.Lecture
-
-@{
-    ViewData["Title"] = "Edit Lecture";
-}
-
-<h1>Edit Lecture</h1>
-<h4>Lecture Details</h4>
-<hr />
-<div class="row">
-    <div class="col-md-6 col-lg-4">
-        <form asp-action="Edit" method="post">
-            <input type="hidden" asp-for="LectureId" />
-
-            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
-
-            <div class="mb-3">
-                <label asp-for="Title" class="form-label"></label>
-                <input asp-for="Title" class="form-control" />
-                <span asp-validation-for="Title" class="text-danger"></span>
-            </div>
-
-            <div class="mb-3">
-                <label asp-for="Description" class="form-label"></label>
-                <textarea asp-for="Description" class="form-control" rows="3"></textarea>
-                <span asp-validation-for="Description" class="text-danger"></span>
-            </div>
-
-            <div class="mb-3">
-                <label asp-for="VideoUrl" class="form-label"></label>
-                <input asp-for="VideoUrl" class="form-control" />
-                <span asp-validation-for="VideoUrl" class="text-danger"></span>
-            </div>
-
-            <div class="mb-3">
-                <label asp-for="ThumbnailUrl" class="form-label"></label>
-                <input asp-for="ThumbnailUrl" class="form-control" />
-                <span asp-validation-for="ThumbnailUrl" class="text-danger"></span>
-            </div>
-
-            <div class="mb-3">
-                <label asp-for="LectureDate" class="form-label"></label>
-                <input asp-for="LectureDate" type="date" class="form-control" />
-                <span asp-validation-for="LectureDate" class="text-danger"></span>
-            </div>
-
-            <div class="form-check mb-3">
-                <input class="form-check-input" asp-for="IsDeleted" />
-                <label class="form-check-label" asp-for="IsDeleted"></label>
-            </div>
-
-            <!-- Course Dropdown (Searchable) -->
-            <div class="mb-3">
-                <label asp-for="CourseId" class="form-label"></label>
-                <select asp-for="CourseId" class="form-select select2" asp-items="ViewBag.CourseId">
-                    <option></option> <!-- placeholder for Select2 -->
-                </select>
-                <span asp-validation-for="CourseId" class="text-danger"></span>
-            </div>
-
-            <button type="submit" class="btn btn-primary">Save</button>
-            <a asp-action="Index" class="btn btn-secondary ms-2">Back to List</a>
-        </form>
-    </div>
-</div>
-
-@section Scripts {
-@{
-    await Html.RenderPartialAsync("_ValidationScriptsPartial");}
-
-    <!-- jQuery (Select2 dependency) -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <!-- Select2 CSS & JS -->
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-
-    <script>
-        $(document).ready(function () {
-            $('.select2').select2({
-                placeholder: "Select a course",
-                allowClear: true,
-                width: '100%' // لضبط العرض
-            });
-        });
-    </script>
-}
- *@
-
-
-
 @model TrainingCenterManagement_MVC.Models.Lecture
-
 @{
-    ViewData["Title"] = "Edit Lecture";
+    ViewData["Title"] = "تعديل المحاضرة";
 }
 
-<!DOCTYPE html>
-<html>
-<head>
-    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="" />
-    <link rel="stylesheet"
-          as="style"
-          onload="this.rel='stylesheet'"
-          href="https://fonts.googleapis.com/css2?display=swap&family=Inter%3Awght%40400%3B500%3B700%3B900&family=Noto+Sans%3Awght%40400%3B500%3B700%3B900" />
-    <title>@ViewData["Title"]</title>
-    <link rel="icon" type="image/x-icon" href="data:image/x-icon;base64," />
+<link href="~/css/TrainerDashboard.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 
-    <style>
-        /* General Styles */
-        body {
-            font-family: 'Inter', 'Noto Sans', sans-serif;
-            background-color: #ffffff;
-            color: #111418;
-            margin: 0;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            width: 100%;
-            position: relative;
-            overflow-x: hidden;
-        }
+<style>
+    :root {
+        --primary: #4f46e5; --primary-light: #6366f1; --primary-pale: #eef2ff;
+        --success: #10b981; --danger: #ef4444; --warning: #f59e0b;
+        --body-bg: #f1f5f9; --card-bg: #ffffff;
+        --text-1: #0f172a; --text-2: #475569; --text-3: #94a3b8;
+        --border-color: #e2e8f0;
+        --shadow-sm: 0 1px 3px rgba(0,0,0,.08);
+        --shadow-md: 0 4px 16px rgba(0,0,0,.08);
+        --radius: 14px; --radius-sm: 8px;
+    }
 
-        .layout-container {
-            display: flex;
-            flex-direction: column;
-            flex-grow: 1;
-            height: 100%;
-        }
+    .lc-page { padding: 28px 32px; }
 
-        /* Main Content */
-        .main-content {
-            display: flex;
-            flex-grow: 1;
-            justify-content: center;
-            padding: 0.5rem 1.5rem;
-        }
+    .lc-breadcrumb {
+        display: flex; align-items: center; gap: 8px;
+        font-size: .85rem; color: var(--text-3); margin-bottom: 20px;
+    }
+    .lc-breadcrumb a { color: var(--text-2); text-decoration: none; transition: color .2s; }
+    .lc-breadcrumb a:hover { color: var(--primary); }
+    .lc-breadcrumb i { font-size: .7rem; }
 
-        /* Content Container */
-        .content-container {
-            display: flex;
-            flex-direction: column;
-            width: 512px;
-            max-width: 960px;
-            padding: 0.5rem 0;
-            flex-grow: 1;
-        }
+    .lc-page-header { margin-bottom: 28px; }
+    .lc-page-header h1 {
+        font-size: 1.6rem; font-weight: 700; color: var(--text-1);
+        display: flex; align-items: center; gap: 10px; margin: 0 0 4px;
+    }
+    .lc-page-header h1 .icon-badge {
+        width: 40px; height: 40px; border-radius: 10px;
+        background: #fef3c7; color: #d97706;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.1rem;
+    }
+    .lc-page-header p { color: var(--text-2); font-size: .9rem; margin: 0; }
 
-        .page-title {
-            color: #111418;
-            letter-spacing: -0.015em;
-            font-size: 2rem;
-            font-weight: 700;
-            line-height: 1.25;
-            min-width: 18rem;
-            padding: 0.25rem 1rem;
-        }
+    .lc-card {
+        background: var(--card-bg);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-md);
+        border: 1px solid var(--border-color);
+        overflow: hidden;
+        max-width: 720px;
+    }
 
-        /* Form Elements */
-        .form-field {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: flex-end;
-            gap: 0.5rem;
-            padding: 0.25rem 1rem;
-            max-width: 480px;
-        }
+    .lc-card-header {
+        padding: 20px 28px;
+        border-bottom: 1px solid var(--border-color);
+        background: linear-gradient(135deg, #fef9ec 0%, #ffffff 100%);
+        display: flex; align-items: center; gap: 12px;
+    }
+    .lc-card-header i { color: #d97706; font-size: 1.1rem; }
+    .lc-card-header h2 { font-size: 1rem; font-weight: 600; color: var(--text-1); margin: 0; }
+    .lc-card-header .lc-id-badge {
+        margin-right: auto; background: var(--body-bg);
+        padding: 3px 10px; border-radius: 20px;
+        font-size: .75rem; color: var(--text-3); font-family: monospace;
+    }
 
-        .form-label {
-            display: flex;
-            flex-direction: column;
-            min-width: 10rem;
-            flex-grow: 1;
-        }
+    .lc-form-body { padding: 28px; display: flex; flex-direction: column; gap: 20px; }
 
-        .label-text {
-            color: #111418;
-            font-size: 1rem;
-            font-weight: 500;
-            line-height: 1.5;
-            padding-bottom: 0.25rem;
-        }
+    .lc-field label {
+        display: block; font-size: .85rem; font-weight: 600;
+        color: var(--text-2); margin-bottom: 6px;
+    }
+    .lc-field label span.req { color: var(--danger); margin-right: 2px; }
 
-        .form-input, .form-textarea, .form-select {
-            display: flex;
-            width: 100%;
-            min-width: 0;
-            flex-grow: 1;
-            resize: none;
-            overflow: hidden;
-            border-radius: 0.5rem;
-            color: #111418;
-            border: 1px solid #dbe0e6;
-            background-color: #ffffff;
-            height: 3.5rem;
-            padding: 0.9375rem;
-            font-size: 1rem;
-            font-weight: 400;
-            line-height: 1.5;
-        }
+    .lc-input, .lc-textarea, .lc-select {
+        width: 100%; padding: 10px 14px;
+        border: 1.5px solid var(--border-color);
+        border-radius: var(--radius-sm);
+        font-size: .92rem; color: var(--text-1);
+        background: #fff; transition: border-color .2s, box-shadow .2s;
+        box-sizing: border-box; font-family: inherit;
+    }
+    .lc-input:focus, .lc-textarea:focus, .lc-select:focus {
+        outline: none; border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(79,70,229,.1);
+    }
+    .lc-textarea { resize: vertical; min-height: 100px; }
+    .lc-input::placeholder, .lc-textarea::placeholder { color: var(--text-3); }
 
-        .form-textarea {
-            min-height: 9rem;
-        }
+    .lc-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    @@media (max-width: 600px) { .lc-row { grid-template-columns: 1fr; } }
 
-            .form-input::placeholder, .form-textarea::placeholder {
-                color: #60758a;
-            }
+    .lc-hint { font-size: .78rem; color: var(--text-3); margin-top: 4px; }
+    .lc-error { color: var(--danger); font-size: .8rem; margin-top: 4px; }
 
-            .form-input:focus, .form-textarea:focus, .form-select:focus {
-                outline: 2px solid transparent;
-                outline-offset: 2px;
-                border-color: #dbe0e6;
-            }
+    .lc-divider { border: none; border-top: 1px dashed var(--border-color); margin: 4px 0; }
+    .lc-section-label {
+        font-size: .75rem; font-weight: 700; color: var(--primary);
+        text-transform: uppercase; letter-spacing: .05em;
+        display: flex; align-items: center; gap: 6px; margin-bottom: 12px;
+    }
 
-        /* Toggle Switch */
-        .toggle-container {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            background-color: #ffffff;
-            min-height: 3.5rem;
-            justify-content: space-between;
-        }
+    .lc-actions {
+        padding: 20px 28px;
+        border-top: 1px solid var(--border-color);
+        display: flex; gap: 10px; justify-content: flex-end;
+        background: #fafbff;
+    }
+    .lc-btn {
+        display: inline-flex; align-items: center; gap: 7px;
+        padding: 10px 22px; border-radius: var(--radius-sm);
+        font-size: .9rem; font-weight: 600; cursor: pointer;
+        text-decoration: none; border: none; transition: all .2s;
+    }
+    .lc-btn-warning { background: #d97706; color: #fff; }
+    .lc-btn-warning:hover { background: #b45309; color: #fff; transform: translateY(-1px); }
+    .lc-btn-ghost {
+        background: transparent; color: var(--text-2);
+        border: 1.5px solid var(--border-color);
+    }
+    .lc-btn-ghost:hover { background: var(--body-bg); color: var(--text-1); }
+    .lc-btn-resources {
+        background: var(--primary-pale); color: var(--primary);
+        border: 1.5px solid var(--primary);
+    }
+    .lc-btn-resources:hover { background: var(--primary); color: #fff; }
 
-        .toggle-text {
-            color: #111418;
-            font-size: 1rem;
-            font-weight: 400;
-            line-height: 1.5;
-            flex-grow: 1;
-            overflow: hidden;
-            white-space: nowrap;
-            text-overflow: ellipsis;
-        }
+    /* Select2 override */
+    .select2-container--default .select2-selection--single {
+        height: 42px !important; border: 1.5px solid var(--border-color) !important;
+        border-radius: var(--radius-sm) !important; padding: 4px 10px !important;
+    }
+    .select2-container--default .select2-selection--single .select2-selection__arrow { height: 42px !important; }
+    .select2-container--default .select2-selection--single .select2-selection__rendered {
+        line-height: 32px !important; color: var(--text-1) !important; font-size: .92rem !important;
+    }
+    .select2-container--default.select2-container--focus .select2-selection--single {
+        border-color: var(--primary) !important;
+        box-shadow: 0 0 0 3px rgba(79,70,229,.1) !important;
+    }
+</style>
 
-        .toggle-switch-wrapper {
-            flex-shrink: 0;
-        }
+<div class="dashboard-wrapper">
+    @await Html.PartialAsync("_TrainerSidebar")
 
-        .toggle-switch-label {
-            position: relative;
-            display: flex;
-            height: 31px;
-            width: 51px;
-            cursor: pointer;
-            align-items: center;
-            border-radius: 9999px;
-            border: none;
-            background-color: #f0f2f5;
-            transition: background-color 0.3s;
-        }
+    <main class="dashboard-main">
+        <div class="lc-page">
 
-            .toggle-switch-label input:checked + .toggle-switch-slider {
-                background-color: #0d80f2;
-                justify-content: flex-end;
-            }
+            <!-- Breadcrumb -->
+            <nav class="lc-breadcrumb">
+                <a asp-controller="Dashboard" asp-action="TrainerDashboard">لوحة التحكم</a>
+                <i class="fas fa-chevron-left"></i>
+                <a asp-action="Index">المحاضرات</a>
+                <i class="fas fa-chevron-left"></i>
+                <span>تعديل: @Model.Title</span>
+            </nav>
 
-        .toggle-switch-slider {
-            height: 100%;
-            width: 27px;
-            border-radius: 9999px;
-            background-color: white;
-            box-shadow: rgba(0, 0, 0, 0.15) 0px 3px 8px, rgba(0, 0, 0, 0.06) 0px 3px 1px;
-            transition: transform 0.3s, background-color 0.3s;
-        }
+            <!-- Page Header -->
+            <div class="lc-page-header">
+                <h1>
+                    <span class="icon-badge"><i class="fas fa-edit"></i></span>
+                    تعديل المحاضرة
+                </h1>
+                <p>قم بتحديث بيانات المحاضرة — سيتم حفظ التغييرات فوراً</p>
+            </div>
 
-        .toggle-switch-label input {
-            visibility: hidden;
-            position: absolute;
-        }
+            <!-- Form Card -->
+            <div class="lc-card">
+                <div class="lc-card-header">
+                    <i class="fas fa-pen-to-square"></i>
+                    <h2>تعديل بيانات المحاضرة</h2>
+                    <span class="lc-id-badge">ID: @Model.LectureId.ToString()[..8]...</span>
+                </div>
 
-        /* Buttons */
-        .button-group {
-            display: flex;
-            justify-content: stretch;
-        }
-
-        .buttons-container {
-            display: flex;
-            flex-grow: 1;
-            gap: 0.5rem;
-            flex-wrap: wrap;
-            padding: 0.25rem 1rem;
-            justify-content: flex-end;
-            max-width: 480px;
-        }
-
-        .primary-button, .secondary-button {
-            display: flex;
-            min-width: 84px;
-            max-width: 480px;
-            cursor: pointer;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-            border-radius: 0.5rem;
-            height: 2.5rem;
-            padding: 0 1rem;
-            font-size: 0.875rem;
-            font-weight: 700;
-            line-height: 1.5;
-            letter-spacing: 0.015em;
-            border: none;
-            text-decoration: none;
-        }
-
-        .primary-button {
-            background-color: #0d80f2;
-            color: #ffffff;
-        }
-
-        .secondary-button {
-            background-color: #f0f2f5;
-            color: #111418;
-        }
-
-        .validation-text {
-            color: red;
-        }
-
-        /* Specific Select2 styling to override default */
-        .select2-container--default .select2-selection--single {
-            border-color: #dbe0e6 !important;
-            border-radius: 0.5rem !important;
-            height: 3.5rem !important;
-            padding: 0.9375rem !important;
-        }
-
-            .select2-container--default .select2-selection--single .select2-selection__arrow {
-                height: 3.5rem !important;
-            }
-    </style>
-</head>
-
-<body>
-    <div class="layout-container">
-        @* أضف هنا جزئية الرأس (Header) إذا كان لديك *@
-        @Html.Partial("_LandingHeader")
-
-        <main class="main-content">
-            <div class="content-container">
-                <p class="page-title">Edit Lecture</p>
-                <form asp-action="Edit" method="post" class="form-container">
+                <form asp-action="Edit" method="post">
                     <input type="hidden" asp-for="LectureId" />
-                    <div asp-validation-summary="ModelOnly" class="validation-text"></div>
+                    <div asp-validation-summary="ModelOnly" class="lc-error" style="padding: 12px 28px;"></div>
 
-                    <div class="form-field">
-                        <label asp-for="Title" class="form-label">
-                            <p class="label-text">Title</p>
-                            <input asp-for="Title" class="form-input" />
-                            <span asp-validation-for="Title" class="validation-text"></span>
-                        </label>
-                    </div>
+                    <div class="lc-form-body">
 
-                    <div class="form-field">
-                        <label asp-for="Description" class="form-label">
-                            <p class="label-text">Description</p>
-                            <textarea asp-for="Description" class="form-textarea"></textarea>
-                            <span asp-validation-for="Description" class="validation-text"></span>
-                        </label>
-                    </div>
+                        <p class="lc-section-label"><i class="fas fa-info-circle"></i> المعلومات الأساسية</p>
 
-                    <div class="form-field">
-                        <label asp-for="VideoUrl" class="form-label">
-                            <p class="label-text">VideoUrl</p>
-                            <input asp-for="VideoUrl" class="form-input" />
-                            <span asp-validation-for="VideoUrl" class="validation-text"></span>
-                        </label>
-                    </div>
-
-                    <div class="form-field">
-                        <label asp-for="ThumbnailUrl" class="form-label">
-                            <p class="label-text">ThumbnailUrl</p>
-                            <input asp-for="ThumbnailUrl" class="form-input" />
-                            <span asp-validation-for="ThumbnailUrl" class="validation-text"></span>
-                        </label>
-                    </div>
-
-                    <div class="form-field">
-                        <label asp-for="LectureDate" class="form-label">
-                            <p class="label-text">LectureDate</p>
-                            <input asp-for="LectureDate" type="date" class="form-input" />
-                            <span asp-validation-for="LectureDate" class="validation-text"></span>
-                        </label>
-                    </div>
-
-                    @* <div class="toggle-container">
-                        <p class="toggle-text">IsDeleted</p>
-                        <div class="toggle-switch-wrapper">
-                            <label class="toggle-switch-label">
-                                <input type="checkbox" asp-for="IsDeleted" />
-                                <div class="toggle-switch-slider"></div>
-                            </label>
+                        <!-- Title -->
+                        <div class="lc-field">
+                            <label asp-for="Title">عنوان المحاضرة <span class="req">*</span></label>
+                            <input asp-for="Title" class="lc-input" placeholder="مثال: مقدمة في البرمجة الكائنية" />
+                            <span asp-validation-for="Title" class="lc-error"></span>
                         </div>
-                        <span asp-validation-for="IsDeleted" class="validation-text"></span>
-                    </div> *@
 
-                    <div class="form-field">
-                        <label asp-for="CourseId" class="form-label">
-                            <p class="label-text">CourseId</p>
-                            <select asp-for="CourseId" class="form-input select2" asp-items="ViewBag.CourseId">
-                                <option></option>
-                            </select>
-                            <span asp-validation-for="CourseId" class="validation-text"></span>
-                        </label>
+                        <!-- Description -->
+                        <div class="lc-field">
+                            <label asp-for="Description">وصف المحاضرة</label>
+                            <textarea asp-for="Description" class="lc-textarea" placeholder="اكتب وصفاً موجزاً لمحتوى المحاضرة..."></textarea>
+                            <span asp-validation-for="Description" class="lc-error"></span>
+                        </div>
+
+                        <hr class="lc-divider" />
+                        <p class="lc-section-label"><i class="fas fa-video"></i> محتوى الفيديو</p>
+
+                        <div class="lc-row">
+                            <!-- Video URL -->
+                            <div class="lc-field">
+                                <label asp-for="VideoUrl">رابط YouTube</label>
+                                <input asp-for="VideoUrl" class="lc-input" placeholder="https://youtube.com/watch?v=..." />
+                                <p class="lc-hint"><i class="fab fa-youtube" style="color:#ef4444;"></i> رابط YouTube الكامل أو المختصر</p>
+                                <span asp-validation-for="VideoUrl" class="lc-error"></span>
+                            </div>
+                            <!-- Thumbnail -->
+                            <div class="lc-field">
+                                <label asp-for="ThumbnailUrl">رابط الصورة المصغرة</label>
+                                <input asp-for="ThumbnailUrl" class="lc-input" placeholder="https://..." />
+                                <p class="lc-hint">اتركه فارغاً لاستخدام صورة YouTube تلقائياً</p>
+                                <span asp-validation-for="ThumbnailUrl" class="lc-error"></span>
+                            </div>
+                        </div>
+
+                        <hr class="lc-divider" />
+                        <p class="lc-section-label"><i class="fas fa-calendar-alt"></i> الجدولة والدورة</p>
+
+                        <div class="lc-row">
+                            <!-- Date -->
+                            <div class="lc-field">
+                                <label asp-for="LectureDate">تاريخ المحاضرة <span class="req">*</span></label>
+                                <input asp-for="LectureDate" type="datetime-local" class="lc-input" />
+                                <span asp-validation-for="LectureDate" class="lc-error"></span>
+                            </div>
+                            <!-- Course -->
+                            <div class="lc-field">
+                                <label asp-for="CourseId">الدورة التدريبية <span class="req">*</span></label>
+                                <select asp-for="CourseId" class="lc-select select2" asp-items="ViewBag.CourseId">
+                                    <option value="">-- اختر الدورة --</option>
+                                </select>
+                                <span asp-validation-for="CourseId" class="lc-error"></span>
+                            </div>
+                        </div>
+
                     </div>
 
-                    <div class="button-group">
-                        <div class="buttons-container">
-                            <a asp-action="Index" class="secondary-button">
-                                <span class="truncate">Back to List</span>
-                            </a>
-                            <button type="submit" class="primary-button">
-                                <span class="truncate">Save</span>
-                            </button>
-                        </div>
+                    <!-- Actions -->
+                    <div class="lc-actions">
+                        <a asp-action="Index" class="lc-btn lc-btn-ghost">
+                            <i class="fas fa-arrow-right"></i> رجوع
+                        </a>
+                        <a asp-controller="LectureResources" asp-action="Manage" asp-route-lectureId="@Model.LectureId" class="lc-btn lc-btn-resources">
+                            <i class="fas fa-folder-open"></i> إدارة الموارد
+                        </a>
+                        <button type="submit" class="lc-btn lc-btn-warning">
+                            <i class="fas fa-save"></i> حفظ التعديلات
+                        </button>
                     </div>
                 </form>
             </div>
-        </main>
-    </div>
-</body>
+
+        </div>
+    </main>
+</div>
 
 @section Scripts {
-        @{
-                await Html.RenderPartialAsync("_ValidationScriptsPartial");
-        }
-
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-
     <script>
         $(document).ready(function () {
-            $('.select2').select2({
-                placeholder: "Select a course",
-                allowClear: true,
-                width: '100%'
-            });
+            $('.select2').select2({ placeholder: "-- اختر الدورة --", allowClear: true, width: '100%' });
         });
     </script>
 }
-</html>

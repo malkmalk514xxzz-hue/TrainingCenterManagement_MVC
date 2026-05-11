@@ -1,0 +1,289 @@
+@using TrainingCenterManagement_MVC.Models
+@{
+    ViewData["Title"] = "إدارة موارد المحاضرة";
+    var lectureId   = (Guid)ViewBag.LectureId;
+    var resources   = (List<LectureResource>)ViewBag.Resources;
+    var lectureTitle = ViewBag.LectureTitle as string;
+    var courseName  = ViewBag.CourseName as string;
+
+    string ResourceTypeLabel(ResourceType t) => t switch
+    {
+        ResourceType.LectureSlides => "شرائح المحاضرة",
+        ResourceType.Notes         => "ملاحظات",
+        ResourceType.Assignment    => "واجب",
+        ResourceType.Solution      => "الحل",
+        ResourceType.ProjectFiles  => "ملفات المشروع",
+        ResourceType.Reference     => "مراجع إضافية",
+        ResourceType.Code          => "أكواد",
+        _                          => "ملفات أخرى"
+    };
+
+    string ResourceTypeIcon(ResourceType t) => t switch
+    {
+        ResourceType.LectureSlides => "fa-file-powerpoint",
+        ResourceType.Notes         => "fa-sticky-note",
+        ResourceType.Assignment    => "fa-tasks",
+        ResourceType.Solution      => "fa-check-circle",
+        ResourceType.ProjectFiles  => "fa-folder-open",
+        ResourceType.Reference     => "fa-book",
+        ResourceType.Code          => "fa-code",
+        _                          => "fa-file"
+    };
+
+    string ResourceTypeBadge(ResourceType t) => t switch
+    {
+        ResourceType.LectureSlides => "badge-slides",
+        ResourceType.Notes         => "badge-notes",
+        ResourceType.Assignment    => "badge-assignment",
+        ResourceType.Solution      => "badge-solution",
+        ResourceType.ProjectFiles  => "badge-project",
+        ResourceType.Reference     => "badge-ref",
+        ResourceType.Code          => "badge-code",
+        _                          => "badge-other"
+    };
+
+    string ExtIcon(string ext) => ext switch
+    {
+        ".pdf"  => "fa-file-pdf",
+        ".docx" or ".doc" => "fa-file-word",
+        ".pptx" or ".ppt" => "fa-file-powerpoint",
+        ".xlsx" or ".xls" => "fa-file-excel",
+        ".zip" or ".rar"  => "fa-file-archive",
+        ".jpg" or ".jpeg" or ".png" or ".gif" => "fa-file-image",
+        ".mp4" or ".avi"  => "fa-file-video",
+        ".txt"            => "fa-file-alt",
+        _                 => "fa-file"
+    };
+
+    string FormatSize(long bytes)
+    {
+        if (bytes < 1024) return $"{bytes} B";
+        if (bytes < 1024 * 1024) return $"{bytes / 1024.0:F1} KB";
+        return $"{bytes / (1024.0 * 1024):F1} MB";
+    }
+}
+
+<style>
+    .lr-page { max-width:900px; margin:28px auto; padding:0 12px; direction:rtl; }
+    .lr-header { background:linear-gradient(135deg,#1e40af,#3b82f6); color:#fff; border-radius:14px; padding:24px 28px; margin-bottom:24px; }
+    .lr-header h2 { margin:0 0 4px; font-size:1.25rem; font-weight:700; }
+    .lr-header .sub { font-size:.85rem; opacity:.85; }
+    /* Upload card */
+    .upload-card { background:#fff; border-radius:14px; box-shadow:0 2px 16px rgba(0,0,0,.08); padding:24px; margin-bottom:24px; }
+    .upload-card h5 { font-weight:700; font-size:1rem; color:#1e293b; margin-bottom:18px; display:flex; align-items:center; gap:8px; }
+    .upload-card h5 i { color:#3b82f6; }
+    .form-label { font-weight:600; font-size:.85rem; color:#374151; }
+    .form-control, .form-select { border-radius:8px; border:1.5px solid #e2e8f0; padding:9px 13px; font-size:.9rem; }
+    .form-control:focus, .form-select:focus { border-color:#3b82f6; box-shadow:0 0 0 3px rgba(59,130,246,.12); }
+    .btn-upload { background:linear-gradient(135deg,#3b82f6,#1d4ed8); color:#fff; border:none; border-radius:8px; padding:10px 24px; font-weight:700; font-size:.9rem; cursor:pointer; }
+    .btn-upload:hover { opacity:.88; }
+    /* Resource list */
+    .res-list-card { background:#fff; border-radius:14px; box-shadow:0 2px 16px rgba(0,0,0,.08); padding:24px; }
+    .res-list-card h5 { font-weight:700; font-size:1rem; color:#1e293b; margin-bottom:18px; display:flex; align-items:center; gap:8px; }
+    .res-list-card h5 i { color:#3b82f6; }
+    .res-item { display:flex; align-items:center; gap:14px; padding:12px 14px; border:1.5px solid #f1f5f9; border-radius:10px; margin-bottom:10px; background:#fafafa; transition:border-color .2s; }
+    .res-item:hover { border-color:#bfdbfe; background:#f0f7ff; }
+    .res-icon { font-size:1.6rem; flex-shrink:0; }
+    .res-icon.pdf   { color:#dc2626; }
+    .res-icon.word  { color:#2563eb; }
+    .res-icon.ppt   { color:#d97706; }
+    .res-icon.excel { color:#16a34a; }
+    .res-icon.zip   { color:#7c3aed; }
+    .res-icon.img   { color:#0891b2; }
+    .res-icon.video { color:#be185d; }
+    .res-icon.txt   { color:#6b7280; }
+    .res-icon.other { color:#64748b; }
+    .res-body { flex-grow:1; min-width:0; }
+    .res-name { font-weight:600; font-size:.9rem; color:#1e293b; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .res-meta { font-size:.78rem; color:#64748b; margin-top:2px; }
+    .res-badges { display:flex; gap:6px; flex-wrap:wrap; margin-top:5px; }
+    .res-badge { font-size:.72rem; font-weight:700; padding:2px 8px; border-radius:12px; }
+    .badge-slides     { background:#dbeafe; color:#1d4ed8; }
+    .badge-notes      { background:#fef9c3; color:#a16207; }
+    .badge-assignment { background:#fce7f3; color:#9d174d; }
+    .badge-solution   { background:#dcfce7; color:#166534; }
+    .badge-project    { background:#ede9fe; color:#5b21b6; }
+    .badge-ref        { background:#ffedd5; color:#9a3412; }
+    .badge-code       { background:#f1f5f9; color:#334155; }
+    .badge-other      { background:#f3f4f6; color:#4b5563; }
+    .badge-hidden     { background:#fee2e2; color:#b91c1c; }
+    .badge-required   { background:#fef3c7; color:#92400e; }
+    .res-actions { display:flex; gap:6px; flex-shrink:0; }
+    .res-actions .btn { padding:5px 10px; font-size:.78rem; border-radius:6px; font-weight:600; border:none; cursor:pointer; }
+    .btn-dl   { background:#e0f2fe; color:#0369a1; }
+    .btn-dl:hover { background:#bae6fd; }
+    .btn-hide { background:#fef9c3; color:#92400e; }
+    .btn-hide:hover { background:#fde68a; }
+    .btn-show { background:#dcfce7; color:#166534; }
+    .btn-show:hover { background:#bbf7d0; }
+    .btn-del  { background:#fee2e2; color:#b91c1c; }
+    .btn-del:hover { background:#fecaca; }
+    .empty-msg { text-align:center; color:#94a3b8; padding:32px 0; font-size:.95rem; }
+    .back-link { display:inline-flex; align-items:center; gap:6px; color:#64748b; font-size:.88rem; text-decoration:none; margin-top:16px; }
+    .back-link:hover { color:#3b82f6; }
+    .alert { border-radius:8px; margin-bottom:18px; }
+</style>
+
+<div class="lr-page">
+    <div class="lr-header">
+        <h2><i class="fas fa-folder-open me-2"></i>إدارة موارد المحاضرة</h2>
+        <div class="sub">
+            <i class="fas fa-chalkboard me-1"></i>@lectureTitle
+            @if (!string.IsNullOrEmpty(courseName))
+            {
+                <span class="ms-3"><i class="fas fa-book me-1"></i>@courseName</span>
+            }
+        </div>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            <i class="fas fa-check-circle me-2"></i>@TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show">
+            <i class="fas fa-exclamation-circle me-2"></i>@TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- Upload Form -->
+    <div class="upload-card">
+        <h5><i class="fas fa-cloud-upload-alt"></i> رفع ملف جديد</h5>
+        <form asp-controller="LectureResources" asp-action="Upload" method="post" enctype="multipart/form-data">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="lectureId" value="@lectureId" />
+
+            <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                    <label class="form-label">الملف <span class="text-danger">*</span></label>
+                    <input type="file" name="resourceFile" class="form-control" required
+                           accept=".pdf,.docx,.doc,.pptx,.ppt,.xlsx,.xls,.txt,.zip,.rar,.jpg,.jpeg,.png,.gif,.mp4,.avi" />
+                    <div class="form-text">الأنواع المدعومة: PDF, Word, PowerPoint, Excel, ZIP, RAR, صور، فيديو — حد أقصى 500 ميغابايت</div>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">نوع الملف <span class="text-danger">*</span></label>
+                    <select name="resourceType" class="form-select" required>
+                        @foreach (ResourceType rt in Enum.GetValues(typeof(ResourceType)))
+                        {
+                            <option value="@((int)rt)">@ResourceTypeLabel(rt)</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" name="isRequired" value="true" id="chkRequired" />
+                        <label class="form-check-label fw-600" for="chkRequired">ملف إلزامي</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">وصف الملف (اختياري)</label>
+                <input type="text" name="description" class="form-control" placeholder="اكتب وصفاً مختصراً للملف..." maxlength="500" />
+            </div>
+
+            <button type="submit" class="btn-upload">
+                <i class="fas fa-upload me-2"></i>رفع الملف
+            </button>
+        </form>
+    </div>
+
+    <!-- Resource List -->
+    <div class="res-list-card">
+        <h5>
+            <i class="fas fa-list"></i>
+            الملفات المرفوعة
+            <span class="badge bg-primary rounded-pill ms-1" style="font-size:.75rem;">@resources.Count</span>
+        </h5>
+
+        @if (!resources.Any())
+        {
+            <div class="empty-msg">
+                <i class="fas fa-inbox fa-2x mb-2 d-block" style="color:#cbd5e1;"></i>
+                لا توجد ملفات مرفوعة لهذه المحاضرة بعد.
+            </div>
+        }
+        else
+        {
+            @foreach (var res in resources.OrderBy(r => r.DisplayOrder))
+            {
+                var iconClass = res.FileExtension switch
+                {
+                    ".pdf"  => "pdf",
+                    ".docx" or ".doc" => "word",
+                    ".pptx" or ".ppt" => "ppt",
+                    ".xlsx" or ".xls" => "excel",
+                    ".zip" or ".rar"  => "zip",
+                    ".jpg" or ".jpeg" or ".png" or ".gif" => "img",
+                    ".mp4" or ".avi"  => "video",
+                    ".txt"            => "txt",
+                    _                 => "other"
+                };
+
+                <div class="res-item">
+                    <i class="fas @ExtIcon(res.FileExtension) res-icon @iconClass"></i>
+                    <div class="res-body">
+                        <div class="res-name" title="@res.FileName">@res.FileName</div>
+                        @if (!string.IsNullOrEmpty(res.Description))
+                        {
+                            <div class="res-meta">@res.Description</div>
+                        }
+                        <div class="res-meta">
+                            @FormatSize(res.FileSizeInBytes)
+                            &nbsp;·&nbsp;
+                            <i class="fas fa-download fa-xs"></i> @res.DownloadCount تحميل
+                            &nbsp;·&nbsp;
+                            @res.CreatedAt.ToString("yyyy/MM/dd")
+                        </div>
+                        <div class="res-badges">
+                            <span class="res-badge @ResourceTypeBadge(res.ResourceType)">
+                                <i class="fas @ResourceTypeIcon(res.ResourceType) me-1"></i>@ResourceTypeLabel(res.ResourceType)
+                            </span>
+                            @if (!res.IsVisible)
+                            {
+                                <span class="res-badge badge-hidden"><i class="fas fa-eye-slash me-1"></i>مخفي</span>
+                            }
+                            @if (res.IsRequired)
+                            {
+                                <span class="res-badge badge-required"><i class="fas fa-exclamation me-1"></i>إلزامي</span>
+                            }
+                        </div>
+                    </div>
+                    <div class="res-actions">
+                        <a asp-controller="LectureResources" asp-action="AdminDownload" asp-route-resourceId="@res.ResourceId"
+                           class="btn btn-dl" title="تحميل">
+                            <i class="fas fa-download"></i>
+                        </a>
+                        <form asp-controller="LectureResources" asp-action="ToggleVisibility" method="post" style="display:inline;">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="resourceId" value="@res.ResourceId" />
+                            <input type="hidden" name="lectureId"  value="@lectureId" />
+                            <button type="submit" class="btn @(res.IsVisible ? "btn-hide" : "btn-show")"
+                                    title="@(res.IsVisible ? "إخفاء" : "إظهار")">
+                                <i class="fas @(res.IsVisible ? "fa-eye-slash" : "fa-eye")"></i>
+                            </button>
+                        </form>
+                        <form asp-controller="LectureResources" asp-action="Delete" method="post" style="display:inline;"
+                              onsubmit="return confirm('هل تريد حذف هذا الملف نهائياً؟')">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="resourceId" value="@res.ResourceId" />
+                            <input type="hidden" name="lectureId"  value="@lectureId" />
+                            <button type="submit" class="btn btn-del" title="حذف">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+
+    <a asp-controller="Lectures" asp-action="Details" asp-route-id="@lectureId" class="back-link">
+        <i class="fas fa-arrow-right"></i> العودة إلى المحاضرة
+    </a>
+</div>

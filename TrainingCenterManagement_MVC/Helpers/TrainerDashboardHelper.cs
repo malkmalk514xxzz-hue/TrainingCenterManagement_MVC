@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using TrainingCenterManagement_MVC.Data;
+using TrainingCenterManagement_MVC.Models;
 using TrainingCenterManagement_MVC.ViewModels;
 
 namespace TrainingCenterManagement_MVC.Helpers
@@ -49,6 +50,7 @@ namespace TrainingCenterManagement_MVC.Helpers
             model.Assignments = new List<Assignment>();
             model.Reports = new List<Report>();
             model.Resources = new List<Resource>();
+            model.ResourceStats = await GetResourceStatsAsync(trainerId);
 
             return model;
         }
@@ -278,6 +280,61 @@ namespace TrainingCenterManagement_MVC.Helpers
             }
 
             return result;
+        }
+
+        private async Task<TrainerResourceStats> GetResourceStatsAsync(Guid trainerId)
+        {
+            var now = DateTime.UtcNow;
+            var thisMonth = new DateTime(now.Year, now.Month, 1);
+
+            var total = await _context.LectureResources
+                .IgnoreQueryFilters()
+                .CountAsync(r => r.UploadedByTrainerId == trainerId && !r.IsDeleted);
+
+            var totalDownloads = await _context.LectureResources
+                .IgnoreQueryFilters()
+                .Where(r => r.UploadedByTrainerId == trainerId && !r.IsDeleted)
+                .SumAsync(r => (int?)r.DownloadCount) ?? 0;
+
+            var thisMonthCount = await _context.LectureResources
+                .IgnoreQueryFilters()
+                .CountAsync(r => r.UploadedByTrainerId == trainerId && !r.IsDeleted && r.CreatedAt >= thisMonth);
+
+            var recentResources = await _context.LectureResources
+                .IgnoreQueryFilters()
+                .Where(r => r.UploadedByTrainerId == trainerId && !r.IsDeleted)
+                .Include(r => r.Lecture).ThenInclude(l => l.Course)
+                .OrderByDescending(r => r.CreatedAt)
+                .Take(8)
+                .Select(r => new RecentResourceItem
+                {
+                    ResourceId     = r.ResourceId,
+                    LectureId      = r.LectureId,
+                    LectureTitle   = r.Lecture.Title,
+                    CourseName     = r.Lecture.Course.CourseName,
+                    FileName       = r.FileName,
+                    FileExtension  = r.FileExtension,
+                    ResourceTypeInt   = (int)r.ResourceType,
+                    ResourceTypeLabel = r.ResourceType == ResourceType.LectureSlides ? "شرائح المحاضرة"
+                                      : r.ResourceType == ResourceType.Notes ? "ملاحظات"
+                                      : r.ResourceType == ResourceType.Assignment ? "واجب"
+                                      : r.ResourceType == ResourceType.Solution ? "الحل"
+                                      : r.ResourceType == ResourceType.ProjectFiles ? "ملفات المشروع"
+                                      : r.ResourceType == ResourceType.Reference ? "مراجع إضافية"
+                                      : r.ResourceType == ResourceType.Code ? "أكواد"
+                                      : "ملفات أخرى",
+                    DownloadCount  = r.DownloadCount,
+                    CreatedAt      = r.CreatedAt
+                })
+                .ToListAsync();
+
+            return new TrainerResourceStats
+            {
+                TotalResources    = total,
+                TotalDownloads    = totalDownloads,
+                ResourcesThisMonth = thisMonthCount,
+                RecentResources   = recentResources
+            };
         }
 
         private async Task<List<AttendanceRecord>> GetAttendanceRecordsAsync(Guid trainerId)

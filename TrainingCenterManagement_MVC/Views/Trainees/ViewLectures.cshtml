@@ -1,548 +1,325 @@
-﻿@* @model IEnumerable<TrainingCenterManagement_MVC.Models.Lecture>
-@{
-    ViewData["Title"] = "Lectures";
-    var course = ViewBag.Course as TrainingCenterManagement_MVC.Models.Course;
-}
-
-<h2 class="mb-4">Lectures for @course?.CourseName</h2>
-
-<table class="table table-striped table-hover align-middle">
-    <thead class="table-dark">
-        <tr>
-            <th>Title</th>
-            <th>Date</th>
-            <th>Description</th>
-            <th>Video</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var lecture in Model)
-        {
-            <tr>
-                <td>@lecture.Title</td>
-                <td>@lecture.LectureDate.ToString("dd MMM yyyy")</td>
-                <td>@lecture.Description</td>
-                <td>
-                    @if (!string.IsNullOrEmpty(lecture.VideoUrl))
-                    {
-                        <a href="@lecture.VideoUrl" class="btn btn-sm btn-primary" target="_blank" rel="noopener noreferrer">
-                            ▶️ Watch
-                        </a>
-                    }
-                    else
-                    {
-                        <span class="text-muted">No video</span>
-                    }
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
- *@
 @model IEnumerable<TrainingCenterManagement_MVC.Models.Lecture>
+@using TrainingCenterManagement_MVC.Models
 @{
-    ViewData["Title"] = "Lectures";
+    ViewData["Title"] = "المحاضرات";
     var course = ViewBag.Course as TrainingCenterManagement_MVC.Models.Course;
-
-    string GetYoutubeThumbnailUrl(string videoUrl)
-    {
-        if (string.IsNullOrEmpty(videoUrl)) return "https://via.placeholder.com/640x360.png?text=No+Thumbnail";
-
-        try
-        {
-            var uri = new Uri(videoUrl);
-            var videoId = "";
-            if (uri.Host.Contains("youtube.com"))
-            {
-                var query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query);
-                if (query.TryGetValue("v", out var id))
-                {
-                    videoId = id;
-                }
-            }
-            else if (uri.Host.Contains("youtu.be"))
-            {
-                videoId = uri.AbsolutePath.Trim('/');
-            }
-            return !string.IsNullOrEmpty(videoId) ? $"https://img.youtube.com/vi/{videoId}/hqdefault.jpg" : "https://via.placeholder.com/640x360.png?text=No+Thumbnail";
-        }
-        catch
-        {
-            return "https://via.placeholder.com/640x360.png?text=No+Thumbnail";
-        }
-    }
+    var lectureList = Model.ToList();
 }
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lectures for @course?.CourseName</title>
-    <link rel="icon" type="image/x-icon" href="data:image/x-icon;base64," />
-
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>محاضرات @(course?.CourseName ?? "الدورة")</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
     <style>
-        @@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&family=Noto+Sans:wght@400;500;700;900&display=swap');
-
-        /* Base styles */
+        *, *::before, *::after { box-sizing: border-box; }
         body {
-            font-family: 'Inter', 'Noto Sans', sans-serif;
-            background-color: #ffffff;
-            color: #111418;
             margin: 0;
-        }
-
-        /* Utility classes from Tailwind CSS */
-        .flex {
-            display: flex;
-        }
-
-        .flex-col {
-            flex-direction: column;
-        }
-
-        .flex-wrap {
-            flex-wrap: wrap;
-        }
-
-        .items-center {
-            align-items: center;
-        }
-
-        .justify-between {
-            justify-content: space-between;
-        }
-
-        .justify-center {
-            justify-content: center;
-        }
-
-        .justify-end {
-            justify-content: flex-end;
-        }
-
-        .justify-stretch {
-            justify-content: stretch;
-        }
-
-        .gap-3 {
-            gap: 0.75rem;
-        }
-
-        .gap-4 {
-            gap: 1rem;
-        }
-
-        .gap-8 {
-            gap: 2rem;
-        }
-
-        .gap-9 {
-            gap: 2.25rem;
-        }
-
-        .px-4 {
-            padding-left: 1rem;
-            padding-right: 1rem;
-        }
-
-        .py-3 {
-            padding-top: 0.75rem;
-            padding-bottom: 0.75rem;
-        }
-
-        .py-5 {
-            padding-top: 1.25rem;
-            padding-bottom: 1.25rem;
-        }
-
-        .px-10 {
-            padding-left: 2.5rem;
-            padding-right: 2.5rem;
-        }
-
-        .pb-3 {
-            padding-bottom: 0.75rem;
-        }
-
-        .size-4 {
-            width: 1rem;
-            height: 1rem;
-        }
-
-        .size-10 {
-            width: 2.5rem;
-            height: 2.5rem;
-        }
-
-        .h-8 {
-            height: 2rem;
-        }
-
-        .h-10 {
-            height: 2.5rem;
-        }
-
-        .h-full {
-            height: 100%;
-        }
-
-        .w-full {
-            width: 100%;
-        }
-
-        .min-h-screen {
-            min-height: 100vh;
-        }
-
-        .min-w-40 {
-            min-width: 10rem;
-        }
-
-        .min-w-72 {
-            min-width: 18rem;
-        }
-
-        .max-w-\[960px\] {
-            max-width: 960px;
-        }
-
-        .max-w-\[1200px\] {
-            max-width: 1200px;
-        }
-
-        .rounded-lg {
-            border-radius: 0.5rem;
-        }
-
-        .rounded-full {
-            border-radius: 9999px;
-        }
-
-        .aspect-video {
-            aspect-ratio: 16 / 9;
-        }
-
-        .bg-white {
-            background-color: #ffffff;
-        }
-
-        .bg-\[\#f0f2f5\] {
-            background-color: #f0f2f5;
-        }
-
-        .bg-\[\#0d80f2\] {
-            background-color: #0d80f2;
-        }
-
-        .bg-red-500 {
-            background-color: #ef4444;
-        }
-
-        .bg-\[\#0d80f2\]\/50 {
-            background-color: rgba(13, 128, 242, 0.5);
-        }
-
-        .text-\[\#111418\] {
-            color: #111418;
-        }
-
-        .text-white {
-            color: #ffffff;
-        }
-
-        .text-\[\#60758a\] {
-            color: #60758a;
-        }
-
-        .text-lg {
-            font-size: 1.125rem;
-            line-height: 1.75rem;
-        }
-
-        .text-sm {
-            font-size: 0.875rem;
-            line-height: 1.25rem;
-        }
-
-        .text-base {
-            font-size: 1rem;
-            line-height: 1.5rem;
-        }
-
-        .text-3xl {
-            font-size: 1.875rem;
-            line-height: 2.25rem;
-        }
-
-        .font-bold {
-            font-weight: 700;
-        }
-
-        .font-medium {
-            font-weight: 500;
-        }
-
-        .font-normal {
-            font-weight: 400;
-        }
-
-        .leading-tight {
-            line-height: 1.25;
-        }
-
-        .leading-normal {
-            line-height: 1.5;
-        }
-
-        .tracking-\[-0\.015em\] {
-            letter-spacing: -0.015em;
-        }
-
-        .tracking-\[0\.015em\] {
-            letter-spacing: 0.015em;
-        }
-
-        .cursor-pointer {
-            cursor: pointer;
-        }
-
-        .overflow-hidden {
-            overflow: hidden;
-        }
-
-        .truncate {
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        .relative {
-            position: relative;
-        }
-
-        .absolute {
-            position: absolute;
-        }
-
-        .inset-0 {
-            top: 0;
-            right: 0;
-            bottom: 0;
-            left: 0;
-        }
-
-        .opacity-0 {
-            opacity: 0;
-        }
-
-        .transition-opacity {
-            transition-property: opacity;
-            transition-duration: 300ms;
-        }
-
-        .bg-center {
-            background-position: center;
-        }
-
-        .bg-no-repeat {
-            background-repeat: no-repeat;
-        }
-
-        .bg-cover {
-            background-size: cover;
-        }
-
-        .border-b {
-            border-bottom-width: 1px;
-        }
-
-        .border-solid {
-            border-style: solid;
-        }
-
-        .border-b-\[\#f0f2f5\] {
-            border-color: #f0f2f5;
-        }
-
-        .outline-0 {
-            outline: 2px solid transparent;
-            outline-offset: 2px;
-        }
-
-        .ring-0 {
-            --tw-ring-offset-shadow: 0 0 #0000;
-            --tw-ring-shadow: 0 0 #0000;
-        }
-
-        .border-none {
-            border-style: none;
-        }
-
-        .focus\:outline-0:focus {
-            outline: 2px solid transparent;
-            outline-offset: 2px;
-        }
-
-        .focus\:ring-0:focus {
-            --tw-ring-offset-shadow: 0 0 #0000;
-            --tw-ring-shadow: 0 0 #0000;
-        }
-
-        .focus\:border-none:focus {
-            border-style: none;
-        }
-
-        .placeholder\:text-\[\#60758a\]::placeholder {
-            color: #60758a;
-        }
-
-        .flex-1 {
-            flex: 1 1 0%;
-        }
-
-        .px-2\.5 {
-            padding-left: 0.625rem;
-            padding-right: 0.625rem;
-        }
-
-        .pl-4 {
-            padding-left: 1rem;
-        }
-
-        .pl-2 {
-            padding-left: 0.5rem;
-        }
-
-        .rounded-l-lg {
-            border-top-left-radius: 0.5rem;
-            border-bottom-left-radius: 0.5rem;
-        }
-
-        .rounded-l-none {
-            border-top-left-radius: 0px;
-            border-bottom-left-radius: 0px;
-        }
-
-        .border-r-0 {
-            border-right-width: 0px;
-        }
-
-        .border-l-0 {
-            border-left-width: 0px;
-        }
-
-        .whitespace-nowrap {
-            white-space: nowrap;
-        }
-
-        .min-w-0 {
-            min-width: 0px;
-        }
-
-        .pb-3 {
-            padding-bottom: 0.75rem;
-        }
-
-        .text-center {
-            text-align: center;
-        }
-
-        /* Grid setup */
-        .grid-container {
+            font-family: 'Noto Kufi Arabic', 'Segoe UI', sans-serif;
+            background: #f1f5f9;
+            color: #0f172a;
+            direction: rtl;
+        }
+
+        /* ── Page Container ── */
+        .vl-page { max-width: 1100px; margin: 0 auto; padding: 32px 20px; }
+
+        /* ── Breadcrumb ── */
+        .vl-breadcrumb {
+            display: flex; align-items: center; gap: 8px;
+            font-size: .82rem; color: #64748b; margin-bottom: 24px; flex-wrap: wrap;
+        }
+        .vl-breadcrumb a { color: #3b82f6; text-decoration: none; font-weight: 600; }
+        .vl-breadcrumb a:hover { text-decoration: underline; }
+
+        /* ── Course Hero ── */
+        .vl-hero {
+            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #0ea5e9 100%);
+            border-radius: 16px; padding: 32px; margin-bottom: 32px;
+            color: #fff; position: relative; overflow: hidden;
+            box-shadow: 0 8px 32px rgba(30,64,175,.25);
+        }
+        .vl-hero::before {
+            content: ''; position: absolute; top: -60px; left: -40px;
+            width: 240px; height: 240px; background: rgba(255,255,255,.06); border-radius: 50%;
+        }
+        .vl-hero::after {
+            content: ''; position: absolute; bottom: -80px; right: -40px;
+            width: 300px; height: 300px; background: rgba(255,255,255,.04); border-radius: 50%;
+        }
+        .vl-hero-inner { position: relative; z-index: 1; display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+        .vl-hero-badge {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: rgba(255,255,255,.2); border-radius: 20px;
+            padding: 4px 14px; font-size: .78rem; font-weight: 600; margin-bottom: 10px;
+        }
+        .vl-hero-title { font-size: 1.7rem; font-weight: 700; margin: 0 0 6px; }
+        .vl-hero-meta { font-size: .88rem; opacity: .9; display: flex; gap: 18px; flex-wrap: wrap; }
+        .vl-hero-meta span { display: flex; align-items: center; gap: 6px; }
+
+        /* ── Section Title ── */
+        .vl-section-title {
+            font-size: 1.05rem; font-weight: 700; color: #0f172a;
+            margin: 0 0 20px; display: flex; align-items: center; gap: 10px;
+        }
+        .vl-section-title::after {
+            content: ''; flex: 1; height: 1.5px; background: #e2e8f0;
+        }
+
+        /* ── Lecture Cards Grid ── */
+        .vl-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1.5rem;
+            grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+            gap: 20px;
         }
 
-        /* Custom hover effect classes */
-        .lecture-card-image-container {
-            position: relative;
+        /* ── Lecture Card ── */
+        .vl-card {
+            background: #fff; border-radius: 14px;
+            overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,.07);
+            display: flex; flex-direction: column;
+            transition: transform .2s, box-shadow .2s;
+        }
+        .vl-card:hover { transform: translateY(-4px); box-shadow: 0 8px 28px rgba(0,0,0,.12); }
+
+        .vl-card-thumb {
+            position: relative; aspect-ratio: 16/9;
+            background: #e2e8f0; overflow: hidden; flex-shrink: 0;
+        }
+        .vl-card-thumb img { width: 100%; height: 100%; object-fit: cover; }
+        .vl-card-thumb-placeholder {
+            width: 100%; height: 100%;
+            display: flex; align-items: center; justify-content: center;
+            background: linear-gradient(135deg, #dbeafe, #ede9fe);
+        }
+        .vl-card-thumb-placeholder i { font-size: 2.5rem; color: #6366f1; }
+
+        .vl-card-play {
+            position: absolute; inset: 0;
+            display: flex; align-items: center; justify-content: center;
+            background: rgba(0,0,0,.4); opacity: 0;
+            transition: opacity .2s; text-decoration: none;
+        }
+        .vl-card:hover .vl-card-play { opacity: 1; }
+        .vl-play-circle {
+            width: 52px; height: 52px; background: rgba(255,255,255,.9);
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+        }
+        .vl-play-circle i { color: #3b82f6; font-size: 1.2rem; margin-right: -2px; }
+
+        .vl-vid-badge {
+            position: absolute; bottom: 8px; right: 8px;
+            background: rgba(0,0,0,.65); color: #fff;
+            font-size: .7rem; padding: 2px 8px; border-radius: 4px;
+            display: flex; align-items: center; gap: 4px;
         }
 
-        .single-button-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background-color: rgba(0, 0, 0, 0.5);
-            opacity: 0;
-            transition: opacity 300ms ease-in-out;
+        .vl-card-body { padding: 16px; flex: 1; display: flex; flex-direction: column; gap: 8px; }
+        .vl-card-num {
+            font-size: .72rem; font-weight: 700; color: #4f46e5;
+            background: #eff6ff; padding: 2px 8px; border-radius: 4px;
+            align-self: flex-start;
         }
-
-        .lecture-card-image-container:hover .single-button-overlay {
-            opacity: 1;
+        .vl-card-title { font-size: .95rem; font-weight: 700; color: #0f172a; margin: 0; line-height: 1.4; }
+        .vl-card-desc {
+            font-size: .8rem; color: #64748b; margin: 0; line-height: 1.5;
+            overflow: hidden; display: -webkit-box;
+            -webkit-line-clamp: 2; -webkit-box-orient: vertical;
         }
-
-        /* Buttons container below image */
-        .lecture-buttons-container {
-            display: flex;
-            gap: 0.5rem;
-            justify-content: flex-start;
-            padding-top: 0.5rem;
+        .vl-card-meta {
+            display: flex; align-items: center; gap: 14px;
+            font-size: .75rem; color: #94a3b8; margin-top: auto; padding-top: 8px;
+            border-top: 1px solid #f1f5f9; flex-wrap: wrap;
         }
+        .vl-card-meta span { display: flex; align-items: center; gap: 4px; }
 
-        .lecture-card {
-            background-color: #fff;
-            border-radius: 0.5rem;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
-            transition: transform 0.3s ease;
+        .vl-card-btn {
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            padding: 10px; background: #3b82f6; color: #fff;
+            border-radius: 8px; text-decoration: none; font-size: .875rem;
+            font-weight: 600; transition: background .15s; margin: 0 16px 14px;
         }
+        .vl-card-btn:hover { background: #2563eb; color: #fff; }
 
-            .lecture-card:hover {
-                transform: translateY(-5px);
-            }
-
-        .lecture-info {
-            padding: 1rem;
+        /* ── Empty State ── */
+        .vl-empty {
+            background: #fff; border-radius: 14px; padding: 80px 20px;
+            text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,.07);
         }
+        .vl-empty i { font-size: 4rem; color: #c7d2fe; display: block; margin-bottom: 20px; }
+        .vl-empty h3 { font-size: 1.1rem; font-weight: 700; color: #0f172a; margin: 0 0 8px; }
+        .vl-empty p { color: #64748b; margin: 0; font-size: .9rem; }
 
+        /* ── Back Button ── */
+        .vl-back-btn {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 8px 18px; border-radius: 8px;
+            background: rgba(255,255,255,.2); color: #fff;
+            text-decoration: none; font-size: .85rem; font-weight: 600;
+            border: 1.5px solid rgba(255,255,255,.4); transition: .15s;
+        }
+        .vl-back-btn:hover { background: rgba(255,255,255,.3); color: #fff; }
     </style>
 </head>
 <body>
-    <div class="relative flex size-full min-h-screen flex-col bg-white overflow-x-hidden">
-        @Html.Partial("_LandingHeader")
+    @Html.Partial("_LandingHeader")
 
-        <div class="flex flex-1 justify-center py-5 px-10">
-            <div class="flex flex-col max-w-[960px] flex-1">
-                <h2 class="text-[#111418] tracking-light text-3xl font-bold leading-tight min-w-72 mb-8">Lectures for @course?.CourseName</h2>
-                <div class="grid-container">
-                    @if (Model != null && Model.Any())
-                    {
-                        @foreach (var lecture in Model.OrderByDescending(l => l.LectureDate))
-                        {
-                            <div class="lecture-card">
-                                <div class="w-full bg-center bg-no-repeat aspect-video bg-cover rounded-t-lg overflow-hidden lecture-card-image-container"
-                                     style='background-image: url("@GetYoutubeThumbnailUrl(lecture.VideoUrl)");'>
+    <div class="vl-page">
+        <!-- Breadcrumb -->
+        <nav class="vl-breadcrumb">
+            <a asp-controller="Dashboard" asp-action="TraineeDashboard">
+                <i class="fas fa-home"></i> لوحة التحكم
+            </a>
+            <i class="fas fa-chevron-left" style="font-size:.65rem;"></i>
+            <a asp-controller="Courses" asp-action="Details" asp-route-id="@course?.CourseId">@(course?.CourseName ?? "الدورة")</a>
+            <i class="fas fa-chevron-left" style="font-size:.65rem;"></i>
+            <span>المحاضرات</span>
+        </nav>
 
-                                    <div class="single-button-overlay">
-                                        <a href="@lecture.VideoUrl" target="_blank" class="flex cursor-pointer items-center justify-center overflow-hidden rounded-lg h-8 px-3 bg-[#0d80f2] text-white text-sm font-bold leading-normal">
-                                            <span class="truncate">مشاهدة المحاضرة</span>
-                                        </a>
-                                    </div>
-                                </div>
-                                <div class="lecture-info">
-                                    <div class="flex-col">
-                                        <p class="text-[#111418] text-base font-medium leading-normal">@lecture.Title</p>
-                                        <p class="text-[#60758a] text-sm font-normal leading-normal">@lecture.Description</p>
-                                        <p class="text-[#60758a] text-sm font-normal leading-normal">@lecture.LectureDate.ToString("MMM dd, yyyy")</p>
-                                    </div>
-                                </div>
-                            </div>
-                        }
-                    }
-                    else
-                    {
-                        <div class="p-4 text-center text-[#60758a]">No lectures available for this course.</div>
-                    }
+        <!-- Course Hero -->
+        <div class="vl-hero">
+            <div class="vl-hero-inner">
+                <div>
+                    <div class="vl-hero-badge">
+                        <i class="fas fa-graduation-cap"></i>
+                        محاضرات الدورة
+                    </div>
+                    <h1 class="vl-hero-title">@(course?.CourseName ?? "الدورة")</h1>
+                    <div class="vl-hero-meta">
+                        <span><i class="fas fa-chalkboard-teacher"></i> @lectureList.Count محاضرة</span>
+                        <span><i class="fas fa-video"></i> @lectureList.Sum(l => l.Videos?.Count ?? 0) فيديو</span>
+                        <span><i class="fas fa-paperclip"></i> @lectureList.Sum(l => l.Resources?.Count ?? 0) ملف</span>
+                    </div>
                 </div>
+                <a asp-controller="Courses" asp-action="Details" asp-route-id="@course?.CourseId" class="vl-back-btn">
+                    <i class="fas fa-arrow-right"></i> العودة للدورة
+                </a>
             </div>
         </div>
+
+        <!-- Search & Section Title -->
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap;">
+            <p class="vl-section-title" style="margin:0;flex:1;min-width:200px;">
+                <i class="fas fa-list" style="color:#3b82f6;"></i>
+                قائمة المحاضرات
+            </p>
+            <div style="position:relative;min-width:240px;">
+                <i class="fas fa-search" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);color:#94a3b8;font-size:.85rem;pointer-events:none;"></i>
+                <input type="text" id="lec-search" placeholder="ابحث عن محاضرة..."
+                       oninput="filterStudentLectures(this.value)"
+                       style="width:100%;padding:9px 36px 9px 14px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:.85rem;outline:none;font-family:inherit;background:#fff;direction:rtl;"
+                       onfocus="this.style.borderColor='#93c5fd'" onblur="this.style.borderColor='#e2e8f0'" />
+            </div>
+        </div>
+
+        @if (!lectureList.Any())
+        {
+            <div class="vl-empty">
+                <i class="fas fa-chalkboard"></i>
+                <h3>لا توجد محاضرات متاحة</h3>
+                <p>لم تُضف أي محاضرات لهذه الدورة بعد. تحقق لاحقاً.</p>
+            </div>
+        }
+        else
+        {
+            <div class="vl-grid" id="lectures-grid">
+                @for (int i = 0; i < lectureList.Count; i++)
+                {
+                    var lec = lectureList[i];
+                    var firstVid = lec.Videos?.Where(v => !v.IsDeleted).OrderBy(v => v.DisplayOrder).FirstOrDefault();
+                    var thumb = firstVid?.ThumbnailUrl
+                             ?? (firstVid?.YouTubeVideoId != null
+                                 ? $"https://img.youtube.com/vi/{firstVid.YouTubeVideoId}/mqdefault.jpg"
+                                 : null);
+                    // fallback: old VideoUrl field
+                    if (thumb == null && !string.IsNullOrEmpty(lec.VideoUrl))
+                    {
+                        var ytId = lec.VideoUrl.Contains("v=")
+                            ? System.Web.HttpUtility.ParseQueryString(new Uri(lec.VideoUrl).Query)["v"] ?? lec.VideoUrl
+                            : lec.VideoUrl.Contains("/")
+                                ? lec.VideoUrl.Split('/').Last().Split('?').First()
+                                : lec.VideoUrl;
+                        thumb = $"https://img.youtube.com/vi/{ytId}/mqdefault.jpg";
+                    }
+                    var vidCount = lec.Videos?.Count(v => !v.IsDeleted) ?? 0;
+                    var resCount = lec.Resources?.Count(r => r.IsVisible) ?? 0;
+                    var hasLegacyVideo = vidCount == 0 && !string.IsNullOrEmpty(lec.VideoUrl);
+
+                    <div class="vl-card" data-title="@lec.Title.ToLower()">
+                        <!-- Thumbnail -->
+                        <div class="vl-card-thumb">
+                            @if (thumb != null)
+                            {
+                                <img src="@thumb" alt="@lec.Title" loading="lazy" />
+                            }
+                            else
+                            {
+                                <div class="vl-card-thumb-placeholder">
+                                    <i class="fas fa-chalkboard-teacher"></i>
+                                </div>
+                            }
+                            <a asp-action="ViewLecture" asp-controller="Lectures" asp-route-id="@lec.LectureId" class="vl-card-play">
+                                <div class="vl-play-circle">
+                                    <i class="fas fa-play"></i>
+                                </div>
+                            </a>
+                            @if (vidCount > 0 || hasLegacyVideo)
+                            {
+                                <span class="vl-vid-badge">
+                                    <i class="fas fa-video"></i> @(vidCount > 0 ? vidCount.ToString() : "رابط")
+                                </span>
+                            }
+                        </div>
+
+                        <!-- Body -->
+                        <div class="vl-card-body">
+                            <span class="vl-card-num">محاضرة @(i + 1)</span>
+                            <h3 class="vl-card-title">@lec.Title</h3>
+                            @if (!string.IsNullOrEmpty(lec.Description))
+                            {
+                                <p class="vl-card-desc">@lec.Description</p>
+                            }
+                            <div class="vl-card-meta">
+                                <span><i class="fas fa-calendar-alt"></i> @lec.LectureDate.ToString("dd MMM yyyy", new System.Globalization.CultureInfo("ar-SA"))</span>
+                                @if (vidCount > 0)
+                                {
+                                    <span><i class="fas fa-play-circle" style="color:#3b82f6;"></i> @vidCount فيديو</span>
+                                }
+                                @if (hasLegacyVideo)
+                                {
+                                    <span><i class="fas fa-link" style="color:#3b82f6;"></i> رابط فيديو</span>
+                                }
+                                @if (resCount > 0)
+                                {
+                                    <span><i class="fas fa-paperclip" style="color:#7c3aed;"></i> @resCount ملف</span>
+                                }
+                            </div>
+                        </div>
+
+                        <!-- CTA -->
+                        <a asp-action="ViewLecture" asp-controller="Lectures" asp-route-id="@lec.LectureId" class="vl-card-btn">
+                            <i class="fas fa-play-circle"></i> مشاهدة المحاضرة
+                        </a>
+                    </div>
+                }
+            </div>
+        }
     </div>
+<script>
+    function filterStudentLectures(query) {
+        var q = query.trim().toLowerCase();
+        var grid = document.getElementById('lectures-grid');
+        if (!grid) return;
+        var cards = grid.querySelectorAll('.vl-card');
+        cards.forEach(function(card) {
+            var title = card.getAttribute('data-title') || '';
+            card.style.display = (!q || title.includes(q)) ? '' : 'none';
+        });
+    }
+</script>
 </body>
 </html>

@@ -85,6 +85,8 @@ builder.Services.AddScoped<IUserHelper, UserHelper>();
 builder.Services.AddScoped<RoleInitializer>();
 builder.Services.AddScoped<TrainingCenterManagement_MVC.Services.IExamService,
                            TrainingCenterManagement_MVC.Services.ExamService>();
+builder.Services.AddScoped<TrainingCenterManagement_MVC.Services.ILectureResourceService,
+                           TrainingCenterManagement_MVC.Services.LectureResourceService>();
 
 // ====================== Build App ======================
 var app = builder.Build();

@@ -45,6 +45,8 @@ namespace TrainingCenterManagement_MVC.ViewModels
         // For Resources
         public List<Resource> Resources { get; set; } = new List<Resource>();
 
+        // Lecture Resource system stats
+        public TrainerResourceStats ResourceStats { get; set; } = new TrainerResourceStats();
     }
 
     public class TrainerKPIs
@@ -127,4 +129,26 @@ namespace TrainingCenterManagement_MVC.ViewModels
     }
 
     // Reuse other classes as needed
+
+    public class TrainerResourceStats
+    {
+        public int TotalResources { get; set; }
+        public int TotalDownloads { get; set; }
+        public int ResourcesThisMonth { get; set; }
+        public List<RecentResourceItem> RecentResources { get; set; } = new();
+    }
+
+    public class RecentResourceItem
+    {
+        public Guid ResourceId { get; set; }
+        public Guid LectureId { get; set; }
+        public string LectureTitle { get; set; } = "";
+        public string CourseName { get; set; } = "";
+        public string FileName { get; set; } = "";
+        public string FileExtension { get; set; } = "";
+        public int ResourceTypeInt { get; set; }
+        public string ResourceTypeLabel { get; set; } = "";
+        public int DownloadCount { get; set; }
+        public DateTime CreatedAt { get; set; }
+    }
 }

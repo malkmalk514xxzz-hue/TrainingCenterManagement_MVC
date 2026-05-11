@@ -6,12 +6,14 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Web;
 using TrainingCenterManagement_MVC.Data;
 using TrainingCenterManagement_MVC.Models;
+using TrainingCenterManagement_MVC.Services;
 using TrainingCenterManagement_MVC.ViewModels;
 
 
@@ -21,22 +23,42 @@ namespace TrainingCenterManagement_MVC.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly IHubContext<ChatHub> _hubContext;
+        private readonly ILectureResourceService _resourceService;
+        private readonly IWebHostEnvironment _env;
 
-        public LecturesController(ApplicationDbContext context, IHubContext<ChatHub> hubContext)
+        public LecturesController(ApplicationDbContext context, IHubContext<ChatHub> hubContext,
+            ILectureResourceService resourceService, IWebHostEnvironment env)
         {
             _context = context;
             _hubContext = hubContext;
+            _resourceService = resourceService;
+            _env = env;
         }
 
         // GET: Lectures
+        [Authorize(Roles = "Trainer,Admin")]
         public async Task<IActionResult> Index()
         {
-            var coursesWithLectures = await _context.Courses
-                .Include(c => c.Lectures)
+            // Step 1: load courses (no Include to avoid duplicate-path issue)
+            var courses = await _context.Courses
                 .OrderBy(c => c.CourseName)
                 .ToListAsync();
 
-            return View(coursesWithLectures);
+            if (courses.Any())
+            {
+                var courseIds = courses.Select(c => c.CourseId).ToList();
+
+                // Step 2: load lectures once with both sub-navigations.
+                // EF Core relationship fixup automatically populates course.Lectures.
+                await _context.Lectures
+                    .Include(l => l.Videos)
+                    .Include(l => l.Resources)
+                    .Where(l => courseIds.Contains(l.CourseId))
+                    .AsSplitQuery()
+                    .LoadAsync();
+            }
+
+            return View(courses);
         }
 
 
@@ -49,6 +71,7 @@ namespace TrainingCenterManagement_MVC.Controllers
                 .Include(l => l.Course)
                 .Include(l => l.Videos.OrderBy(v => v.DisplayOrder))
                 .Include(l => l.Materials.OrderBy(m => m.CreatedAt))
+                .Include(l => l.Resources.Where(r => !r.IsDeleted).OrderBy(r => r.DisplayOrder))
                 .FirstOrDefaultAsync(m => m.LectureId == id);
 
             if (lecture == null) return NotFound();
@@ -94,16 +117,28 @@ namespace TrainingCenterManagement_MVC.Controllers
 
 
         // GET: Lectures/Create
-        public IActionResult Create()
+        [Authorize(Roles = "Trainer,Admin")]
+        public IActionResult Create(Guid? courseId = null)
         {
-            ViewData["CourseId"] = new SelectList(_context.Courses, "CourseId", "CourseName");
+            ViewData["CourseId"] = new SelectList(_context.Courses, "CourseId", "CourseName", courseId);
+            ViewData["PreselectedCourseId"] = courseId;
             return View();
         }
 
         // POST: Lectures/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("LectureId,Title,Description,VideoUrl,ThumbnailUrl,LectureDate,IsDeleted,CourseId")] Lecture lecture)
+        public async Task<IActionResult> Create(
+            [Bind("LectureId,Title,Description,LectureDate,IsDeleted,CourseId")] Lecture lecture,
+            string? videoType,
+            string? youtubeUrl,
+            string? videoTitle,
+            IFormFile? videoFile,
+            IFormFile? thumbnailFile,
+            List<IFormFile>? resourceFiles,
+            List<string>? resourceTypes,
+            List<string>? resourceDescriptions,
+            List<bool>? resourceRequired)
         {
             lecture.LectureId = Guid.NewGuid();
             _context.Add(lecture);
@@ -111,8 +146,109 @@ namespace TrainingCenterManagement_MVC.Controllers
 
             await SendLectureNotificationsAsync(lecture);
 
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var trainer = await _context.Trainers.FirstOrDefaultAsync(t => t.UserId == userId);
+            var existingVideoCount = 0;
+
+            // ── Handle video ───────────────────────────────────────────
+            if (videoType == "youtube" && !string.IsNullOrWhiteSpace(youtubeUrl))
+            {
+                var ytId = ExtractYouTubeVideoId(youtubeUrl);
+                if (!string.IsNullOrEmpty(ytId))
+                {
+                    _context.LectureVideos.Add(new LectureVideo
+                    {
+                        VideoId = Guid.NewGuid(),
+                        LectureId = lecture.LectureId,
+                        VideoTitle = string.IsNullOrWhiteSpace(videoTitle) ? lecture.Title : videoTitle.Trim(),
+                        VideoSourceType = VideoSourceType.YouTube,
+                        YouTubeVideoId = ytId,
+                        VideoUrl = $"https://www.youtube.com/embed/{ytId}",
+                        ThumbnailUrl = $"https://img.youtube.com/vi/{ytId}/mqdefault.jpg",
+                        UploadedByTrainerId = trainer?.TrainerId,
+                        DisplayOrder = ++existingVideoCount,
+                        CreatedAt = DateTime.UtcNow
+                    });
+                    await _context.SaveChangesAsync();
+                }
+            }
+            else if (videoType == "upload" && videoFile != null && videoFile.Length > 0)
+            {
+                var allowedExts = new[] { ".mp4", ".webm", ".ogg", ".mov", ".avi", ".mkv" };
+                var ext = Path.GetExtension(videoFile.FileName).ToLowerInvariant();
+                if (allowedExts.Contains(ext) && videoFile.Length <= 500L * 1024 * 1024)
+                {
+                    var fileName = $"{Guid.NewGuid()}{ext}";
+                    var uploadDir = Path.Combine(_env.WebRootPath, "uploads", "videos", lecture.LectureId.ToString());
+                    Directory.CreateDirectory(uploadDir);
+                    var fullPath = Path.Combine(uploadDir, fileName);
+                    using var fs = new FileStream(fullPath, FileMode.Create);
+                    await videoFile.CopyToAsync(fs);
+
+                    // Save optional thumbnail image
+                    string? thumbUrl = null;
+                    if (thumbnailFile != null && thumbnailFile.Length > 0)
+                    {
+                        var allowedImgExts = new[] { ".jpg", ".jpeg", ".png", ".webp", ".gif" };
+                        var imgExt = Path.GetExtension(thumbnailFile.FileName).ToLowerInvariant();
+                        if (allowedImgExts.Contains(imgExt) && thumbnailFile.Length <= 5L * 1024 * 1024)
+                        {
+                            var thumbDir = Path.Combine(_env.WebRootPath, "uploads", "thumbnails", lecture.LectureId.ToString());
+                            Directory.CreateDirectory(thumbDir);
+                            var thumbName = $"{Guid.NewGuid()}{imgExt}";
+                            using var ts = new FileStream(Path.Combine(thumbDir, thumbName), FileMode.Create);
+                            await thumbnailFile.CopyToAsync(ts);
+                            thumbUrl = $"/uploads/thumbnails/{lecture.LectureId}/{thumbName}";
+                        }
+                    }
+
+                    _context.LectureVideos.Add(new LectureVideo
+                    {
+                        VideoId = Guid.NewGuid(),
+                        LectureId = lecture.LectureId,
+                        VideoTitle = string.IsNullOrWhiteSpace(videoTitle) ? lecture.Title : videoTitle.Trim(),
+                        VideoSourceType = VideoSourceType.Uploaded,
+                        LocalFilePath = fullPath,
+                        VideoUrl = $"/uploads/videos/{lecture.LectureId}/{fileName}",
+                        ThumbnailUrl = thumbUrl,
+                        FileSizeInBytes = videoFile.Length,
+                        UploadedByTrainerId = trainer?.TrainerId,
+                        DisplayOrder = ++existingVideoCount,
+                        CreatedAt = DateTime.UtcNow
+                    });
+                    await _context.SaveChangesAsync();
+                }
+            }
+
+            // ── Handle resource files ───────────────────────────────────
+            if (resourceFiles != null && resourceFiles.Count > 0)
+            {
+                for (int i = 0; i < resourceFiles.Count; i++)
+                {
+                    var file = resourceFiles[i];
+                    if (file == null || file.Length == 0) continue;
+
+                    var rType = ResourceType.Other;
+                    if (resourceTypes != null && i < resourceTypes.Count
+                        && Enum.TryParse<ResourceType>(resourceTypes[i], out var parsedType))
+                        rType = parsedType;
+
+                    var desc = (resourceDescriptions != null && i < resourceDescriptions.Count)
+                        ? resourceDescriptions[i] : null;
+
+                    var isReq = (resourceRequired != null && i < resourceRequired.Count)
+                        && resourceRequired[i];
+
+                    try
+                    {
+                        await _resourceService.UploadResourceAsync(file, lecture.LectureId, trainer?.TrainerId, rType, desc, isReq);
+                    }
+                    catch { /* skip invalid files silently */ }
+                }
+            }
+
             ViewData["CourseId"] = new SelectList(_context.Courses, "CourseId", "CourseName", lecture.CourseId);
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction(nameof(ViewLecture), new { id = lecture.LectureId });
         }
 
         private async Task SendLectureNotificationsAsync(Lecture lecture)
@@ -352,6 +488,8 @@ namespace TrainingCenterManagement_MVC.Controllers
 
             var lecture2 = await _context.Lectures
                   .Include(l => l.Course)
+                  .Include(l => l.Videos.OrderBy(v => v.DisplayOrder))
+                  .Include(l => l.Resources.Where(r => !r.IsDeleted && r.IsVisible).OrderBy(r => r.DisplayOrder))
                   .Include(l => l.Presences)
                       .ThenInclude(p => p.Trainee)
                       .ThenInclude(t => t.User)

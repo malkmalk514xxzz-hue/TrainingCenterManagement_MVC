@@ -185,9 +185,15 @@ namespace TrainingCenterManagement_MVC.Controllers
         public async Task<IActionResult> ViewLectures(Guid courseId)
         {
             var lectures = await _context.Lectures
+                .Include(l => l.Videos)
+                .Include(l => l.Resources)
                 .Where(l => l.CourseId == courseId && !l.IsDeleted)
                 .OrderBy(l => l.LectureDate)
+                .AsSplitQuery()
                 .ToListAsync();
+
+            // Deduplicate by primary key in case EF relationship fixup adds extras
+            lectures = lectures.DistinctBy(l => l.LectureId).ToList();
 
             ViewBag.Course = await _context.Courses.FindAsync(courseId);
             return View(lectures);

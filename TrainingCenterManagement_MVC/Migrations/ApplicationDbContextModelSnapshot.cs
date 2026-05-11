@@ -786,7 +786,6 @@ namespace TrainingCenterManagement_MVC.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("ThumbnailUrl")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Title")
@@ -794,7 +793,6 @@ namespace TrainingCenterManagement_MVC.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("VideoUrl")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("LectureId");
@@ -861,14 +859,13 @@ namespace TrainingCenterManagement_MVC.Migrations
                     b.ToTable("LectureMaterials");
                 });
 
-            modelBuilder.Entity("TrainingCenterManagement_MVC.Models.LectureVideo", b =>
+            modelBuilder.Entity("TrainingCenterManagement_MVC.Models.LectureResource", b =>
                 {
-                    b.Property<Guid>("VideoId")
+                    b.Property<Guid>("ResourceId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("AdminNotes")
-                        .IsRequired()
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
@@ -879,7 +876,120 @@ namespace TrainingCenterManagement_MVC.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Description")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("int");
+
+                    b.Property<int>("DownloadCount")
+                        .HasColumnType("int");
+
+                    b.Property<string>("FileExtension")
                         .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("FilePath")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long>("FileSizeInBytes")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsRequired")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsVisible")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid>("LectureId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("ResourceType")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("UploadedByTrainerId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("ResourceId");
+
+                    b.HasIndex("LectureId")
+                        .HasDatabaseName("IX_LectureResources_LectureId");
+
+                    b.HasIndex("UploadedByTrainerId");
+
+                    b.HasIndex("LectureId", "ResourceType")
+                        .HasDatabaseName("IX_LectureResources_LectureId_Type");
+
+                    b.ToTable("LectureResources");
+                });
+
+            modelBuilder.Entity("TrainingCenterManagement_MVC.Models.LectureSession", b =>
+                {
+                    b.Property<Guid>("SessionId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<double>("CompletionPercentage")
+                        .HasColumnType("float");
+
+                    b.Property<DateTime?>("EndedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsCompleted")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid>("LectureId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("StartedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("TotalDurationSeconds")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("TraineeId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("SessionId");
+
+                    b.HasIndex("TraineeId");
+
+                    b.HasIndex("LectureId", "TraineeId")
+                        .HasDatabaseName("IX_LectureSession_LectureId_TraineeId");
+
+                    b.ToTable("LectureSessions");
+                });
+
+            modelBuilder.Entity("TrainingCenterManagement_MVC.Models.LectureVideo", b =>
+                {
+                    b.Property<Guid>("VideoId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("AdminNotes")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
                         .HasMaxLength(2000)
                         .HasColumnType("nvarchar(2000)");
 
@@ -905,17 +1015,15 @@ namespace TrainingCenterManagement_MVC.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("LocalFilePath")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ThumbnailUrl")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<Guid>("UploadedByTrainerId")
+                    b.Property<Guid?>("UploadedByTrainerId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<int>("VideoSourceType")
@@ -934,7 +1042,6 @@ namespace TrainingCenterManagement_MVC.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("YouTubeVideoId")
-                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.HasKey("VideoId");
@@ -1193,6 +1300,39 @@ namespace TrainingCenterManagement_MVC.Migrations
                         .IsUnique();
 
                     b.ToTable("Receptionists");
+                });
+
+            modelBuilder.Entity("TrainingCenterManagement_MVC.Models.ResourceDownload", b =>
+                {
+                    b.Property<Guid>("DownloadId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("DownloadedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("IpAddress")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<Guid>("ResourceId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("TraineeId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("UserAgent")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.HasKey("DownloadId");
+
+                    b.HasIndex("TraineeId");
+
+                    b.HasIndex("ResourceId", "TraineeId")
+                        .HasDatabaseName("IX_ResourceDownload_ResourceId_TraineeId");
+
+                    b.ToTable("ResourceDownloads");
                 });
 
             modelBuilder.Entity("TrainingCenterManagement_MVC.Models.SalaryPayment", b =>
@@ -1734,6 +1874,42 @@ namespace TrainingCenterManagement_MVC.Migrations
                     b.Navigation("UploadedByTrainer");
                 });
 
+            modelBuilder.Entity("TrainingCenterManagement_MVC.Models.LectureResource", b =>
+                {
+                    b.HasOne("TrainingCenterManagement_MVC.Models.Lecture", "Lecture")
+                        .WithMany("Resources")
+                        .HasForeignKey("LectureId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("TrainingCenterManagement_MVC.Models.Trainer", "UploadedByTrainer")
+                        .WithMany("LectureResources")
+                        .HasForeignKey("UploadedByTrainerId");
+
+                    b.Navigation("Lecture");
+
+                    b.Navigation("UploadedByTrainer");
+                });
+
+            modelBuilder.Entity("TrainingCenterManagement_MVC.Models.LectureSession", b =>
+                {
+                    b.HasOne("TrainingCenterManagement_MVC.Models.Lecture", "Lecture")
+                        .WithMany("Sessions")
+                        .HasForeignKey("LectureId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("TrainingCenterManagement_MVC.Models.Trainee", "Trainee")
+                        .WithMany("LectureSessions")
+                        .HasForeignKey("TraineeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Lecture");
+
+                    b.Navigation("Trainee");
+                });
+
             modelBuilder.Entity("TrainingCenterManagement_MVC.Models.LectureVideo", b =>
                 {
                     b.HasOne("TrainingCenterManagement_MVC.Models.Lecture", "Lecture")
@@ -1744,9 +1920,7 @@ namespace TrainingCenterManagement_MVC.Migrations
 
                     b.HasOne("TrainingCenterManagement_MVC.Models.Trainer", "UploadedByTrainer")
                         .WithMany("LectureVideos")
-                        .HasForeignKey("UploadedByTrainerId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .HasForeignKey("UploadedByTrainerId");
 
                     b.Navigation("Lecture");
 
@@ -1847,6 +2021,25 @@ namespace TrainingCenterManagement_MVC.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("TrainingCenterManagement_MVC.Models.ResourceDownload", b =>
+                {
+                    b.HasOne("TrainingCenterManagement_MVC.Models.LectureResource", "Resource")
+                        .WithMany("Downloads")
+                        .HasForeignKey("ResourceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("TrainingCenterManagement_MVC.Models.Trainee", "Trainee")
+                        .WithMany("ResourceDownloads")
+                        .HasForeignKey("TraineeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Resource");
+
+                    b.Navigation("Trainee");
                 });
 
             modelBuilder.Entity("TrainingCenterManagement_MVC.Models.SalaryPayment", b =>
@@ -2006,7 +2199,16 @@ namespace TrainingCenterManagement_MVC.Migrations
 
                     b.Navigation("Presences");
 
+                    b.Navigation("Resources");
+
+                    b.Navigation("Sessions");
+
                     b.Navigation("Videos");
+                });
+
+            modelBuilder.Entity("TrainingCenterManagement_MVC.Models.LectureResource", b =>
+                {
+                    b.Navigation("Downloads");
                 });
 
             modelBuilder.Entity("TrainingCenterManagement_MVC.Models.LectureVideo", b =>
@@ -2036,9 +2238,13 @@ namespace TrainingCenterManagement_MVC.Migrations
 
                     b.Navigation("ExamAttempts");
 
+                    b.Navigation("LectureSessions");
+
                     b.Navigation("Payments");
 
                     b.Navigation("Presences");
+
+                    b.Navigation("ResourceDownloads");
 
                     b.Navigation("VideoViews");
                 });
@@ -2052,6 +2258,8 @@ namespace TrainingCenterManagement_MVC.Migrations
                     b.Navigation("Exams");
 
                     b.Navigation("LectureMaterials");
+
+                    b.Navigation("LectureResources");
 
                     b.Navigation("LectureVideos");
 

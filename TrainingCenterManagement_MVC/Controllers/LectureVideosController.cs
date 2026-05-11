@@ -59,7 +59,6 @@ namespace TrainingCenterManagement_MVC.Controllers
 
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var trainer = await _context.Trainers.FirstOrDefaultAsync(t => t.UserId == userId);
-            if (trainer == null) return Forbid();
 
             var existingCount = await _context.LectureVideos.CountAsync(v => v.LectureId == lectureId);
 
@@ -73,7 +72,7 @@ namespace TrainingCenterManagement_MVC.Controllers
                 YouTubeVideoId = ytVideoId,
                 VideoUrl = $"https://www.youtube.com/embed/{ytVideoId}",
                 ThumbnailUrl = $"https://img.youtube.com/vi/{ytVideoId}/mqdefault.jpg",
-                UploadedByTrainerId = trainer.TrainerId,
+                UploadedByTrainerId = trainer?.TrainerId,
                 DisplayOrder = existingCount + 1,
                 CreatedAt = DateTime.UtcNow
             };
@@ -121,7 +120,6 @@ namespace TrainingCenterManagement_MVC.Controllers
 
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var trainer = await _context.Trainers.FirstOrDefaultAsync(t => t.UserId == userId);
-            if (trainer == null) return Forbid();
 
             var fileName = $"{Guid.NewGuid()}{ext}";
             var uploadDir = Path.Combine(_env.WebRootPath, "uploads", "videos", lectureId.ToString());
@@ -145,7 +143,7 @@ namespace TrainingCenterManagement_MVC.Controllers
                 LocalFilePath = fullPath,
                 VideoUrl = $"/uploads/videos/{lectureId}/{fileName}",
                 FileSizeInBytes = videoFile.Length,
-                UploadedByTrainerId = trainer.TrainerId,
+                UploadedByTrainerId = trainer?.TrainerId,
                 DisplayOrder = existingCount + 1,
                 CreatedAt = DateTime.UtcNow
             };

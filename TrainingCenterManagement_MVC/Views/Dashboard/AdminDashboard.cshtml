@@ -391,6 +391,16 @@
                     </div>
                 </div>
             </div>
+            <div class="ad-kpi-card">
+                <div class="ad-kpi-icon" style="background:#e0f2fe;color:#0284c7;"><i class="fas fa-paperclip"></i></div>
+                <div class="ad-kpi-body">
+                    <div class="ad-kpi-value">@Model.Health.TotalLectureResources</div>
+                    <div class="ad-kpi-label">ملفات الموارد</div>
+                    <div class="ad-kpi-change neu">
+                        <i class="fas fa-download"></i> @Model.Health.TotalResourceDownloads تحميل إجمالي
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- ④ Quick Management Links -->
@@ -426,6 +436,10 @@
             <a asp-controller="Chat" asp-action="AdminCustomerSupportChats" class="ad-mgmt-card">
                 <div class="ad-mgmt-icon" style="background:#fff7ed;color:#c2410c;"><i class="fas fa-comments"></i></div>
                 محادثات الدعم
+            </a>
+            <a asp-controller="Lectures" asp-action="Index" class="ad-mgmt-card">
+                <div class="ad-mgmt-icon" style="background:#e0f2fe;color:#0284c7;"><i class="fas fa-paperclip"></i></div>
+                موارد المحاضرات
             </a>
         </div>
 

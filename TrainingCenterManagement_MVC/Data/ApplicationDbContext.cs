@@ -44,6 +44,11 @@ namespace TrainingCenterManagement_MVC.Data
         // ── Lecture Materials ────────────────────────────────────────
         public DbSet<LectureMaterial> LectureMaterials { get; set; }
 
+        // ── Lecture Resources (new system) ───────────────────────────
+        public DbSet<LectureResource> LectureResources { get; set; }
+        public DbSet<ResourceDownload> ResourceDownloads { get; set; }
+        public DbSet<LectureSession> LectureSessions { get; set; }
+
         // ── Course Ratings ───────────────────────────────────────────
         public DbSet<CourseRating> CourseRatings { get; set; }
 
@@ -376,7 +381,8 @@ namespace TrainingCenterManagement_MVC.Data
             .HasOne(lv => lv.UploadedByTrainer)
             .WithMany(t => t.LectureVideos)
             .HasForeignKey(lv => lv.UploadedByTrainerId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .IsRequired(false)
+            .OnDelete(DeleteBehavior.ClientSetNull);
 
         builder.Entity<LectureVideo>()
             .HasQueryFilter(lv => !lv.IsDeleted);
@@ -503,6 +509,73 @@ namespace TrainingCenterManagement_MVC.Data
             .HasIndex(sp => new { sp.SalaryId, sp.Month, sp.Year })
             .IsUnique()
             .HasDatabaseName("UX_SalaryPayment_Salary_Month_Year");
+
+        // ══════════════════════════════════════════════════════════
+        //  LECTURE RESOURCES
+        // ══════════════════════════════════════════════════════════
+
+        builder.Entity<LectureResource>()
+            .HasOne(lr => lr.Lecture)
+            .WithMany(l => l.Resources)
+            .HasForeignKey(lr => lr.LectureId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<LectureResource>()
+            .HasOne(lr => lr.UploadedByTrainer)
+            .WithMany(t => t.LectureResources)
+            .HasForeignKey(lr => lr.UploadedByTrainerId)
+            .OnDelete(DeleteBehavior.ClientSetNull);
+
+        builder.Entity<LectureResource>()
+            .HasQueryFilter(lr => !lr.IsDeleted);
+
+        builder.Entity<LectureResource>()
+            .HasIndex(lr => lr.LectureId)
+            .HasDatabaseName("IX_LectureResources_LectureId");
+
+        builder.Entity<LectureResource>()
+            .HasIndex(lr => new { lr.LectureId, lr.ResourceType })
+            .HasDatabaseName("IX_LectureResources_LectureId_Type");
+
+        // ══════════════════════════════════════════════════════════
+        //  RESOURCE DOWNLOADS
+        // ══════════════════════════════════════════════════════════
+
+        builder.Entity<ResourceDownload>()
+            .HasOne(rd => rd.Resource)
+            .WithMany(r => r.Downloads)
+            .HasForeignKey(rd => rd.ResourceId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<ResourceDownload>()
+            .HasOne(rd => rd.Trainee)
+            .WithMany(t => t.ResourceDownloads)
+            .HasForeignKey(rd => rd.TraineeId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.Entity<ResourceDownload>()
+            .HasIndex(rd => new { rd.ResourceId, rd.TraineeId })
+            .HasDatabaseName("IX_ResourceDownload_ResourceId_TraineeId");
+
+        // ══════════════════════════════════════════════════════════
+        //  LECTURE SESSIONS
+        // ══════════════════════════════════════════════════════════
+
+        builder.Entity<LectureSession>()
+            .HasOne(ls => ls.Lecture)
+            .WithMany(l => l.Sessions)
+            .HasForeignKey(ls => ls.LectureId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<LectureSession>()
+            .HasOne(ls => ls.Trainee)
+            .WithMany(t => t.LectureSessions)
+            .HasForeignKey(ls => ls.TraineeId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.Entity<LectureSession>()
+            .HasIndex(ls => new { ls.LectureId, ls.TraineeId })
+            .HasDatabaseName("IX_LectureSession_LectureId_TraineeId");
 
         }
     }

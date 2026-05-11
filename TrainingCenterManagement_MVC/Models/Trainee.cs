@@ -21,5 +21,7 @@ namespace TrainingCenterManagement_MVC.Models
         public ICollection<ExamAttempt> ExamAttempts { get; set; } = new List<ExamAttempt>();
         public ICollection<VideoView> VideoViews { get; set; } = new List<VideoView>();
         public ICollection<CourseRating> CourseRatings { get; set; } = new List<CourseRating>();
+        public ICollection<ResourceDownload> ResourceDownloads { get; set; } = new List<ResourceDownload>();
+        public ICollection<LectureSession> LectureSessions { get; set; } = new List<LectureSession>();
     }
 }

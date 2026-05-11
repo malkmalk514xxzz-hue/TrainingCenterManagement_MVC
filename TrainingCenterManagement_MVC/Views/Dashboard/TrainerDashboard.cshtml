@@ -805,6 +805,29 @@
                 <a asp-controller="Chat" asp-action="Index" class="td-qa-btn q6">
                     <i class="fas fa-comments"></i> المحادثات
                 </a>
+                <a asp-controller="Lectures" asp-action="Index" class="td-qa-btn" style="color:#0284c7;">
+                    <i class="fas fa-paperclip" style="color:#0284c7;"></i> موارد المحاضرات
+                </a>
+            </div>
+        </div>
+
+        <!-- Resource Stats Mini Row -->
+        <div class="td-row" style="margin-bottom:24px;">
+            <div class="td-kpi-card" style="border-right:4px solid #3b82f6;">
+                <div class="td-kpi-icon sky"><i class="fas fa-file-alt"></i></div>
+                <div class="td-kpi-body">
+                    <div class="td-kpi-value">@Model.ResourceStats.TotalResources</div>
+                    <div class="td-kpi-label">إجمالي الملفات المرفوعة</div>
+                    <div class="td-kpi-sub" style="color:var(--secondary);">@Model.ResourceStats.ResourcesThisMonth هذا الشهر</div>
+                </div>
+            </div>
+            <div class="td-kpi-card" style="border-right:4px solid #10b981;">
+                <div class="td-kpi-icon emerald"><i class="fas fa-download"></i></div>
+                <div class="td-kpi-body">
+                    <div class="td-kpi-value">@Model.ResourceStats.TotalDownloads</div>
+                    <div class="td-kpi-label">إجمالي التحميلات</div>
+                    <div class="td-kpi-sub" style="color:var(--success);">من قِبَل الطلاب</div>
+                </div>
             </div>
         </div>
 
@@ -825,6 +848,9 @@
                 </button>
                 <button class="td-tab-btn" data-tab="tab-certificates">
                     <i class="fas fa-certificate"></i> الشهادات
+                </button>
+                <button class="td-tab-btn" data-tab="tab-resources">
+                    <i class="fas fa-paperclip"></i> الموارد
                 </button>
             </div>
 
@@ -947,6 +973,101 @@
                 else
                 {
                     <div class="td-empty"><i class="fas fa-certificate"></i> لم يتم إصدار شهادات بعد</div>
+                }
+            </div>
+
+            <!-- Resources Tab -->
+            <div id="tab-resources" class="td-tab-content">
+                @{
+                    string ResExtIcon(string ext) => ext switch
+                    {
+                        ".pdf"  => "fa-file-pdf",
+                        ".docx" or ".doc" => "fa-file-word",
+                        ".pptx" or ".ppt" => "fa-file-powerpoint",
+                        ".xlsx" or ".xls" => "fa-file-excel",
+                        ".zip" or ".rar"  => "fa-file-archive",
+                        ".jpg" or ".jpeg" or ".png" or ".gif" => "fa-file-image",
+                        ".mp4" or ".avi"  => "fa-file-video",
+                        _                 => "fa-file-alt"
+                    };
+                    string ResExtColor(string ext) => ext switch
+                    {
+                        ".pdf"  => "#dc2626",
+                        ".docx" or ".doc" => "#2563eb",
+                        ".pptx" or ".ppt" => "#d97706",
+                        ".xlsx" or ".xls" => "#16a34a",
+                        ".zip" or ".rar"  => "#7c3aed",
+                        ".jpg" or ".jpeg" or ".png" or ".gif" => "#0891b2",
+                        ".mp4" or ".avi"  => "#be185d",
+                        _                 => "#64748b"
+                    };
+                }
+                @if (Model.ResourceStats.RecentResources.Any())
+                {
+                    <div style="margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+                        <span style="font-size:.85rem;color:var(--text-2);">آخر @Model.ResourceStats.RecentResources.Count ملفات مرفوعة</span>
+                        <a asp-controller="Lectures" asp-action="Index"
+                           style="font-size:.82rem;font-weight:700;color:var(--primary);text-decoration:none;">
+                            <i class="fas fa-external-link-alt me-1"></i>إدارة جميع المحاضرات
+                        </a>
+                    </div>
+                    <table class="td-table">
+                        <thead>
+                            <tr>
+                                <th>الملف</th>
+                                <th>المحاضرة</th>
+                                <th>الدورة</th>
+                                <th>النوع</th>
+                                <th>التحميلات</th>
+                                <th>تاريخ الرفع</th>
+                                <th>إجراء</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var res in Model.ResourceStats.RecentResources)
+                            {
+                                <tr>
+                                    <td>
+                                        <div style="display:flex;align-items:center;gap:8px;">
+                                            <i class="fas @ResExtIcon(res.FileExtension)" style="color:@ResExtColor(res.FileExtension);font-size:1.1rem;flex-shrink:0;"></i>
+                                            <span style="max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block;" title="@res.FileName">@res.FileName</span>
+                                        </div>
+                                    </td>
+                                    <td style="max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="@res.LectureTitle">@res.LectureTitle</td>
+                                    <td style="color:var(--text-2);font-size:.82rem;">@res.CourseName</td>
+                                    <td>
+                                        <span style="background:#eff6ff;color:#1d4ed8;padding:2px 8px;border-radius:10px;font-size:.75rem;font-weight:700;">
+                                            @res.ResourceTypeLabel
+                                        </span>
+                                    </td>
+                                    <td style="text-align:center;">
+                                        <span style="background:#d1fae5;color:#065f46;padding:2px 10px;border-radius:10px;font-size:.8rem;font-weight:700;">
+                                            <i class="fas fa-download fa-xs me-1"></i>@res.DownloadCount
+                                        </span>
+                                    </td>
+                                    <td style="font-size:.8rem;color:var(--text-2);">@res.CreatedAt.ToString("yyyy/MM/dd")</td>
+                                    <td>
+                                        <a asp-controller="LectureResources" asp-action="Manage" asp-route-lectureId="@res.LectureId"
+                                           style="font-size:.8rem;font-weight:700;color:var(--primary);text-decoration:none;">
+                                            <i class="fas fa-folder-open me-1"></i>إدارة
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <div class="td-empty">
+                        <i class="fas fa-paperclip"></i>
+                        لم يتم رفع أي ملفات بعد.
+                        <br>
+                        <a asp-controller="Lectures" asp-action="Index"
+                           style="margin-top:10px;display:inline-block;font-weight:700;color:var(--primary);font-size:.85rem;">
+                            ابدأ برفع ملفات من صفحة المحاضرات
+                        </a>
+                    </div>
                 }
             </div>
         </div>

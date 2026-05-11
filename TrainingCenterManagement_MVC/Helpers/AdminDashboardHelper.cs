@@ -98,10 +98,12 @@ namespace TrainingCenterManagement_MVC.Helpers
         // ─── Platform Health ─────────────────────────────────────────────────────
         private async Task<PlatformHealth> GetPlatformHealthAsync() => new PlatformHealth
         {
-            TotalCertificates = await _context.Certificates.CountAsync(c => !c.IsDeleted),
-            TotalLectures = await _context.Lectures.CountAsync(l => !l.IsDeleted),
-            TotalExams = await _context.Exams.CountAsync(e => !e.IsDeleted),
-            TotalPresences = await _context.Presences.CountAsync(p => p.IsPresent && !p.IsDeleted)
+            TotalCertificates       = await _context.Certificates.CountAsync(c => !c.IsDeleted),
+            TotalLectures           = await _context.Lectures.CountAsync(l => !l.IsDeleted),
+            TotalExams              = await _context.Exams.CountAsync(e => !e.IsDeleted),
+            TotalPresences          = await _context.Presences.CountAsync(p => p.IsPresent && !p.IsDeleted),
+            TotalLectureResources   = await _context.LectureResources.IgnoreQueryFilters().CountAsync(r => !r.IsDeleted),
+            TotalResourceDownloads  = await _context.LectureResources.IgnoreQueryFilters().Where(r => !r.IsDeleted).SumAsync(r => (int?)r.DownloadCount) ?? 0
         };
 
         // ─── Recent Activity ─────────────────────────────────────────────────────

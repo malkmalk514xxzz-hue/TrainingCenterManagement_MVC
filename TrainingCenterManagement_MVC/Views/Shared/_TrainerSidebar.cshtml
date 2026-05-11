@@ -87,10 +87,10 @@
                     <span>لوحة التحكم</span>
                 </a>
             </li>
-            <li class="@(currentPage == "lectures" ? "active" : "")">
+            <li class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Lectures" || ViewContext.RouteData.Values["controller"]?.ToString() == "LectureVideos" || ViewContext.RouteData.Values["controller"]?.ToString() == "LectureResources" ? "active" : "")">
                 <a asp-action="Index" asp-controller="Lectures">
                     <i class="fas fa-chalkboard-teacher"></i>
-                    <span>@SharedResource.Lectures</span>
+                    <span>المحاضرات</span>
                 </a>
             </li>
             <li class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Exams" || ViewContext.RouteData.Values["controller"]?.ToString() == "ExamAttempt" ? "active" : "")">

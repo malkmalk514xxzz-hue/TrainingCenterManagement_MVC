@@ -15,11 +15,9 @@ namespace TrainingCenterManagement_MVC.Models
 
         public string Description { get; set; }
 
-        [Url]
-        public string VideoUrl { get; set; }
+        public string? VideoUrl { get; set; }
 
-        [Url]
-        public string ThumbnailUrl { get; set; }
+        public string? ThumbnailUrl { get; set; }
 
         public DateTime LectureDate { get; set; } = DateTime.UtcNow;
 
@@ -37,5 +35,11 @@ namespace TrainingCenterManagement_MVC.Models
 
         // Lecture Materials
         public ICollection<LectureMaterial> Materials { get; set; } = new List<LectureMaterial>();
+
+        // Lecture Resources (new system)
+        public ICollection<LectureResource> Resources { get; set; } = new List<LectureResource>();
+
+        // Session tracking
+        public ICollection<LectureSession> Sessions { get; set; } = new List<LectureSession>();
     }
 }

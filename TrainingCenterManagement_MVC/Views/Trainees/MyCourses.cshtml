@@ -1,28 +1,89 @@
-﻿@model IEnumerable<TrainingCenterManagement_MVC.Models.Course>
+@model IEnumerable<TrainingCenterManagement_MVC.Models.Course>
+@{
+    ViewData["Title"] = "دوراتي";
+}
 
-<h3 class="mb-4">Enrolled Courses</h3>
+<style>
+    .mc-wrap { padding: 8px 0; direction: rtl; }
+    .mc-header { margin-bottom: 20px; }
+    .mc-header h2 { font-size: 1.2rem; font-weight: 700; color: #0f172a; margin: 0 0 4px; }
+    .mc-header p { font-size: .85rem; color: #64748b; margin: 0; }
+    .mc-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 16px;
+    }
+    .mc-card {
+        background: #fff; border-radius: 12px;
+        border: 1.5px solid #e2e8f0; padding: 20px;
+        display: flex; flex-direction: column; gap: 12px;
+        transition: .2s; box-shadow: 0 1px 4px rgba(0,0,0,.05);
+    }
+    .mc-card:hover { border-color: #a5b4fc; box-shadow: 0 4px 16px rgba(79,70,229,.1); }
+    .mc-icon {
+        width: 44px; height: 44px; border-radius: 10px;
+        background: linear-gradient(135deg, #4f46e5, #7c3aed);
+        display: flex; align-items: center; justify-content: center;
+        color: #fff; font-size: 1.1rem; flex-shrink: 0;
+    }
+    .mc-name { font-size: .95rem; font-weight: 700; color: #0f172a; margin: 0; }
+    .mc-trainer { font-size: .8rem; color: #64748b; margin: 0; display: flex; align-items: center; gap: 5px; }
+    .mc-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
+    .mc-btn {
+        flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px;
+        padding: 8px 12px; border-radius: 8px; text-decoration: none;
+        font-size: .8rem; font-weight: 600; transition: .15s;
+    }
+    .mc-btn-lectures { background: #eff6ff; color: #2563eb; }
+    .mc-btn-lectures:hover { background: #dbeafe; color: #1d4ed8; }
+    .mc-btn-details { background: #f1f5f9; color: #475569; }
+    .mc-btn-details:hover { background: #e2e8f0; color: #334155; }
+    .mc-empty { padding: 60px 20px; text-align: center; }
+    .mc-empty i { font-size: 3rem; color: #c7d2fe; display: block; margin-bottom: 16px; }
+    .mc-empty p { color: #64748b; font-size: .9rem; margin: 0; }
+</style>
 
-<table class="table table-bordered table-hover">
-    <thead class="table-primary text-center">
-        <tr>
-            <th>Course</th>
-            <th>Trainer</th>
-            <th style="width: 120px;">Details</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var course in Model)
-        {
-            <tr class="text-center">
-                <td>@course.CourseName</td>
-                <td>@course.Admin?.User?.FullName ?? "Not Assigned"</td>
-                <td>
-                    <a asp-controller="Courses" asp-action="Details" asp-route-id="@course.CourseId"
-                       class="btn btn-info btn-sm" title="View course details">
-                        Details
-                    </a>
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
+<div class="mc-wrap">
+    <div class="mc-header">
+        <h2><i class="fas fa-graduation-cap" style="color:#4f46e5;margin-left:6px;"></i> دوراتي</h2>
+        <p>الدورات التدريبية المسجل فيها</p>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="mc-empty">
+            <i class="fas fa-book-open"></i>
+            <p>لم تسجل في أي دورة بعد</p>
+        </div>
+    }
+    else
+    {
+        <div class="mc-grid">
+            @foreach (var course in Model)
+            {
+                <div class="mc-card">
+                    <div style="display:flex;align-items:center;gap:12px;">
+                        <div class="mc-icon"><i class="fas fa-book"></i></div>
+                        <div>
+                            <p class="mc-name">@course.CourseName</p>
+                            <p class="mc-trainer">
+                                <i class="fas fa-user-tie"></i>
+                                @(course.Admin?.User?.FullName ?? "غير محدد")
+                            </p>
+                        </div>
+                    </div>
+                    <div class="mc-actions">
+                        <a asp-controller="Trainees" asp-action="ViewLectures" asp-route-courseId="@course.CourseId"
+                           class="mc-btn mc-btn-lectures">
+                            <i class="fas fa-chalkboard-teacher"></i> المحاضرات
+                        </a>
+                        <a asp-controller="Courses" asp-action="Details" asp-route-id="@course.CourseId"
+                           class="mc-btn mc-btn-details">
+                            <i class="fas fa-info-circle"></i> التفاصيل
+                        </a>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>

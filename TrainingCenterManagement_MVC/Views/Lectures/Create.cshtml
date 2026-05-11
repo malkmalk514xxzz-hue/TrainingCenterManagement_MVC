@@ -1,484 +1,437 @@
-﻿@* @model TrainingCenterManagement_MVC.Models.Lecture
-
+@model TrainingCenterManagement_MVC.Models.Lecture
+@using TrainingCenterManagement_MVC.Models
 @{
-    ViewData["Title"] = "Create Lecture";
+    ViewData["Title"] = "إضافة محاضرة جديدة";
 }
 
-<h1>Create Lecture</h1>
-<hr />
-<div class="row">
-    <div class="col-md-6">
-        <form asp-action="Create" method="post">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+<link href="~/css/TrainerDashboard.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 
-            <div class="form-group mb-3">
-                <label asp-for="Title" class="form-label"></label>
-                <input asp-for="Title" class="form-control" placeholder="Enter lecture title" />
-                <span asp-validation-for="Title" class="text-danger"></span>
+<style>
+    :root {
+        --primary:#4f46e5;--primary-light:#6366f1;--primary-pale:#eef2ff;
+        --success:#10b981;--danger:#ef4444;
+        --body-bg:#f1f5f9;--card-bg:#fff;
+        --text-1:#0f172a;--text-2:#475569;--text-3:#94a3b8;
+        --border-color:#e2e8f0;
+        --shadow-md:0 4px 16px rgba(0,0,0,.08);
+        --radius:14px;--radius-sm:8px;
+    }
+    .lc-page{padding:28px 32px;}
+    .lc-bc{display:flex;align-items:center;gap:8px;font-size:.83rem;color:var(--text-3);margin-bottom:20px;}
+    .lc-bc a{color:var(--text-2);text-decoration:none;}.lc-bc a:hover{color:var(--primary);}
+    .lc-bc i{font-size:.65rem;}
+    .lc-ph h1{font-size:1.45rem;font-weight:700;color:var(--text-1);display:flex;align-items:center;gap:10px;margin:0 0 4px;}
+    .lc-ph .ib{width:36px;height:36px;border-radius:10px;background:var(--primary-pale);color:var(--primary);display:flex;align-items:center;justify-content:center;}
+    .lc-ph p{color:var(--text-2);font-size:.86rem;margin:0 0 22px;}
+    .lc-grid{display:grid;grid-template-columns:1fr 360px;gap:20px;align-items:start;}
+    @@media(max-width:880px){.lc-grid{grid-template-columns:1fr;}}
+
+    /* Card — NO overflow:hidden so file inputs work */
+    .lc-card{background:var(--card-bg);border-radius:var(--radius);box-shadow:var(--shadow-md);border:1px solid var(--border-color);margin-bottom:18px;}
+    .lc-ch{padding:14px 20px;border-bottom:1px solid var(--border-color);display:flex;align-items:center;gap:9px;border-radius:var(--radius) var(--radius) 0 0;}
+    .lc-ch i{font-size:.95rem;}
+    .lc-ch h2{font-size:.9rem;font-weight:700;color:var(--text-1);margin:0;}
+    .lc-cb{padding:20px;}
+
+    /* Fields */
+    .lc-f{margin-bottom:14px;}.lc-f:last-child{margin-bottom:0;}
+    .lc-lbl{display:block;font-size:.8rem;font-weight:600;color:var(--text-2);margin-bottom:4px;}
+    .lc-lbl .req{color:var(--danger);}
+    .lc-inp,.lc-ta,.lc-sel{
+        width:100%;padding:8px 11px;border:1.5px solid var(--border-color);border-radius:var(--radius-sm);
+        font-size:.87rem;color:var(--text-1);background:#fff;box-sizing:border-box;
+        font-family:inherit;transition:border-color .2s,box-shadow .2s;
+    }
+    .lc-inp:focus,.lc-ta:focus,.lc-sel:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(79,70,229,.1);}
+    .lc-ta{resize:vertical;min-height:85px;}
+    .lc-inp::placeholder,.lc-ta::placeholder{color:var(--text-3);}
+    .lc-hint{font-size:.73rem;color:var(--text-3);margin-top:3px;}
+    .lc-err{color:var(--danger);font-size:.76rem;margin-top:3px;}
+    .lc-row2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+    @@media(max-width:580px){.lc-row2{grid-template-columns:1fr;}}
+
+    /* Video tabs */
+    .vt-tabs{display:flex;background:var(--body-bg);border-radius:var(--radius-sm);padding:3px;margin-bottom:14px;}
+    .vt-tab{flex:1;padding:6px 10px;border:none;background:transparent;border-radius:6px;font-size:.8rem;font-weight:600;color:var(--text-2);cursor:pointer;font-family:inherit;transition:all .2s;}
+    .vt-tab.active{background:#fff;color:var(--primary);box-shadow:0 1px 3px rgba(0,0,0,.08);}
+    .vt-panel{display:none;}.vt-panel.active{display:block;}
+
+    /* File upload button-label pattern */
+    .file-label{
+        display:flex;align-items:center;gap:10px;
+        border:2px dashed var(--border-color);border-radius:var(--radius-sm);
+        padding:16px;cursor:pointer;transition:all .2s;background:#fafafa;
+    }
+    .file-label:hover{border-color:var(--primary);background:var(--primary-pale);}
+    .file-label.has-file{border-color:var(--success);background:#f0fdf4;border-style:solid;}
+    .file-label-icon{font-size:1.5rem;color:var(--text-3);flex-shrink:0;}
+    .file-label.has-file .file-label-icon{color:var(--success);}
+    .file-label-text{font-size:.83rem;font-weight:600;color:var(--text-2);}.file-label.has-file .file-label-text{color:var(--text-1);}
+    .file-label-hint{font-size:.72rem;color:var(--text-3);}
+    .file-label-size{font-size:.72rem;color:var(--success);display:none;}.file-label.has-file .file-label-size{display:block;}
+    .file-input-hidden{display:none;}
+
+    /* YT preview */
+    #yt-preview{display:none;border-radius:10px;overflow:hidden;aspect-ratio:16/9;margin-top:10px;}
+    #yt-preview iframe{width:100%;height:100%;border:none;}
+
+    /* Resource items */
+    .res-item{background:var(--body-bg);border:1px solid var(--border-color);border-radius:var(--radius-sm);padding:14px;margin-bottom:10px;}
+    .res-item-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+    .res-item-num{font-size:.75rem;font-weight:700;color:var(--primary);}
+    .res-del{background:none;border:none;color:var(--danger);cursor:pointer;font-size:.9rem;padding:2px 6px;}
+    .res-fields{display:flex;flex-direction:column;gap:9px;}
+    .res-sub-lbl{font-size:.75rem;font-weight:600;color:var(--text-2);margin-bottom:3px;display:block;}
+    .res-sel,.res-inp-small{width:100%;padding:7px 10px;border:1.5px solid var(--border-color);border-radius:6px;font-size:.82rem;color:var(--text-1);background:#fff;font-family:inherit;box-sizing:border-box;}
+    .res-check-row{display:flex;align-items:center;gap:6px;font-size:.79rem;color:var(--text-2);cursor:pointer;}
+
+    /* Actions */
+    .lc-acts{padding:14px 20px;border-top:1px solid var(--border-color);display:flex;gap:10px;justify-content:flex-end;border-radius:0 0 var(--radius) var(--radius);}
+    .lc-btn{display:inline-flex;align-items:center;gap:7px;padding:9px 20px;border-radius:var(--radius-sm);font-size:.87rem;font-weight:600;cursor:pointer;text-decoration:none;border:none;transition:all .2s;}
+    .lc-btn-primary{background:var(--primary);color:#fff;}.lc-btn-primary:hover{background:var(--primary-light);color:#fff;}
+    .lc-btn-ghost{background:transparent;color:var(--text-2);border:1.5px solid var(--border-color);}.lc-btn-ghost:hover{background:var(--body-bg);}
+
+    #add-res-btn{width:100%;background:var(--primary-pale);color:var(--primary);border:1.5px dashed var(--primary);border-radius:var(--radius-sm);padding:9px;font-size:.83rem;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;font-family:inherit;transition:all .2s;margin-top:4px;}
+    #add-res-btn:hover{background:var(--primary);color:#fff;}
+
+    /* Select2 */
+    .select2-container--default .select2-selection--single{height:38px!important;border:1.5px solid var(--border-color)!important;border-radius:var(--radius-sm)!important;padding:3px 8px!important;}
+    .select2-container--default .select2-selection--single .select2-selection__arrow{height:38px!important;}
+    .select2-container--default .select2-selection--single .select2-selection__rendered{line-height:29px!important;font-size:.87rem!important;}
+    .select2-container--default.select2-container--focus .select2-selection--single{border-color:var(--primary)!important;box-shadow:0 0 0 3px rgba(79,70,229,.1)!important;}
+</style>
+
+<div class="dashboard-wrapper">
+    @await Html.PartialAsync("_TrainerSidebar")
+
+    <main class="dashboard-main">
+        <div class="lc-page">
+
+            <!-- Breadcrumb -->
+            <nav class="lc-bc">
+                <a asp-controller="Dashboard" asp-action="TrainerDashboard">لوحة التحكم</a>
+                <i class="fas fa-chevron-left"></i>
+                <a asp-action="Index">المحاضرات</a>
+                <i class="fas fa-chevron-left"></i>
+                <span>محاضرة جديدة</span>
+            </nav>
+
+            <!-- Header -->
+            <div class="lc-ph">
+                <h1><span class="ib"><i class="fas fa-plus"></i></span> إضافة محاضرة جديدة</h1>
+                <p>أدخل بيانات المحاضرة — يمكنك إضافة فيديو وملفات داعمة مباشرةً أثناء الإنشاء</p>
             </div>
 
-            <div class="form-group mb-3">
-                <label asp-for="Description" class="form-label"></label>
-                <textarea asp-for="Description" class="form-control" rows="4" placeholder="Enter lecture description"></textarea>
-                <span asp-validation-for="Description" class="text-danger"></span>
-            </div>
+            <form asp-action="Create" method="post" enctype="multipart/form-data">
+                <div asp-validation-summary="ModelOnly" class="lc-err" style="margin-bottom:12px;padding:10px 14px;background:#fee2e2;border-radius:8px;border:1px solid #fca5a5;"></div>
 
-            <div class="form-group mb-3">
-                <label asp-for="VideoUrl" class="form-label"></label>
-                <input asp-for="VideoUrl" class="form-control" placeholder="Enter video URL" />
-                <span asp-validation-for="VideoUrl" class="text-danger"></span>
-            </div>
+                <div class="lc-grid">
 
-            <div class="form-group mb-3">
-                <label asp-for="ThumbnailUrl" class="form-label"></label>
-                <input asp-for="ThumbnailUrl" class="form-control" placeholder="Enter thumbnail URL" />
-                <span asp-validation-for="ThumbnailUrl" class="text-danger"></span>
-            </div>
+                    <!-- ─ Col 1: Info + Video ─ -->
+                    <div>
 
-            <div class="form-group mb-3">
-                <label asp-for="LectureDate" class="form-label"></label>
-                <input asp-for="LectureDate" type="date" class="form-control" />
-                <span asp-validation-for="LectureDate" class="text-danger"></span>
-            </div>
+                        <!-- Basic Info -->
+                        <div class="lc-card">
+                            <div class="lc-ch" style="background:linear-gradient(135deg,var(--primary-pale),#fff);">
+                                <i class="fas fa-info-circle" style="color:var(--primary);"></i>
+                                <h2>المعلومات الأساسية</h2>
+                            </div>
+                            <div class="lc-cb">
+                                <div class="lc-f">
+                                    <label asp-for="Title" class="lc-lbl">عنوان المحاضرة <span class="req">*</span></label>
+                                    <input asp-for="Title" class="lc-inp" placeholder="مثال: مقدمة في البرمجة الكائنية" />
+                                    <span asp-validation-for="Title" class="lc-err"></span>
+                                </div>
+                                <div class="lc-f">
+                                    <label asp-for="Description" class="lc-lbl">وصف المحاضرة</label>
+                                    <textarea asp-for="Description" class="lc-ta" placeholder="اكتب وصفاً موجزاً لمحتوى المحاضرة..."></textarea>
+                                </div>
+                                <div class="lc-row2">
+                                    <div class="lc-f" style="margin-bottom:0;">
+                                        <label asp-for="LectureDate" class="lc-lbl">تاريخ المحاضرة <span class="req">*</span></label>
+                                        <input asp-for="LectureDate" type="datetime-local" class="lc-inp" />
+                                        <span asp-validation-for="LectureDate" class="lc-err"></span>
+                                    </div>
+                                    <div class="lc-f" style="margin-bottom:0;">
+                                        <label asp-for="CourseId" class="lc-lbl">الدورة <span class="req">*</span></label>
+                                        <select asp-for="CourseId" class="lc-sel select2" asp-items="ViewBag.CourseId">
+                                            <option value="">-- اختر --</option>
+                                        </select>
+                                        <span asp-validation-for="CourseId" class="lc-err"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
-            <div class="form-check mb-3">
-                <input asp-for="IsDeleted" class="form-check-input" />
-                <label asp-for="IsDeleted" class="form-check-label"></label>
-            </div>
+                        <!-- Video Card -->
+                        <div class="lc-card">
+                            <div class="lc-ch" style="background:linear-gradient(135deg,#fdf4ff,#fff);">
+                                <i class="fas fa-play-circle" style="color:#9333ea;"></i>
+                                <h2>الفيديو <span style="font-weight:400;color:var(--text-3);font-size:.8rem;">(اختياري)</span></h2>
+                            </div>
+                            <div class="lc-cb">
+                                <div class="lc-f">
+                                    <label class="lc-lbl">عنوان الفيديو</label>
+                                    <input type="text" name="videoTitle" class="lc-inp" placeholder="يُستخدم عنوان المحاضرة إذا تُرك فارغاً" />
+                                </div>
 
-            <!-- Course Dropdown (Searchable) -->
-            <div class="form-group mb-3">
-                <label asp-for="CourseId" class="form-label"></label>
-                <select asp-for="CourseId" class="form-select select2" asp-items="ViewBag.CourseId">
-                    <option></option> <!-- Placeholder for Select2 -->
-                </select>
-                <span asp-validation-for="CourseId" class="text-danger"></span>
-            </div>
+                                <!-- Tabs -->
+                                <div class="vt-tabs">
+                                    <button type="button" class="vt-tab active" onclick="switchVTab(this,'vt-yt')">
+                                        <i class="fab fa-youtube" style="color:#ef4444;margin-left:4px;"></i> رابط YouTube
+                                    </button>
+                                    <button type="button" class="vt-tab" onclick="switchVTab(this,'vt-up')">
+                                        <i class="fas fa-upload" style="margin-left:4px;"></i> رفع ملف فيديو
+                                    </button>
+                                </div>
+                                <input type="hidden" name="videoType" id="vtype" value="youtube" />
 
-            <button type="submit" class="btn btn-primary">Create</button>
-            <a asp-action="Index" class="btn btn-secondary ms-2">Back to List</a>
-        </form>
-    </div>
+                                <!-- YouTube Panel -->
+                                <div id="vt-yt" class="vt-panel active">
+                                    <div class="lc-f">
+                                        <label class="lc-lbl">رابط YouTube</label>
+                                        <input type="url" name="youtubeUrl" id="yt-url" class="lc-inp" placeholder="https://www.youtube.com/watch?v=..." />
+                                        <p class="lc-hint"><i class="fab fa-youtube" style="color:#ef4444;"></i> يدعم: youtube.com/watch?v= أو youtu.be/</p>
+                                    </div>
+                                    <div id="yt-preview"><iframe id="yt-frame" src="" allow="accelerometer;autoplay;encrypted-media" allowfullscreen></iframe></div>
+                                </div>
+
+                                <!-- Upload Panel -->
+                                <div id="vt-up" class="vt-panel">
+                                    <!-- Video file -->
+                                    <input type="file" name="videoFile" id="video-input"
+                                           accept=".mp4,.webm,.ogg,.mov,.avi,.mkv"
+                                           style="position:fixed;top:-9999px;left:-9999px;opacity:0;"
+                                           onchange="onVideoFile(this)" />
+                                    <label for="video-input" class="file-label" id="video-label" style="cursor:pointer;">
+                                        <span class="file-label-icon"><i class="fas fa-film"></i></span>
+                                        <div style="flex-grow:1;">
+                                            <div class="file-label-text">انقر لاختيار ملف فيديو</div>
+                                            <div class="file-label-hint">mp4, webm, ogg, mov, avi, mkv — حتى 500 MB</div>
+                                            <div class="file-label-size" id="video-size"></div>
+                                        </div>
+                                        <i class="fas fa-chevron-left" style="color:var(--text-3);font-size:.75rem;"></i>
+                                    </label>
+
+                                    <!-- Thumbnail for uploaded video -->
+                                    <div style="margin-top:14px;">
+                                        <label class="lc-lbl" style="margin-bottom:6px;display:flex;align-items:center;gap:6px;">
+                                            <i class="fas fa-image" style="color:#7c3aed;"></i>
+                                            صورة مصغرة للفيديو
+                                            <span style="font-weight:400;color:var(--text-3);font-size:.75rem;">(اختياري — تظهر على بطاقة المحاضرة)</span>
+                                        </label>
+                                        <input type="file" name="thumbnailFile" id="thumb-input"
+                                               accept=".jpg,.jpeg,.png,.webp"
+                                               style="position:fixed;top:-9999px;left:-9999px;opacity:0;"
+                                               onchange="onThumbFile(this)" />
+                                        <label for="thumb-input" class="file-label" id="thumb-label" style="cursor:pointer;">
+                                            <span class="file-label-icon"><i class="fas fa-image"></i></span>
+                                            <div style="flex-grow:1;">
+                                                <div class="file-label-text">انقر لاختيار صورة مصغرة</div>
+                                                <div class="file-label-hint">JPG, PNG, WEBP — حتى 5 MB — الأبعاد المقترحة: 640×360</div>
+                                                <div class="file-label-size" id="thumb-size"></div>
+                                            </div>
+                                            <i class="fas fa-chevron-left" style="color:var(--text-3);font-size:.75rem;"></i>
+                                        </label>
+                                        <div id="thumb-preview" style="display:none;margin-top:8px;border-radius:8px;overflow:hidden;aspect-ratio:16/9;max-height:160px;">
+                                            <img id="thumb-preview-img" src="" alt="معاينة"
+                                                 style="width:100%;height:100%;object-fit:cover;display:block;" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Submit -->
+                        <div class="lc-card">
+                            <div class="lc-acts">
+                                <a asp-action="Index" class="lc-btn lc-btn-ghost">
+                                    <i class="fas fa-arrow-right"></i> رجوع
+                                </a>
+                                <button type="submit" class="lc-btn lc-btn-primary">
+                                    <i class="fas fa-plus-circle"></i> إضافة المحاضرة
+                                </button>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- ─ Col 2: Resources + Tips ─ -->
+                    <div>
+                        <div class="lc-card">
+                            <div class="lc-ch" style="background:linear-gradient(135deg,#f0fdf4,#fff);">
+                                <i class="fas fa-paperclip" style="color:var(--success);"></i>
+                                <h2>الملفات الداعمة <span style="font-weight:400;color:var(--text-3);font-size:.8rem;">(اختيارية)</span></h2>
+                            </div>
+                            <div class="lc-cb">
+                                <p style="font-size:.8rem;color:var(--text-3);margin:0 0 14px;">
+                                    أضف PDF، مستندات، شرائح، أكواد أو أي مواد مرتبطة بالمحاضرة.
+                                </p>
+
+                                <div id="res-container"></div>
+
+                                <button type="button" id="add-res-btn" onclick="addRes()">
+                                    <i class="fas fa-plus"></i> إضافة ملف
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Tips -->
+                        <div class="lc-card" style="background:var(--primary-pale);border-color:#c7d2fe;">
+                            <div class="lc-cb" style="padding:16px 18px;">
+                                <p style="font-size:.75rem;font-weight:700;color:var(--primary);margin:0 0 9px;display:flex;align-items:center;gap:5px;"><i class="fas fa-lightbulb"></i> نصائح</p>
+                                <ul style="font-size:.78rem;color:var(--text-2);margin:0;padding-right:14px;line-height:1.9;">
+                                    <li>يمكن إضافة المزيد من الفيديوهات والملفات لاحقاً</li>
+                                    <li>الملفات الإلزامية تُعلَّم للطلاب</li>
+                                    <li>يُشعَر الطلاب المسجلون تلقائياً</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </form>
+        </div>
+    </main>
 </div>
 
 @section Scripts {
-@{
-    await Html.RenderPartialAsync("_ValidationScriptsPartial");}
-
-    <!-- Select2 CSS & JS -->
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-
     <script>
         $(document).ready(function () {
-            $('.select2').select2({
-                placeholder: "Select a course",
-                allowClear: true
-            });
+            $('.select2').select2({ placeholder: "-- اختر الدورة --", allowClear: true, width: '100%' });
         });
+
+        /* Video tab */
+        function switchVTab(btn, id) {
+            document.querySelectorAll('.vt-tab').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.vt-panel').forEach(p => p.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(id).classList.add('active');
+            document.getElementById('vtype').value = id === 'vt-yt' ? 'youtube' : 'upload';
+        }
+
+        /* YouTube live preview */
+        document.getElementById('yt-url').addEventListener('input', function () {
+            const id = ytId(this.value.trim());
+            const p = document.getElementById('yt-preview');
+            if (id) {
+                document.getElementById('yt-frame').src = `https://www.youtube.com/embed/${id}`;
+                p.style.display = 'block';
+            } else {
+                document.getElementById('yt-frame').src = '';
+                p.style.display = 'none';
+            }
+        });
+        function ytId(url) {
+            try { const u = new URL(url); return u.hostname.includes('youtu.be') ? u.pathname.slice(1) : u.searchParams.get('v'); }
+            catch { return null; }
+        }
+
+        /* Video file */
+        function onVideoFile(input) {
+            if (!input.files || !input.files[0]) return;
+            const f = input.files[0];
+            if (f.size > 500 * 1024 * 1024) { alert('حجم الملف يتجاوز 500 MB'); input.value = ''; return; }
+            const lbl = document.getElementById('video-label');
+            lbl.classList.add('has-file');
+            lbl.querySelector('.file-label-text').textContent = f.name;
+            document.getElementById('video-size').textContent = fmtBytes(f.size);
+        }
+
+        /* Thumbnail file */
+        function onThumbFile(input) {
+            if (!input.files || !input.files[0]) return;
+            const f = input.files[0];
+            if (f.size > 5 * 1024 * 1024) { alert('حجم الصورة يتجاوز 5 MB'); input.value = ''; return; }
+            const lbl = document.getElementById('thumb-label');
+            lbl.classList.add('has-file');
+            lbl.querySelector('.file-label-text').textContent = f.name;
+            document.getElementById('thumb-size').textContent = fmtBytes(f.size);
+            // Live preview
+            const reader = new FileReader();
+            reader.onload = e => {
+                document.getElementById('thumb-preview-img').src = e.target.result;
+                document.getElementById('thumb-preview').style.display = 'block';
+            };
+            reader.readAsDataURL(f);
+        }
+
+        /* Resource rows */
+        var rc = 0;
+        const rtypes = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(
+            Enum.GetValues(typeof(ResourceType)).Cast<ResourceType>()
+            .Select(t => new { v = (int)t, l = t switch {
+                ResourceType.LectureSlides => "شرائح المحاضرة",
+                ResourceType.Notes => "ملاحظات",
+                ResourceType.Assignment => "واجب",
+                ResourceType.Solution => "الحل",
+                ResourceType.ProjectFiles => "ملفات المشروع",
+                ResourceType.Reference => "مراجع إضافية",
+                ResourceType.Code => "أكواد",
+                _ => "أخرى"
+            }})
+        ));
+
+        function addRes() {
+            const i = rc++;
+            const opts = rtypes.map(o => `<option value="${o.v}">${o.l}</option>`).join('');
+            const el = document.createElement('div');
+            el.className = 'res-item';
+            el.id = `ri-${i}`;
+            el.innerHTML = `
+              <div class="res-item-head">
+                <span class="res-item-num">ملف #${i + 1}</span>
+                <button type="button" class="res-del" onclick="rmRes(${i})"><i class="fas fa-trash-alt"></i></button>
+              </div>
+              <div class="res-fields">
+                <div>
+                  <input type="file" id="rf-${i}" name="resourceFiles"
+                    accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.zip,.rar,.txt,.png,.jpg,.jpeg,.mp4,.py,.js,.java,.cs,.cpp"
+                    style="position:fixed;top:-9999px;left:-9999px;opacity:0;"
+                    onchange="onResFile(this,${i})" />
+                  <label for="rf-${i}" class="file-label" id="rl-${i}" style="cursor:pointer;display:flex;align-items:center;gap:10px;">
+                    <span class="file-label-icon"><i class="fas fa-file-upload"></i></span>
+                    <div style="flex-grow:1;">
+                      <div class="file-label-text">انقر لاختيار الملف</div>
+                      <div class="file-label-hint">PDF، Word، PowerPoint، Excel، ZIP، صور، كود...</div>
+                      <div class="file-label-size" id="rs-${i}"></div>
+                    </div>
+                  </label>
+                </div>
+                <div>
+                  <span class="res-sub-lbl">نوع الملف</span>
+                  <select name="resourceTypes" class="res-sel">${opts}</select>
+                </div>
+                <div>
+                  <span class="res-sub-lbl">وصف (اختياري)</span>
+                  <input type="text" name="resourceDescriptions" class="res-inp-small" placeholder="وصف مختصر..." />
+                </div>
+                <label class="res-check-row">
+                  <input type="checkbox" name="resourceRequired" value="true" style="accent-color:var(--primary);width:14px;height:14px;" />
+                  إلزامي للطلاب
+                </label>
+              </div>`;
+            document.getElementById('res-container').appendChild(el);
+        }
+
+        function rmRes(i) { const el = document.getElementById(`ri-${i}`); if (el) el.remove(); }
+
+        function onResFile(input, i) {
+            if (!input.files || !input.files[0]) return;
+            const f = input.files[0];
+            const lbl = document.getElementById(`rl-${i}`);
+            lbl.classList.add('has-file');
+            lbl.querySelector('.file-label-text').textContent = f.name;
+            document.getElementById(`rs-${i}`).textContent = fmtBytes(f.size);
+        }
+
+        function fmtBytes(b) {
+            if (b < 1024) return b + ' B';
+            if (b < 1048576) return (b / 1024).toFixed(1) + ' KB';
+            return (b / 1048576).toFixed(1) + ' MB';
+        }
     </script>
 }
- *@
-
-@model TrainingCenterManagement_MVC.Models.Lecture
-@{
-    ViewData["Title"] = "Create Lecture";
-}
-
-<!DOCTYPE html>
-<html>
-<head>
-    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="" />
-    <link rel="stylesheet"
-          as="style"
-          onload="this.rel='stylesheet'"
-          href="https://fonts.googleapis.com/css2?display=swap&family=Inter%3Awght%40400%3B500%3B700%3B900&family=Noto+Sans%3Awght%40400%3B500%3B700%3B900" />
-    <title>@ViewData["Title"]</title>
-    <link rel="icon" type="image/x-icon" href="data:image/x-icon;base64," />
-
-    <style>
-        /* General Styles */
-        body {
-            font-family: 'Inter', 'Noto Sans', sans-serif;
-            background-color: #ffffff;
-            color: #111418;
-            margin: 0;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            width: 100%;
-            position: relative;
-            overflow-x: hidden;
-        }
-
-        .layout-container {
-            display: flex;
-            flex-direction: column;
-            flex-grow: 1;
-            height: 100%;
-        }
-
-        /* Header */
-        .header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            white-space: nowrap;
-            border-bottom: 1px solid #f0f2f5;
-            padding: 0.75rem 2.5rem;
-        }
-
-        .header-left {
-            display: flex;
-            align-items: center;
-            gap: 2rem;
-        }
-
-        .header-right {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .logo-container {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            color: #111418;
-        }
-
-        .logo-icon {
-            width: 2.5rem;
-            height: 2.5rem;
-            flex-shrink: 0;
-            border-radius: 9999px;
-            background-color: #f0f2f5;
-            color: #111418;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .logo-text {
-            font-size: 1.125rem;
-            font-weight: 700;
-            line-height: 1.25;
-            letter-spacing: -0.015em;
-            color: #111418;
-        }
-
-        .header-nav a {
-            color: #60758a;
-            font-size: 0.875rem;
-            font-weight: 500;
-            line-height: 1.25rem;
-        }
-
-        /* Main Content - Updated to reduce the space */
-        .main-content {
-            display: flex;
-            flex-grow: 1;
-            justify-content: center;
-            padding: 0.5rem 1.5rem; /* تم تقليل المسافة العلوية */
-        }
-
-        /* Content Container - Updated to reduce the space */
-        .content-container {
-            display: flex;
-            flex-direction: column;
-            width: 512px;
-            max-width: 960px;
-            padding: 0.5rem 0; /* تم تقليل المسافة العلوية */
-            flex-grow: 1;
-        }
-
-        .page-title {
-            color: #111418;
-            letter-spacing: -0.015em;
-            font-size: 2rem;
-            font-weight: 700;
-            line-height: 1.25;
-            min-width: 18rem;
-            padding: 0.25rem 1rem; /* تم تقليل المسافة العلوية والسفلية */
-        }
-
-        /* Form Elements - Updated to reduce the space */
-        .form-field {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: flex-end;
-            gap: 0.5rem;
-            padding: 0.25rem 1rem; /* تم تقليل المسافة الداخلية */
-            max-width: 480px;
-        }
-
-        .form-label {
-            display: flex;
-            flex-direction: column;
-            min-width: 10rem;
-            flex-grow: 1;
-        }
-
-        .label-text {
-            color: #111418;
-            font-size: 1rem;
-            font-weight: 500;
-            line-height: 1.5;
-            padding-bottom: 0.25rem;
-        }
-
-        .form-input, .form-textarea, .form-select {
-            display: flex;
-            width: 100%;
-            min-width: 0;
-            flex-grow: 1;
-            resize: none;
-            overflow: hidden;
-            border-radius: 0.5rem;
-            color: #111418;
-            border: 1px solid #dbe0e6;
-            background-color: #ffffff;
-            height: 3.5rem;
-            padding: 0.9375rem;
-            font-size: 1rem;
-            font-weight: 400;
-            line-height: 1.5;
-        }
-
-        .form-textarea {
-            min-height: 9rem;
-        }
-
-            .form-input::placeholder, .form-textarea::placeholder {
-                color: #60758a;
-            }
-
-            .form-input:focus, .form-textarea:focus, .form-select:focus {
-                outline: 2px solid transparent;
-                outline-offset: 2px;
-                border-color: #dbe0e6;
-            }
-
-        /* Toggle Switch */
-        .toggle-container {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            background-color: #ffffff;
-            padding: 0.5rem 1rem;
-            min-height: 3.5rem;
-            justify-content: space-between;
-        }
-
-        .toggle-text {
-            color: #111418;
-            font-size: 1rem;
-            font-weight: 400;
-            line-height: 1.5;
-            flex-grow: 1;
-            overflow: hidden;
-            white-space: nowrap;
-            text-overflow: ellipsis;
-        }
-
-        .toggle-switch-wrapper {
-            flex-shrink: 0;
-        }
-
-        .toggle-switch-label {
-            position: relative;
-            display: flex;
-            height: 31px;
-            width: 51px;
-            cursor: pointer;
-            align-items: center;
-            border-radius: 9999px;
-            border: none;
-            background-color: #f0f2f5;
-            padding: 0.125rem;
-        }
-
-            .toggle-switch-label input:checked + .toggle-switch-slider {
-                background-color: #0d80f2;
-                justify-content: flex-end;
-            }
-
-        .toggle-switch-slider {
-            height: 100%;
-            width: 27px;
-            border-radius: 9999px;
-            background-color: white;
-            box-shadow: rgba(0, 0, 0, 0.15) 0px 3px 8px, rgba(0, 0, 0, 0.06) 0px 3px 1px;
-        }
-
-        .toggle-switch-label input {
-            visibility: hidden;
-            position: absolute;
-        }
-
-        /* Buttons */
-        .button-group {
-            display: flex;
-            justify-content: stretch;
-        }
-
-        .buttons-container {
-            display: flex;
-            flex-grow: 1;
-            gap: 0.5rem;
-            flex-wrap: wrap;
-            padding: 0.25rem 1rem;
-            justify-content: flex-end;
-            max-width: 480px;
-        }
-
-        .primary-button, .secondary-button {
-            display: flex;
-            min-width: 84px;
-            max-width: 480px;
-            cursor: pointer;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-            border-radius: 0.5rem;
-            height: 2.5rem;
-            padding: 0 1rem;
-            font-size: 0.875rem;
-            font-weight: 700;
-            line-height: 1.5;
-            letter-spacing: 0.015em;
-            border: none;
-        }
-
-        .primary-button {
-            background-color: #0d80f2;
-            color: #ffffff;
-        }
-
-        .secondary-button {
-            background-color: #f0f2f5;
-            color: #111418;
-        }
-
-        .validation-text {
-            color: red;
-        }
-
-        /* Specific Select2 styling to override default */
-        .select2-container--default .select2-selection--single {
-            border-color: #dbe0e6 !important;
-            border-radius: 0.5rem !important;
-            height: 3.5rem !important;
-            padding: 0.9375rem !important;
-        }
-
-            .select2-container--default .select2-selection--single .select2-selection__arrow {
-                height: 3.5rem !important;
-            }
-    </style>
-</head>
-
-<body>
-    <div class="layout-container">
-        @Html.Partial("_LandingHeader")
-        <main class="main-content">
-            <div class="content-container">
-                <p class="page-title">Create Lecture Content</p>
-                <form asp-action="Create" method="post" class="form-container">
-                    <div asp-validation-summary="ModelOnly" class="validation-text"></div>
-
-                    <div class="form-field">
-                        <label asp-for="Title" class="form-label">
-                            <p class="label-text">Title</p>
-                            <input asp-for="Title" placeholder="Enter lecture title" class="form-input" />
-                            <span asp-validation-for="Title" class="validation-text"></span>
-                        </label>
-                    </div>
-
-                    <div class="form-field">
-                        <label asp-for="Description" class="form-label">
-                            <p class="label-text">Description</p>
-                            <textarea asp-for="Description" placeholder="Enter lecture description" class="form-textarea"></textarea>
-                            <span asp-validation-for="Description" class="validation-text"></span>
-                        </label>
-                    </div>
-
-                    <div class="form-field">
-                        <label asp-for="VideoUrl" class="form-label">
-                            <p class="label-text">VideoUrl</p>
-                            <input asp-for="VideoUrl" placeholder="Enter video URL" class="form-input" />
-                            <span asp-validation-for="VideoUrl" class="validation-text"></span>
-                        </label>
-                    </div>
-
-                    <div class="form-field">
-                        <label asp-for="ThumbnailUrl" class="form-label">
-                            <p class="label-text">ThumbnailUrl</p>
-                            <input asp-for="ThumbnailUrl" placeholder="Enter thumbnail URL" class="form-input" />
-                            <span asp-validation-for="ThumbnailUrl" class="validation-text"></span>
-                        </label>
-                    </div>
-
-                    <div class="form-field">
-                        <label asp-for="LectureDate" class="form-label">
-                            <p class="label-text">LectureDate</p>
-                            <input asp-for="LectureDate" type="date" class="form-input" />
-                            <span asp-validation-for="LectureDate" class="validation-text"></span>
-                        </label>
-                    </div>
-
-                    @* <div class="toggle-container">
-                        <p class="toggle-text">IsDeleted</p>
-                        <div class="toggle-switch-wrapper">
-                            <label class="toggle-switch-label">
-                                <input type="checkbox" asp-for="IsDeleted" />
-                                <div class="toggle-switch-slider"></div>
-                            </label>
-                        </div>
-                        <span asp-validation-for="IsDeleted" class="validation-text"></span>
-                    </div> *@
-
-                    <div class="form-field">
-                        <label asp-for="CourseId" class="form-label">
-                            <p class="label-text">CourseId</p>
-                            <select asp-for="CourseId" class="form-input select2" asp-items="ViewBag.CourseId">
-                                <option></option>
-                            </select>
-                            <span asp-validation-for="CourseId" class="validation-text"></span>
-                        </label>
-                    </div>
-
-                    <div class="button-group">
-                        <div class="buttons-container">
-                            <a asp-action="Index" class="secondary-button">
-                                <span class="truncate">Back to List</span>
-                            </a>
-                            <button type="submit" class="primary-button">
-                                <span class="truncate">Create</span>
-                            </button>
-                        </div>
-                    </div>
-                </form>
-            </div>
-        </main>
-    </div>
-</body>
-
-@section Scripts {
-        @{
-                await Html.RenderPartialAsync("_ValidationScriptsPartial");
-        }
-
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-
-    <script>
-        $(document).ready(function () {
-            $('.select2').select2({
-                placeholder: "Select a course",
-                allowClear: true
-            });
-        });
-    </script>
-}
-</html>
