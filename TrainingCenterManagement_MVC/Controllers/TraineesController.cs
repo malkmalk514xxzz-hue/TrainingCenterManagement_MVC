@@ -272,6 +272,30 @@ namespace TrainingCenterManagement_MVC.Controllers
             return View(payments);
         }
 
-   
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Trainee")]
+        public async Task<IActionResult> SelfEnroll(Guid courseId)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var trainee = await _context.Trainees.FirstOrDefaultAsync(t => t.UserId == userId);
+            if (trainee == null) return Forbid();
+
+            var already = await _context.CourseTrainees
+                .AnyAsync(ct => ct.TraineeId == trainee.TraineeId && ct.CourseId == courseId);
+
+            if (!already)
+            {
+                _context.CourseTrainees.Add(new CourseTrainee { TraineeId = trainee.TraineeId, CourseId = courseId });
+                await _context.SaveChangesAsync();
+                TempData["Success"] = "تم تسجيلك في الدورة بنجاح!";
+            }
+            else
+            {
+                TempData["Info"] = "أنت مسجل بالفعل في هذه الدورة.";
+            }
+
+            return RedirectToAction("TraineeDashboard", "Dashboard");
+        }
     }
 }

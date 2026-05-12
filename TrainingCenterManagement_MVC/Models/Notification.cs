@@ -6,7 +6,8 @@ namespace TrainingCenterManagement_MVC.Models
         LectureAdded    = 1,
         PaymentReceived = 2,
         MessageReceived = 3,
-        ExamAdded       = 4
+        ExamAdded            = 4,
+        LiveSessionScheduled = 5
     }
     public class UserNotification
     {

@@ -223,6 +223,33 @@
     .td-event-title { font-size: .9rem; font-weight: 600; color: var(--text-1); margin-bottom: 2px; }
     .td-event-time  { font-size: .78rem; color: var(--text-2); }
 
+    /* ===== Live Session Buttons ===== */
+    .td-live-join-btn {
+        display: inline-flex; align-items: center; gap: 6px;
+        background: #7c3aed; color: #fff; text-decoration: none;
+        font-size: .8rem; font-weight: 700; padding: 7px 14px;
+        border-radius: 20px; white-space: nowrap;
+        box-shadow: 0 0 0 3px rgba(124,58,237,.2);
+        animation: glow 1.5s infinite alternate;
+    }
+    .td-live-join-btn:hover { opacity:.88; color:#fff; text-decoration:none; }
+    @@keyframes glow { from{box-shadow:0 0 0 2px rgba(124,58,237,.2)} to{box-shadow:0 0 0 6px rgba(124,58,237,.4)} }
+
+    .td-live-soon-btn {
+        display: inline-flex; align-items: center; gap: 5px;
+        background: #ede9fe; color: #7c3aed; text-decoration: none;
+        font-size: .78rem; font-weight: 600; padding: 6px 12px;
+        border-radius: 20px; white-space: nowrap;
+        border: 1px solid #ddd6fe;
+    }
+    .td-live-soon-btn:hover { background:#ddd6fe; color:#7c3aed; text-decoration:none; }
+
+    .td-pulse-dot {
+        display: inline-block; width: 8px; height: 8px;
+        border-radius: 50%; background: #fff;
+        animation: pulse 1.2s infinite;
+    }
+
     /* ===== Quick Actions ===== */
     .td-quick-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
     @@media (max-width: 700px) { .td-quick-grid { grid-template-columns: repeat(2, 1fr); } }
@@ -264,27 +291,95 @@
     .td-tab-content.active { display: block; }
 
     /* ===== Recommended Courses Grid ===== */
-    .td-rec-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
+    .td-rec-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 20px;
+    }
     .td-rec-card {
-        background: #fff; border-radius: var(--radius);
-        border: 1.5px solid var(--border-color); padding: 20px;
+        background: #fff;
+        border-radius: var(--radius);
+        border: 1.5px solid var(--border-color);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
         transition: var(--transition);
     }
-    .td-rec-card:hover { border-color: var(--primary); box-shadow: var(--shadow-md); }
-    .td-rec-icon {
-        width: 44px; height: 44px; border-radius: 10px;
-        background: var(--primary-pale); color: var(--primary);
+    .td-rec-card:hover {
+        border-color: var(--primary);
+        box-shadow: 0 8px 24px rgba(13,148,136,.15);
+        transform: translateY(-3px);
+    }
+    /* thumbnail */
+    .td-rec-thumb {
+        width: 100%; height: 150px; object-fit: cover; display: block;
+    }
+    /* fallback placeholder */
+    .td-rec-placeholder {
+        width: 100%; height: 150px;
+        background: linear-gradient(135deg, var(--primary-pale), #e0f2fe);
         display: flex; align-items: center; justify-content: center;
-        font-size: 1.2rem; margin-bottom: 12px;
+        font-size: 2.5rem; color: var(--primary);
     }
-    .td-rec-name { font-size: .9rem; font-weight: 700; color: var(--text-1); margin-bottom: 6px; }
-    .td-rec-desc { font-size: .8rem; color: var(--text-2); margin-bottom: 14px; line-height: 1.5;
-        display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    /* body */
+    .td-rec-body { padding: 14px 16px; flex: 1; }
+    .td-rec-name {
+        font-size: .95rem; font-weight: 700; color: var(--text-1);
+        margin-bottom: 6px; line-height: 1.4;
+    }
+    .td-rec-desc {
+        font-size: .8rem; color: var(--text-2); line-height: 1.55;
+        display: -webkit-box; -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical; overflow: hidden;
+        margin-bottom: 12px;
+    }
+    .td-rec-meta {
+        display: flex; align-items: center; justify-content: space-between;
+        font-size: .8rem; color: var(--text-2);
+    }
+    .td-rec-price {
+        font-weight: 800; color: var(--primary); font-size: .95rem;
+        background: var(--primary-pale); padding: 3px 10px;
+        border-radius: 20px;
+    }
+    .td-rec-lectures { display: flex; align-items: center; gap: 5px; }
+    /* footer */
+    .td-rec-footer {
+        display: flex; align-items: center; gap: 8px;
+        padding: 12px 16px;
+        border-top: 1px solid var(--border-color);
+        background: #fafafa;
+    }
+    .td-rec-footer form { flex: 1; }
     .td-rec-link {
-        display: inline-flex; align-items: center; gap: 4px;
-        font-size: .8rem; font-weight: 600; color: var(--primary); text-decoration: none;
+        display: inline-flex; align-items: center; gap: 5px;
+        font-size: .8rem; font-weight: 600; color: var(--primary);
+        text-decoration: none; border: 1.5px solid var(--primary);
+        border-radius: 8px; padding: 7px 12px; white-space: nowrap;
+        transition: var(--transition);
     }
-    .td-rec-link:hover { text-decoration: underline; }
+    .td-rec-link:hover { background: var(--primary-pale); text-decoration: none; }
+    .td-rec-enroll-btn {
+        width: 100%;
+        display: flex; align-items: center; justify-content: center; gap: 7px;
+        font-size: .88rem; font-weight: 700; color: #fff;
+        background: var(--primary); border: none; border-radius: 8px;
+        padding: 9px 0; cursor: pointer; transition: var(--transition);
+        letter-spacing: .3px;
+    }
+    .td-rec-enroll-btn:hover {
+        background: var(--primary-light);
+        box-shadow: 0 4px 14px rgba(13,148,136,.35);
+    }
+
+    /* ===== Alerts ===== */
+    .td-alert {
+        display: flex; align-items: center; gap: 10px;
+        padding: 12px 18px; border-radius: 10px;
+        font-size: .9rem; font-weight: 600; margin-bottom: 16px;
+    }
+    .td-alert-success { background: #d1fae5; color: #065f46; border: 1px solid #6ee7b7; }
+    .td-alert-info    { background: #e0f2fe; color: #0c4a6e; border: 1px solid #7dd3fc; }
 
     /* ===== Certificates ===== */
     .td-cert-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; }
@@ -323,6 +418,15 @@
     @await Html.PartialAsync("_TraineeSidebar")
 
     <main class="dashboard-main">
+
+        @if (TempData["Success"] != null)
+        {
+            <div class="td-alert td-alert-success"><i class="fas fa-check-circle"></i> @TempData["Success"]</div>
+        }
+        @if (TempData["Info"] != null)
+        {
+            <div class="td-alert td-alert-info"><i class="fas fa-info-circle"></i> @TempData["Info"]</div>
+        }
 
         <!-- ① Header -->
         <div class="td-header">
@@ -439,6 +543,50 @@
                 }
             </div>
 
+            <!-- Live Sessions Card -->
+            @if (Model.UpcomingLiveSessions.Any())
+            {
+                <div id="live-sessions-card" class="td-card" style="border:2px solid #7c3aed;background:linear-gradient(135deg,#faf5ff,#f5f3ff);">
+                    <p class="td-card-title" style="color:#7c3aed;">
+                        <i class="fas fa-broadcast-tower"></i> الجلسات المباشرة القادمة
+                    </p>
+                    <div id="ls-rows">
+                    @foreach (var ls in Model.UpcomingLiveSessions)
+                    {
+                        <div class="td-event-item ls-row" id="ls-row-@ls.Id" style="align-items:center;">
+                            <div class="td-event-date" style="background:#f3e8ff;color:#7c3aed;min-width:52px;">
+                                <div class="day">@ls.ScheduledAt.ToLocalTime().Day</div>
+                                <div class="mon">@ls.ScheduledAt.ToLocalTime().ToString("MMM")</div>
+                            </div>
+                            <div style="flex:1;">
+                                <div class="td-event-title">@ls.Title</div>
+                                <div class="td-event-time">
+                                    <span style="background:#ede9fe;color:#7c3aed;font-size:.7rem;padding:1px 7px;border-radius:10px;margin-left:4px;">
+                                        @ls.CourseName
+                                    </span>
+                                    @ls.ScheduledAt.ToLocalTime().ToString("hh:mm tt")
+                                </div>
+                            </div>
+                            <a asp-controller="LiveSessions" asp-action="Join" asp-route-id="@ls.Id"
+                               target="_blank"
+                               class="@(ls.IsLiveNow ? "td-live-join-btn" : "td-live-soon-btn")">
+                                @if (ls.IsLiveNow)
+                                {
+                                    <span class="td-pulse-dot"></span>
+                                    <text>انضم الآن</text>
+                                }
+                                else
+                                {
+                                    <i class="fas fa-clock"></i>
+                                    <text>@ls.ScheduledAt.ToLocalTime().ToString("hh:mm tt")</text>
+                                }
+                            </a>
+                        </div>
+                    }
+                    </div>
+                </div>
+            }
+
             <div class="td-card">
                 <p class="td-card-title"><i class="fas fa-calendar-alt"></i> الأحداث القادمة</p>
                 @if (Model.UpcomingEvents.Any())
@@ -548,12 +696,46 @@
                         @foreach (var rc in Model.RecommendedCourses)
                         {
                             <div class="td-rec-card">
-                                <div class="td-rec-icon"><i class="fas fa-star"></i></div>
-                                <div class="td-rec-name">@rc.Name</div>
-                                <div class="td-rec-desc">@rc.Description</div>
-                                <a asp-controller="Courses" asp-action="Details" asp-route-id="@rc.Id" class="td-rec-link">
-                                    <i class="fas fa-arrow-left"></i> عرض التفاصيل
-                                </a>
+                                <!-- Thumbnail -->
+                                @if (!string.IsNullOrEmpty(rc.ThumbnailUrl))
+                                {
+                                    <img src="@rc.ThumbnailUrl" alt="@rc.Name" class="td-rec-thumb" />
+                                }
+                                else
+                                {
+                                    <div class="td-rec-placeholder">
+                                        <i class="fas fa-graduation-cap"></i>
+                                    </div>
+                                }
+
+                                <!-- Body -->
+                                <div class="td-rec-body">
+                                    <div class="td-rec-name">@rc.Name</div>
+                                    <div class="td-rec-desc">@rc.Description</div>
+
+                                    <div class="td-rec-meta">
+                                        <span class="td-rec-price">
+                                            @(rc.Currency == "USD" ? "$" : rc.Currency == "EUR" ? "€" : "ل.س ")@rc.Price.ToString("N0")
+                                        </span>
+                                        <span class="td-rec-lectures">
+                                            <i class="fas fa-video"></i> @rc.LectureCount محاضرة
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <!-- Footer actions -->
+                                <div class="td-rec-footer">
+                                    <a asp-controller="Courses" asp-action="Details" asp-route-id="@rc.Id" class="td-rec-link">
+                                        <i class="fas fa-eye"></i> التفاصيل
+                                    </a>
+                                    <form asp-controller="Trainees" asp-action="SelfEnroll" method="post">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="courseId" value="@rc.Id" />
+                                        <button type="submit" class="td-rec-enroll-btn">
+                                            <i class="fas fa-user-plus"></i> سجّل الآن
+                                        </button>
+                                    </form>
+                                </div>
                             </div>
                         }
                     </div>
@@ -664,4 +846,110 @@
             }
         });
     }
+
+    // ─── Live Session Real-time Updates ─────────────────────────────────────
+    (function () {
+        const lsCard = document.getElementById('live-sessions-card');
+
+        const hub = new signalR.HubConnectionBuilder()
+            .withUrl('/chatHub')
+            .withAutomaticReconnect()
+            .build();
+
+        hub.on('LiveSessionUpdate', function (data) {
+            if (data.eventType === 'cancelled') {
+                removeSessionRow(data.sessionId);
+                showLiveToast('❌ تم إلغاء جلسة: ' + data.title, 'cancelled');
+            } else if (data.eventType === 'edited') {
+                updateSessionRow(data);
+                showLiveToast('✏️ تم تعديل جلسة: ' + data.title + ' | ' + data.scheduledLocal, 'edited');
+            } else if (data.eventType === 'created') {
+                addSessionRow(data);
+                showLiveToast('📅 جلسة جديدة: ' + data.title + ' | ' + data.scheduledLocal, 'created');
+            }
+        });
+
+        hub.start().catch(console.error);
+
+        function getOrCreateCard() {
+            if (lsCard) return lsCard;
+            // No card yet (no sessions existed), inject one before upcoming-events
+            const anchor = document.querySelector('.td-card');
+            if (!anchor) return null;
+            const div = document.createElement('div');
+            div.id = 'live-sessions-card';
+            div.className = 'td-card';
+            div.style.cssText = 'border:2px solid #7c3aed;background:linear-gradient(135deg,#faf5ff,#f5f3ff);';
+            div.innerHTML = `<p class="td-card-title" style="color:#7c3aed;"><i class="fas fa-broadcast-tower"></i> الجلسات المباشرة القادمة</p>
+                             <div id="ls-rows"></div>`;
+            anchor.parentNode.insertBefore(div, anchor);
+            return div;
+        }
+
+        function buildRow(data) {
+            const dt      = new Date(data.scheduledAt);
+            const isNow   = (dt - Date.now()) <= 15 * 60 * 1000;
+            const day     = dt.toLocaleDateString('ar-SA', { day: 'numeric' });
+            const mon     = dt.toLocaleDateString('ar-SA', { month: 'short' });
+            const joinBtn = isNow
+                ? `<a href="/LiveSessions/Join/${data.sessionId}" target="_blank" class="td-live-join-btn"><span class="td-pulse-dot"></span> انضم الآن</a>`
+                : `<span class="td-live-soon-btn"><i class="fas fa-clock"></i> ${data.scheduledLocal}</span>`;
+
+            return `<div class="td-event-item ls-row" id="ls-row-${data.sessionId}" style="align-items:center;">
+                <div class="td-event-date" style="background:#f3e8ff;color:#7c3aed;min-width:52px;">
+                    <div class="day">${day}</div><div class="mon">${mon}</div>
+                </div>
+                <div style="flex:1;">
+                    <div class="td-event-title">${escHtml(data.title)}</div>
+                    <div class="td-event-time">
+                        <span style="background:#ede9fe;color:#7c3aed;font-size:.7rem;padding:1px 7px;border-radius:10px;margin-left:4px;">${escHtml(data.courseName)}</span>
+                        ${data.scheduledLocal}
+                    </div>
+                </div>
+                ${joinBtn}
+            </div>`;
+        }
+
+        function addSessionRow(data) {
+            const card = getOrCreateCard();
+            if (!card) return;
+            let rows = card.querySelector('#ls-rows');
+            if (!rows) { rows = document.createElement('div'); rows.id = 'ls-rows'; card.appendChild(rows); }
+            rows.insertAdjacentHTML('beforeend', buildRow(data));
+            card.style.display = '';
+        }
+
+        function updateSessionRow(data) {
+            const existing = document.getElementById('ls-row-' + data.sessionId);
+            if (existing) {
+                existing.outerHTML = buildRow(data);
+            } else {
+                addSessionRow(data);
+            }
+        }
+
+        function removeSessionRow(sessionId) {
+            const row = document.getElementById('ls-row-' + sessionId);
+            if (row) row.remove();
+            // Hide card if empty
+            const card = document.getElementById('live-sessions-card');
+            if (card && card.querySelectorAll('.ls-row').length === 0) card.style.display = 'none';
+        }
+
+        function showLiveToast(message, type) {
+            const colors = { created:'#7c3aed', edited:'#0369a1', cancelled:'#dc2626' };
+            const toast = document.createElement('div');
+            toast.style.cssText = `position:fixed;bottom:24px;left:24px;z-index:9999;
+                background:${colors[type]};color:#fff;padding:12px 20px;
+                border-radius:12px;font-size:.88rem;font-weight:700;
+                box-shadow:0 4px 18px rgba(0,0,0,.2);max-width:320px;line-height:1.5;`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 5000);
+        }
+
+        function escHtml(s) {
+            return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        }
+    })();
 </script>

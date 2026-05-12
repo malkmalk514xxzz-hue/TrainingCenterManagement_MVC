@@ -1,0 +1,379 @@
+@model TrainingCenterManagement_MVC.Models.LiveSession
+@{
+    ViewData["Title"] = Model.Title;
+    Layout = null;                 // full-screen, no nav bar
+    var displayName = (string)ViewBag.DisplayName;
+    var isModerator = (bool)ViewBag.IsModerator;
+}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>@Model.Title — @Model.Course.CourseName</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body { height: 100%; background: #0f0f1a; color: #fff; font-family: 'Segoe UI', Tahoma, sans-serif; }
+
+        /* ── Top bar ── */
+        .jt-topbar {
+            display: flex; align-items: center; justify-content: space-between;
+            height: 52px; padding: 0 20px;
+            background: linear-gradient(90deg, #1e1b4b, #312e81);
+            box-shadow: 0 2px 10px rgba(0,0,0,.4);
+            z-index: 10; position: relative;
+        }
+        .jt-topbar-left  { display: flex; align-items: center; gap: 14px; }
+        .jt-topbar-right { display: flex; align-items: center; gap: 10px; }
+        .jt-logo { font-size: 1rem; font-weight: 800; color: #a78bfa; display: flex; align-items: center; gap: 8px; }
+        .jt-title { font-size: .9rem; font-weight: 600; color: #c4b5fd; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 360px; }
+        .jt-course-tag {
+            background: rgba(124,58,237,.35); color: #ddd6fe;
+            font-size: .75rem; font-weight: 700; padding: 3px 10px;
+            border-radius: 20px; border: 1px solid #7c3aed;
+        }
+        .jt-live-dot {
+            display: inline-flex; align-items: center; gap: 6px;
+            font-size: .75rem; font-weight: 700; color: #f87171;
+            background: rgba(239,68,68,.15); border: 1px solid #f87171;
+            padding: 3px 10px; border-radius: 20px;
+        }
+        .jt-live-dot span {
+            width: 8px; height: 8px; border-radius: 50%; background: #f87171;
+            animation: blink 1.2s infinite;
+        }
+        @@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+        .jt-back-btn {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: rgba(255,255,255,.1); color: #e2e8f0;
+            border: 1px solid rgba(255,255,255,.2); border-radius: 8px;
+            padding: 6px 14px; font-size: .82rem; font-weight: 600;
+            text-decoration: none; cursor: pointer; transition: background .2s;
+        }
+        .jt-back-btn:hover { background: rgba(255,255,255,.18); color: #fff; text-decoration: none; }
+
+        /* ── Main layout ── */
+        .jt-body {
+            display: flex; height: calc(100vh - 52px);
+        }
+
+        /* ── Jitsi iframe container ── */
+        #jitsi-container {
+            flex: 1; height: 100%;
+        }
+        #jitsi-container iframe {
+            width: 100%; height: 100%; border: none;
+        }
+
+        /* ── Side panel ── */
+        .jt-panel {
+            width: 300px; min-width: 300px; height: 100%;
+            background: #1a1a2e; border-left: 1px solid rgba(255,255,255,.08);
+            display: flex; flex-direction: column; overflow: hidden;
+            transition: width .3s;
+        }
+        .jt-panel.collapsed { width: 0; min-width: 0; }
+
+        .jt-panel-tabs {
+            display: flex; border-bottom: 1px solid rgba(255,255,255,.1);
+        }
+        .jt-panel-tab {
+            flex: 1; padding: 12px 0; text-align: center; cursor: pointer;
+            font-size: .78rem; font-weight: 600; color: #94a3b8;
+            border: none; background: transparent; transition: color .2s;
+        }
+        .jt-panel-tab.active { color: #a78bfa; border-bottom: 2px solid #7c3aed; }
+
+        .jt-panel-body { flex: 1; overflow-y: auto; padding: 16px; }
+        .jt-panel-section { display: none; }
+        .jt-panel-section.active { display: block; }
+
+        /* Info tab */
+        .jt-info-row { margin-bottom: 14px; }
+        .jt-info-label { font-size: .72rem; color: #64748b; font-weight: 700; text-transform: uppercase; margin-bottom: 3px; }
+        .jt-info-val   { font-size: .88rem; color: #e2e8f0; font-weight: 600; }
+
+        /* Q&A tab */
+        .jt-qa-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+        .jt-qa-item {
+            background: rgba(255,255,255,.05); border-radius: 10px;
+            padding: 10px 12px;
+        }
+        .jt-qa-question { font-size: .85rem; color: #e2e8f0; font-weight: 600; margin-bottom: 4px; }
+        .jt-qa-meta     { font-size: .72rem; color: #64748b; }
+
+        .jt-qa-form { display: flex; gap: 8px; margin-top: 8px; }
+        .jt-qa-input {
+            flex: 1; background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.15);
+            border-radius: 8px; padding: 8px 12px; color: #e2e8f0; font-size: .85rem;
+            outline: none;
+        }
+        .jt-qa-input:focus { border-color: #7c3aed; }
+        .jt-qa-send {
+            background: #7c3aed; color: #fff; border: none; border-radius: 8px;
+            padding: 8px 14px; cursor: pointer; font-size: .9rem;
+            transition: opacity .2s;
+        }
+        .jt-qa-send:hover { opacity: .85; }
+
+        /* Toggle panel btn */
+        .jt-toggle-panel {
+            position: fixed; bottom: 70px; left: 10px;
+            background: #7c3aed; color: #fff; border: none;
+            border-radius: 50%; width: 44px; height: 44px;
+            cursor: pointer; font-size: 1rem;
+            box-shadow: 0 4px 14px rgba(124,58,237,.5);
+            z-index: 20; display: flex; align-items: center; justify-content: center;
+            transition: opacity .2s;
+        }
+        .jt-toggle-panel:hover { opacity: .85; }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+    </style>
+</head>
+<body>
+
+<!-- Top bar -->
+<div class="jt-topbar">
+    <div class="jt-topbar-left">
+        <div class="jt-logo"><i class="fas fa-video"></i> TCM Live</div>
+        <div class="jt-title">@Model.Title</div>
+        <span class="jt-course-tag">@Model.Course.CourseName</span>
+    </div>
+    <div class="jt-topbar-right">
+        <div class="jt-live-dot"><span></span> LIVE</div>
+        @if (User.IsInRole("Admin") || User.IsInRole("Trainer"))
+        {
+            <a href="@Url.Action("Index","LiveSessions")" class="jt-back-btn">
+                <i class="fas fa-arrow-right"></i> لوحة الجلسات
+            </a>
+        }
+        else
+        {
+            <a href="@Url.Action("TraineeDashboard","Dashboard")" class="jt-back-btn">
+                <i class="fas fa-arrow-right"></i> لوحة التحكم
+            </a>
+        }
+    </div>
+</div>
+
+<!-- Body -->
+<div class="jt-body">
+
+    <!-- Jitsi container -->
+    <div id="jitsi-container"></div>
+
+    <!-- Side panel -->
+    <div class="jt-panel" id="sidePanel">
+        <div class="jt-panel-tabs">
+            <button class="jt-panel-tab active" onclick="switchTab('info')">
+                <i class="fas fa-info-circle"></i> معلومات
+            </button>
+            <button class="jt-panel-tab" onclick="switchTab('qa')" id="qaTabBtn">
+                <i class="fas fa-question-circle"></i> الأسئلة
+                <span id="qaCount" style="background:#7c3aed;color:#fff;border-radius:20px;padding:1px 7px;font-size:.7rem;margin-right:4px;display:none;">0</span>
+            </button>
+        </div>
+
+        <div class="jt-panel-body">
+            <!-- Info section -->
+            <div class="jt-panel-section active" id="section-info">
+                <div class="jt-info-row">
+                    <div class="jt-info-label">الكورس</div>
+                    <div class="jt-info-val">@Model.Course.CourseName</div>
+                </div>
+                <div class="jt-info-row">
+                    <div class="jt-info-label">الجلسة</div>
+                    <div class="jt-info-val">@Model.Title</div>
+                </div>
+                @if (!string.IsNullOrEmpty(Model.Description))
+                {
+                    <div class="jt-info-row">
+                        <div class="jt-info-label">الوصف</div>
+                        <div class="jt-info-val" style="font-weight:400;font-size:.83rem;color:#94a3b8;">@Model.Description</div>
+                    </div>
+                }
+                <div class="jt-info-row">
+                    <div class="jt-info-label">الموعد</div>
+                    <div class="jt-info-val">@Model.ScheduledAt.ToLocalTime().ToString("yyyy/MM/dd — hh:mm tt")</div>
+                </div>
+                <div class="jt-info-row">
+                    <div class="jt-info-label">المضيف</div>
+                    <div class="jt-info-val">@(Model.CreatedBy?.FullName ?? "—")</div>
+                </div>
+                <div style="margin-top:20px;padding:12px;background:rgba(124,58,237,.1);border-radius:10px;font-size:.8rem;color:#c4b5fd;line-height:1.7;">
+                    <i class="fas fa-lightbulb"></i> <strong>تلميحات:</strong><br/>
+                    • اضغط <strong>مشاركة الشاشة</strong> من شريط الأدوات أسفل الفيديو<br/>
+                    • افتح <strong>الدردشة</strong> عبر أيقونة الرسائل<br/>
+                    • ارفع يدك لطرح سؤال<br/>
+                    • يمكنك كتابة سؤالك في تبويب <strong>الأسئلة</strong> هنا
+                </div>
+            </div>
+
+            <!-- Q&A section -->
+            <div class="jt-panel-section" id="section-qa">
+                <div id="qaList" class="jt-qa-list">
+                    <p style="color:#64748b;font-size:.83rem;text-align:center;padding:20px 0;">
+                        لا توجد أسئلة بعد. كن أول من يسأل!
+                    </p>
+                </div>
+                <div class="jt-qa-form">
+                    <input class="jt-qa-input" id="qaInput" placeholder="اكتب سؤالك هنا..." maxlength="300" />
+                    <button class="jt-qa-send" onclick="submitQuestion()">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toggle panel button -->
+<button class="jt-toggle-panel" onclick="togglePanel()" title="إخفاء/إظهار اللوحة">
+    <i class="fas fa-sidebar" id="toggleIcon"></i>
+</button>
+
+<!-- Jitsi External API -->
+<script src="https://meet.jit.si/external_api.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+<script>
+    // ── Jitsi configuration ──────────────────────────────────────────
+    const domain     = 'meet.jit.si';
+    const roomName   = '@Model.JitsiRoomName';
+    const userName   = '@Html.Raw(displayName.Replace("'", "\\'"))';
+    const isMod      = @isModerator.ToString().ToLower();
+
+    const options = {
+        roomName: roomName,
+        parentNode: document.getElementById('jitsi-container'),
+        lang: 'ar',
+        configOverwrite: {
+            startWithAudioMuted:   false,
+            startWithVideoMuted:   false,
+            enableNoisyMicDetection: true,
+            disableModeratorIndicator: false,
+            prejoinPageEnabled: true,
+            enableLobbyChat: true,
+            toolbarButtons: [
+                'microphone', 'camera', 'closedcaptions', 'desktop', 'fullscreen',
+                'fodeviceselection', 'hangup', 'chat', 'recording', 'raisehand',
+                'videoquality', 'filmstrip', 'participants-pane', 'stats', 'shortcuts',
+                'tileview', 'select-background', 'help', 'mute-everyone',
+                'security', 'invite'
+            ],
+        },
+        interfaceConfigOverwrite: {
+            SHOW_JITSI_WATERMARK: false,
+            SHOW_WATERMARK_FOR_GUESTS: false,
+            SHOW_BRAND_WATERMARK: false,
+            BRAND_WATERMARK_LINK: '',
+            DEFAULT_LOGO_URL: '',
+            JITSI_WATERMARK_LINK: '',
+            APP_NAME: 'TCM Live',
+            NATIVE_APP_NAME: 'TCM Live',
+            PROVIDER_NAME: 'TCM',
+        },
+        userInfo: {
+            displayName: userName,
+        }
+    };
+
+    const api = new JitsiMeetExternalAPI(domain, options);
+
+    // Moderator: mute all participants on join
+    if (isMod) {
+        api.addEventListener('videoConferenceJoined', () => {
+            // Small delay to let Jitsi settle
+            setTimeout(() => {
+                api.executeCommand('displayName', userName);
+            }, 1000);
+        });
+    }
+
+    // Detect hangup → redirect
+    api.addEventListener('readyToClose', () => {
+        window.location.href = isMod
+            ? '@Url.Action("Index","LiveSessions")'
+            : '@Url.Action("TraineeDashboard","Dashboard")';
+    });
+
+    // ── Panel & Tabs ────────────────────────────────────────────────
+    function switchTab(tab) {
+        document.querySelectorAll('.jt-panel-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.jt-panel-section').forEach(s => s.classList.remove('active'));
+        event.currentTarget.classList.add('active');
+        document.getElementById('section-' + tab).classList.add('active');
+    }
+
+    let panelOpen = true;
+    function togglePanel() {
+        panelOpen = !panelOpen;
+        document.getElementById('sidePanel').classList.toggle('collapsed', !panelOpen);
+        document.getElementById('toggleIcon').className = panelOpen ? 'fas fa-sidebar' : 'fas fa-columns';
+    }
+
+    // ── Q&A (SignalR-powered) ────────────────────────────────────────
+    const qaGroupName = 'qa_@Model.LiveSessionId';
+    const questions   = [];
+
+    const connection = new signalR.HubConnectionBuilder()
+        .withUrl('/chatHub')
+        .withAutomaticReconnect()
+        .build();
+
+    connection.on('ReceiveQAQuestion', (sender, question, time) => {
+        addQuestion(sender, question, time);
+    });
+
+    connection.start().then(() => {
+        connection.invoke('JoinQAGroup', '@Model.LiveSessionId.ToString()').catch(console.error);
+    }).catch(console.error);
+
+    function addQuestion(sender, text, time) {
+        const list = document.getElementById('qaList');
+        const isEmpty = list.querySelector('p');
+        if (isEmpty) isEmpty.remove();
+
+        const item = document.createElement('div');
+        item.className = 'jt-qa-item';
+        item.innerHTML = `
+            <div class="jt-qa-question">${escHtml(text)}</div>
+            <div class="jt-qa-meta"><i class="fas fa-user"></i> ${escHtml(sender)} • ${time}</div>
+        `;
+        list.prepend(item);
+
+        const badge = document.getElementById('qaCount');
+        badge.style.display = 'inline';
+        badge.textContent = parseInt(badge.textContent || '0') + 1;
+    }
+
+    async function submitQuestion() {
+        const input = document.getElementById('qaInput');
+        const text  = input.value.trim();
+        if (!text) return;
+        input.value = '';
+        const now = new Date().toLocaleTimeString('ar-SA');
+
+        try {
+            await connection.invoke('SendQAQuestion', '@Model.LiveSessionId.ToString()', userName, text);
+        } catch {
+            // Fallback: show locally if hub method not wired
+            addQuestion(userName, text, now);
+        }
+    }
+
+    document.getElementById('qaInput').addEventListener('keydown', e => {
+        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submitQuestion(); }
+    });
+
+    function escHtml(s) {
+        return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+</script>
+</body>
+</html>

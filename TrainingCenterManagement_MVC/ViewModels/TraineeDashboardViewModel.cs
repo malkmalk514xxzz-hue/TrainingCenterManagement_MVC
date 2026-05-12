@@ -19,6 +19,7 @@ namespace TrainingCenterManagement_MVC.ViewModels
         public List<CertificateViewModel> Certificates { get; set; } = new List<CertificateViewModel>();
         public Guid TraineeId { get; set; }
         public List<Notification> Notifications { get; set; } = new List<Notification>();
+        public List<LiveSessionSummary> UpcomingLiveSessions { get; set; } = new List<LiveSessionSummary>();
     }
 
     public class DashboardStats
@@ -50,6 +51,10 @@ namespace TrainingCenterManagement_MVC.ViewModels
         public Guid Id { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
+        public decimal Price { get; set; }
+        public string Currency { get; set; } = "USD";
+        public string? ThumbnailUrl { get; set; }
+        public int LectureCount { get; set; }
     }
 
     public class UpcomingEvent
@@ -63,5 +68,14 @@ namespace TrainingCenterManagement_MVC.ViewModels
     {
         public Guid Id { get; set; }
         public string Name { get; set; }
+    }
+
+    public class LiveSessionSummary
+    {
+        public Guid Id { get; set; }
+        public string Title { get; set; } = string.Empty;
+        public string CourseName { get; set; } = string.Empty;
+        public DateTime ScheduledAt { get; set; }
+        public bool IsLiveNow { get; set; }
     }
 }

@@ -49,6 +49,9 @@ namespace TrainingCenterManagement_MVC.Data
         public DbSet<ResourceDownload> ResourceDownloads { get; set; }
         public DbSet<LectureSession> LectureSessions { get; set; }
 
+        // ── Live Sessions (Jitsi) ────────────────────────────────────
+        public DbSet<LiveSession> LiveSessions { get; set; }
+
         // ── Course Ratings ───────────────────────────────────────────
         public DbSet<CourseRating> CourseRatings { get; set; }
 
@@ -442,6 +445,35 @@ namespace TrainingCenterManagement_MVC.Data
         builder.Entity<LectureMaterial>()
             .HasIndex(m => m.LectureId)
             .HasDatabaseName("IX_LectureMaterials_LectureId");
+
+        // ══════════════════════════════════════════════════════════
+        //  LIVE SESSIONS
+        // ══════════════════════════════════════════════════════════
+
+        builder.Entity<LiveSession>()
+            .HasOne(ls => ls.Course)
+            .WithMany()
+            .HasForeignKey(ls => ls.CourseId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<LiveSession>()
+            .HasOne(ls => ls.CreatedBy)
+            .WithMany()
+            .HasForeignKey(ls => ls.CreatedByUserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.Entity<LiveSession>()
+            .HasIndex(ls => ls.CourseId)
+            .HasDatabaseName("IX_LiveSessions_CourseId");
+
+        builder.Entity<LiveSession>()
+            .HasIndex(ls => ls.ScheduledAt)
+            .HasDatabaseName("IX_LiveSessions_ScheduledAt");
+
+        builder.Entity<LiveSession>()
+            .HasIndex(ls => ls.JitsiRoomName)
+            .IsUnique()
+            .HasDatabaseName("UX_LiveSessions_JitsiRoomName");
 
         // ══════════════════════════════════════════════════════════
         //  COURSE RATINGS — Fluent API

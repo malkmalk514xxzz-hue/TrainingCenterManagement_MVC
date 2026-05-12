@@ -95,6 +95,11 @@
                     <i class="fas fa-question-circle"></i><span>بنك الأسئلة</span>
                 </a>
             </li>
+            <li class="@(IsActive("LiveSessions") ? "active" : "")">
+                <a asp-action="Index" asp-controller="LiveSessions">
+                    <i class="fas fa-broadcast-tower"></i><span>الجلسات المباشرة</span>
+                </a>
+            </li>
             <li class="@(IsActive("Certificates") ? "active" : "")">
                 <a asp-action="Index" asp-controller="Certificates">
                     <i class="fas fa-certificate"></i><span>@SharedResource.CertificatesControll</span>

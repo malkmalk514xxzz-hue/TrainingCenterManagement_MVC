@@ -1,0 +1,118 @@
+@model TrainingCenterManagement_MVC.Models.LiveSession
+@{
+    ViewData["Title"] = "جدولة جلسة مباشرة";
+}
+
+<div class="dashboard-wrapper">
+    @if (User.IsInRole("Admin"))
+    {
+        @await Html.PartialAsync("_AdminSidebar")
+    }
+    else
+    {
+        @await Html.PartialAsync("_TrainerSidebar")
+    }
+
+    <main class="dashboard-main" style="padding:32px 28px;">
+
+        <div style="max-width:640px;">
+            <div style="margin-bottom:24px;">
+                <a asp-action="Index" style="color:#7c3aed;font-size:.9rem;text-decoration:none;">
+                    <i class="fas fa-arrow-right"></i> العودة للجلسات
+                </a>
+                <h2 style="font-size:1.5rem;font-weight:800;color:#1e293b;margin:8px 0 4px;">
+                    <i class="fas fa-video" style="color:#7c3aed;margin-left:8px;"></i> جدولة جلسة مباشرة
+                </h2>
+                <p style="color:#64748b;font-size:.9rem;margin:0;">سيتم إشعار جميع الطلاب المسجلين في الكورس تلقائياً.</p>
+            </div>
+
+            <form asp-action="Create" method="post" class="ls-form">
+                @Html.AntiForgeryToken()
+
+                <div class="ls-form-group">
+                    <label class="ls-label"><i class="fas fa-book"></i> الكورس</label>
+                    <select asp-for="CourseId" asp-items="ViewBag.Courses" class="ls-input">
+                        <option value="">— اختر الكورس —</option>
+                    </select>
+                    <span asp-validation-for="CourseId" class="ls-error"></span>
+                </div>
+
+                <div class="ls-form-group">
+                    <label class="ls-label"><i class="fas fa-heading"></i> عنوان الجلسة</label>
+                    <input asp-for="Title" class="ls-input" placeholder="مثال: محاضرة مراجعة الوحدة الثانية" />
+                    <span asp-validation-for="Title" class="ls-error"></span>
+                </div>
+
+                <div class="ls-form-group">
+                    <label class="ls-label"><i class="fas fa-align-left"></i> وصف الجلسة (اختياري)</label>
+                    <textarea asp-for="Description" class="ls-input" rows="3"
+                              placeholder="وصف مختصر لمحتوى الجلسة..."></textarea>
+                </div>
+
+                <div class="ls-form-group">
+                    <label class="ls-label"><i class="fas fa-calendar-alt"></i> موعد الجلسة</label>
+                    <input asp-for="ScheduledAt" type="datetime-local" class="ls-input" />
+                    <span asp-validation-for="ScheduledAt" class="ls-error"></span>
+                </div>
+
+                <!-- Info box -->
+                <div class="ls-info-box">
+                    <i class="fas fa-info-circle"></i>
+                    <div>
+                        <strong>كيف تعمل الجلسة؟</strong>
+                        <ul style="margin:6px 0 0;padding-right:18px;font-size:.83rem;line-height:1.8;">
+                            <li>ستُنشأ غرفة Jitsi Meet فريدة تلقائياً</li>
+                            <li>يتلقى الطلاب إشعاراً فورياً بموعد الجلسة</li>
+                            <li>عند الموعد يمكن للجميع الانضمام بزر واحد</li>
+                            <li>تدعم الجلسة: فيديو، صوت، مشاركة الشاشة، دردشة، رفع اليد، Q&A</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div style="display:flex;gap:12px;margin-top:24px;">
+                    <button type="submit" class="ls-btn-submit">
+                        <i class="fas fa-calendar-plus"></i> جدولة الجلسة وإشعار الطلاب
+                    </button>
+                    <a asp-action="Index" class="ls-btn-secondary">إلغاء</a>
+                </div>
+            </form>
+        </div>
+    </main>
+</div>
+
+<style>
+    .ls-form { display:flex;flex-direction:column;gap:18px; }
+    .ls-form-group { display:flex;flex-direction:column;gap:6px; }
+    .ls-label { font-size:.88rem;font-weight:700;color:#374151;display:flex;align-items:center;gap:6px; }
+    .ls-input {
+        border:1.5px solid #e2e8f0;border-radius:10px;padding:10px 14px;
+        font-size:.9rem;color:#1e293b;outline:none;transition:border-color .2s;
+        width:100%;background:#fff;
+    }
+    .ls-input:focus { border-color:#7c3aed;box-shadow:0 0 0 3px rgba(124,58,237,.1); }
+    .ls-error { color:#dc2626;font-size:.8rem; }
+    .ls-info-box {
+        display:flex;align-items:flex-start;gap:12px;
+        background:#f5f3ff;border:1px solid #ddd6fe;border-radius:12px;
+        padding:16px;font-size:.85rem;color:#4c1d95;
+    }
+    .ls-info-box i { font-size:1.2rem;margin-top:2px;flex-shrink:0; }
+    .ls-btn-submit {
+        display:inline-flex;align-items:center;gap:8px;
+        background:#7c3aed;color:#fff;border:none;border-radius:10px;
+        padding:11px 24px;font-size:.92rem;font-weight:700;cursor:pointer;
+        transition:opacity .2s;
+    }
+    .ls-btn-submit:hover { opacity:.88; }
+    .ls-btn-secondary {
+        display:inline-flex;align-items:center;
+        background:#f1f5f9;color:#475569;border:none;border-radius:10px;
+        padding:11px 20px;font-size:.9rem;font-weight:600;
+        text-decoration:none;transition:background .2s;
+    }
+    .ls-btn-secondary:hover { background:#e2e8f0;text-decoration:none;color:#475569; }
+</style>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

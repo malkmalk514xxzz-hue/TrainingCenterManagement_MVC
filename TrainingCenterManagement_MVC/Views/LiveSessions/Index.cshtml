@@ -1,0 +1,181 @@
+@model IEnumerable<TrainingCenterManagement_MVC.Models.LiveSession>
+@{
+    ViewData["Title"] = "الجلسات المباشرة";
+    var now = DateTime.UtcNow;
+}
+
+<div class="dashboard-wrapper">
+    @if (User.IsInRole("Admin"))
+    {
+        @await Html.PartialAsync("_AdminSidebar")
+    }
+    else
+    {
+        @await Html.PartialAsync("_TrainerSidebar")
+    }
+
+    <main class="dashboard-main" style="padding:32px 28px;">
+
+        @if (TempData["Success"] != null)
+        {
+            <div class="ls-alert ls-alert-success"><i class="fas fa-check-circle"></i> @TempData["Success"]</div>
+        }
+
+        <!-- Header -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;flex-wrap:wrap;gap:12px;">
+            <div>
+                <h2 style="font-size:1.5rem;font-weight:800;color:#1e293b;margin:0;">
+                    <i class="fas fa-video" style="color:#7c3aed;margin-left:8px;"></i> الجلسات المباشرة
+                </h2>
+                <p style="color:#64748b;font-size:.9rem;margin:4px 0 0;">جدولة وإدارة الجلسات المباشرة عبر تقنية Jitsi</p>
+            </div>
+            <a asp-action="Create" class="ls-btn-primary">
+                <i class="fas fa-plus"></i> جدولة جلسة جديدة
+            </a>
+        </div>
+
+        <!-- Sessions grid -->
+        @if (!Model.Any())
+        {
+            <div class="ls-empty">
+                <i class="fas fa-video-slash"></i>
+                <p>لا توجد جلسات مجدولة بعد.</p>
+                <a asp-action="Create" class="ls-btn-primary" style="margin-top:12px;">جدولة أول جلسة</a>
+            </div>
+        }
+        else
+        {
+            <div class="ls-grid">
+                @foreach (var s in Model)
+                {
+                    var isPast      = s.ScheduledAt < now.AddMinutes(-60);
+                    var isNow       = !isPast && s.ScheduledAt <= now.AddMinutes(15);
+                    var isCancelled = s.IsCancelled;
+
+                    <div class="ls-card @(isCancelled ? "ls-cancelled" : isNow ? "ls-live" : "")">
+                        <!-- Status badge -->
+                        <div class="ls-badge-row">
+                            @if (isCancelled)
+                            {
+                                <span class="ls-badge ls-badge-cancelled"><i class="fas fa-ban"></i> ملغاة</span>
+                            }
+                            else if (isNow)
+                            {
+                                <span class="ls-badge ls-badge-live"><span class="ls-pulse"></span> مباشر الآن</span>
+                            }
+                            else if (isPast)
+                            {
+                                <span class="ls-badge ls-badge-past"><i class="fas fa-history"></i> انتهت</span>
+                            }
+                            else
+                            {
+                                <span class="ls-badge ls-badge-upcoming"><i class="fas fa-clock"></i> قادمة</span>
+                            }
+                            <span class="ls-course-badge">@s.Course.CourseName</span>
+                        </div>
+
+                        <div class="ls-card-title">@s.Title</div>
+                        @if (!string.IsNullOrEmpty(s.Description))
+                        {
+                            <div class="ls-card-desc">@s.Description</div>
+                        }
+
+                        <div class="ls-card-meta">
+                            <span><i class="fas fa-calendar-alt"></i> @s.ScheduledAt.ToLocalTime().ToString("yyyy/MM/dd")</span>
+                            <span><i class="fas fa-clock"></i> @s.ScheduledAt.ToLocalTime().ToString("hh:mm tt")</span>
+                            <span><i class="fas fa-user-tie"></i> @(s.CreatedBy?.FullName ?? "—")</span>
+                        </div>
+
+                        <div class="ls-card-actions">
+                            @if (!isCancelled)
+                            {
+                                <a asp-action="Join" asp-route-id="@s.LiveSessionId"
+                                   class="ls-btn-join @(isNow ? "" : "ls-btn-join-dim")"
+                                   target="_blank">
+                                    <i class="fas fa-sign-in-alt"></i>
+                                    @(isNow ? "انضم الآن" : "دخول الجلسة")
+                                </a>
+                                <a asp-action="Edit" asp-route-id="@s.LiveSessionId" class="ls-btn-edit">
+                                    <i class="fas fa-edit"></i> تعديل
+                                </a>
+                                <form asp-action="Cancel" asp-route-id="@s.LiveSessionId" method="post" style="display:inline"
+                                      onsubmit="return confirm('هل أنت متأكد من إلغاء هذه الجلسة؟ سيتم إشعار الطلاب.')">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="ls-btn-cancel">
+                                        <i class="fas fa-times"></i> إلغاء
+                                    </button>
+                                </form>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </main>
+</div>
+
+<style>
+    .ls-alert { display:flex;align-items:center;gap:8px;padding:12px 18px;border-radius:10px;margin-bottom:18px;font-weight:600; }
+    .ls-alert-success { background:#d1fae5;color:#065f46;border:1px solid #6ee7b7; }
+
+    .ls-empty { text-align:center;padding:60px 20px;color:#94a3b8; }
+    .ls-empty i { font-size:3rem;display:block;margin-bottom:12px; }
+
+    .ls-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:20px; }
+
+    .ls-card {
+        background:#fff;border-radius:14px;border:1.5px solid #e2e8f0;
+        padding:20px;display:flex;flex-direction:column;gap:10px;
+        transition:box-shadow .2s,transform .2s;
+    }
+    .ls-card:hover { box-shadow:0 6px 20px rgba(0,0,0,.08);transform:translateY(-2px); }
+    .ls-live  { border-color:#7c3aed;box-shadow:0 0 0 3px rgba(124,58,237,.12); }
+    .ls-cancelled { opacity:.6; }
+
+    .ls-badge-row { display:flex;align-items:center;gap:8px;flex-wrap:wrap; }
+    .ls-badge { display:inline-flex;align-items:center;gap:5px;font-size:.75rem;font-weight:700;padding:3px 10px;border-radius:20px; }
+    .ls-badge-live      { background:#f3e8ff;color:#7c3aed; }
+    .ls-badge-upcoming  { background:#e0f2fe;color:#0369a1; }
+    .ls-badge-past      { background:#f1f5f9;color:#64748b; }
+    .ls-badge-cancelled { background:#fee2e2;color:#b91c1c; }
+    .ls-course-badge    { background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0;font-size:.75rem;font-weight:600;padding:3px 10px;border-radius:20px; }
+
+    .ls-pulse { display:inline-block;width:8px;height:8px;border-radius:50%;background:#7c3aed;animation:pulse 1.4s infinite; }
+    @@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(1.4)} }
+
+    .ls-card-title { font-size:1rem;font-weight:700;color:#1e293b; }
+    .ls-card-desc  { font-size:.82rem;color:#64748b;line-height:1.5; }
+    .ls-card-meta  { display:flex;flex-wrap:wrap;gap:12px;font-size:.8rem;color:#64748b; }
+    .ls-card-meta span { display:flex;align-items:center;gap:5px; }
+
+    .ls-card-actions { display:flex;gap:8px;margin-top:4px; }
+    .ls-btn-primary {
+        display:inline-flex;align-items:center;gap:6px;
+        background:#7c3aed;color:#fff;border:none;border-radius:8px;
+        padding:9px 18px;font-size:.88rem;font-weight:700;cursor:pointer;
+        text-decoration:none;transition:opacity .2s;
+    }
+    .ls-btn-primary:hover { opacity:.88;color:#fff;text-decoration:none; }
+    .ls-btn-join {
+        display:inline-flex;align-items:center;gap:6px;
+        background:#7c3aed;color:#fff;border:none;border-radius:8px;
+        padding:8px 16px;font-size:.85rem;font-weight:700;cursor:pointer;
+        text-decoration:none;transition:opacity .2s;
+    }
+    .ls-btn-join:hover { opacity:.88;color:#fff;text-decoration:none; }
+    .ls-btn-join-dim { background:#94a3b8; }
+    .ls-btn-edit {
+        display:inline-flex;align-items:center;gap:5px;
+        background:transparent;color:#7c3aed;border:1.5px solid #c4b5fd;
+        border-radius:8px;padding:7px 12px;font-size:.82rem;font-weight:600;
+        text-decoration:none;transition:background .2s;
+    }
+    .ls-btn-edit:hover { background:#f5f3ff;text-decoration:none;color:#7c3aed; }
+    .ls-btn-cancel {
+        display:inline-flex;align-items:center;gap:5px;
+        background:transparent;color:#dc2626;border:1.5px solid #fca5a5;
+        border-radius:8px;padding:7px 12px;font-size:.82rem;font-weight:600;
+        cursor:pointer;transition:background .2s;
+    }
+    .ls-btn-cancel:hover { background:#fee2e2; }
+</style>

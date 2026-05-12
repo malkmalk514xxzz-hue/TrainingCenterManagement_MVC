@@ -110,7 +110,13 @@
                     <span>بنك الأسئلة</span>
                 </a>
             </li>
-          
+            <li class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "LiveSessions" ? "active" : "")">
+                <a asp-action="Index" asp-controller="LiveSessions">
+                    <i class="fas fa-broadcast-tower"></i>
+                    <span>الجلسات المباشرة</span>
+                </a>
+            </li>
+
             <li class="@(currentPage == "presences" ? "active" : "")">
                 <a asp-action="Index" asp-controller="Presences">
                     <i class="fas fa-check-circle"></i>

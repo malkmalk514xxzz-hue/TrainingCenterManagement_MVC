@@ -420,6 +420,19 @@ namespace Messaging_Chat_Application_MahmoudHakim.Hubs
             await Groups.RemoveFromGroupAsync(Context.ConnectionId, $"Course_{courseId}");
         }
 
+        // ── Live Session Q&A ──────────────────────────────────────────
+        public async Task JoinQAGroup(string sessionId)
+        {
+            await Groups.AddToGroupAsync(Context.ConnectionId, $"QA_{sessionId}");
+        }
+
+        public async Task SendQAQuestion(string sessionId, string senderName, string question)
+        {
+            var time = DateTime.Now.ToShortTimeString();
+            await Clients.Group($"QA_{sessionId}")
+                .SendAsync("ReceiveQAQuestion", senderName, question, time);
+        }
+
 
         public async Task SendCustomerSupportMessage(string receiverId, string sender, string message)
         {

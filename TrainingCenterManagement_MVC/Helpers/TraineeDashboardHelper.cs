@@ -34,7 +34,8 @@ namespace TrainingCenterManagement_MVC.Helpers
                 RecommendedCourses = await GetRecommendedCoursesAsync(traineeId),
                 UpcomingEvents = await GetUpcomingEventsAsync(traineeId),
                 Certificates = await GetCertificatesAsync(traineeId),
-                Notifications = await GetNotificationsAsync(traineeId)
+                Notifications = await GetNotificationsAsync(traineeId),
+                UpcomingLiveSessions = await GetUpcomingLiveSessionsAsync(traineeId)
             };
         }
 
@@ -132,9 +133,13 @@ namespace TrainingCenterManagement_MVC.Helpers
                 .Take(6)
                 .Select(c => new RecommendedCourse
                 {
-                    Id = c.CourseId,
-                    Name = c.CourseName,
-                    Description = c.Description ?? "دورة رائعة لتعزيز مهاراتك!"
+                    Id           = c.CourseId,
+                    Name         = c.CourseName,
+                    Description  = c.Description ?? "دورة رائعة لتعزيز مهاراتك!",
+                    Price        = c.Price,
+                    Currency     = c.CourseCurrency.ToString(),
+                    ThumbnailUrl = c.ThumbnailUrl,
+                    LectureCount = c.NumberOfLectures
                 })
                 .ToListAsync();
         }
@@ -179,6 +184,33 @@ namespace TrainingCenterManagement_MVC.Helpers
                 .Where(c => c.TraineeId == traineeId && !c.IsDeleted)
                 .Include(c => c.Course)
                 .Select(c => new CertificateViewModel { Id = c.CertificateId, Name = c.Course.CourseName })
+                .ToListAsync();
+        }
+
+        private async Task<List<LiveSessionSummary>> GetUpcomingLiveSessionsAsync(Guid traineeId)
+        {
+            var enrolledCourseIds = await _context.CourseTrainees
+                .Where(ct => ct.TraineeId == traineeId)
+                .Select(ct => ct.CourseId)
+                .ToListAsync();
+
+            var now = DateTime.UtcNow;
+
+            return await _context.LiveSessions
+                .Where(ls => !ls.IsCancelled
+                    && enrolledCourseIds.Contains(ls.CourseId)
+                    && ls.ScheduledAt >= now.AddMinutes(-60))
+                .Include(ls => ls.Course)
+                .OrderBy(ls => ls.ScheduledAt)
+                .Take(5)
+                .Select(ls => new LiveSessionSummary
+                {
+                    Id          = ls.LiveSessionId,
+                    Title       = ls.Title,
+                    CourseName  = ls.Course.CourseName,
+                    ScheduledAt = ls.ScheduledAt,
+                    IsLiveNow   = ls.ScheduledAt <= now.AddMinutes(15)
+                })
                 .ToListAsync();
         }
 
