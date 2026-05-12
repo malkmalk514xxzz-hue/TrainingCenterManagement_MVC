@@ -4,6 +4,7 @@
     var avatarChar = Model.Name.Length > 0 ? Model.Name[0].ToString() : "؟";
     var paidPct = Model.TotalOwed > 0 ? (double)(Model.TotalPaid / Model.TotalOwed * 100) : 100;
     var paidPctC = Math.Min(paidPct, 100);
+    var sym = (string)(ViewBag.CurrencySymbol ?? "ل.س");
 }
 
 <style>
@@ -75,15 +76,15 @@
     <div class="sa-kpis">
         <div class="sa-kpi">
             <div class="val">@Model.TotalOwed.ToString("N0")</div>
-            <div class="lbl">إجمالي المطلوب (ل.س)</div>
+            <div class="lbl">إجمالي المطلوب (@sym)</div>
         </div>
         <div class="sa-kpi success">
             <div class="val">@Model.TotalPaid.ToString("N0")</div>
-            <div class="lbl">إجمالي المدفوع (ل.س)</div>
+            <div class="lbl">إجمالي المدفوع (@sym)</div>
         </div>
         <div class="sa-kpi @(Model.RemainingBalance > 0 ? "danger" : "success")">
             <div class="val">@(Model.RemainingBalance > 0 ? Model.RemainingBalance.ToString("N0") : "✓ مسدّد")</div>
-            <div class="lbl">الرصيد المتبقي (ل.س)</div>
+            <div class="lbl">الرصيد المتبقي (@sym)</div>
         </div>
     </div>
 </div>
@@ -113,16 +114,16 @@
             <h4><i class="fas fa-graduation-cap"></i>@c.CourseName</h4>
             <div class="sa-course-row">
                 <span class="k">سعر الدورة</span>
-                <span class="v">@c.CoursePrice.ToString("N0") ل.س</span>
+                <span class="v">@c.CoursePrice.ToString("N0") @sym</span>
             </div>
             <div class="sa-course-row">
                 <span class="k">المدفوع</span>
-                <span class="v green">@c.TotalPaidSAR.ToString("N0") ل.س</span>
+                <span class="v green">@c.TotalPaidSAR.ToString("N0") @sym</span>
             </div>
             <div class="sa-course-row">
                 <span class="k">المتبقي</span>
                 <span class="v @(c.RemainingDebt > 0 ? "red" : "green")">
-                    @(c.RemainingDebt > 0 ? $"{c.RemainingDebt:N0} ل.س" : "مسدّد بالكامل")
+                    @(c.RemainingDebt > 0 ? $"{c.RemainingDebt:N0} {sym}" : "مسدّد بالكامل")
                 </span>
             </div>
             <div style="margin-top:10px">
@@ -154,7 +155,7 @@
                 <th>الدورة</th>
                 <th>المبلغ الأصلي</th>
                 <th>العملة</th>
-                <th>المعادل (ل.س)</th>
+                <th>المعادل (@sym)</th>
                 <th>التاريخ</th>
                 <th>ملاحظات</th>
             </tr>
@@ -168,7 +169,7 @@
                     <td>@p.CourseName</td>
                     <td class="amount-cell">@p.OriginalAmount.ToString("N0")</td>
                     <td><span class="currency-chip">@p.OriginalCurrency</span></td>
-                    <td class="amount-cell">@p.AmountInSAR.ToString("N0") ل.س</td>
+                    <td class="amount-cell">@p.AmountInSAR.ToString("N0") @sym</td>
                     <td style="color:#64748b;font-size:.83rem">@p.Date.ToString("dd/MM/yyyy hh:mm tt")</td>
                     <td style="color:#94a3b8;font-size:.82rem">@(string.IsNullOrEmpty(p.Notes) ? "—" : p.Notes)</td>
                 </tr>

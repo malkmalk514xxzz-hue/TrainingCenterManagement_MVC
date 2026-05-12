@@ -125,7 +125,7 @@ namespace TrainingCenterManagement_MVC.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Edit(Guid id, [Bind("CourseId,CourseName,BatchNumber,NumberOfLectures,Price,Description,VideoUrl,ThumbnailUrl,CreatedDate,ReleaseDate,IsDeleted,AdminId")] Course course)
+        public async Task<IActionResult> Edit(Guid id, [Bind("CourseId,CourseName,BatchNumber,NumberOfLectures,Price,CourseCurrency,Description,VideoUrl,ThumbnailUrl,CreatedDate,ReleaseDate,IsDeleted,IsFeatured,AdminId")] Course course)
         {
             if (id != course.CourseId)
                 return NotFound();

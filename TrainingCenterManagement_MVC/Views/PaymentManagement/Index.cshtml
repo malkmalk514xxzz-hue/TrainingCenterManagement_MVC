@@ -1,6 +1,7 @@
 @model TrainingCenterManagement_MVC.ViewModels.StudentAccountsIndexViewModel
 @{
     ViewData["Title"] = "الذمم المالية للطلاب";
+    var sym = (string)(ViewBag.CurrencySymbol ?? "ل.س");
 }
 
 <style>
@@ -65,12 +66,12 @@
     </div>
     <div class="pm-stat">
         <div class="icon" style="color:#10b981"><i class="fas fa-check-circle"></i></div>
-        <div class="val">@Model.TotalRevenue.ToString("N0") ل.س</div>
+        <div class="val">@Model.TotalRevenue.ToString("N0") @sym</div>
         <div class="lbl">إجمالي المحصّل</div>
     </div>
     <div class="pm-stat">
         <div class="icon" style="color:#ef4444"><i class="fas fa-exclamation-circle"></i></div>
-        <div class="val">@Model.TotalPending.ToString("N0") ل.س</div>
+        <div class="val">@Model.TotalPending.ToString("N0") @sym</div>
         <div class="lbl">إجمالي المتبقي</div>
     </div>
     <div class="pm-stat">
@@ -129,10 +130,10 @@
                         </div>
                     </td>
                     <td>@s.EnrolledCourses دورة</td>
-                    <td>@s.TotalOwed.ToString("N0") ل.س</td>
-                    <td>@s.TotalPaid.ToString("N0") ل.س</td>
+                    <td>@s.TotalOwed.ToString("N0") @sym</td>
+                    <td>@s.TotalPaid.ToString("N0") @sym</td>
                     <td class="@(s.RemainingBalance > 0 ? "balance-positive" : "balance-zero")">
-                        @(s.RemainingBalance > 0 ? $"{s.RemainingBalance:N0} ل.س" : "✓ مسدّد")
+                        @(s.RemainingBalance > 0 ? $"{s.RemainingBalance:N0} {sym}" : "✓ مسدّد")
                     </td>
                     <td style="min-width:100px">
                         <div style="font-size:.78rem;color:#64748b;margin-bottom:4px;">@paidPctClamped.ToString("F0")%</div>

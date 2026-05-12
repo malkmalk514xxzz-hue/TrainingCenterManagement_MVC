@@ -49,5 +49,15 @@ namespace TrainingCenterManagement_MVC.Helpers
             if (currency == PaymentCurrency.SYP) return amount;
             return rates.TryGetValue(currency, out var rate) ? amount * rate : amount;
         }
+
+        /// <summary>Convert an amount from SYP to the target display currency.</summary>
+        public static decimal FromSYP(decimal amountInSYP, PaymentCurrency target,
+            Dictionary<PaymentCurrency, decimal> rates)
+        {
+            if (target == PaymentCurrency.SYP) return amountInSYP;
+            return rates.TryGetValue(target, out var rate) && rate > 0
+                ? amountInSYP / rate
+                : amountInSYP;
+        }
     }
 }

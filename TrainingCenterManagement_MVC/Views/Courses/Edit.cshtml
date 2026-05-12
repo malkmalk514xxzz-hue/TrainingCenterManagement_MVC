@@ -1,111 +1,188 @@
-﻿@model TrainingCenterManagement_MVC.Models.Course
-
+@model TrainingCenterManagement_MVC.Models.Course
 @{
-    ViewData["Title"] = "Edit Course";
+    ViewData["Title"] = "تعديل الكورس";
 }
 
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card shadow border-0">
-                <div class="card-header bg-warning text-dark">
-                    <h4 class="mb-0">✏️ Edit Course</h4>
-                </div>
-                <div class="card-body">
-                    <form asp-action="Edit">
-                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
-                        <input type="hidden" asp-for="CourseId" />
+<style>
+    :root {
+        --cr-pr:#4f46e5;--cr-pr-l:#6366f1;--cr-pr-pale:#eef2ff;
+        --body:#f1f5f9;--card:#fff;--t1:#0f172a;--t2:#475569;--t3:#94a3b8;
+        --border:#e2e8f0;--shadow:0 4px 20px rgba(0,0,0,.07);--radius:14px;
+    }
+    .cr-page { background:var(--body);padding:28px 32px;direction:rtl;font-family:'Segoe UI',sans-serif;min-height:100vh; }
+    .cr-header { display:flex;align-items:center;gap:14px;margin-bottom:28px; }
+    .cr-header-icon { width:44px;height:44px;border-radius:12px;background:#fff3cd;color:#d97706;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0; }
+    .cr-header h1 { font-size:1.5rem;font-weight:800;color:var(--t1);margin:0; }
+    .cr-header p  { font-size:.84rem;color:var(--t3);margin:2px 0 0; }
 
-                        <div class="mb-3">
-                            <label asp-for="CourseName" class="form-label"></label>
-                            <input asp-for="CourseName" class="form-control" />
-                            <span asp-validation-for="CourseName" class="text-danger"></span>
-                        </div>
+    .cr-card { background:var(--card);border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);padding:28px 32px;max-width:900px; }
+    .cr-section { margin-bottom:24px; }
+    .cr-section-title { font-size:.78rem;font-weight:700;color:var(--cr-pr);text-transform:uppercase;letter-spacing:.06em;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--border); }
 
-                        <div class="mb-3">
-                            <label asp-for="BatchNumber" class="form-label"></label>
-                            <input asp-for="BatchNumber" class="form-control" />
-                            <span asp-validation-for="BatchNumber" class="text-danger"></span>
-                        </div>
+    .cr-grid-2 { display:grid;grid-template-columns:1fr 1fr;gap:18px; }
+    .cr-grid-3 { display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px; }
+    @@media(max-width:640px){ .cr-grid-2,.cr-grid-3 { grid-template-columns:1fr; } }
 
-                        <div class="mb-3">
-                            <label asp-for="NumberOfLectures" class="form-label"></label>
-                            <input asp-for="NumberOfLectures" class="form-control" />
-                            <span asp-validation-for="NumberOfLectures" class="text-danger"></span>
-                        </div>
+    .cr-group { display:flex;flex-direction:column;gap:5px; }
+    .cr-label { font-size:.82rem;font-weight:600;color:var(--t2); }
+    .cr-input, .cr-select, .cr-textarea {
+        width:100%;padding:9px 13px;border:1.5px solid var(--border);border-radius:9px;
+        font-size:.88rem;font-family:inherit;background:#fff;color:var(--t1);
+        box-sizing:border-box;transition:border-color .2s,box-shadow .2s;
+    }
+    .cr-input:focus,.cr-select:focus,.cr-textarea:focus {
+        outline:none;border-color:var(--cr-pr);box-shadow:0 0 0 3px rgba(79,70,229,.1);
+    }
+    .cr-textarea { resize:vertical;min-height:90px; }
+    .cr-error { font-size:.76rem;color:#ef4444;margin-top:2px; }
 
-                        <div class="mb-3">
-                            <label asp-for="Price" class="form-label"></label>
-                            <input asp-for="Price" class="form-control" />
-                            <span asp-validation-for="Price" class="text-danger"></span>
-                        </div>
+    .cr-price-wrap { display:flex;gap:0; }
+    .cr-price-wrap .cr-input  { border-radius:9px 0 0 9px;border-left:none; }
+    .cr-price-wrap .cr-select { width:120px;border-radius:0 9px 9px 0;flex-shrink:0; }
 
-                        <div class="mb-3">
-                            <label asp-for="Description" class="form-label"></label>
-                            <input asp-for="Description" class="form-control" />
-                            <span asp-validation-for="Description" class="text-danger"></span>
-                        </div>
+    .cr-featured-toggle { display:flex;align-items:center;gap:10px;padding:12px 16px;border-radius:9px;border:1.5px solid var(--border);cursor:pointer;transition:border-color .2s; }
+    .cr-featured-toggle:has(input:checked) { border-color:var(--cr-pr);background:var(--cr-pr-pale); }
+    .cr-featured-toggle input { width:18px;height:18px;accent-color:var(--cr-pr);cursor:pointer; }
+    .cr-featured-toggle span  { font-size:.84rem;font-weight:600;color:var(--t2); }
 
-                        <div class="mb-3">
-                            <label asp-for="VideoUrl" class="form-label"></label>
-                            <input asp-for="VideoUrl" class="form-control" />
-                            <span asp-validation-for="VideoUrl" class="text-danger"></span>
-                        </div>
+    .cr-actions { display:flex;align-items:center;gap:12px;padding-top:20px;border-top:1px solid var(--border); }
+    .cr-btn-submit { padding:10px 28px;border-radius:9px;background:#d97706;color:#fff;font-size:.9rem;font-weight:700;border:none;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:7px; }
+    .cr-btn-submit:hover { background:#b45309; }
+    .cr-btn-back { padding:10px 20px;border-radius:9px;background:#f8fafc;color:var(--t2);font-size:.84rem;font-weight:600;border:1.5px solid var(--border);text-decoration:none;transition:all .2s;display:flex;align-items:center;gap:6px; }
+    .cr-btn-back:hover { background:var(--border);color:var(--t1); }
+</style>
 
-                        <div class="mb-3">
-                            <label asp-for="ThumbnailUrl" class="form-label"></label>
-                            <input asp-for="ThumbnailUrl" class="form-control" />
-                            <span asp-validation-for="ThumbnailUrl" class="text-danger"></span>
-                        </div>
+<div class="dashboard-wrapper">
+    @await Html.PartialAsync("_AdminSidebar")
+    <main class="dashboard-main cr-page">
 
-                        <div class="mb-3">
-                            <label asp-for="CreatedDate" class="form-label"></label>
-                            <input asp-for="CreatedDate" class="form-control" />
-                            <span asp-validation-for="CreatedDate" class="text-danger"></span>
-                        </div>
-
-                        <div class="mb-3">
-                            <label asp-for="ReleaseDate" class="form-label"></label>
-                            <input asp-for="ReleaseDate" class="form-control" />
-                            <span asp-validation-for="ReleaseDate" class="text-danger"></span>
-                        </div>
-
-                        <div class="form-check mb-3">
-                            <input class="form-check-input" asp-for="IsDeleted" />
-                            <label class="form-check-label" asp-for="IsDeleted"></label>
-                        </div>
-
-                        <div class="mb-3">
-                            <label asp-for="AdminId" class="form-label"></label>
-                            <select asp-for="AdminId" class="form-control select2" asp-items="ViewBag.AdminId"></select>
-                            <span asp-validation-for="AdminId" class="text-danger"></span>
-                        </div>
-
-                        <div class="d-flex justify-content-between mt-4">
-                            <a asp-action="Index" class="btn btn-outline-secondary">🔙 Back to List</a>
-                            <button type="submit" class="btn btn-primary">💾 Save Changes</button>
-                        </div>
-                    </form>
-                </div>
+        <div class="cr-header">
+            <div class="cr-header-icon"><i class="fas fa-edit"></i></div>
+            <div>
+                <h1>تعديل الكورس</h1>
+                <p>@Model.CourseName — Batch @Model.BatchNumber</p>
             </div>
         </div>
-    </div>
+
+        <div class="cr-card">
+            <form asp-action="Edit">
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-4" style="display:none"></div>
+                <input type="hidden" asp-for="CourseId" />
+
+                <!-- المعلومات الأساسية -->
+                <div class="cr-section">
+                    <div class="cr-section-title"><i class="fas fa-info-circle me-1"></i> المعلومات الأساسية</div>
+                    <div class="cr-grid-2">
+                        <div class="cr-group">
+                            <label class="cr-label">اسم الكورس <span style="color:#ef4444">*</span></label>
+                            <input asp-for="CourseName" class="cr-input" />
+                            <span asp-validation-for="CourseName" class="cr-error"></span>
+                        </div>
+                        <div class="cr-group">
+                            <label class="cr-label">رقم الدفعة (Batch) <span style="color:#ef4444">*</span></label>
+                            <input asp-for="BatchNumber" class="cr-input" type="number" min="1" />
+                            <span asp-validation-for="BatchNumber" class="cr-error"></span>
+                        </div>
+                    </div>
+                    <div style="margin-top:18px">
+                        <div class="cr-group">
+                            <label class="cr-label">وصف الكورس</label>
+                            <textarea asp-for="Description" class="cr-textarea"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- التسعير والمحتوى -->
+                <div class="cr-section">
+                    <div class="cr-section-title"><i class="fas fa-tag me-1"></i> التسعير والمحتوى</div>
+                    <div class="cr-grid-3">
+                        <div class="cr-group">
+                            <label class="cr-label">السعر والعملة <span style="color:#ef4444">*</span></label>
+                            <div class="cr-price-wrap">
+                                <input asp-for="Price" class="cr-input" type="number" min="0" step="0.01"
+                                       style="border-radius:9px 0 0 9px;border-left:none" />
+                                <select asp-for="CourseCurrency" class="cr-select"
+                                        style="border-radius:0 9px 9px 0;border-right:1.5px solid var(--border)">
+                                    <option value="USD">USD $</option>
+                                    <option value="SYP">SYP ل.س</option>
+                                    <option value="EUR">EUR €</option>
+                                </select>
+                            </div>
+                            <span asp-validation-for="Price" class="cr-error"></span>
+                        </div>
+                        <div class="cr-group">
+                            <label class="cr-label">عدد المحاضرات <span style="color:#ef4444">*</span></label>
+                            <input asp-for="NumberOfLectures" class="cr-input" type="number" min="1" />
+                            <span asp-validation-for="NumberOfLectures" class="cr-error"></span>
+                        </div>
+                        <div class="cr-group">
+                            <label class="cr-label">المسؤول (Admin) <span style="color:#ef4444">*</span></label>
+                            <select asp-for="AdminId" class="cr-select" asp-items="ViewBag.AdminId">
+                                <option value="">-- اختر مسؤولاً --</option>
+                            </select>
+                            <span asp-validation-for="AdminId" class="cr-error"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- الروابط والوسائط -->
+                <div class="cr-section">
+                    <div class="cr-section-title"><i class="fas fa-link me-1"></i> الروابط والوسائط</div>
+                    <div class="cr-grid-2">
+                        <div class="cr-group">
+                            <label class="cr-label">رابط الفيديو التعريفي (YouTube)</label>
+                            <input asp-for="VideoUrl" class="cr-input" placeholder="https://www.youtube.com/watch?v=..." />
+                            <span asp-validation-for="VideoUrl" class="cr-error"></span>
+                        </div>
+                        <div class="cr-group">
+                            <label class="cr-label">رابط الصورة المصغرة (Thumbnail)</label>
+                            <input asp-for="ThumbnailUrl" class="cr-input" placeholder="https://img.youtube.com/vi/.../0.jpg" />
+                            <span asp-validation-for="ThumbnailUrl" class="cr-error"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- التواريخ والإعدادات -->
+                <div class="cr-section">
+                    <div class="cr-section-title"><i class="fas fa-calendar-alt me-1"></i> التواريخ والإعدادات</div>
+                    <div class="cr-grid-2" style="margin-bottom:16px">
+                        <div class="cr-group">
+                            <label class="cr-label">تاريخ الإنشاء</label>
+                            <input asp-for="CreatedDate" class="cr-input" type="datetime-local" />
+                        </div>
+                        <div class="cr-group">
+                            <label class="cr-label">تاريخ الإصدار</label>
+                            <input asp-for="ReleaseDate" class="cr-input" type="datetime-local" />
+                            <span asp-validation-for="ReleaseDate" class="cr-error"></span>
+                        </div>
+                    </div>
+                    <div style="display:flex;gap:16px;flex-wrap:wrap">
+                        <label class="cr-featured-toggle">
+                            <input asp-for="IsFeatured" type="checkbox" />
+                            <span><i class="fas fa-star me-1" style="color:#f59e0b"></i> كورس مميز</span>
+                        </label>
+                        <label class="cr-featured-toggle">
+                            <input asp-for="IsDeleted" type="checkbox" />
+                            <span><i class="fas fa-eye-slash me-1" style="color:#ef4444"></i> محذوف / مخفي</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- الإجراءات -->
+                <div class="cr-actions">
+                    <button type="submit" class="cr-btn-submit">
+                        <i class="fas fa-save"></i> حفظ التعديلات
+                    </button>
+                    <a asp-action="Index" class="cr-btn-back">
+                        <i class="fas fa-arrow-right"></i> رجوع
+                    </a>
+                </div>
+            </form>
+        </div>
+
+    </main>
 </div>
 
 @section Scripts {
-    @{
-        await Html.PartialAsync("_ValidationScriptsPartial");
-    }
-
-    <!-- إضافة مكتبة Select2 -->
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-    <script>
-        $(document).ready(function () {
-            $('.select2').select2({
-                placeholder: "Select an admin",
-                allowClear: true
-            });
-        });
-    </script>
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
 }

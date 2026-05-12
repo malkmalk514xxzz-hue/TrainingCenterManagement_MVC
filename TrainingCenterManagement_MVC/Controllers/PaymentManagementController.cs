@@ -12,16 +12,19 @@ namespace TrainingCenterManagement_MVC.Controllers
     public class PaymentManagementController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly ISettingsService     _settings;
 
-        public PaymentManagementController(ApplicationDbContext context)
+        public PaymentManagementController(ApplicationDbContext context, ISettingsService settings)
         {
-            _context = context;
+            _context  = context;
+            _settings = settings;
         }
 
         // GET: PaymentManagement
         public async Task<IActionResult> Index()
         {
-            var rates = await GetRatesAsync();
+            var (rates, displayCurrency) = await GetRatesAndDisplayCurrencyAsync();
+            ViewBag.CurrencySymbol = CurrencyHelper.GetSymbol(displayCurrency);
 
             var trainees = await _context.Trainees
                 .Include(t => t.User)
@@ -36,15 +39,18 @@ namespace TrainingCenterManagement_MVC.Controllers
 
             foreach (var t in trainees)
             {
-                var totalOwed = t.CourseTrainees
+                var totalOwedSYP = t.CourseTrainees
                     .Where(ct => !ct.Course.IsDeleted)
                     .Sum(ct => CurrencyHelper.ToSYP(ct.Course.Price, ct.Course.CourseCurrency, rates));
 
-                var totalPaid = t.Payments
+                var totalPaidSYP = t.Payments
                     .Where(p => !p.IsDeleted && !p.Course.IsDeleted)
                     .Sum(p => CurrencyHelper.ToSYP(p.TotalAmount, p.Currency, rates));
 
-                var remaining = totalOwed - totalPaid;
+                var totalOwed    = CurrencyHelper.FromSYP(totalOwedSYP, displayCurrency, rates);
+                var totalPaid    = CurrencyHelper.FromSYP(totalPaidSYP, displayCurrency, rates);
+                var remaining    = totalOwed - totalPaid;
+
                 totalRevenue += totalPaid;
                 if (remaining > 0) { totalPending += remaining; withDebt++; }
 
@@ -73,7 +79,9 @@ namespace TrainingCenterManagement_MVC.Controllers
         // GET: PaymentManagement/StudentAccount/traineeId
         public async Task<IActionResult> StudentAccount(Guid id)
         {
-            var rates = await GetRatesAsync();
+            var (rates, displayCurrency) = await GetRatesAndDisplayCurrencyAsync();
+            var symbol = CurrencyHelper.GetSymbol(displayCurrency);
+            ViewBag.CurrencySymbol = symbol;
 
             var trainee = await _context.Trainees
                 .Include(t => t.User)
@@ -88,18 +96,23 @@ namespace TrainingCenterManagement_MVC.Controllers
                 .Where(ct => !ct.Course.IsDeleted)
                 .Select(ct =>
                 {
-                    var paidSAR = trainee.Payments
-                        .Where(p => !p.IsDeleted && p.CourseId == ct.CourseId)
-                        .Sum(p => CurrencyHelper.ToSYP(p.TotalAmount, p.Currency, rates));
+                    var paidDisplay = CurrencyHelper.FromSYP(
+                        trainee.Payments
+                            .Where(p => !p.IsDeleted && p.CourseId == ct.CourseId)
+                            .Sum(p => CurrencyHelper.ToSYP(p.TotalAmount, p.Currency, rates)),
+                        displayCurrency, rates);
 
-                    var coursePriceSYP = CurrencyHelper.ToSYP(ct.Course.Price, ct.Course.CourseCurrency, rates);
+                    var coursePrice = CurrencyHelper.FromSYP(
+                        CurrencyHelper.ToSYP(ct.Course.Price, ct.Course.CourseCurrency, rates),
+                        displayCurrency, rates);
+
                     return new CourseDebtEntry
                     {
                         CourseId      = ct.CourseId,
                         CourseName    = ct.Course.CourseName,
-                        CoursePrice   = coursePriceSYP,
-                        TotalPaidSAR  = paidSAR,
-                        RemainingDebt = coursePriceSYP - paidSAR
+                        CoursePrice   = coursePrice,
+                        TotalPaidSAR  = paidDisplay,
+                        RemainingDebt = coursePrice - paidDisplay
                     };
                 }).ToList();
 
@@ -112,7 +125,9 @@ namespace TrainingCenterManagement_MVC.Controllers
                     CourseName       = p.Course?.CourseName ?? "—",
                     OriginalAmount   = p.TotalAmount,
                     OriginalCurrency = CurrencyHelper.GetSymbol(p.Currency),
-                    AmountInSAR      = CurrencyHelper.ToSYP(p.TotalAmount, p.Currency, rates),
+                    AmountInSAR      = CurrencyHelper.FromSYP(
+                                           CurrencyHelper.ToSYP(p.TotalAmount, p.Currency, rates),
+                                           displayCurrency, rates),
                     Notes            = p.Notes,
                     Date             = p.CreatedDate
                 }).ToList();
@@ -135,13 +150,17 @@ namespace TrainingCenterManagement_MVC.Controllers
         }
 
         // ─── Helpers ─────────────────────────────────────────────────────────
-        private async Task<Dictionary<PaymentCurrency, decimal>> GetRatesAsync()
+        private async Task<(Dictionary<PaymentCurrency, decimal> rates, PaymentCurrency displayCurrency)>
+            GetRatesAndDisplayCurrencyAsync()
         {
             var dbRates = await _context.ExchangeRates.ToListAsync();
             var dict = new Dictionary<PaymentCurrency, decimal>(CurrencyHelper.DefaultRates);
             foreach (var r in dbRates)
                 dict[r.Currency] = r.RateToSYP;
-            return dict;
+
+            var defaultStr      = await _settings.GetAsync("DefaultCurrency");
+            var displayCurrency = CurrencyHelper.ParseDefault(defaultStr);
+            return (dict, displayCurrency);
         }
     }
 }

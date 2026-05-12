@@ -164,109 +164,124 @@ namespace TrainingCenterManagement_MVC.Data
         #region Courses
         private async Task SeedCoursesAsync()
         {
-            if (await _context.Courses.AnyAsync(c => c.CourseName != null))
+            // Fix any existing courses that have CourseCurrency=0 (invalid) → set to USD
+            var invalidCurrencyCourses = await _context.Courses
+                .Where(c => (int)c.CourseCurrency == 0)
+                .ToListAsync();
+            if (invalidCurrencyCourses.Any())
             {
-                return; // Keep existing if already seeded
+                foreach (var c in invalidCurrencyCourses)
+                    c.CourseCurrency = PaymentCurrency.USD;
+                await _context.SaveChangesAsync();
             }
 
-            var AdminsId = await _context.Admins.Select(c=>c.AdminId).ToListAsync();
-            if (AdminsId == null) return;
+            if (await _context.Courses.AnyAsync(c => c.CourseName != null))
+                return; // already seeded
 
-            // Course prices are in USD (default currency)
+            var AdminsId = await _context.Admins.Select(c => c.AdminId).ToListAsync();
+            if (!AdminsId.Any()) return;
+
             var courses = new List<Course>
-    {
-        new Course
-        {
-            CourseName = "Python Basics",
-            BatchNumber = 1,
-            NumberOfLectures = 10,
-            Price = 49,
-            Description = "An introductory course to Python programming.",
-            VideoUrl = "https://www.youtube.com/watch?v=f79MRyMsjrQ",
-            ThumbnailUrl = "https://img.youtube.com/vi/f79MRyMsjrQ/0.jpg",
-            ReleaseDate = DateTime.UtcNow.AddDays(-20),
-            AdminId = AdminsId[0],
-            CreatedDate = DateTime.UtcNow
-        },
-        new Course
-        {
-            CourseName = "Web Development",
-            BatchNumber = 2,
-            NumberOfLectures = 15,
-            Price = 79,
-            Description = "A comprehensive course on web development.",
-            VideoUrl = "https://www.youtube.com/watch?v=Ke90Tje7VS0",
-            ThumbnailUrl = "https://img.youtube.com/vi/Ke90Tje7VS0/0.jpg",
-            ReleaseDate = DateTime.UtcNow.AddDays(-15),
-            AdminId = AdminsId[1],
-            CreatedDate = DateTime.UtcNow
-        },
-        new Course
-        {
-            CourseName = "Advanced JavaScript",
-            BatchNumber = 1,
-            NumberOfLectures = 12,
-            Price = 69,
-            Description = "Deep dive into JavaScript advanced topics.",
-            VideoUrl = "https://www.youtube.com/watch?v=PkZNo7MFNFg",
-            ThumbnailUrl = "https://img.youtube.com/vi/PkZNo7MFNFg/0.jpg",
-            ReleaseDate = DateTime.UtcNow.AddDays(-12),
-            AdminId = AdminsId[2],
-            CreatedDate = DateTime.UtcNow
-        },
-        new Course
-        {
-            CourseName = "SQL and Databases",
-            BatchNumber = 1,
-            NumberOfLectures = 10,
-            Price = 59,
-            Description = "Learn SQL and database design fundamentals.",
-            VideoUrl = "https://www.youtube.com/watch?v=Oe421EPjeBE",
-            ThumbnailUrl = "https://img.youtube.com/vi/Oe421EPjeBE/0.jpg",
-            ReleaseDate = DateTime.UtcNow.AddDays(-10),
-            AdminId = AdminsId[0],
-            CreatedDate = DateTime.UtcNow
-        },
-        new Course
-        {
-            CourseName = "Cybersecurity Essentials",
-            BatchNumber = 1,
-            NumberOfLectures = 14,
-            Price = 89,
-            Description = "Fundamentals of cybersecurity for beginners.",
-            VideoUrl = "https://www.youtube.com/watch?v=kUMe1FH4CHE",
-            ThumbnailUrl = "https://img.youtube.com/vi/kUMe1FH4CHE/0.jpg",
-            ReleaseDate = DateTime.UtcNow.AddDays(-8),
-            AdminId = AdminsId[1],
-            CreatedDate = DateTime.UtcNow
-        },
-        new Course
-        {
-            CourseName = "Machine Learning Basics",
-            BatchNumber = 1,
-            NumberOfLectures = 12,
-            Price = 99,
-            Description = "Introduction to Machine Learning concepts and models.",
-            VideoUrl = "https://www.youtube.com/watch?v=GwIo3gDZCVQ",
-            ThumbnailUrl = "https://img.youtube.com/vi/GwIo3gDZCVQ/0.jpg",
-            ReleaseDate = DateTime.UtcNow.AddDays(-6),
-            AdminId = AdminsId[2],
-            CreatedDate = DateTime.UtcNow
-        },
-        new Course
-        {
-            CourseName = "Docker & Kubernetes",
-            BatchNumber = 1,
-            NumberOfLectures = 13,
-            Price = 94,
-            Description = "Get started with containers and orchestration.",
-            VideoUrl = "https://www.youtube.com/watch?v=VvCytJVDoyM",
-            ThumbnailUrl = "https://img.youtube.com/vi/VvCytJVDoyM/0.jpg",
-            ReleaseDate = DateTime.UtcNow.AddDays(-4),
-            AdminId = AdminsId[0],
-            CreatedDate = DateTime.UtcNow
-        },
-    };
+            {
+                new Course
+                {
+                    CourseName = "Python Basics",
+                    BatchNumber = 1,
+                    NumberOfLectures = 10,
+                    Price = 49,
+                    CourseCurrency = PaymentCurrency.USD,
+                    Description = "An introductory course to Python programming.",
+                    VideoUrl = "https://www.youtube.com/watch?v=f79MRyMsjrQ",
+                    ThumbnailUrl = "https://img.youtube.com/vi/f79MRyMsjrQ/0.jpg",
+                    ReleaseDate = DateTime.UtcNow.AddDays(-20),
+                    AdminId = AdminsId[0],
+                    CreatedDate = DateTime.UtcNow
+                },
+                new Course
+                {
+                    CourseName = "Web Development",
+                    BatchNumber = 2,
+                    NumberOfLectures = 15,
+                    Price = 79,
+                    CourseCurrency = PaymentCurrency.USD,
+                    Description = "A comprehensive course on web development.",
+                    VideoUrl = "https://www.youtube.com/watch?v=Ke90Tje7VS0",
+                    ThumbnailUrl = "https://img.youtube.com/vi/Ke90Tje7VS0/0.jpg",
+                    ReleaseDate = DateTime.UtcNow.AddDays(-15),
+                    AdminId = AdminsId[1],
+                    CreatedDate = DateTime.UtcNow
+                },
+                new Course
+                {
+                    CourseName = "Advanced JavaScript",
+                    BatchNumber = 1,
+                    NumberOfLectures = 12,
+                    Price = 69,
+                    CourseCurrency = PaymentCurrency.USD,
+                    Description = "Deep dive into JavaScript advanced topics.",
+                    VideoUrl = "https://www.youtube.com/watch?v=PkZNo7MFNFg",
+                    ThumbnailUrl = "https://img.youtube.com/vi/PkZNo7MFNFg/0.jpg",
+                    ReleaseDate = DateTime.UtcNow.AddDays(-12),
+                    AdminId = AdminsId[2 % AdminsId.Count],
+                    CreatedDate = DateTime.UtcNow
+                },
+                new Course
+                {
+                    CourseName = "SQL and Databases",
+                    BatchNumber = 1,
+                    NumberOfLectures = 10,
+                    Price = 59,
+                    CourseCurrency = PaymentCurrency.USD,
+                    Description = "Learn SQL and database design fundamentals.",
+                    VideoUrl = "https://www.youtube.com/watch?v=Oe421EPjeBE",
+                    ThumbnailUrl = "https://img.youtube.com/vi/Oe421EPjeBE/0.jpg",
+                    ReleaseDate = DateTime.UtcNow.AddDays(-10),
+                    AdminId = AdminsId[0],
+                    CreatedDate = DateTime.UtcNow
+                },
+                new Course
+                {
+                    CourseName = "Cybersecurity Essentials",
+                    BatchNumber = 1,
+                    NumberOfLectures = 14,
+                    Price = 89,
+                    CourseCurrency = PaymentCurrency.USD,
+                    Description = "Fundamentals of cybersecurity for beginners.",
+                    VideoUrl = "https://www.youtube.com/watch?v=kUMe1FH4CHE",
+                    ThumbnailUrl = "https://img.youtube.com/vi/kUMe1FH4CHE/0.jpg",
+                    ReleaseDate = DateTime.UtcNow.AddDays(-8),
+                    AdminId = AdminsId[1 % AdminsId.Count],
+                    CreatedDate = DateTime.UtcNow
+                },
+                new Course
+                {
+                    CourseName = "Machine Learning Basics",
+                    BatchNumber = 1,
+                    NumberOfLectures = 12,
+                    Price = 99,
+                    CourseCurrency = PaymentCurrency.USD,
+                    Description = "Introduction to Machine Learning concepts and models.",
+                    VideoUrl = "https://www.youtube.com/watch?v=GwIo3gDZCVQ",
+                    ThumbnailUrl = "https://img.youtube.com/vi/GwIo3gDZCVQ/0.jpg",
+                    ReleaseDate = DateTime.UtcNow.AddDays(-6),
+                    AdminId = AdminsId[2 % AdminsId.Count],
+                    CreatedDate = DateTime.UtcNow
+                },
+                new Course
+                {
+                    CourseName = "Docker & Kubernetes",
+                    BatchNumber = 1,
+                    NumberOfLectures = 13,
+                    Price = 94,
+                    CourseCurrency = PaymentCurrency.USD,
+                    Description = "Get started with containers and orchestration.",
+                    VideoUrl = "https://www.youtube.com/watch?v=VvCytJVDoyM",
+                    ThumbnailUrl = "https://img.youtube.com/vi/VvCytJVDoyM/0.jpg",
+                    ReleaseDate = DateTime.UtcNow.AddDays(-4),
+                    AdminId = AdminsId[0],
+                    CreatedDate = DateTime.UtcNow
+                },
+            };
 
             _context.Courses.AddRange(courses);
             await _context.SaveChangesAsync();
