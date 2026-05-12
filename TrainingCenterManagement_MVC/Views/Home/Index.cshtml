@@ -1,625 +1,1942 @@
 @model TrainingCenterManagement_MVC.ViewModels.HomeViewModel
 @using TrainingCenterManagement_MVC.Models
 @{
-    ViewData["Title"] = "Training Center — منصة التدريب";
+    ViewData["Title"] = "Training Center | منصة التدريب الحديثة";
+    ViewData["Description"] = "مركز تدريب حديث يقدم كورسات عملية، مدربين محترفين، اختبارات، شهادات، ولوحة متابعة واضحة للمتدربين.";
     Layout = "_Layout";
+
+    var heroCourse = Model.FeaturedCourses.FirstOrDefault();
 }
 
 @section Styles {
 <style>
-/* ── CSS Variables ─────────────────────────────────────────── */
-:root {
-    --pr:#4f46e5; --pr-l:#6366f1; --pr-d:#3730a3; --pr-pale:#eef2ff;
-    --gold:#f59e0b; --gold-pale:#fffbeb;
-    --success:#10b981; --danger:#ef4444;
-    --t1:#0f172a; --t2:#334155; --t3:#64748b; --t4:#94a3b8;
-    --bg:#f8fafc; --card:#fff;
-    --border:#e2e8f0; --shadow:0 4px 24px rgba(0,0,0,.07);
-    --radius:16px;
-}
+    @@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Tajawal:wght@400;500;700;800;900&display=swap');
 
-/* ── Reset & Base ──────────────────────────────────────────── */
-*, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
-html { scroll-behavior:smooth; }
-body { font-family:'Segoe UI',system-ui,sans-serif; color:var(--t2); background:#fff; overflow-x:hidden; }
-a { text-decoration:none; }
-img { max-width:100%; }
+    :root {
+        --home-bg: #07111f;
+        --home-bg-2: #0b1830;
+        --home-surface: rgba(10, 20, 39, 0.78);
+        --home-surface-strong: rgba(10, 20, 39, 0.92);
+        --home-border: rgba(148, 163, 184, 0.18);
+        --home-text: #f8fbff;
+        --home-muted: #a9b8d4;
+        --home-primary: #39c6f4;
+        --home-primary-2: #67e8f9;
+        --home-secondary: #2563eb;
+        --home-accent: #f59e0b;
+        --home-shadow: 0 24px 60px rgba(0, 0, 0, 0.30);
+        --home-radius-xl: 30px;
+        --home-radius-lg: 24px;
+        --home-radius-md: 18px;
+        --home-max: 1240px;
+    }
 
-/* ── Hero ──────────────────────────────────────────────────── */
-.hero {
-    position:relative; min-height:100vh; display:flex; align-items:center;
-    background:linear-gradient(135deg,#0f172a 0%,#1e1b4b 40%,#312e81 70%,#4f46e5 100%);
-    overflow:hidden; direction:rtl;
-}
-.hero-bg-dots {
-    position:absolute; inset:0; opacity:.15;
-    background-image:radial-gradient(circle, #ffffff 1px, transparent 1px);
-    background-size:32px 32px;
-}
-.hero-glow {
-    position:absolute; width:600px; height:600px; border-radius:50%;
-    background:radial-gradient(circle,rgba(99,102,241,.4),transparent 70%);
-    top:-100px; left:-100px; pointer-events:none;
-}
-.hero-glow-2 {
-    position:absolute; width:400px; height:400px; border-radius:50%;
-    background:radial-gradient(circle,rgba(245,158,11,.2),transparent 70%);
-    bottom:-100px; right:10%; pointer-events:none;
-}
-.hero-container { position:relative; z-index:2; max-width:1200px; margin:0 auto; padding:0 32px; display:grid; grid-template-columns:1fr 1fr; gap:64px; align-items:center; width:100%; }
-.hero-badge { display:inline-flex; align-items:center; gap:8px; background:rgba(255,255,255,.1); backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,.2); color:#a5b4fc; font-size:.78rem; font-weight:600; padding:6px 14px; border-radius:20px; margin-bottom:20px; letter-spacing:.04em; }
-.hero-title { font-size:3.2rem; font-weight:900; color:#fff; line-height:1.15; margin-bottom:20px; }
-.hero-title span { background:linear-gradient(90deg,#a5b4fc,#f9a8d4); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
-.hero-desc { font-size:1.05rem; color:#cbd5e1; line-height:1.8; margin-bottom:32px; }
-.hero-btns { display:flex; gap:14px; flex-wrap:wrap; }
-.hero-btn-primary { padding:13px 28px; background:linear-gradient(135deg,var(--pr),var(--pr-l)); color:#fff; border-radius:10px; font-weight:700; font-size:.95rem; transition:all .2s; display:inline-flex; align-items:center; gap:8px; box-shadow:0 4px 20px rgba(79,70,229,.4); }
-.hero-btn-primary:hover { transform:translateY(-2px); box-shadow:0 8px 28px rgba(79,70,229,.5); color:#fff; }
-.hero-btn-secondary { padding:13px 28px; background:rgba(255,255,255,.1); backdrop-filter:blur(10px); color:#fff; border-radius:10px; font-weight:600; font-size:.95rem; border:1px solid rgba(255,255,255,.25); transition:all .2s; display:inline-flex; align-items:center; gap:8px; }
-.hero-btn-secondary:hover { background:rgba(255,255,255,.2); color:#fff; transform:translateY(-2px); }
-.hero-stats { display:flex; gap:28px; margin-top:40px; flex-wrap:wrap; }
-.hero-stat { text-align:center; }
-.hero-stat-val { font-size:1.8rem; font-weight:900; color:#fff; display:block; }
-.hero-stat-lbl { font-size:.72rem; color:#94a3b8; font-weight:500; margin-top:2px; }
-.hero-stat-divider { width:1px; background:rgba(255,255,255,.15); align-self:stretch; }
+    body {
+        margin: 0;
+        color: var(--home-text);
+        font-family: 'Tajawal', sans-serif;
+        background:
+            radial-gradient(circle at top right, rgba(37, 99, 235, 0.20), transparent 30%),
+            radial-gradient(circle at 10% 25%, rgba(57, 198, 244, 0.18), transparent 24%),
+            linear-gradient(180deg, #07111f 0%, #0b1730 45%, #07111f 100%);
+        overflow-x: hidden;
+    }
 
-/* Hero visual */
-.hero-visual { display:flex; justify-content:center; align-items:center; position:relative; }
-.hero-card-stack { position:relative; width:380px; height:420px; }
-.hcard { position:absolute; border-radius:var(--radius); overflow:hidden; box-shadow:0 20px 60px rgba(0,0,0,.4); }
-.hcard-main { width:280px; height:340px; top:40px; right:40px; background:linear-gradient(135deg,#1e293b,#0f172a); border:1px solid rgba(255,255,255,.1); display:flex; flex-direction:column; padding:20px; }
-.hcard-thumb { width:100%; height:140px; border-radius:10px; object-fit:cover; background:linear-gradient(135deg,#4f46e5,#7c3aed); margin-bottom:14px; display:flex; align-items:center; justify-content:center; overflow:hidden; }
-.hcard-thumb img { width:100%; height:100%; object-fit:cover; }
-.hcard-thumb-fallback { font-size:2.5rem; color:rgba(255,255,255,.6); }
-.hcard-title { font-size:.9rem; font-weight:700; color:#f1f5f9; margin-bottom:6px; }
-.hcard-sub { font-size:.72rem; color:#64748b; margin-bottom:12px; }
-.hcard-price { font-size:1.1rem; font-weight:800; color:#a5b4fc; }
-.hcard-float { width:160px; height:80px; top:0; right:0; background:linear-gradient(135deg,#4f46e5,#7c3aed); display:flex; align-items:center; justify-content:center; gap:10px; padding:16px; border-radius:12px; }
-.hcard-float2 { width:140px; height:70px; bottom:20px; right:0; background:linear-gradient(135deg,#f59e0b,#ef4444); display:flex; align-items:center; justify-content:center; gap:10px; padding:14px; border-radius:12px; }
-.hcard-float-icon { font-size:1.4rem; color:#fff; flex-shrink:0; }
-.hcard-float-val { font-size:1.1rem; font-weight:800; color:#fff; line-height:1; }
-.hcard-float-lbl { font-size:.65rem; color:rgba(255,255,255,.7); }
+    .home-page,
+    .home-page * {
+        box-sizing: border-box;
+    }
 
-/* floating animation */
-@@keyframes floatUp { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-14px)} }
-.hero-visual { animation:floatUp 6s ease-in-out infinite; }
+    .home-page {
+        position: relative;
+        direction: rtl;
+        isolation: isolate;
+    }
 
-/* ── Section Shared ──────────────────────────────────────────── */
-.section { padding:80px 0; }
-.section-alt { background:var(--bg); }
-.container { max-width:1200px; margin:0 auto; padding:0 32px; }
-.section-head { text-align:center; margin-bottom:56px; direction:rtl; }
-.section-tag { display:inline-flex; align-items:center; gap:6px; background:var(--pr-pale); color:var(--pr); font-size:.75rem; font-weight:700; padding:5px 14px; border-radius:20px; margin-bottom:12px; letter-spacing:.04em; }
-.section-title { font-size:2.2rem; font-weight:900; color:var(--t1); margin-bottom:12px; line-height:1.25; }
-.section-sub { font-size:1rem; color:var(--t3); max-width:560px; margin:0 auto; line-height:1.7; }
+    .home-page::before,
+    .home-page::after {
+        content: "";
+        position: fixed;
+        width: 32vw;
+        height: 32vw;
+        border-radius: 50%;
+        filter: blur(90px);
+        z-index: -2;
+        pointer-events: none;
+        opacity: 0.42;
+    }
 
-/* ── Stats Strip ──────────────────────────────────────────────── */
-.stats-strip { background:linear-gradient(135deg,#1e1b4b,#312e81); padding:60px 0; }
-.stats-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:32px; direction:rtl; }
-.stat-item { text-align:center; }
-.stat-num { font-size:2.6rem; font-weight:900; color:#fff; display:block; line-height:1; }
-.stat-num-suffix { font-size:1.4rem; color:#a5b4fc; }
-.stat-lbl { font-size:.8rem; color:#a5b4fc; font-weight:600; margin-top:8px; letter-spacing:.04em; }
-.stat-icon { font-size:1.6rem; color:#6366f1; margin-bottom:10px; }
+    .home-page::before {
+        top: -8vw;
+        right: -12vw;
+        background: rgba(37, 99, 235, 0.24);
+        animation: blobShift 16s ease-in-out infinite;
+    }
 
-/* ── Course Cards ──────────────────────────────────────────────── */
-.courses-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:24px; direction:rtl; }
-.course-card { background:var(--card); border-radius:var(--radius); border:1px solid var(--border); box-shadow:var(--shadow); overflow:hidden; transition:all .25s; display:flex; flex-direction:column; }
-.course-card:hover { transform:translateY(-6px); box-shadow:0 16px 48px rgba(79,70,229,.14); border-color:#c7d2fe; }
-.course-thumb { height:180px; overflow:hidden; position:relative; }
-.course-thumb img { width:100%; height:100%; object-fit:cover; transition:transform .4s; }
-.course-card:hover .course-thumb img { transform:scale(1.05); }
-.course-thumb-fallback { width:100%; height:100%; background:linear-gradient(135deg,var(--pr),var(--pr-l)); display:flex; align-items:center; justify-content:center; font-size:2.5rem; color:rgba(255,255,255,.4); }
-.course-badge-wrap { position:absolute; top:12px; right:12px; display:flex; flex-direction:column; gap:5px; }
-.c-badge { font-size:.65rem; font-weight:700; padding:3px 9px; border-radius:10px; }
-.c-badge-featured { background:#f59e0b; color:#fff; }
-.c-badge-new { background:var(--pr); color:#fff; }
-.course-body { padding:20px; flex:1; display:flex; flex-direction:column; }
-.course-category { font-size:.7rem; font-weight:700; color:var(--pr); text-transform:uppercase; letter-spacing:.06em; margin-bottom:8px; }
-.course-title { font-size:1rem; font-weight:700; color:var(--t1); margin-bottom:10px; line-height:1.4; }
-.course-meta { display:flex; align-items:center; gap:14px; font-size:.75rem; color:var(--t4); margin-bottom:14px; flex-wrap:wrap; }
-.course-meta i { color:var(--pr); font-size:.7rem; }
-.course-stars { display:flex; align-items:center; gap:3px; margin-bottom:12px; }
-.star { color:#f59e0b; font-size:.75rem; }
-.star-empty { color:#e2e8f0; font-size:.75rem; }
-.star-count { font-size:.72rem; color:var(--t4); margin-right:5px; }
-.course-footer { display:flex; align-items:center; justify-content:space-between; padding-top:14px; border-top:1px solid var(--border); margin-top:auto; }
-.course-price { font-size:1.2rem; font-weight:800; color:var(--pr); }
-.course-price-currency { font-size:.75rem; font-weight:600; color:var(--t4); margin-right:3px; }
-.btn-enroll { padding:7px 16px; background:var(--pr-pale); color:var(--pr); border-radius:8px; font-size:.8rem; font-weight:700; transition:all .2s; }
-.btn-enroll:hover { background:var(--pr); color:#fff; }
+    .home-page::after {
+        bottom: -10vw;
+        left: -10vw;
+        background: rgba(57, 198, 244, 0.18);
+        animation: blobShift 18s ease-in-out infinite reverse;
+    }
 
-/* ── Features ──────────────────────────────────────────────── */
-.features-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:28px; direction:rtl; }
-.feature-card { background:var(--card); border-radius:var(--radius); border:1px solid var(--border); padding:32px 28px; text-align:center; transition:all .25s; }
-.feature-card:hover { transform:translateY(-4px); box-shadow:var(--shadow); border-color:#c7d2fe; }
-.feature-icon-wrap { width:64px; height:64px; border-radius:16px; display:flex; align-items:center; justify-content:center; font-size:1.6rem; margin:0 auto 18px; }
-.feature-title { font-size:1.05rem; font-weight:700; color:var(--t1); margin-bottom:10px; }
-.feature-desc { font-size:.85rem; color:var(--t3); line-height:1.7; }
+    .home-grid {
+        position: absolute;
+        inset: 0;
+        background-image:
+            linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+        background-size: 70px 70px;
+        mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.92), transparent 95%);
+        pointer-events: none;
+        z-index: -1;
+    }
 
-/* ── Trainers ──────────────────────────────────────────────── */
-.trainers-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:20px; direction:rtl; }
-.trainer-card { background:var(--card); border-radius:var(--radius); border:1px solid var(--border); padding:28px 20px; text-align:center; transition:all .25s; }
-.trainer-card:hover { transform:translateY(-4px); box-shadow:var(--shadow); border-color:#c7d2fe; }
-.trainer-avatar { width:80px; height:80px; border-radius:50%; object-fit:cover; border:3px solid var(--border); margin:0 auto 14px; transition:border-color .2s; display:block; }
-.trainer-card:hover .trainer-avatar { border-color:#a5b4fc; }
-.trainer-name { font-size:.95rem; font-weight:700; color:var(--t1); margin-bottom:4px; }
-.trainer-spec { font-size:.75rem; color:var(--pr); font-weight:600; background:var(--pr-pale); padding:3px 10px; border-radius:10px; display:inline-block; margin-bottom:8px; }
-.trainer-courses { font-size:.72rem; color:var(--t4); }
+    .home-container {
+        width: min(calc(100% - 32px), var(--home-max));
+        margin: 0 auto;
+    }
 
-/* ── Process Steps ──────────────────────────────────────────── */
-.steps-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:24px; direction:rtl; position:relative; }
-.steps-grid::before { content:''; position:absolute; top:36px; right:12.5%; left:12.5%; height:2px; background:linear-gradient(90deg,var(--pr),var(--pr-l)); opacity:.2; }
-.step-card { text-align:center; position:relative; padding:0 12px; }
-.step-num { width:56px; height:56px; border-radius:50%; background:linear-gradient(135deg,var(--pr),var(--pr-l)); color:#fff; font-size:1.3rem; font-weight:900; display:flex; align-items:center; justify-content:center; margin:0 auto 16px; box-shadow:0 4px 16px rgba(79,70,229,.35); }
-.step-title { font-size:.95rem; font-weight:700; color:var(--t1); margin-bottom:8px; }
-.step-desc { font-size:.82rem; color:var(--t3); line-height:1.6; }
+    .home-topbar-wrap {
+        position: sticky;
+        top: 0;
+        z-index: 40;
+        padding: 18px 0 0;
+        backdrop-filter: blur(12px);
+    }
 
-/* ── Testimonials ──────────────────────────────────────────── */
-.testimonials-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:24px; direction:rtl; }
-.testimonial-card { background:var(--card); border-radius:var(--radius); border:1px solid var(--border); padding:28px; box-shadow:var(--shadow); position:relative; }
-.testimonial-card::before { content:'"'; position:absolute; top:16px; right:20px; font-size:4rem; color:var(--pr-pale); font-family:serif; line-height:1; }
-.testimonial-text { font-size:.88rem; color:var(--t2); line-height:1.8; margin-bottom:20px; font-style:italic; }
-.testimonial-author { display:flex; align-items:center; gap:12px; }
-.testimonial-avatar { width:42px; height:42px; border-radius:50%; object-fit:cover; border:2px solid var(--border); }
-.testimonial-name { font-size:.85rem; font-weight:700; color:var(--t1); }
-.testimonial-role { font-size:.72rem; color:var(--t4); }
-.testimonial-stars { display:flex; gap:2px; margin-bottom:12px; }
+    .home-topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 14px 20px;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.40);
+        background: rgba(247, 249, 253, 0.92);
+        box-shadow: 0 10px 28px rgba(0, 0, 0, 0.10);
+    }
 
-/* ── CTA Banner ──────────────────────────────────────────────── */
-.cta-banner { background:linear-gradient(135deg,#1e1b4b 0%,#4f46e5 50%,#7c3aed 100%); border-radius:24px; padding:64px 48px; text-align:center; position:relative; overflow:hidden; direction:rtl; }
-.cta-banner::before { content:''; position:absolute; inset:0; background-image:radial-gradient(circle,rgba(255,255,255,.06) 1px,transparent 1px); background-size:24px 24px; }
-.cta-title { font-size:2.4rem; font-weight:900; color:#fff; margin-bottom:16px; position:relative; }
-.cta-sub { font-size:1rem; color:#c7d2fe; margin-bottom:32px; position:relative; }
-.cta-btns { display:flex; gap:14px; justify-content:center; flex-wrap:wrap; position:relative; }
-.cta-btn-white { padding:13px 32px; background:#fff; color:var(--pr); border-radius:10px; font-weight:700; font-size:.95rem; transition:all .2s; display:inline-flex; align-items:center; gap:8px; }
-.cta-btn-white:hover { background:#f1f5f9; transform:translateY(-2px); color:var(--pr-d); }
-.cta-btn-outline { padding:13px 32px; background:transparent; color:#fff; border:2px solid rgba(255,255,255,.4); border-radius:10px; font-weight:600; font-size:.95rem; transition:all .2s; display:inline-flex; align-items:center; gap:8px; }
-.cta-btn-outline:hover { background:rgba(255,255,255,.1); transform:translateY(-2px); }
+    .brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        color: #08111f;
+        text-decoration: none;
+        font-weight: 800;
+        font-size: 1.08rem;
+    }
 
-/* ── Responsive ──────────────────────────────────────────────── */
-@@media(max-width:900px) {
-    .hero-container { grid-template-columns:1fr; gap:32px; text-align:center; }
-    .hero-visual { display:none; }
-    .hero-title { font-size:2.2rem; }
-    .hero-btns { justify-content:center; }
-    .hero-stats { justify-content:center; }
-    .stats-grid { grid-template-columns:repeat(3,1fr); }
-    .features-grid { grid-template-columns:1fr 1fr; }
-    .steps-grid { grid-template-columns:1fr 1fr; }
-    .testimonials-grid { grid-template-columns:1fr; }
-    .steps-grid::before { display:none; }
-}
-@@media(max-width:600px) {
-    .stats-grid { grid-template-columns:repeat(2,1fr); }
-    .features-grid { grid-template-columns:1fr; }
-    .steps-grid { grid-template-columns:1fr; }
-    .hero-title { font-size:1.8rem; }
-    .section-title { font-size:1.7rem; }
-    .cta-banner { padding:40px 24px; }
-    .cta-title { font-size:1.7rem; }
-}
+    .brand-mark {
+        width: 42px;
+        height: 42px;
+        border-radius: 14px;
+        display: grid;
+        place-items: center;
+        background: linear-gradient(135deg, var(--home-primary), var(--home-secondary));
+        color: #ffffff;
+        box-shadow: 0 10px 24px rgba(57, 198, 244, 0.28);
+    }
+
+    .topbar-nav {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .topbar-nav a,
+    .topbar-action {
+        color: #243246;
+        text-decoration: none;
+        padding: 10px 14px;
+        border-radius: 999px;
+        font-size: 0.92rem;
+        font-weight: 700;
+        transition: transform 180ms ease, background 180ms ease, color 180ms ease;
+    }
+
+    .topbar-nav a:hover,
+    .topbar-action:hover {
+        transform: translateY(-1px);
+        color: #08111f;
+        background: rgba(8, 17, 31, 0.06);
+    }
+
+    .topbar-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .topbar-action.primary {
+        color: #05111d;
+        background: linear-gradient(135deg, var(--home-primary-2), var(--home-primary));
+        box-shadow: 0 10px 30px rgba(57, 198, 244, 0.24);
+    }
+
+    .topbar-action.register-action {
+        color: #ffffff;
+        background: linear-gradient(135deg, #0f172a, #1d4ed8 72%, #38bdf8 100%);
+        box-shadow: 0 16px 36px rgba(15, 23, 42, 0.24);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 9px 16px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        color: #d7e8ff;
+        font-size: 0.86rem;
+        font-weight: 700;
+    }
+
+    .section-shell {
+        padding: 102px 0;
+    }
+
+    .section-head {
+        max-width: 760px;
+        margin-bottom: 34px;
+    }
+
+    .section-head h2 {
+        margin: 18px 0 14px;
+        font-size: clamp(2rem, 3.2vw, 3.25rem);
+        line-height: 1.1;
+        font-weight: 900;
+    }
+
+    .section-head p {
+        margin: 0;
+        color: var(--home-muted);
+        font-size: 1.02rem;
+        line-height: 1.9;
+    }
+
+    .hero {
+        position: relative;
+        min-height: calc(100vh - 84px);
+        display: flex;
+        align-items: center;
+        padding: 44px 0 56px;
+        overflow: hidden;
+        background: linear-gradient(180deg, #edf2f7 0%, #f8fafc 100%);
+        margin-top: 18px;
+        border-radius: 40px;
+        box-shadow: 0 24px 70px rgba(0, 0, 0, 0.12);
+    }
+
+    .hero::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+            radial-gradient(circle at 18% 20%, rgba(57, 198, 244, 0.18), transparent 20%),
+            radial-gradient(circle at 88% 22%, rgba(37, 99, 235, 0.10), transparent 22%);
+        pointer-events: none;
+    }
+
+    .hero-inner {
+        display: grid;
+        grid-template-columns: minmax(0, 1.05fr) minmax(380px, 0.95fr);
+        gap: 58px;
+        align-items: center;
+    }
+
+    .hero-copy {
+        position: relative;
+        z-index: 2;
+        color: #0b1320;
+    }
+
+    .hero-title {
+        margin: 22px 0 22px;
+        font-size: clamp(3rem, 6vw, 6rem);
+        line-height: 0.98;
+        font-weight: 900;
+        letter-spacing: -0.04em;
+    }
+
+    .hero-title .accent {
+        display: block;
+        background: linear-gradient(90deg, #0f172a 0%, #1e40af 22%, #38bdf8 60%, #0f172a 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .hero-text {
+        max-width: 650px;
+        color: #6b7b94;
+        line-height: 1.95;
+        font-size: 1.06rem;
+        margin-bottom: 30px;
+    }
+
+    .hero-kicker {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        flex-wrap: wrap;
+        margin-bottom: 20px;
+    }
+
+    .hero-ai-button {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 16px;
+        border-radius: 999px;
+        text-decoration: none;
+        color: #fff;
+        background: #0c1422;
+        box-shadow: 0 18px 30px rgba(12, 20, 34, 0.16);
+        border: 1px solid rgba(12, 20, 34, 0.08);
+        transition: transform 180ms ease, box-shadow 180ms ease;
+    }
+
+    .hero-ai-button:hover {
+        transform: translateY(-2px) scale(1.02);
+        color: #fff;
+        box-shadow: 0 22px 34px rgba(12, 20, 34, 0.2);
+    }
+
+    .hero-ai-orb {
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: radial-gradient(circle at 30% 30%, #e0fbff, #38bdf8 55%, #2563eb 100%);
+        box-shadow: 0 0 0 8px rgba(56, 189, 248, 0.12);
+        animation: orbPulse 2.8s ease-in-out infinite;
+    }
+
+    .hero-ai-label {
+        display: flex;
+        flex-direction: column;
+        line-height: 1.2;
+    }
+
+    .hero-ai-label strong {
+        font-size: 0.86rem;
+    }
+
+    .hero-ai-label span {
+        color: rgba(255,255,255,0.64);
+        font-size: 0.72rem;
+    }
+
+    .hero-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 14px;
+        margin-bottom: 34px;
+    }
+
+    .hero-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        padding: 14px 22px;
+        border-radius: 999px;
+        border: 1px solid transparent;
+        text-decoration: none;
+        font-weight: 800;
+        transition: transform 180ms ease, box-shadow 180ms ease, background 180ms ease;
+    }
+
+    .hero-btn:hover {
+        transform: translateY(-2px);
+        color: inherit;
+    }
+
+    .hero-btn.primary {
+        color: #05111d;
+        background: linear-gradient(135deg, var(--home-primary-2), var(--home-primary));
+        box-shadow: 0 16px 38px rgba(57, 198, 244, 0.24);
+    }
+
+    .hero-btn.secondary {
+        color: #ffffff;
+        background: linear-gradient(135deg, #020617, #1e3a8a 62%, #38bdf8 100%);
+        border-color: rgba(15, 23, 42, 0.18);
+        box-shadow: 0 24px 42px rgba(29, 78, 216, 0.28);
+    }
+
+    .hero-stats {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 16px;
+        max-width: 760px;
+    }
+
+    .stat-card {
+        position: relative;
+        overflow: hidden;
+        padding: 20px 18px;
+        border-radius: 24px;
+        border: 1px solid rgba(148, 163, 184, 0.22);
+        background: rgba(255, 255, 255, 0.72);
+        box-shadow: 0 24px 38px rgba(15, 23, 42, 0.10);
+    }
+
+    .stat-card::before {
+        content: "";
+        position: absolute;
+        top: -25px;
+        left: -25px;
+        width: 90px;
+        height: 90px;
+        border-radius: 50%;
+        background: rgba(57, 198, 244, 0.12);
+        filter: blur(16px);
+    }
+
+    .stat-value {
+        display: block;
+        margin-bottom: 8px;
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 2rem;
+        font-weight: 700;
+        line-height: 1;
+        color: #0f172a;
+    }
+
+    .stat-label {
+        color: #64748b;
+        line-height: 1.75;
+        font-size: 0.9rem;
+    }
+
+    .hero-visual {
+        position: relative;
+        min-height: 650px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .hero-rings,
+    .hero-rings::before,
+    .hero-rings::after {
+        position: absolute;
+        border-radius: 50%;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .hero-rings {
+        width: 520px;
+        height: 520px;
+        animation: spin 28s linear infinite;
+    }
+
+    .hero-rings::before,
+    .hero-rings::after {
+        content: "";
+        inset: 36px;
+    }
+
+    .hero-rings::after {
+        inset: 100px;
+    }
+
+    .hero-stack {
+        position: relative;
+        width: min(100%, 510px);
+        animation: driftField 10s ease-in-out infinite;
+        transform-style: preserve-3d;
+    }
+
+    .hero-main-card,
+    .floating-card {
+        border-radius: var(--home-radius-xl);
+        border: 1px solid rgba(255, 255, 255, 0.10);
+        background: linear-gradient(180deg, rgba(17, 29, 52, 0.98), rgba(8, 16, 31, 0.96));
+        box-shadow: 0 40px 80px rgba(15, 23, 42, 0.28);
+        backdrop-filter: blur(18px);
+        transition: transform 240ms ease-out, box-shadow 240ms ease-out, filter 240ms ease-out;
+    }
+
+    .hero-main-card {
+        position: relative;
+        overflow: hidden;
+        padding: 28px;
+        min-height: 540px;
+        transform: rotate(-4deg);
+        animation: heroCardFloat 8s ease-in-out infinite;
+        will-change: transform;
+    }
+
+    .hero-main-card::before {
+        content: "";
+        position: absolute;
+        top: -80px;
+        right: -80px;
+        width: 220px;
+        height: 220px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(57, 198, 244, 0.34), transparent 70%);
+    }
+
+    .hero-main-card::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(120deg, transparent 0%, rgba(255,255,255,0.08) 45%, transparent 70%);
+        transform: translateX(-120%);
+        animation: shine 6s ease-in-out infinite;
+    }
+
+    .hero-main-card > * {
+        position: relative;
+        z-index: 1;
+    }
+
+    .hero-card-tag {
+        font-family: 'Space Grotesk', sans-serif;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: #84e8ff;
+        font-size: 0.75rem;
+        margin-bottom: 16px;
+    }
+
+    .hero-main-card h3 {
+        margin: 0 0 14px;
+        font-size: 2rem;
+        line-height: 1.18;
+    }
+
+    .hero-main-card p {
+        margin: 0 0 22px;
+        color: #c0cfe8;
+        line-height: 1.95;
+        font-size: 0.98rem;
+    }
+
+    .progress-panel,
+    .mini-panel {
+        padding: 18px;
+        border-radius: 22px;
+        border: 1px solid rgba(255,255,255,0.10);
+        background: rgba(255,255,255,0.05);
+        margin-bottom: 16px;
+    }
+
+    .progress-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 12px;
+    }
+
+    .progress-top span {
+        color: #dbe9ff;
+        font-size: 0.9rem;
+        font-weight: 700;
+    }
+
+    .progress-top small {
+        color: #8fa7cd;
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 0.72rem;
+        letter-spacing: 0.08em;
+    }
+
+    .progress-track {
+        width: 100%;
+        height: 10px;
+        border-radius: 999px;
+        background: rgba(255,255,255,0.08);
+        overflow: hidden;
+    }
+
+    .progress-track span {
+        display: block;
+        height: 100%;
+        border-radius: inherit;
+        background: linear-gradient(90deg, var(--home-primary), var(--home-secondary), var(--home-accent));
+        animation: progressPulse 4s ease-in-out infinite;
+    }
+
+    .mini-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+    }
+
+    .mini-panel strong {
+        display: block;
+        margin-bottom: 7px;
+        font-size: 1rem;
+    }
+
+    .mini-panel span {
+        color: var(--home-muted);
+        line-height: 1.7;
+        font-size: 0.86rem;
+    }
+
+    .floating-orbit {
+        position: absolute;
+        z-index: 3;
+        will-change: transform;
+        pointer-events: none;
+    }
+
+    .floating-orbit.top {
+        top: -26px;
+        right: -24px;
+        animation: orbitTop 8s ease-in-out infinite;
+    }
+
+    .floating-orbit.left {
+        top: 126px;
+        left: -38px;
+        animation: orbitLeft 9s ease-in-out infinite;
+    }
+
+    .floating-orbit.bottom {
+        bottom: -24px;
+        left: 24px;
+        animation: orbitBottom 7.5s ease-in-out infinite;
+    }
+
+    .floating-card {
+        padding: 16px;
+        min-width: 178px;
+        position: relative;
+        will-change: transform;
+    }
+
+    .floating-card strong {
+        display: block;
+        margin-bottom: 4px;
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 1.15rem;
+    }
+
+    .floating-card span {
+        color: var(--home-muted);
+        font-size: 0.84rem;
+        line-height: 1.6;
+    }
+
+    .hero-stack.is-interacting .floating-card {
+        box-shadow: 0 28px 70px rgba(15, 23, 42, 0.34);
+        filter: saturate(1.08);
+    }
+
+    .floating-card.is-repelled {
+        transition: transform 120ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 180ms ease, filter 180ms ease;
+        box-shadow: 0 28px 70px rgba(15, 23, 42, 0.34);
+        filter: saturate(1.08) brightness(1.04);
+    }
+
+    .ticker-shell {
+        margin-top: 10px;
+        overflow: hidden;
+        border-block: 1px solid rgba(255,255,255,0.08);
+        background: rgba(255,255,255,0.03);
+    }
+
+    .ticker-track {
+        display: flex;
+        gap: 18px;
+        width: max-content;
+        padding: 16px 0;
+        animation: marquee 28s linear infinite;
+    }
+
+    .ticker-item {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 16px;
+        border-radius: 999px;
+        background: rgba(255,255,255,0.05);
+        color: #d9e8ff;
+        white-space: nowrap;
+        font-weight: 700;
+    }
+
+    .ticker-item i {
+        color: #7be9ff;
+    }
+
+    .signal-grid,
+    .path-grid,
+    .courses-grid,
+    .feature-grid,
+    .trainers-grid,
+    .quote-grid {
+        display: grid;
+        gap: 22px;
+    }
+
+    .signal-grid {
+        grid-template-columns: 1.2fr 1fr 1fr;
+    }
+
+    .signal-card,
+    .path-card,
+    .course-card,
+    .feature-card,
+    .trainer-card,
+    .quote-card,
+    .cta-shell {
+        border-radius: var(--home-radius-lg);
+        border: 1px solid rgba(255,255,255,0.10);
+        background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03));
+        box-shadow: var(--home-shadow);
+        backdrop-filter: blur(18px);
+    }
+
+    .signal-card {
+        padding: 24px;
+    }
+
+    .signal-card h3,
+    .path-card h3,
+    .course-card h3,
+    .feature-card h3,
+    .trainer-card h3 {
+        margin: 0 0 10px;
+    }
+
+    .signal-card p,
+    .path-card p,
+    .feature-card p,
+    .trainer-card p,
+    .quote-card p {
+        margin: 0;
+        color: var(--home-muted);
+        line-height: 1.9;
+    }
+
+    .signal-number {
+        display: block;
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 2.4rem;
+        font-weight: 700;
+        margin-bottom: 8px;
+    }
+
+    .path-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .path-card {
+        padding: 24px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .path-card::before {
+        content: "";
+        position: absolute;
+        inset: auto auto -30px -20px;
+        width: 90px;
+        height: 90px;
+        border-radius: 50%;
+        background: rgba(57, 198, 244, 0.14);
+        filter: blur(18px);
+    }
+
+    .path-icon,
+    .feature-icon {
+        width: 58px;
+        height: 58px;
+        display: grid;
+        place-items: center;
+        border-radius: 18px;
+        margin-bottom: 18px;
+        background: linear-gradient(135deg, rgba(57,198,244,0.20), rgba(37,99,235,0.22));
+        color: #8feaff;
+        font-size: 1.2rem;
+    }
+
+    .path-card ul {
+        margin: 18px 0 0;
+        padding: 0;
+        list-style: none;
+        display: grid;
+        gap: 10px;
+    }
+
+    .path-card li {
+        color: #dce9ff;
+        font-size: 0.9rem;
+        position: relative;
+        padding-right: 18px;
+    }
+
+    .path-card li::before {
+        content: "";
+        position: absolute;
+        right: 0;
+        top: 10px;
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--home-primary);
+        box-shadow: 0 0 0 6px rgba(57,198,244,0.10);
+    }
+
+    .courses-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .course-card {
+        overflow: hidden;
+        transition: transform 220ms ease, border-color 220ms ease;
+        animation: cardDrift 7.5s ease-in-out infinite;
+    }
+
+    .course-card:nth-child(2) { animation-delay: -1.4s; }
+    .course-card:nth-child(3) { animation-delay: -2.7s; }
+    .course-card:nth-child(4) { animation-delay: -3.9s; }
+    .course-card:nth-child(5) { animation-delay: -1.9s; }
+    .course-card:nth-child(6) { animation-delay: -3.2s; }
+
+    .course-card:hover,
+    .feature-card:hover,
+    .trainer-card:hover,
+    .quote-card:hover,
+    .path-card:hover {
+        transform: translateY(-6px);
+        border-color: rgba(57, 198, 244, 0.26);
+    }
+
+    .course-media {
+        position: relative;
+        min-height: 230px;
+        background:
+            linear-gradient(140deg, rgba(57,198,244,0.22), rgba(37,99,235,0.20)),
+            #0c1730;
+    }
+
+    .course-media img {
+        width: 100%;
+        height: 230px;
+        object-fit: cover;
+        display: block;
+        opacity: 0.88;
+    }
+
+    .course-fallback {
+        min-height: 230px;
+        display: grid;
+        place-items: center;
+        font-size: 2.8rem;
+        color: rgba(255,255,255,0.80);
+    }
+
+    .course-badge-wrap {
+        position: absolute;
+        top: 18px;
+        right: 18px;
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .course-badge {
+        padding: 7px 12px;
+        border-radius: 999px;
+        background: rgba(5, 12, 24, 0.76);
+        border: 1px solid rgba(255,255,255,0.10);
+        color: #eef6ff;
+        font-size: 0.78rem;
+        font-weight: 700;
+    }
+
+    .course-content {
+        padding: 24px;
+    }
+
+    .course-content p {
+        color: var(--home-muted);
+        line-height: 1.9;
+        min-height: 88px;
+        margin: 0 0 18px;
+    }
+
+    .course-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 18px;
+    }
+
+    .course-meta span {
+        padding: 8px 12px;
+        border-radius: 999px;
+        background: rgba(255,255,255,0.05);
+        color: #e2eeff;
+        font-size: 0.82rem;
+    }
+
+    .course-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 18px;
+    }
+
+    .course-price {
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 1.45rem;
+        font-weight: 700;
+    }
+
+    .course-link {
+        color: #94ecff;
+        text-decoration: none;
+        font-weight: 800;
+    }
+
+    .feature-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .feature-card,
+    .trainer-card,
+    .quote-card {
+        padding: 24px;
+        transition: transform 220ms ease, border-color 220ms ease;
+    }
+
+    .feature-card strong {
+        display: block;
+        margin-top: 2px;
+        margin-bottom: 10px;
+        font-size: 1.05rem;
+    }
+
+    .trainers-grid,
+    .quote-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .trainer-card {
+        animation: cardDrift 8.2s ease-in-out infinite;
+    }
+
+    .trainer-card:nth-child(2) { animation-delay: -1.7s; }
+    .trainer-card:nth-child(3) { animation-delay: -3.4s; }
+    .trainer-card:nth-child(4) { animation-delay: -2.2s; }
+    .trainer-card:nth-child(5) { animation-delay: -4.1s; }
+    .trainer-card:nth-child(6) { animation-delay: -3.1s; }
+
+    .trainer-avatar {
+        width: 78px;
+        height: 78px;
+        border-radius: 22px;
+        object-fit: cover;
+        display: block;
+        margin-bottom: 18px;
+        border: 1px solid rgba(255,255,255,0.10);
+    }
+
+    .trainer-specialty {
+        display: inline-flex;
+        margin-bottom: 14px;
+        padding: 7px 12px;
+        border-radius: 999px;
+        background: rgba(57,198,244,0.12);
+        color: #96eeff;
+        font-size: 0.84rem;
+        font-weight: 700;
+    }
+
+    .trainer-foot {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        margin-top: 18px;
+        color: #dce9ff;
+        font-size: 0.9rem;
+    }
+
+    .quote-mark {
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 3.8rem;
+        line-height: 1;
+        color: rgba(57,198,244,0.22);
+        margin-bottom: 10px;
+    }
+
+    .quote-card p {
+        margin-bottom: 18px;
+        color: #dce8f7;
+    }
+
+    .quote-carousel {
+        position: relative;
+        max-width: 880px;
+        min-height: 320px;
+        margin: 0 auto;
+    }
+
+    .quote-slide {
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+        transform: translateY(18px) scale(0.98);
+        pointer-events: none;
+        transition: opacity 700ms ease, transform 700ms ease;
+    }
+
+    .quote-slide.is-active {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        pointer-events: auto;
+    }
+
+    .quote-card.single-spotlight {
+        min-height: 320px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        padding: 36px;
+        background:
+            radial-gradient(circle at top left, rgba(56, 189, 248, 0.10), transparent 26%),
+            linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03));
+    }
+
+    .quote-card.single-spotlight p {
+        font-size: 1.2rem;
+        line-height: 2;
+        margin-bottom: 24px;
+    }
+
+    .quote-controls {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        margin-top: 24px;
+    }
+
+    .quote-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        border: none;
+        cursor: pointer;
+        background: rgba(148, 163, 184, 0.36);
+        box-shadow: inset 0 0 0 1px rgba(255,255,255,0.14);
+        transition: transform 180ms ease, background 180ms ease;
+    }
+
+    .quote-dot.is-active {
+        background: linear-gradient(135deg, #67e8f9, #2563eb);
+        transform: scale(1.18);
+    }
+
+    .quote-person {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+    }
+
+    .quote-avatar {
+        width: 46px;
+        height: 46px;
+        border-radius: 16px;
+        object-fit: cover;
+        border: 1px solid rgba(255,255,255,0.10);
+    }
+
+    .quote-name {
+        display: block;
+        margin-bottom: 4px;
+        font-weight: 800;
+    }
+
+    .quote-role {
+        color: var(--home-muted);
+        font-size: 0.84rem;
+    }
+
+    .cta-shell {
+        position: relative;
+        overflow: hidden;
+        padding: 34px;
+    }
+
+    .cta-shell::before {
+        content: "";
+        position: absolute;
+        top: -100px;
+        left: -60px;
+        width: 240px;
+        height: 240px;
+        border-radius: 50%;
+        background: rgba(57,198,244,0.18);
+        filter: blur(18px);
+    }
+
+    .cta-shell::after {
+        content: "";
+        position: absolute;
+        bottom: -120px;
+        right: -80px;
+        width: 280px;
+        height: 280px;
+        border-radius: 50%;
+        background: rgba(245,158,11,0.14);
+        filter: blur(18px);
+    }
+
+    .cta-layout {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        grid-template-columns: 1.1fr 0.9fr;
+        gap: 24px;
+        align-items: center;
+    }
+
+    .cta-shell h2 {
+        margin: 18px 0 14px;
+        font-size: clamp(2rem, 3.2vw, 3.5rem);
+        line-height: 1.08;
+    }
+
+    .cta-shell p {
+        margin: 0;
+        color: #cad7ef;
+        line-height: 1.95;
+    }
+
+    .cta-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .fade-up {
+        opacity: 0;
+        transform: translateY(26px);
+        transition: opacity 700ms ease, transform 700ms ease;
+    }
+
+    .fade-up.is-visible {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    @@keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+
+    @@keyframes shine {
+        0%, 100% { transform: translateX(-120%); }
+        40%, 60% { transform: translateX(120%); }
+    }
+
+    @@keyframes floatY {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-14px); }
+    }
+
+    @@keyframes heroCardFloat {
+        0%, 100% { transform: rotate(-4deg) translate3d(0, 0, 0); }
+        50% { transform: rotate(-2deg) translate3d(10px, -12px, 0); }
+    }
+
+    @@keyframes driftField {
+        0%, 100% { transform: translate3d(0, 0, 0); }
+        50% { transform: translate3d(-10px, 8px, 0); }
+    }
+
+    @@keyframes orbitTop {
+        0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg); }
+        25% { transform: translate3d(24px, -14px, 0) rotate(4deg); }
+        50% { transform: translate3d(10px, -28px, 0) rotate(0deg); }
+        75% { transform: translate3d(-18px, -10px, 0) rotate(-4deg); }
+    }
+
+    @@keyframes orbitLeft {
+        0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg); }
+        25% { transform: translate3d(-16px, 18px, 0) rotate(-5deg); }
+        50% { transform: translate3d(14px, 30px, 0) rotate(2deg); }
+        75% { transform: translate3d(26px, 4px, 0) rotate(5deg); }
+    }
+
+    @@keyframes orbitBottom {
+        0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg); }
+        25% { transform: translate3d(22px, 10px, 0) rotate(4deg); }
+        50% { transform: translate3d(40px, -8px, 0) rotate(0deg); }
+        75% { transform: translate3d(12px, -18px, 0) rotate(-4deg); }
+    }
+
+    @@keyframes marquee {
+        from { transform: translateX(0); }
+        to { transform: translateX(50%); }
+    }
+
+    @@keyframes progressPulse {
+        0%, 100% { filter: saturate(1); }
+        50% { filter: saturate(1.4); }
+    }
+
+    @@keyframes orbPulse {
+        0%, 100% { transform: scale(1); box-shadow: 0 0 0 8px rgba(56, 189, 248, 0.12); }
+        50% { transform: scale(1.12); box-shadow: 0 0 0 14px rgba(56, 189, 248, 0.08); }
+    }
+
+    @@keyframes blobShift {
+        0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+        50% { transform: translate3d(18px, -12px, 0) scale(1.08); }
+    }
+
+    @@keyframes cardDrift {
+        0%, 100% { transform: translate3d(0, 0, 0); }
+        50% { transform: translate3d(0, -12px, 0); }
+    }
+
+    @@media (max-width: 1180px) {
+        .hero-inner,
+        .signal-grid,
+        .cta-layout {
+            grid-template-columns: 1fr;
+        }
+
+        .path-grid,
+        .courses-grid,
+        .feature-grid,
+        .trainers-grid,
+        .quote-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
+    @@media (max-width: 860px) {
+        .home-topbar {
+            border-radius: 28px;
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .topbar-nav,
+        .topbar-actions {
+            justify-content: center;
+        }
+
+        .hero {
+            padding-top: 32px;
+        }
+
+        .hero-inner,
+        .path-grid,
+        .courses-grid,
+        .feature-grid,
+        .trainers-grid,
+        .quote-grid,
+        .hero-stats {
+            grid-template-columns: 1fr;
+        }
+
+        .hero-visual {
+            min-height: 540px;
+        }
+
+        .hero-rings {
+            width: 360px;
+            height: 360px;
+        }
+
+        .hero-main-card {
+            transform: none;
+            min-height: 500px;
+        }
+
+        .floating-orbit.top,
+        .floating-orbit.left {
+            display: none;
+        }
+
+        .mini-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @@media (max-width: 560px) {
+        .home-container {
+            width: min(calc(100% - 20px), var(--home-max));
+        }
+
+        .hero-title {
+            font-size: 2.65rem;
+        }
+
+        .hero-actions,
+        .cta-actions {
+            flex-direction: column;
+        }
+
+        .hero-btn,
+        .topbar-action {
+            width: 100%;
+        }
+
+        .topbar-nav a {
+            width: 100%;
+            text-align: center;
+        }
+
+        .course-content p {
+            min-height: auto;
+        }
+    }
 </style>
 }
 
-@* ─── HEADER ───────────────────────────────────── *@
-@await Html.PartialAsync("_LandingHeader")
+<div class="home-page">
+    <div class="home-grid"></div>
 
-@* ─── HERO ────────────────────────────────────── *@
-<section class="hero">
-    <div class="hero-bg-dots"></div>
-    <div class="hero-glow"></div>
-    <div class="hero-glow-2"></div>
-    <div class="hero-container">
-        <div class="hero-content">
-            <div class="hero-badge">
-                <i class="fas fa-graduation-cap"></i>
-                <span>منصة التدريب المتكاملة #1</span>
-            </div>
-            <h1 class="hero-title">
-                ابدأ رحلتك<br>
-                نحو <span>المستقبل</span><br>
-                من هنا
-            </h1>
-            <p class="hero-desc">
-                منصة تدريبية متخصصة تجمع أفضل المدربين وأحدث المناهج.<br>
-                اكتسب المهارات التي يحتاجها سوق العمل واحصل على شهادات معتمدة.
-            </p>
-            <div class="hero-btns">
-                <a asp-action="Index" asp-controller="Courses" class="hero-btn-primary">
-                    <i class="fas fa-play-circle"></i> تصفح الكورسات
+    <div class="home-topbar-wrap">
+        <div class="home-container">
+            <header class="home-topbar">
+                <a asp-controller="Home" asp-action="Index" class="brand">
+                    <span class="brand-mark"><i class="fas fa-graduation-cap"></i></span>
+                    <span>Training Center</span>
                 </a>
-                <a asp-action="Login" asp-controller="Account" class="hero-btn-secondary">
-                    <i class="fas fa-sign-in-alt"></i> تسجيل الدخول
-                </a>
-            </div>
-            <div class="hero-stats">
-                <div class="hero-stat">
-                    <span class="hero-stat-val">@Model.TotalCourses<span class="hero-stat-suffix" style="font-size:1.2rem;color:#a5b4fc">+</span></span>
-                    <span class="hero-stat-lbl">كورس متاح</span>
-                </div>
-                <div class="hero-stat-divider"></div>
-                <div class="hero-stat">
-                    <span class="hero-stat-val">@Model.TotalTrainees<span style="font-size:1.2rem;color:#a5b4fc">+</span></span>
-                    <span class="hero-stat-lbl">متدرب</span>
-                </div>
-                <div class="hero-stat-divider"></div>
-                <div class="hero-stat">
-                    <span class="hero-stat-val">@Model.TotalTrainers<span style="font-size:1.2rem;color:#a5b4fc">+</span></span>
-                    <span class="hero-stat-lbl">مدرب خبير</span>
-                </div>
-                <div class="hero-stat-divider"></div>
-                <div class="hero-stat">
-                    <span class="hero-stat-val">@Model.TotalCertificates<span style="font-size:1.2rem;color:#a5b4fc">+</span></span>
-                    <span class="hero-stat-lbl">شهادة ممنوحة</span>
-                </div>
-            </div>
-        </div>
 
-        <div class="hero-visual">
-            <div class="hero-card-stack">
-                @{
-                    var firstCourse = Model.FeaturedCourses.FirstOrDefault() ?? Model.Courses.FirstOrDefault();
-                }
-                <div class="hcard hcard-main">
-                    <div class="hcard-thumb">
-                        @if (firstCourse != null && !string.IsNullOrEmpty(firstCourse.ThumbnailUrl))
-                        {
-                            <img src="@firstCourse.ThumbnailUrl" alt="@firstCourse.CourseName" />
-                        }
-                        else
-                        {
-                            <div class="hcard-thumb-fallback"><i class="fas fa-book-open"></i></div>
-                        }
-                    </div>
-                    <div class="hcard-title">@(firstCourse?.CourseName ?? "Python Basics")</div>
-                    <div class="hcard-sub">@(firstCourse?.Description?.Length > 60 ? firstCourse.Description[..60] + "…" : firstCourse?.Description ?? "برمجة احترافية")</div>
-                    <div class="hcard-price">$@(firstCourse?.Price.ToString("F0") ?? "49")</div>
+                <nav class="topbar-nav">
+                    <a asp-controller="Home" asp-action="Index">الرئيسية</a>
+                    <a asp-controller="Courses" asp-action="Index">الكورسات</a>
+                    <a asp-controller="Chat" asp-action="CustomerSupportChat">تواصل معنا</a>
+                    @if (User.Identity?.IsAuthenticated ?? false)
+                    {
+                        <a asp-controller="Dashboard" asp-action="Index">لوحة التحكم</a>
+                    }
+                </nav>
+
+                <div class="topbar-actions">
+                    @if (User.Identity?.IsAuthenticated ?? false)
+                    {
+                        <a asp-controller="Chat" asp-action="Index" class="topbar-action">المحادثات</a>
+                        <a asp-controller="Account" asp-action="Logout" class="topbar-action primary">تسجيل الخروج</a>
+                    }
+                    else
+                    {
+                        <a asp-controller="Account" asp-action="Login" class="topbar-action">تسجيل الدخول</a>
+                        <a asp-controller="Account" asp-action="Register" class="topbar-action primary register-action">إنشاء حساب</a>
+                    }
                 </div>
-                <div class="hcard hcard-float">
-                    <div class="hcard-float-icon"><i class="fas fa-users"></i></div>
-                    <div>
-                        <div class="hcard-float-val">@Model.TotalTrainees+</div>
-                        <div class="hcard-float-lbl">طالب نشط</div>
-                    </div>
-                </div>
-                <div class="hcard hcard-float2">
-                    <div class="hcard-float-icon"><i class="fas fa-certificate"></i></div>
-                    <div>
-                        <div class="hcard-float-val">@Model.TotalCertificates+</div>
-                        <div class="hcard-float-lbl">شهادة</div>
-                    </div>
-                </div>
-            </div>
+            </header>
         </div>
     </div>
-</section>
 
-@* ─── STATS STRIP ─────────────────────────────── *@
-<section class="stats-strip">
-    <div class="container">
-        <div class="stats-grid">
-            <div class="stat-item">
-                <div class="stat-icon"><i class="fas fa-book-open"></i></div>
-                <span class="stat-num">@Model.TotalCourses<span class="stat-num-suffix">+</span></span>
-                <div class="stat-lbl">كورس متاح</div>
+    <section class="hero">
+        <div class="home-container hero-inner">
+            <div class="hero-copy fade-up">
+                <div class="hero-kicker">
+                    <span class="eyebrow">
+                        <i class="fas fa-sparkles"></i>
+                        تجربة تدريب احترافية ومتكاملة
+                    </span>
+                    <a href="#ai-assistant-coming-soon" class="hero-ai-button" aria-label="AI Assistant Coming Soon">
+                        <span class="hero-ai-orb"></span>
+                        <span class="hero-ai-label">
+                            <strong>AI Assistant</strong>
+                            <span>قريبًا داخل المنصة</span>
+                        </span>
+                    </a>
+                </div>
+
+                <h1 class="hero-title">
+                    تعلّم بوضوح.
+                    <span class="accent">تدرّب بعمق.</span>
+                    وانطلق إلى سوق العمل.
+                </h1>
+
+                <p class="hero-text">
+                    منصة مركز التدريب تجمع بين الكورسات العملية، المدربين المتخصصين، المحاضرات المسجلة، الاختبارات،
+                    الشهادات، والمتابعة المستمرة في مكان واحد. الفكرة ليست عرض دورات فقط، بل بناء رحلة تعلم واضحة
+                    تساعد المتدرب على اكتساب المهارة وتطبيقها والتقدم بثقة.
+                </p>
+
+                <div class="hero-actions">
+                    <a asp-controller="Courses" asp-action="Index" class="hero-btn primary">
+                        <i class="fas fa-arrow-left"></i>
+                        استكشف الكورسات
+                    </a>
+                    <a asp-controller="Account" asp-action="Register" class="hero-btn secondary">
+                        <i class="fas fa-user-plus"></i>
+                        ابدأ رحلتك الآن
+                    </a>
+                </div>
+
+                <div class="hero-stats">
+                    <article class="stat-card">
+                        <span class="stat-value count-up" data-count="@Model.TotalCourses">0</span>
+                        <span class="stat-label">كورسات في مجالات تقنية ومهنية مصممة لتناسب مستوى البداية والتقدم.</span>
+                    </article>
+                    <article class="stat-card">
+                        <span class="stat-value count-up" data-count="@Model.TotalTrainers">0</span>
+                        <span class="stat-label">مدربون بخبرة عملية يربطون الشرح بالممارسة والمشاريع الواقعية.</span>
+                    </article>
+                    <article class="stat-card">
+                        <span class="stat-value count-up" data-count="@Model.TotalCertificates">0</span>
+                        <span class="stat-label">شهادات تدعم الملف المهني وتوثق التقدم بعد إتمام المسارات بنجاح.</span>
+                    </article>
+                </div>
             </div>
-            <div class="stat-item">
-                <div class="stat-icon"><i class="fas fa-user-graduate"></i></div>
-                <span class="stat-num">@Model.TotalTrainees<span class="stat-num-suffix">+</span></span>
-                <div class="stat-lbl">متدرب مسجّل</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-icon"><i class="fas fa-chalkboard-teacher"></i></div>
-                <span class="stat-num">@Model.TotalTrainers<span class="stat-num-suffix">+</span></span>
-                <div class="stat-lbl">مدرب خبير</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-icon"><i class="fas fa-video"></i></div>
-                <span class="stat-num">@Model.TotalLectures<span class="stat-num-suffix">+</span></span>
-                <div class="stat-lbl">محاضرة تعليمية</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-icon"><i class="fas fa-certificate"></i></div>
-                <span class="stat-num">@Model.TotalCertificates<span class="stat-num-suffix">+</span></span>
-                <div class="stat-lbl">شهادة ممنوحة</div>
+
+            <div class="hero-visual fade-up">
+                <div class="hero-rings"></div>
+                <div class="hero-stack" id="heroStack">
+                    <div class="floating-orbit top">
+                        <div class="floating-card" data-float-card data-repel-strength="1.1">
+                            <strong>@Model.TotalTrainees+</strong>
+                            <span>متدربون يتابعون رحلتهم التعليمية داخل المنصة.</span>
+                        </div>
+                    </div>
+
+                    <div class="floating-orbit left">
+                        <div class="floating-card" data-float-card data-repel-strength="1.25">
+                            <strong>@Model.TotalLectures</strong>
+                            <span>محاضرات وجلسات تعلم منظمة داخل الكورسات.</span>
+                        </div>
+                    </div>
+
+                    <article class="hero-main-card" data-hero-core>
+                        <div class="hero-card-tag">training center dashboard</div>
+                        <h3>كل ما يحتاجه المتدرب في شاشة واحدة واضحة ومنظمة</h3>
+                        <p>
+                            من تسجيل الكورس إلى متابعة المحاضرات والاختبارات والشهادة، تم تصميم الصفحة الرئيسية
+                            لتعكس ما يقدمه المشروع فعلًا: تعليم منظم، تتبع للتقدم، ومدخل سريع إلى الكورسات الأكثر أهمية.
+                        </p>
+
+                        <div class="progress-panel">
+                            <div class="progress-top">
+                                <span>@(heroCourse?.CourseName ?? "مسار تدريبي متكامل")</span>
+                                <small>featured course</small>
+                            </div>
+                            <div class="progress-track">
+                                <span style="width: 76%;"></span>
+                            </div>
+                        </div>
+
+                        <div class="progress-panel">
+                            <div class="progress-top">
+                                <span>اختبارات وتقييمات دورية</span>
+                                <small>assessment flow</small>
+                            </div>
+                            <div class="progress-track">
+                                <span style="width: 88%;"></span>
+                            </div>
+                        </div>
+
+                        <div class="mini-grid">
+                            <div class="mini-panel">
+                                <strong>محاضرات مرتبة</strong>
+                                <span>الوصول السريع إلى المحتوى والدروس والمواد المساندة.</span>
+                            </div>
+                            <div class="mini-panel">
+                                <strong>تقدم قابل للمتابعة</strong>
+                                <span>رؤية واضحة للحضور، الإنجاز، والشهادات المكتسبة.</span>
+                            </div>
+                            <div class="mini-panel">
+                                <strong>مدربون متخصصون</strong>
+                                <span>تعلم مباشر من أصحاب الخبرة في مجالاتهم.</span>
+                            </div>
+                            <div class="mini-panel">
+                                <strong>شهادات معتمدة</strong>
+                                <span>إثبات ملموس لإنهاء المسار التدريبي بنجاح.</span>
+                            </div>
+                        </div>
+                    </article>
+
+                    <div class="floating-orbit bottom">
+                        <div class="floating-card" data-float-card data-repel-strength="1.15">
+                            <strong>دعم ومتابعة</strong>
+                            <span>قنوات تواصل ومساندة تساعد المتدرب أثناء رحلته التعليمية.</span>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
-</section>
+    </section>
 
-@* ─── FEATURED COURSES ────────────────────────── *@
-@if (Model.FeaturedCourses.Any())
-{
-    <section class="section">
-        <div class="container">
-            <div class="section-head">
-                <div class="section-tag"><i class="fas fa-fire"></i> أبرز الكورسات</div>
-                <h2 class="section-title">اختر كورسك وابدأ التعلم</h2>
-                <p class="section-sub">كورسات مختارة بعناية من قِبل خبراء المجال لتضمن لك أفضل تجربة تعليمية</p>
+    <section class="ticker-shell">
+        <div class="ticker-track">
+            <div class="ticker-item"><i class="fas fa-book-open"></i> كورسات تقنية ومهنية</div>
+            <div class="ticker-item"><i class="fas fa-video"></i> محاضرات مرتبة وسهلة الوصول</div>
+            <div class="ticker-item"><i class="fas fa-file-signature"></i> شهادات بعد الإتمام</div>
+            <div class="ticker-item"><i class="fas fa-chart-line"></i> متابعة للتقدم والأداء</div>
+            <div class="ticker-item"><i class="fas fa-comments"></i> تواصل مباشر ودعم</div>
+            <div class="ticker-item"><i class="fas fa-book-open"></i> كورسات تقنية ومهنية</div>
+            <div class="ticker-item"><i class="fas fa-video"></i> محاضرات مرتبة وسهلة الوصول</div>
+            <div class="ticker-item"><i class="fas fa-file-signature"></i> شهادات بعد الإتمام</div>
+            <div class="ticker-item"><i class="fas fa-chart-line"></i> متابعة للتقدم والأداء</div>
+            <div class="ticker-item"><i class="fas fa-comments"></i> تواصل مباشر ودعم</div>
+        </div>
+    </section>
+
+    <section class="section-shell">
+        <div class="home-container">
+            <div class="signal-grid">
+                <article class="signal-card fade-up">
+                    <h3>منصة واحدة لمسار تعليمي كامل</h3>
+                    <p>
+                        يبدأ المتدرب من اكتشاف الكورس المناسب، ثم ينتقل إلى المحاضرات والتكليفات والاختبارات،
+                        ويصل في النهاية إلى الشهادة والمتابعة المستمرة. هذا هو جوهر المشروع الذي أردنا أن يظهر
+                        بوضوح منذ أول قسم في الصفحة.
+                    </p>
+                </article>
+                <article class="signal-card fade-up">
+                    <span class="signal-number count-up" data-count="@Model.TotalTrainees">0</span>
+                    <p>عدد المتدربين الذين يستفيدون من المنصة ويطوّرون مهاراتهم فيها.</p>
+                </article>
+                <article class="signal-card fade-up">
+                    <span class="signal-number count-up" data-count="@Model.TotalLectures">0</span>
+                    <p>محاضرات ومحتوى تدريبي يساعد على بناء فهم تدريجي وتطبيق فعلي.</p>
+                </article>
             </div>
+        </div>
+    </section>
+
+    <section class="section-shell">
+        <div class="home-container">
+            <div class="section-head fade-up">
+                <span class="eyebrow">
+                    <i class="fas fa-route"></i>
+                    كيف تخدم المنصة المتدرب؟
+                </span>
+                <h2>المشروع لا يقدّم كورسًا فقط، بل يقدّم رحلة تعلّم كاملة</h2>
+                <p>
+                    كل جزء في المنصة مصمم ليقرب المتدرب من هدفه: اختيار المسار المناسب، متابعة المحاضرات، التفاعل مع
+                    المدرب، اجتياز الاختبارات، ثم الحصول على شهادة تعبّر عن الإنجاز.
+                </p>
+            </div>
+
+            <div class="path-grid">
+                <article class="path-card fade-up">
+                    <div class="path-icon"><i class="fas fa-compass"></i></div>
+                    <h3>اختيار المسار المناسب</h3>
+                    <p>عرض الكورسات المميزة والأحدث بطريقة تساعد المتدرب على اكتشاف المجال الذي يناسبه بسرعة.</p>
+                    <ul>
+                        <li>تفاصيل واضحة لكل كورس</li>
+                        <li>معلومات عن المحاضرات والتكلفة</li>
+                        <li>عرض أحدث المسارات المتاحة</li>
+                    </ul>
+                </article>
+
+                <article class="path-card fade-up">
+                    <div class="path-icon"><i class="fas fa-laptop-code"></i></div>
+                    <h3>تعلم منظم وقابل للمتابعة</h3>
+                    <p>المحتوى التدريبي منظم داخل محاضرات واختبارات ومتابعة مستمرة حتى لا يضيع المتدرب بين الخطوات.</p>
+                    <ul>
+                        <li>محاضرات مرتبة داخل كل كورس</li>
+                        <li>تتبع للتقدم والحضور</li>
+                        <li>اختبارات وتقييمات مرحلية</li>
+                    </ul>
+                </article>
+
+                <article class="path-card fade-up">
+                    <div class="path-icon"><i class="fas fa-award"></i></div>
+                    <h3>نتيجة ملموسة في النهاية</h3>
+                    <p>بعد اجتياز المسار التدريبي، يحصل المتدرب على شهادة وإنجاز موثق يعكس الجهد والمهارات المكتسبة.</p>
+                    <ul>
+                        <li>شهادات بعد الإكمال</li>
+                        <li>ملف مهني أقوى</li>
+                        <li>إحساس أوضح بالتقدم</li>
+                    </ul>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <section class="section-shell">
+        <div class="home-container">
+            <div class="section-head fade-up">
+                <span class="eyebrow">
+                    <i class="fas fa-rocket"></i>
+                    الكورسات المميزة
+                </span>
+                <h2>اكتشف البرامج التدريبية الأكثر طلبًا داخل المنصة</h2>
+                <p>
+                    هذه الكورسات تمثل أبرز ما يقدمه مركز التدريب حاليًا، مع عرض مختصر يساعد الزائر على فهم القيمة
+                    والبدء في استكشاف التفاصيل مباشرة.
+                </p>
+            </div>
+
             <div class="courses-grid">
-                @foreach (var course in Model.FeaturedCourses)
+                @foreach (var course in Model.FeaturedCourses.Take(6))
                 {
-                    var avgRating = course.Ratings?.Any() == true ? course.Ratings.Average(r => r.Stars) : 0;
-                    var studentCount = course.CourseTrainees?.Count ?? 0;
-                    var isNew = (DateTime.UtcNow - course.CreatedDate).TotalDays < 30;
-                    <div class="course-card">
-                        <div class="course-thumb">
-                            @if (!string.IsNullOrEmpty(course.ThumbnailUrl))
+                    var averageRating = course.Ratings != null && course.Ratings.Any()
+                        ? course.Ratings.Average(r => r.Stars)
+                        : 4.8;
+                    var learnerCount = course.CourseTrainees?.Count ?? 0;
+                    var courseDesc = !string.IsNullOrWhiteSpace(course.Description)
+                        ? (course.Description.Length > 135 ? course.Description.Substring(0, 135) + "..." : course.Description)
+                        : "مسار تدريبي عملي يركز على بناء المهارة خطوة بخطوة من الفهم إلى التطبيق.";
+                    <article class="course-card fade-up">
+                        <div class="course-media">
+                            @if (!string.IsNullOrWhiteSpace(course.ThumbnailUrl))
                             {
-                                <img src="@course.ThumbnailUrl" alt="@course.CourseName" loading="lazy" />
+                                <img src="@course.ThumbnailUrl" alt="@course.CourseName" />
                             }
                             else
                             {
-                                <div class="course-thumb-fallback"><i class="fas fa-book"></i></div>
+                                <div class="course-fallback"><i class="fas fa-layer-group"></i></div>
                             }
+
                             <div class="course-badge-wrap">
-                                @if (course.IsFeatured) { <span class="c-badge c-badge-featured"><i class="fas fa-star"></i> مميز</span> }
-                                @if (isNew) { <span class="c-badge c-badge-new">جديد</span> }
+                                <span class="course-badge">مميز</span>
+                                <span class="course-badge">@averageRating.ToString("0.0") ★</span>
                             </div>
                         </div>
-                        <div class="course-body">
-                            <div class="course-category">الدفعة @course.BatchNumber</div>
-                            <div class="course-title">@course.CourseName</div>
+
+                        <div class="course-content">
+                            <h3>@course.CourseName</h3>
+                            <p>@courseDesc</p>
+
                             <div class="course-meta">
+                                <span><i class="fas fa-users"></i> @learnerCount متدرب</span>
                                 <span><i class="fas fa-video"></i> @course.NumberOfLectures محاضرة</span>
-                                <span><i class="fas fa-users"></i> @studentCount طالب</span>
+                                <span><i class="fas fa-calendar-alt"></i> @course.ReleaseDate.ToString("yyyy/MM/dd")</span>
                             </div>
-                            @if (avgRating > 0)
-                            {
-                                <div class="course-stars">
-                                    @for (int i = 1; i <= 5; i++)
-                                    {
-                                        <i class="fas fa-star @(i <= avgRating ? "star" : "star-empty")"></i>
-                                    }
-                                    <span class="star-count">(@course.Ratings.Count)</span>
-                                </div>
-                            }
+
                             <div class="course-footer">
-                                <div class="course-price">
-                                    <span class="course-price-currency">@course.CourseCurrency</span>@course.Price.ToString("F0")
-                                </div>
-                                <a asp-action="Details" asp-controller="Courses" asp-route-id="@course.CourseId" class="btn-enroll">
-                                    عرض الكورس
-                                </a>
+                                <div class="course-price">@course.Price.ToString("0.##") <small>@course.CourseCurrency</small></div>
+                                <a asp-controller="Courses" asp-action="Details" asp-route-id="@course.CourseId" class="course-link">عرض التفاصيل</a>
+                            </div>
+                        </div>
+                    </article>
+                }
+            </div>
+        </div>
+    </section>
+
+    <section class="section-shell">
+        <div class="home-container">
+            <div class="section-head fade-up">
+                <span class="eyebrow">
+                    <i class="fas fa-shield-check"></i>
+                    لماذا هذا المشروع؟
+                </span>
+                <h2>مزايا عملية تجعل مركز التدريب أكثر من مجرد موقع عرض</h2>
+                <p>
+                    المنصة مبنية لتخدم الإدارة والمدرب والمتدرب معًا، ولهذا تظهر فيها عناصر تنظيم ومتابعة وتواصل
+                    وشهادات بشكل مترابط داخل تجربة واحدة.
+                </p>
+            </div>
+
+            <div class="feature-grid">
+                <article class="feature-card fade-up">
+                    <div class="feature-icon"><i class="fas fa-users-cog"></i></div>
+                    <strong>إدارة واضحة للمتدربين</strong>
+                    <p>تنظيم الحسابات والمسارات ومتابعة حالة كل متدرب بشكل أسهل.</p>
+                </article>
+                <article class="feature-card fade-up">
+                    <div class="feature-icon"><i class="fas fa-clipboard-check"></i></div>
+                    <strong>اختبارات وتقييمات</strong>
+                    <p>قياس التقدم داخل الكورس بدل الاكتفاء بمشاهدة المحتوى فقط.</p>
+                </article>
+                <article class="feature-card fade-up">
+                    <div class="feature-icon"><i class="fas fa-comments"></i></div>
+                    <strong>تواصل ودعم</strong>
+                    <p>قنوات محادثة ومساندة تساعد المتدرب في الاستفسارات والمتابعة.</p>
+                </article>
+                <article class="feature-card fade-up">
+                    <div class="feature-icon"><i class="fas fa-certificate"></i></div>
+                    <strong>شهادات موثقة</strong>
+                    <p>نتيجة نهائية ذات قيمة يمكن مشاركتها والاستفادة منها مهنيًا.</p>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    @if (Model.FeaturedTrainers.Any())
+    {
+        <section class="section-shell">
+            <div class="home-container">
+                <div class="section-head fade-up">
+                    <span class="eyebrow">
+                        <i class="fas fa-user-tie"></i>
+                        المدربون
+                    </span>
+                    <h2>تعلّم من أصحاب الخبرة العملية في مجالاتهم</h2>
+                    <p>
+                        قيمة المشروع لا تأتي من المحتوى وحده، بل من المدربين الذين ينقلون الخبرة إلى المتدرب ويحوّلون
+                        المعلومات إلى فهم وتطبيق حقيقي.
+                    </p>
+                </div>
+
+                <div class="trainers-grid">
+                    @foreach (var trainer in Model.FeaturedTrainers.Take(6))
+                    {
+                        var isFemale = trainer.User?.Gender == Gender.Female;
+                        var trainerPicture = !string.IsNullOrWhiteSpace(trainer.User?.ProfilePictureUrl)
+                            ? trainer.User.ProfilePictureUrl
+                            : $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(trainer.User?.FullName ?? "T")}&background={(isFemale ? "db2777" : "2563eb")}&color=fff&size=128&rounded=true";
+                        var courseCount = trainer.CourseTrainers?.Count ?? 0;
+                        <article class="trainer-card fade-up">
+                            <img src="@trainerPicture"
+                                 alt="@trainer.User?.FullName"
+                                 class="trainer-avatar"
+                                 onerror="this.src='https://ui-avatars.com/api/?name=T&background=0f172a&color=fff&rounded=true'" />
+                            <h3>@trainer.User?.FullName</h3>
+                            @if (!string.IsNullOrWhiteSpace(trainer.Specialty))
+                            {
+                                <span class="trainer-specialty">@trainer.Specialty</span>
+                            }
+                            <p>
+                                يقدم خبرته العملية داخل الكورسات بحيث يحصل المتدرب على معرفة قابلة للتطبيق، لا مجرد
+                                شرح نظري منفصل عن الواقع.
+                            </p>
+                            <div class="trainer-foot">
+                                <span>@trainer.YearsOfExperience سنوات خبرة</span>
+                                <span>@courseCount كورسات</span>
+                            </div>
+                        </article>
+                    }
+                </div>
+            </div>
+        </section>
+    }
+
+    <section class="section-shell">
+        <div class="home-container">
+            <div class="section-head fade-up">
+                <span class="eyebrow">
+                    <i class="fas fa-quote-right"></i>
+                    آراء المتدربين
+                </span>
+                <h2>انطباعات من عاشوا التجربة داخل المنصة</h2>
+                <p>
+                    هذه الشهادات تعبّر عن قيمة المشروع من وجهة نظر المتدرب: وضوح المسار، جودة المحتوى، وسهولة المتابعة.
+                </p>
+            </div>
+
+            <div class="quote-carousel fade-up" id="quoteCarousel">
+                <article class="quote-slide is-active">
+                    <div class="quote-card single-spotlight">
+                        <div>
+                            <div class="quote-mark">“</div>
+                            <p>أكثر ما أعجبني هو أن كل شيء مرتب: الكورس، المحاضرات، الاختبارات، والمتابعة. شعرت أنني أسير في خطة واضحة لا في محتوى مبعثر.</p>
+                        </div>
+                        <div class="quote-person">
+                            <img class="quote-avatar" src="https://ui-avatars.com/api/?name=Ahmed+Khalid&background=2563eb&color=fff&size=96&rounded=true" alt="Ahmed Khalid" />
+                            <div>
+                                <span class="quote-name">أحمد خالد</span>
+                                <span class="quote-role">خريج مسار Python</span>
                             </div>
                         </div>
                     </div>
-                }
-            </div>
-            <div style="text-align:center;margin-top:40px">
-                <a asp-action="Index" asp-controller="Courses" style="display:inline-flex;align-items:center;gap:8px;padding:12px 28px;border-radius:10px;border:2px solid var(--pr);color:var(--pr);font-weight:700;font-size:.9rem;transition:all .2s">
-                    <i class="fas fa-th-large"></i> عرض جميع الكورسات
-                </a>
-            </div>
-        </div>
-    </section>
-}
-
-@* ─── FEATURES ────────────────────────────────── *@
-<section class="section section-alt">
-    <div class="container">
-        <div class="section-head">
-            <div class="section-tag"><i class="fas fa-sparkles"></i> لماذا نحن؟</div>
-            <h2 class="section-title">مزايا تجعلنا الخيار الأفضل</h2>
-            <p class="section-sub">نقدم تجربة تعليمية متكاملة تجمع بين الجودة والمرونة وأحدث التقنيات</p>
-        </div>
-        <div class="features-grid">
-            <div class="feature-card">
-                <div class="feature-icon-wrap" style="background:#eef2ff;color:#4f46e5"><i class="fas fa-video"></i></div>
-                <div class="feature-title">محاضرات تفاعلية</div>
-                <div class="feature-desc">محتوى مرئي عالي الجودة يمكنك متابعته في أي وقت ومن أي مكان بكل سهولة ومرونة.</div>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon-wrap" style="background:#fef3c7;color:#d97706"><i class="fas fa-certificate"></i></div>
-                <div class="feature-title">شهادات معتمدة</div>
-                <div class="feature-desc">احصل على شهادة اجتياز معتمدة فور إتمام الكورس وتحقيق الدرجة المطلوبة في الاختبار.</div>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon-wrap" style="background:#d1fae5;color:#059669"><i class="fas fa-chalkboard-teacher"></i></div>
-                <div class="feature-title">مدربون خبراء</div>
-                <div class="feature-desc">فريق من أفضل المدربين والمتخصصين ذوي الخبرة العملية الواسعة في مجالاتهم.</div>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon-wrap" style="background:#fce7f3;color:#db2777"><i class="fas fa-file-alt"></i></div>
-                <div class="feature-title">اختبارات وتقييمات</div>
-                <div class="feature-desc">نظام اختبارات ذكي يقيس تقدمك بشكل مستمر ويضمن استيعابك الكامل للمحتوى.</div>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon-wrap" style="background:#ede9fe;color:#7c3aed"><i class="fas fa-comments"></i></div>
-                <div class="feature-title">دعم مستمر</div>
-                <div class="feature-desc">فريق دعم متاح على مدار الساعة للإجابة على استفساراتك ومساعدتك في مسيرتك التعليمية.</div>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon-wrap" style="background:#e0f2fe;color:#0891b2"><i class="fas fa-chart-line"></i></div>
-                <div class="feature-title">متابعة التقدم</div>
-                <div class="feature-desc">لوحة تحكم شخصية تعرض تقدمك ونسبة إتمامك للكورسات وإحصائياتك التعليمية بشكل مرئي.</div>
-            </div>
-        </div>
-    </div>
-</section>
-
-@* ─── HOW IT WORKS ────────────────────────────── *@
-<section class="section">
-    <div class="container">
-        <div class="section-head">
-            <div class="section-tag"><i class="fas fa-route"></i> كيف تبدأ؟</div>
-            <h2 class="section-title">أربع خطوات بسيطة للنجاح</h2>
-        </div>
-        <div class="steps-grid">
-            <div class="step-card">
-                <div class="step-num">1</div>
-                <div class="step-title">أنشئ حسابك</div>
-                <div class="step-desc">سجّل حسابًا جديدًا في دقيقة واحدة فقط وابدأ رحلتك التعليمية فورًا.</div>
-            </div>
-            <div class="step-card">
-                <div class="step-num">2</div>
-                <div class="step-title">اختر الكورس</div>
-                <div class="step-desc">تصفح مئات الكورسات المتنوعة واختر ما يناسب مجالك واهتمامك.</div>
-            </div>
-            <div class="step-card">
-                <div class="step-num">3</div>
-                <div class="step-title">تعلّم وتفاعل</div>
-                <div class="step-desc">شاهد المحاضرات، شارك في الاختبارات، وتفاعل مع المدربين والزملاء.</div>
-            </div>
-            <div class="step-card">
-                <div class="step-num">4</div>
-                <div class="step-title">احصل على شهادتك</div>
-                <div class="step-desc">أتمّ الكورس بنجاح واحصل على شهادتك الرقمية المعتمدة على الفور.</div>
-            </div>
-        </div>
-    </div>
-</section>
-
-@* ─── TRAINERS ────────────────────────────────── *@
-@if (Model.FeaturedTrainers.Any())
-{
-    <section class="section section-alt">
-        <div class="container">
-            <div class="section-head">
-                <div class="section-tag"><i class="fas fa-users"></i> مدربونا</div>
-                <h2 class="section-title">تعلّم من الأفضل</h2>
-                <p class="section-sub">فريق من الخبراء المتخصصين مستعدون لمشاركتك معرفتهم وتجاربهم القيّمة</p>
-            </div>
-            <div class="trainers-grid">
-                @foreach (var trainer in Model.FeaturedTrainers)
-                {
-                    var isFemale = trainer.User?.Gender == Gender.Female;
-                    var pic = !string.IsNullOrEmpty(trainer.User?.ProfilePictureUrl)
-                        ? trainer.User.ProfilePictureUrl
-                        : $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(trainer.User?.FullName ?? "T")}&background={(isFemale ? "ec4899" : "4f46e5")}&color=fff&size=128&rounded=true";
-                    var courseCount = trainer.CourseTrainers?.Count ?? 0;
-                    <div class="trainer-card">
-                        <img src="@pic" class="trainer-avatar" alt="@trainer.User?.FullName"
-                             onerror="this.src='https://ui-avatars.com/api/?name=T&background=94a3b8&color=fff&rounded=true'" />
-                        <div class="trainer-name">@trainer.User?.FullName</div>
-                        @if (!string.IsNullOrEmpty(trainer.Specialty))
-                        {
-                            <span class="trainer-spec">@trainer.Specialty</span>
-                        }
-                        <div class="trainer-courses">
-                            <i class="fas fa-briefcase" style="color:#94a3b8;margin-left:3px;font-size:.65rem"></i>
-                            @trainer.YearsOfExperience سنوات خبرة
+                </article>
+                <article class="quote-slide">
+                    <div class="quote-card single-spotlight">
+                        <div>
+                            <div class="quote-mark">“</div>
+                            <p>المدربون كانوا نقطة قوة حقيقية. المحتوى ليس نظريًا فقط، بل هناك ربط واضح بين التعلم وبين ما يمكن تطبيقه في الواقع العملي.</p>
+                        </div>
+                        <div class="quote-person">
+                            <img class="quote-avatar" src="https://ui-avatars.com/api/?name=Sara+Mahmoud&background=db2777&color=fff&size=96&rounded=true" alt="Sara Mahmoud" />
+                            <div>
+                                <span class="quote-name">سارة محمود</span>
+                                <span class="quote-role">خريجة Web Development</span>
+                            </div>
                         </div>
                     </div>
-                }
+                </article>
+                <article class="quote-slide">
+                    <div class="quote-card single-spotlight">
+                        <div>
+                            <div class="quote-mark">“</div>
+                            <p>وجود الشهادة والتقييمات والمتابعة جعلني أشعر أن الإنجاز موثق فعلًا، وأن المنصة تساعدني على بناء ملف مهني أقوى بعد نهاية المسار.</p>
+                        </div>
+                        <div class="quote-person">
+                            <img class="quote-avatar" src="https://ui-avatars.com/api/?name=Omar+Hassan&background=0f766e&color=fff&size=96&rounded=true" alt="Omar Hassan" />
+                            <div>
+                                <span class="quote-name">عمر حسن</span>
+                                <span class="quote-role">خريج Cybersecurity</span>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+            </div>
+            <div class="quote-controls fade-up" id="quoteControls">
+                <button type="button" class="quote-dot is-active" aria-label="رأي 1"></button>
+                <button type="button" class="quote-dot" aria-label="رأي 2"></button>
+                <button type="button" class="quote-dot" aria-label="رأي 3"></button>
             </div>
         </div>
     </section>
+
+    <section class="section-shell">
+        <div class="home-container">
+            <div class="cta-shell fade-up">
+                <div class="cta-layout">
+                    <div>
+                        <span class="eyebrow">
+                            <i class="fas fa-bolt"></i>
+                            ابدأ الآن
+                        </span>
+                        <h2>إذا كنت تبحث عن منصة تجمع التعلم، التنظيم، والتقدم الواضح فهذه نقطة البداية المناسبة</h2>
+                        <p>
+                            ابدأ باستكشاف الكورسات المتاحة، اختر المسار المناسب، وادخل إلى تجربة تدريبية تعكس فعليًا
+                            جودة المشروع وما يقدمه للمتدرب من قيمة حقيقية.
+                        </p>
+                    </div>
+                    <div class="cta-actions">
+                        <a asp-controller="Courses" asp-action="Index" class="hero-btn primary">
+                            <i class="fas fa-compass"></i>
+                            تصفح البرامج
+                        </a>
+                        <a asp-controller="Account" asp-action="Register" class="hero-btn secondary">
+                            <i class="fas fa-user-plus"></i>
+                            إنشاء حساب جديد
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+@section Scripts {
+<script>
+    (function () {
+        const revealItems = document.querySelectorAll('.fade-up');
+        const revealObserver = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('is-visible');
+                    revealObserver.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.12 });
+
+        revealItems.forEach((item) => revealObserver.observe(item));
+
+        const statItems = document.querySelectorAll('.count-up');
+        const statObserver = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+                if (!entry.isIntersecting) {
+                    return;
+                }
+
+                const el = entry.target;
+                const target = parseInt(el.getAttribute('data-count') || '0', 10);
+                const duration = 1400;
+                const start = performance.now();
+
+                function tick(now) {
+                    const progress = Math.min((now - start) / duration, 1);
+                    const value = Math.floor(progress * target);
+                    el.textContent = target > 0 ? value + '+' : '0';
+
+                    if (progress < 1) {
+                        requestAnimationFrame(tick);
+                    } else {
+                        el.textContent = target > 0 ? target + '+' : '0';
+                    }
+                }
+
+                requestAnimationFrame(tick);
+                statObserver.unobserve(el);
+            });
+        }, { threshold: 0.35 });
+
+        statItems.forEach((item) => statObserver.observe(item));
+
+        const quoteSlides = Array.from(document.querySelectorAll('#quoteCarousel .quote-slide'));
+        const quoteDots = Array.from(document.querySelectorAll('#quoteControls .quote-dot'));
+        let activeQuote = 0;
+        let quoteTimer = null;
+
+        function showQuote(index) {
+            activeQuote = index;
+            quoteSlides.forEach((slide, i) => {
+                slide.classList.toggle('is-active', i === index);
+            });
+            quoteDots.forEach((dot, i) => {
+                dot.classList.toggle('is-active', i === index);
+            });
+        }
+
+        function scheduleQuotes() {
+            if (quoteTimer) {
+                clearInterval(quoteTimer);
+            }
+            quoteTimer = setInterval(() => {
+                const nextIndex = (activeQuote + 1) % quoteSlides.length;
+                showQuote(nextIndex);
+            }, 4200);
+        }
+
+        if (quoteSlides.length && quoteDots.length) {
+            quoteDots.forEach((dot, index) => {
+                dot.addEventListener('click', () => {
+                    showQuote(index);
+                    scheduleQuotes();
+                });
+            });
+
+            showQuote(0);
+            scheduleQuotes();
+        }
+
+        const heroStack = document.getElementById('heroStack');
+        const floatCards = heroStack ? Array.from(heroStack.querySelectorAll('[data-float-card]')) : [];
+
+        if (heroStack && floatCards.length) {
+            const resetFloatCards = () => {
+                floatCards.forEach((card) => {
+                    card.classList.remove('is-repelled');
+                    card.style.transform = 'translate3d(0, 0, 0) rotate(0deg) scale(1)';
+                });
+            };
+
+            resetFloatCards();
+
+            heroStack.addEventListener('mousemove', (event) => {
+                floatCards.forEach((card) => {
+                    const rect = card.getBoundingClientRect();
+                    const cardCenterX = rect.left + rect.width / 2;
+                    const cardCenterY = rect.top + rect.height / 2;
+                    const dx = cardCenterX - event.clientX;
+                    const dy = cardCenterY - event.clientY;
+                    const distance = Math.hypot(dx, dy);
+                    const triggerRadius = Math.max(rect.width, rect.height) + 120;
+                    const baseStrength = parseFloat(card.getAttribute('data-repel-strength') || '1');
+
+                    if (distance < triggerRadius) {
+                        const normalized = 1 - (distance / triggerRadius);
+                        const force = normalized * 145 * baseStrength;
+                        const angle = Math.atan2(dy, dx);
+                        const moveX = Math.cos(angle) * force;
+                        const moveY = Math.sin(angle) * force;
+                        const rotate = Math.max(-12, Math.min(12, moveX * 0.10));
+                        const scale = 1 + (normalized * 0.04);
+
+                        card.classList.add('is-repelled');
+                        card.style.transform = `translate3d(${moveX}px, ${moveY}px, 0) rotate(${rotate}deg) scale(${scale})`;
+                    } else {
+                        card.classList.remove('is-repelled');
+                        card.style.transform = 'translate3d(0, 0, 0) rotate(0deg) scale(1)';
+                    }
+                });
+            });
+
+            heroStack.addEventListener('mouseleave', resetFloatCards);
+        }
+    })();
+</script>
 }
-
-@* ─── TESTIMONIALS ────────────────────────────── *@
-<section class="section">
-    <div class="container">
-        <div class="section-head">
-            <div class="section-tag"><i class="fas fa-quote-right"></i> آراء طلابنا</div>
-            <h2 class="section-title">ماذا يقول من سبقوك؟</h2>
-        </div>
-        <div class="testimonials-grid">
-            <div class="testimonial-card">
-                <div class="testimonial-stars">
-                    @for (int i = 0; i < 5; i++) { <i class="fas fa-star" style="color:#f59e0b;font-size:.8rem"></i> }
-                </div>
-                <p class="testimonial-text">المنصة رائعة جداً! الكورسات منظمة بشكل ممتاز والمدربون محترفون. حصلت على شهادتي في Python في وقت قياسي وهي الآن تفتح لي أبواباً كثيرة في مجال البرمجة.</p>
-                <div class="testimonial-author">
-                    <img src="https://ui-avatars.com/api/?name=Ahmed+Khalid&background=4f46e5&color=fff&size=84&rounded=true" class="testimonial-avatar" alt="أحمد خالد" />
-                    <div>
-                        <div class="testimonial-name">أحمد خالد</div>
-                        <div class="testimonial-role">مطوّر برمجيات — خريج دورة Python</div>
-                    </div>
-                </div>
-            </div>
-            <div class="testimonial-card">
-                <div class="testimonial-stars">
-                    @for (int i = 0; i < 5; i++) { <i class="fas fa-star" style="color:#f59e0b;font-size:.8rem"></i> }
-                </div>
-                <p class="testimonial-text">أفضل منصة تعليمية جربتها! المحتوى عميق ومنظم، ونظام الاختبارات يساعدك على قياس مستواك بدقة. أنصح بها لكل من يريد التطور المهني الحقيقي.</p>
-                <div class="testimonial-author">
-                    <img src="https://ui-avatars.com/api/?name=Sara+Mahmoud&background=ec4899&color=fff&size=84&rounded=true" class="testimonial-avatar" alt="سارة محمود" />
-                    <div>
-                        <div class="testimonial-name">سارة محمود</div>
-                        <div class="testimonial-role">مصممة UI/UX — خريجة دورة Web Dev</div>
-                    </div>
-                </div>
-            </div>
-            <div class="testimonial-card">
-                <div class="testimonial-stars">
-                    @for (int i = 0; i < 5; i++) { <i class="fas fa-star" style="color:#f59e0b;font-size:.8rem"></i> }
-                </div>
-                <p class="testimonial-text">الدعم الفني ممتاز والمدربون يجيبون على أسئلتي بسرعة. الشهادة التي حصلت عليها معترف بها وساعدتني في الحصول على عمل أحلامي في مجال الأمن السيبراني.</p>
-                <div class="testimonial-author">
-                    <img src="https://ui-avatars.com/api/?name=Omar+Hassan&background=059669&color=fff&size=84&rounded=true" class="testimonial-avatar" alt="عمر حسن" />
-                    <div>
-                        <div class="testimonial-name">عمر حسن</div>
-                        <div class="testimonial-role">متخصص أمن سيبراني — خريج دورة Cybersec</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-
-@* ─── CTA ─────────────────────────────────────── *@
-<section class="section section-alt">
-    <div class="container">
-        <div class="cta-banner">
-            <h2 class="cta-title">مستعد لتغيير مسيرتك المهنية؟</h2>
-            <p class="cta-sub">انضم إلى آلاف الطلاب الذين غيّروا حياتهم معنا — ابدأ اليوم مجاناً</p>
-            <div class="cta-btns">
-                <a asp-action="Index" asp-controller="Courses" class="cta-btn-white">
-                    <i class="fas fa-rocket"></i> ابدأ الآن
-                </a>
-                <a asp-action="Login" asp-controller="Account" class="cta-btn-outline">
-                    <i class="fas fa-sign-in-alt"></i> تسجيل الدخول
-                </a>
-            </div>
-        </div>
-    </div>
-</section>
-
-@* ─── FOOTER ──────────────────────────────────── *@
-<footer style="background:#0f172a;color:#94a3b8;padding:48px 0 24px;direction:rtl">
-    <div class="container">
-        <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:40px;margin-bottom:40px">
-            <div>
-                <div style="font-size:1.2rem;font-weight:800;color:#fff;margin-bottom:14px;display:flex;align-items:center;gap:8px">
-                    <i class="fas fa-graduation-cap" style="color:#6366f1"></i> Training Center
-                </div>
-                <p style="font-size:.84rem;line-height:1.8;max-width:260px">منصة تدريبية متكاملة تهدف إلى رفع مستوى الكفاءات وتطوير المهارات التقنية والمهنية.</p>
-                <div style="display:flex;gap:10px;margin-top:16px">
-                    <a href="#" style="width:34px;height:34px;border-radius:8px;background:rgba(255,255,255,.1);color:#fff;display:flex;align-items:center;justify-content:center;font-size:.85rem;transition:.2s" onmouseover="this.style.background='#4f46e5'" onmouseout="this.style.background='rgba(255,255,255,.1)'"><i class="fab fa-facebook-f"></i></a>
-                    <a href="#" style="width:34px;height:34px;border-radius:8px;background:rgba(255,255,255,.1);color:#fff;display:flex;align-items:center;justify-content:center;font-size:.85rem;transition:.2s" onmouseover="this.style.background='#0891b2'" onmouseout="this.style.background='rgba(255,255,255,.1)'"><i class="fab fa-twitter"></i></a>
-                    <a href="#" style="width:34px;height:34px;border-radius:8px;background:rgba(255,255,255,.1);color:#fff;display:flex;align-items:center;justify-content:center;font-size:.85rem;transition:.2s" onmouseover="this.style.background='#db2777'" onmouseout="this.style.background='rgba(255,255,255,.1)'"><i class="fab fa-instagram"></i></a>
-                    <a href="#" style="width:34px;height:34px;border-radius:8px;background:rgba(255,255,255,.1);color:#fff;display:flex;align-items:center;justify-content:center;font-size:.85rem;transition:.2s" onmouseover="this.style.background='#0e7490'" onmouseout="this.style.background='rgba(255,255,255,.1)'"><i class="fab fa-linkedin-in"></i></a>
-                </div>
-            </div>
-            <div>
-                <div style="font-size:.85rem;font-weight:700;color:#fff;margin-bottom:14px;text-transform:uppercase;letter-spacing:.06em">الكورسات</div>
-                <ul style="list-style:none;display:flex;flex-direction:column;gap:8px">
-                    <li><a asp-action="Index" asp-controller="Courses" style="font-size:.84rem;color:#94a3b8;transition:.2s" onmouseover="this.style.color='#a5b4fc'" onmouseout="this.style.color='#94a3b8'">جميع الكورسات</a></li>
-                    <li><a asp-action="Index" asp-controller="Courses" style="font-size:.84rem;color:#94a3b8;transition:.2s" onmouseover="this.style.color='#a5b4fc'" onmouseout="this.style.color='#94a3b8'">الكورسات المميزة</a></li>
-                    <li><a asp-action="Index" asp-controller="Courses" style="font-size:.84rem;color:#94a3b8;transition:.2s" onmouseover="this.style.color='#a5b4fc'" onmouseout="this.style.color='#94a3b8'">أحدث الكورسات</a></li>
-                </ul>
-            </div>
-            <div>
-                <div style="font-size:.85rem;font-weight:700;color:#fff;margin-bottom:14px;text-transform:uppercase;letter-spacing:.06em">الحساب</div>
-                <ul style="list-style:none;display:flex;flex-direction:column;gap:8px">
-                    <li><a asp-action="Login" asp-controller="Account" style="font-size:.84rem;color:#94a3b8;transition:.2s" onmouseover="this.style.color='#a5b4fc'" onmouseout="this.style.color='#94a3b8'">تسجيل الدخول</a></li>
-                    <li><a asp-action="AdminDashboard" asp-controller="Dashboard" style="font-size:.84rem;color:#94a3b8;transition:.2s" onmouseover="this.style.color='#a5b4fc'" onmouseout="this.style.color='#94a3b8'">لوحة التحكم</a></li>
-                </ul>
-            </div>
-            <div>
-                <div style="font-size:.85rem;font-weight:700;color:#fff;margin-bottom:14px;text-transform:uppercase;letter-spacing:.06em">تواصل معنا</div>
-                <ul style="list-style:none;display:flex;flex-direction:column;gap:10px">
-                    <li style="display:flex;align-items:center;gap:8px;font-size:.84rem"><i class="fas fa-envelope" style="color:#6366f1;width:16px"></i> info&#64;trainingcenter.com</li>
-                    <li style="display:flex;align-items:center;gap:8px;font-size:.84rem"><i class="fas fa-phone" style="color:#6366f1;width:16px"></i> +963 11 123 4567</li>
-                    <li style="display:flex;align-items:center;gap:8px;font-size:.84rem"><i class="fas fa-map-marker-alt" style="color:#6366f1;width:16px"></i> دمشق، سوريا</li>
-                </ul>
-            </div>
-        </div>
-        <div style="border-top:1px solid rgba(255,255,255,.08);padding-top:24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
-            <span style="font-size:.8rem">© @DateTime.Now.Year Training Center — جميع الحقوق محفوظة</span>
-            <span style="font-size:.8rem">صُنع بـ <i class="fas fa-heart" style="color:#ef4444"></i> لخدمة المتعلمين</span>
-        </div>
-    </div>
-</footer>
