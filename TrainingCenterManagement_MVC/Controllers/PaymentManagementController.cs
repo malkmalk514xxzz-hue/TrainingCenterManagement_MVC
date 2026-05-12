@@ -38,7 +38,7 @@ namespace TrainingCenterManagement_MVC.Controllers
             {
                 var totalOwed = t.CourseTrainees
                     .Where(ct => !ct.Course.IsDeleted)
-                    .Sum(ct => ct.Course.Price);
+                    .Sum(ct => CurrencyHelper.ToSYP(ct.Course.Price, ct.Course.CourseCurrency, rates));
 
                 var totalPaid = t.Payments
                     .Where(p => !p.IsDeleted && !p.Course.IsDeleted)
@@ -92,13 +92,14 @@ namespace TrainingCenterManagement_MVC.Controllers
                         .Where(p => !p.IsDeleted && p.CourseId == ct.CourseId)
                         .Sum(p => CurrencyHelper.ToSYP(p.TotalAmount, p.Currency, rates));
 
+                    var coursePriceSYP = CurrencyHelper.ToSYP(ct.Course.Price, ct.Course.CourseCurrency, rates);
                     return new CourseDebtEntry
                     {
                         CourseId      = ct.CourseId,
                         CourseName    = ct.Course.CourseName,
-                        CoursePrice   = ct.Course.Price,
+                        CoursePrice   = coursePriceSYP,
                         TotalPaidSAR  = paidSAR,
-                        RemainingDebt = ct.Course.Price - paidSAR
+                        RemainingDebt = coursePriceSYP - paidSAR
                     };
                 }).ToList();
 

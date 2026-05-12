@@ -1,309 +1,172 @@
-﻿@* @model IEnumerable<TrainingCenterManagement_MVC.Models.Receptionist>
-
-@{
-    ViewData["Title"] = "Receptionists List";
-}
-
-<div class="container mt-4">
-    <h1 class="mb-4">Receptionists</h1>
-
-    <p>
-        <a asp-action="Create" class="btn btn-success">+ Create New Receptionist</a>
-    </p>
-
-    <table class="table table-bordered table-striped table-hover align-middle">
-        <thead class="table-light">
-            <tr>
-                <th>Full Name</th>
-                <th style="width: 25%;">Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            @if (!Model.Any())
-            {
-                <tr>
-                    <td colspan="2" class="text-center">No receptionists found.</td>
-                </tr>
-            }
-            else
-            {
-                foreach (var item in Model)
-                {
-                    <tr>
-                        <td>
-                            @if (item.User != null)
-                            {
-                                @(item.User.FullName)
-                            }
-                            else
-                            {
-                                <span class="text-muted">No User Linked</span>
-                            }
-                        </td>
-                        <td>
-                            <a asp-action="Details" asp-route-id="@item.ReceptionistId" class="btn btn-sm btn-info me-1">Details</a>
-                            <a asp-action="Delete" asp-route-id="@item.ReceptionistId" class="btn btn-sm btn-danger">Delete</a>
-                        </td>
-                    </tr>
-                }
-            }
-        </tbody>
-    </table>
-</div>
- *@
-
-
 @model IEnumerable<TrainingCenterManagement_MVC.Models.Receptionist>
-
+@using TrainingCenterManagement_MVC.Models
 @{
-    ViewData["Title"] = "Receptionists List";
+    ViewData["Title"] = "إدارة موظفي الاستقبال";
+    var list = Model.ToList();
+
+    string AvatarUrl(ApplicationUser u) {
+        if (!string.IsNullOrEmpty(u?.ProfilePictureUrl)) return u.ProfilePictureUrl;
+        var name = Uri.EscapeDataString(u?.FullName ?? "R");
+        var bg   = (u?.Gender == Gender.Female) ? "ec4899" : "0891b2";
+        return $"https://ui-avatars.com/api/?name={name}&background={bg}&color=ffffff&bold=true&size=128&rounded=true";
+    }
 }
 
 <style>
     :root {
-        --color-background: #fff;
-        --color-header-border: #f0f2f4;
-        --color-text-dark: #111418;
-        --color-text-muted: #617589;
-        --font-family-sans: Inter, "Noto Sans", sans-serif;
+        --rc-pr:#0891b2;--rc-pr-l:#0e7490;--rc-pr-pale:#ecfeff;
+        --success:#10b981;--danger:#ef4444;
+        --body:#f1f5f9;--card:#fff;--t1:#0f172a;--t2:#475569;--t3:#94a3b8;
+        --border:#e2e8f0;--shadow:0 4px 20px rgba(0,0,0,.07);--radius:14px;
     }
+    .rc-page { background:var(--body); padding:28px 32px; direction:rtl; font-family:'Segoe UI',sans-serif; }
 
-    body {
-        font-family: var(--font-family-sans);
-        background-color: var(--color-background);
-        margin: 0;
-        direction: rtl;
-    }
+    .rc-header { display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px; }
+    .rc-header h1 { font-size:1.5rem;font-weight:800;color:var(--t1);margin:0;display:flex;align-items:center;gap:10px; }
+    .rc-header h1 .icon { width:40px;height:40px;border-radius:10px;background:var(--rc-pr-pale);color:var(--rc-pr);display:flex;align-items:center;justify-content:center;font-size:1rem; }
+    .rc-add-btn { display:inline-flex;align-items:center;gap:7px;padding:9px 20px;border-radius:9px;background:var(--rc-pr);color:#fff;text-decoration:none;font-size:.84rem;font-weight:700;transition:all .2s; }
+    .rc-add-btn:hover { background:var(--rc-pr-l);color:#fff; }
 
-    .layout-container {
-        display: flex;
-        flex-direction: column;
-        min-height: 100vh;
-        width: 100%;
-        overflow-x: hidden;
-    }
+    .rc-stats { display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px; }
+    @@media(max-width:600px){ .rc-stats{ grid-template-columns:1fr 1fr; } }
+    .rc-stat { background:var(--card);border-radius:12px;border:1px solid var(--border);padding:18px 20px;box-shadow:var(--shadow);display:flex;align-items:center;gap:14px; }
+    .rc-stat-icon { width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0; }
+    .rc-stat-val { font-size:1.5rem;font-weight:800;color:var(--t1);line-height:1; }
+    .rc-stat-lbl { font-size:.74rem;color:var(--t3);margin-top:2px; }
 
-    .header-style {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        white-space: nowrap;
-        border-bottom: 1px solid var(--color-header-border);
-        padding: 0.75rem 2.5rem;
-    }
+    .rc-toolbar { background:var(--card);border-radius:12px;border:1px solid var(--border);padding:14px 18px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:20px; }
+    .rc-search { flex:1;min-width:180px;position:relative; }
+    .rc-search i { position:absolute;right:11px;top:50%;transform:translateY(-50%);color:var(--t3);font-size:.8rem; }
+    .rc-search input { width:100%;padding:8px 34px 8px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:.84rem;font-family:inherit;box-sizing:border-box; }
+    .rc-search input:focus { outline:none;border-color:var(--rc-pr);box-shadow:0 0 0 3px rgba(8,145,178,.1); }
+    .rc-count { font-size:.78rem;color:var(--t3);margin-right:auto; }
 
-    .header-logo-section {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        color: var(--color-text-dark);
-    }
+    .rc-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px; }
 
-    .header-logo-svg {
-        width: 1rem;
-        height: 1rem;
-    }
+    .rc-card { background:var(--card);border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);padding:24px 16px;display:flex;flex-direction:column;align-items:center;text-align:center;transition:all .2s;position:relative; }
+    .rc-card:hover { transform:translateY(-3px);box-shadow:0 8px 24px rgba(8,145,178,.14);border-color:#a5f3fc; }
+    .rc-avatar-wrap { position:relative;margin-bottom:12px; }
+    .rc-avatar { width:84px;height:84px;border-radius:50%;object-fit:cover;border:3px solid var(--border);transition:border-color .2s; }
+    .rc-card:hover .rc-avatar { border-color:#a5f3fc; }
+    .rc-gender-dot { position:absolute;bottom:2px;left:2px;width:18px;height:18px;border-radius:50%;border:2px solid #fff;display:flex;align-items:center;justify-content:center;font-size:.58rem;color:#fff; }
+    .rc-gm { background:#0891b2; } .rc-gf { background:#ec4899; }
+    .rc-role-badge { position:absolute;top:12px;right:12px;background:var(--rc-pr-pale);color:var(--rc-pr);font-size:.65rem;font-weight:700;padding:2px 8px;border-radius:10px; }
+    .rc-name { font-size:.95rem;font-weight:700;color:var(--t1);margin:0 0 3px; }
+    .rc-email { font-size:.71rem;color:var(--t3);margin:0 0 12px;word-break:break-all; }
+    .rc-actions { display:flex;gap:7px;width:100%; }
+    .rc-btn { flex:1;padding:7px 10px;border-radius:7px;font-size:.75rem;font-weight:600;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:5px;transition:all .2s;border:none;cursor:pointer;font-family:inherit; }
+    .rc-btn-info { background:var(--rc-pr-pale);color:var(--rc-pr); }
+    .rc-btn-info:hover { background:var(--rc-pr);color:#fff; }
+    .rc-btn-del { background:#fee2e2;color:var(--danger); }
+    .rc-btn-del:hover { background:var(--danger);color:#fff; }
 
-    .header-title {
-        color: var(--color-text-dark);
-        font-size: 1.125rem;
-        font-weight: 700;
-        line-height: 1.25;
-        letter-spacing: -0.015em;
-    }
-
-    .header-links-section {
-        display: flex;
-        flex: 1;
-        justify-content: flex-end;
-        gap: 2rem;
-    }
-
-    .nav-links {
-        display: flex;
-        align-items: center;
-        gap: 2.25rem;
-    }
-
-    .nav-link {
-        color: var(--color-text-dark);
-        font-size: 0.875rem;
-        font-weight: 500;
-        line-height: 1.5;
-        text-decoration: none;
-    }
-
-    .profile-picture {
-        width: 2.5rem;
-        height: 2.5rem;
-        border-radius: 50%;
-        background-position: center;
-        background-repeat: no-repeat;
-        background-size: cover;
-    }
-
-    .main-content {
-        flex: 1;
-        display: flex;
-        justify-content: center;
-        padding-top: 1.25rem;
-        padding-bottom: 1.25rem;
-        padding-left: 10rem;
-        padding-right: 10rem;
-    }
-
-    .content-container {
-        display: flex;
-        flex-direction: column;
-        max-width: 960px;
-        flex: 1;
-    }
-
-    .header-controls {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: space-between;
-        gap: 0.75rem;
-        padding: 1rem;
-    }
-
-    .page-title {
-        color: var(--color-text-dark);
-        font-size: 2rem;
-        font-weight: 700;
-        line-height: 1.25;
-        min-width: 18rem;
-    }
-
-    .create-button {
-        display: flex;
-        min-width: 84px;
-        max-width: 480px;
-        cursor: pointer;
-        align-items: center;
-        justify-content: center;
-        overflow: hidden;
-        border-radius: 0.5rem;
-        height: 2rem;
-        padding: 0 1rem;
-        background-color: var(--color-header-border);
-        color: var(--color-text-dark);
-        font-size: 0.875rem;
-        font-weight: 500;
-        line-height: 1.5;
-        border: none;
-        text-decoration: none;
-        transition: background-color 0.2s;
-    }
-
-    .create-button:hover {
-        background-color: #e2e6e9;
-    }
-
-    .grid-container {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(158px, 1fr));
-        gap: 0.75rem;
-        padding: 1rem;
-    }
-
-    .receptionist-card {
-        display: flex;
-        flex-direction: column;
-        gap: 0.75rem;
-        text-align: center;
-        padding-bottom: 0.75rem;
-    }
-
-    .receptionist-image-wrapper {
-        padding: 0 1rem;
-    }
-
-    .receptionist-image {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        aspect-ratio: 1 / 1;
-        background-position: center;
-        background-repeat: no-repeat;
-        background-size: cover;
-        border-radius: 9999px;
-    }
-
-    .receptionist-name {
-        color: var(--color-text-dark);
-        font-size: 1rem;
-        font-weight: 500;
-        line-height: 1.5;
-    }
-
-    .no-data-message {
-        text-align: center;
-        color: var(--color-text-muted);
-        padding: 2rem;
-        grid-column: 1 / -1;
-    }
-
-    .card-actions a {
-        color: #617589;
-        font-weight: bold;
-        text-decoration: none;
-        margin: 0 0.25rem;
-    }
+    .rc-empty { text-align:center;padding:60px 20px;color:var(--t3); }
+    .rc-empty i { font-size:2.5rem;margin-bottom:12px;display:block; }
 </style>
 
-<div class="layout-container" style="background-color:white">
+<div class="dashboard-wrapper">
+    @await Html.PartialAsync("_AdminSidebar")
+    <main class="dashboard-main rc-page">
 
-    @Html.Partial("_LandingHeader")
-    <div class="main-content">
-        <div class="content-container">
-            <div class="header-controls">
-                <p class="page-title">Receptionists</p>
-                <a asp-action="Create" class="create-button">
-                    <span class="truncate">Create New Receptionist</span>
-                </a>
+        <!-- Header -->
+        <div class="rc-header">
+            <h1>
+                <span class="icon"><i class="fas fa-headset"></i></span>
+                إدارة موظفي الاستقبال
+            </h1>
+            <a asp-action="Create" class="rc-add-btn">
+                <i class="fas fa-user-plus"></i> إضافة موظف
+            </a>
+        </div>
+
+        <!-- Stats -->
+        @{
+            var male   = list.Count(r => r.User?.Gender == Gender.Male);
+            var female = list.Count(r => r.User?.Gender == Gender.Female);
+        }
+        <div class="rc-stats">
+            <div class="rc-stat">
+                <div class="rc-stat-icon" style="background:#ecfeff;color:#0891b2;"><i class="fas fa-headset"></i></div>
+                <div><div class="rc-stat-val">@list.Count</div><div class="rc-stat-lbl">إجمالي الموظفين</div></div>
             </div>
-            <div class="grid-container">
-                @if (!Model.Any())
-                {
-                    <div class="no-data-message">
-                        No receptionists found.
-                    </div>
-                }
-                else
-                {
-                
-                     var random = new Random();
-
-
-                    @foreach (var item in Model)
-                    {
-                        var randomImageNumber = random.Next(1, 4);
-                        var imagePath = Url.Content($"~/images/profile/{randomImageNumber}.png");
-
-                        <div class="receptionist-card">
-                            <div class="receptionist-image-wrapper">
-                                <div class="receptionist-image" style="background-image: url('@imagePath');"></div>
-                            </div>
-                            <p class="receptionist-name">
-                                @if (item.User != null)
-                                {
-                                    @(item.User.FullName)
-                                }
-                                else
-                                {
-                                    <span style="color: var(--color-text-muted);">No User Linked</span>
-                                }
-                            </p>
-                            <div class="card-actions">
-                                <a asp-action="Details" asp-route-id="@item.ReceptionistId">Details</a>
-                                |
-                                <a asp-action="Delete" asp-route-id="@item.ReceptionistId">Delete</a>
-                            </div>
-                        </div>
-                    }
-                }
+            <div class="rc-stat">
+                <div class="rc-stat-icon" style="background:#dbeafe;color:#1d4ed8;"><i class="fas fa-mars"></i></div>
+                <div><div class="rc-stat-val">@male</div><div class="rc-stat-lbl">ذكر</div></div>
+            </div>
+            <div class="rc-stat">
+                <div class="rc-stat-icon" style="background:#fce7f3;color:#db2777;"><i class="fas fa-venus"></i></div>
+                <div><div class="rc-stat-val">@female</div><div class="rc-stat-lbl">أنثى</div></div>
             </div>
         </div>
-    </div>
-</div>@Html.Partial("_LandingFooter")
+
+        <!-- Toolbar -->
+        <div class="rc-toolbar">
+            <div class="rc-search">
+                <i class="fas fa-search"></i>
+                <input type="text" id="rc-q" placeholder="ابحث بالاسم..." oninput="rcFilter()" />
+            </div>
+            <span class="rc-count" id="rc-count">@list.Count موظف</span>
+        </div>
+
+        <!-- Grid -->
+        @if (list.Any())
+        {
+            <div class="rc-grid" id="rc-grid">
+                @foreach (var item in list)
+                {
+                    var av = AvatarUrl(item.User);
+                    var isFemale = item.User?.Gender == Gender.Female;
+                    <div class="rc-card" data-name="@(item.User?.FullName?.ToLower())">
+                        <span class="rc-role-badge"><i class="fas fa-headset"></i> استقبال</span>
+                        <div class="rc-avatar-wrap">
+                            <img src="@av" class="rc-avatar" alt="@item.User?.FullName"
+                                 onerror="this.src='https://ui-avatars.com/api/?name=R&background=94a3b8&color=fff&rounded=true'" />
+                            <span class="rc-gender-dot @(isFemale ? "rc-gf" : "rc-gm")">
+                                <i class="fas @(isFemale ? "fa-venus" : "fa-mars")"></i>
+                            </span>
+                        </div>
+                        @if (item.User != null)
+                        {
+                            <div class="rc-name">@item.User.FullName</div>
+                            <div class="rc-email">@item.User.Email</div>
+                        }
+                        else
+                        {
+                            <div class="rc-name" style="color:var(--t3);">لا يوجد مستخدم مرتبط</div>
+                        }
+                        <div class="rc-actions">
+                            <a asp-action="Details" asp-route-id="@item.ReceptionistId" class="rc-btn rc-btn-info">
+                                <i class="fas fa-eye"></i> تفاصيل
+                            </a>
+                            <a asp-action="Delete" asp-route-id="@item.ReceptionistId" class="rc-btn rc-btn-del">
+                                <i class="fas fa-trash-alt"></i>
+                            </a>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="rc-empty">
+                <i class="fas fa-headset"></i>
+                <p>لا يوجد موظفو استقبال مسجلون بعد</p>
+            </div>
+        }
+
+    </main>
+</div>
+
+<script>
+    function rcFilter() {
+        var q = (document.getElementById('rc-q').value || '').trim().toLowerCase();
+        var cards = document.querySelectorAll('#rc-grid .rc-card');
+        var count = 0;
+        cards.forEach(function(c) {
+            var show = !q || (c.dataset.name || '').includes(q);
+            c.style.display = show ? '' : 'none';
+            if (show) count++;
+        });
+        document.getElementById('rc-count').textContent = count + ' موظف';
+    }
+</script>

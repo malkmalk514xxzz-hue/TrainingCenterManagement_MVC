@@ -45,6 +45,11 @@
     </div>
     <nav class="sidebar-nav">
         <ul>
+            <li>
+                <a asp-action="Index" asp-controller="Home">
+                    <i class="fas fa-globe"></i><span>الصفحة الرئيسية</span>
+                </a>
+            </li>
             <li class="@(IsActive("Dashboard", "AdminDashboard") ? "active" : "")">
                 <a asp-action="AdminDashboard" asp-controller="Dashboard">
                     <i class="fas fa-home"></i><span>لوحة التحكم</span>
@@ -78,6 +83,16 @@
             <li class="@(IsActive("Lectures") ? "active" : "")">
                 <a asp-action="Index" asp-controller="Lectures">
                     <i class="fas fa-video"></i><span>@SharedResource.LecturesControll</span>
+                </a>
+            </li>
+            <li class="@(IsActive("Exams", "Index") ? "active" : "")">
+                <a asp-action="Index" asp-controller="Exams">
+                    <i class="fas fa-file-alt"></i><span>الامتحانات</span>
+                </a>
+            </li>
+            <li class="@(IsActive("Exams", "QuestionBank") ? "active" : "")">
+                <a asp-action="QuestionBank" asp-controller="Exams">
+                    <i class="fas fa-question-circle"></i><span>بنك الأسئلة</span>
                 </a>
             </li>
             <li class="@(IsActive("Certificates") ? "active" : "")">

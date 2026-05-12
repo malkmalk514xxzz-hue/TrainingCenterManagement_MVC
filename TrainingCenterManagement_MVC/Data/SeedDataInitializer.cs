@@ -47,7 +47,7 @@ namespace TrainingCenterManagement_MVC.Data
 
         #region Roles + Users
         private const string DefaultPassword = "P@ssw0rd!123";
-        private record SeedUser(string FullName, string EmailPrefix);
+        private record SeedUser(string FullName, string EmailPrefix, Gender Gender = Gender.Male);
 
    
 
@@ -72,26 +72,26 @@ namespace TrainingCenterManagement_MVC.Data
             // Trainers (10)
             var trainers = new List<SeedUser>
             {
-                new("Fahd alhasan","fahdalhasanTrainer"), new("Ali Robinson","alirobinsonTrainer"),
-                new("Salem ali","salemaliTrainer"), new("Malek Aslan","malekaslanTrainer"),
-                new("Fras Mohammed","frasmohammedTrainer"), new("Rghad Shoriqee","rghadshoriqeeTrainer"),
-                new("Waled Raslan","waledraslanTrainer"), new("Marem Haj","maremhajTrainer"),
-                new("Hasan Hassene","hasanhasseneTrainer"), new("Sara Yosef","sarayosefTrainer")
+                new("Fahd alhasan","fahdalhasanTrainer",Gender.Male),   new("Ali Robinson","alirobinsonTrainer",Gender.Male),
+                new("Salem ali","salemaliTrainer",Gender.Male),         new("Malek Aslan","malekaslanTrainer",Gender.Male),
+                new("Fras Mohammed","frasmohammedTrainer",Gender.Male), new("Rghad Shoriqee","rghadshoriqeeTrainer",Gender.Female),
+                new("Waled Raslan","waledraslanTrainer",Gender.Male),   new("Marem Haj","maremhajTrainer",Gender.Female),
+                new("Hasan Hassene","hasanhasseneTrainer",Gender.Male), new("Sara Yosef","sarayosefTrainer",Gender.Female)
             };
 
             // Trainees (20)
             var trainees = new List<SeedUser>
             {
-                new("Ahmed Khaled", "AhmedKhaledTrainee"), new("Sara Mahmoud", "SaraMahmoudTrainee"),
-                new("Omar Hassan", "OmarHassanTrainee"), new("Layla Fathi", "LaylaFathiTrainee"),
-                new("Youssef Nabil", "YoussefNabilTrainee"), new("Fatima Adel", "FatimaAdelTrainee"),
-                new("Khalid Mostafa", "KhalidMostafaTrainee"), new("Amina Tarek", "AminaTarekTrainee"),
-                new("Hassan Ali", "HassanAliTrainee"), new("Rana Samir", "RanaSamirTrainee"),
-                new("Tariq Zaki", "TariqZakiTrainee"), new("Noor Hatem", "NoorHatemTrainee"),
-                new("Bilal Saeed", "BilalSaeedTrainee"), new("Mariam Kamal", "MariamKamalTrainee"),
-                new("Ziad Salem", "ZiadSalemTrainee"), new("Dina Yasser", "DinaYasserTrainee"),
-                new("Ali Jamal", "AliJamalTrainee"), new("Lama Hussein", "LamaHusseinTrainee"),
-                new("Mustafa Farid", "MustafaFaridTrainee"), new("Huda Anwar", "HudaAnwarTrainee")
+                new("Ahmed Khaled","AhmedKhaledTrainee",Gender.Male),  new("Sara Mahmoud","SaraMahmoudTrainee",Gender.Female),
+                new("Omar Hassan","OmarHassanTrainee",Gender.Male),    new("Layla Fathi","LaylaFathiTrainee",Gender.Female),
+                new("Youssef Nabil","YoussefNabilTrainee",Gender.Male),new("Fatima Adel","FatimaAdelTrainee",Gender.Female),
+                new("Khalid Mostafa","KhalidMostafaTrainee",Gender.Male),new("Amina Tarek","AminaTarekTrainee",Gender.Female),
+                new("Hassan Ali","HassanAliTrainee",Gender.Male),      new("Rana Samir","RanaSamirTrainee",Gender.Female),
+                new("Tariq Zaki","TariqZakiTrainee",Gender.Male),      new("Noor Hatem","NoorHatemTrainee",Gender.Female),
+                new("Bilal Saeed","BilalSaeedTrainee",Gender.Male),    new("Mariam Kamal","MariamKamalTrainee",Gender.Female),
+                new("Ziad Salem","ZiadSalemTrainee",Gender.Male),      new("Dina Yasser","DinaYasserTrainee",Gender.Female),
+                new("Ali Jamal","AliJamalTrainee",Gender.Male),        new("Lama Hussein","LamaHusseinTrainee",Gender.Female),
+                new("Mustafa Farid","MustafaFaridTrainee",Gender.Male),new("Huda Anwar","HudaAnwarTrainee",Gender.Female)
             };
 
 
@@ -111,12 +111,17 @@ namespace TrainingCenterManagement_MVC.Data
                 ApplicationUser user;
                 if (existing == null)
                 {
+                    var picIndex = s.Gender == Gender.Female
+                        ? 4 + rnd.Next(0, 3)
+                        : 1 + rnd.Next(0, 3);
                     user = new ApplicationUser
                     {
                         UserName = email,
                         Email = email,
                         FullName = s.FullName,
                         Role = role,
+                        Gender = s.Gender,
+                        ProfilePictureUrl = $"/images/profile/{picIndex}.png",
                         BirthDate = DateTime.UtcNow.AddYears(-(18 + rnd.Next(0, 20))).AddDays(rnd.Next(0, 365))
                     };
                     var res = await _userManager.CreateAsync(user, DefaultPassword);
@@ -167,6 +172,7 @@ namespace TrainingCenterManagement_MVC.Data
             var AdminsId = await _context.Admins.Select(c=>c.AdminId).ToListAsync();
             if (AdminsId == null) return;
 
+            // Course prices are in USD (default currency)
             var courses = new List<Course>
     {
         new Course
@@ -174,7 +180,7 @@ namespace TrainingCenterManagement_MVC.Data
             CourseName = "Python Basics",
             BatchNumber = 1,
             NumberOfLectures = 10,
-            Price = 500,
+            Price = 49,
             Description = "An introductory course to Python programming.",
             VideoUrl = "https://www.youtube.com/watch?v=f79MRyMsjrQ",
             ThumbnailUrl = "https://img.youtube.com/vi/f79MRyMsjrQ/0.jpg",
@@ -187,7 +193,7 @@ namespace TrainingCenterManagement_MVC.Data
             CourseName = "Web Development",
             BatchNumber = 2,
             NumberOfLectures = 15,
-            Price = 750,
+            Price = 79,
             Description = "A comprehensive course on web development.",
             VideoUrl = "https://www.youtube.com/watch?v=Ke90Tje7VS0",
             ThumbnailUrl = "https://img.youtube.com/vi/Ke90Tje7VS0/0.jpg",
@@ -200,7 +206,7 @@ namespace TrainingCenterManagement_MVC.Data
             CourseName = "Advanced JavaScript",
             BatchNumber = 1,
             NumberOfLectures = 12,
-            Price = 700,
+            Price = 69,
             Description = "Deep dive into JavaScript advanced topics.",
             VideoUrl = "https://www.youtube.com/watch?v=PkZNo7MFNFg",
             ThumbnailUrl = "https://img.youtube.com/vi/PkZNo7MFNFg/0.jpg",
@@ -213,7 +219,7 @@ namespace TrainingCenterManagement_MVC.Data
             CourseName = "SQL and Databases",
             BatchNumber = 1,
             NumberOfLectures = 10,
-            Price = 650,
+            Price = 59,
             Description = "Learn SQL and database design fundamentals.",
             VideoUrl = "https://www.youtube.com/watch?v=Oe421EPjeBE",
             ThumbnailUrl = "https://img.youtube.com/vi/Oe421EPjeBE/0.jpg",
@@ -226,7 +232,7 @@ namespace TrainingCenterManagement_MVC.Data
             CourseName = "Cybersecurity Essentials",
             BatchNumber = 1,
             NumberOfLectures = 14,
-            Price = 850,
+            Price = 89,
             Description = "Fundamentals of cybersecurity for beginners.",
             VideoUrl = "https://www.youtube.com/watch?v=kUMe1FH4CHE",
             ThumbnailUrl = "https://img.youtube.com/vi/kUMe1FH4CHE/0.jpg",
@@ -239,7 +245,7 @@ namespace TrainingCenterManagement_MVC.Data
             CourseName = "Machine Learning Basics",
             BatchNumber = 1,
             NumberOfLectures = 12,
-            Price = 950,
+            Price = 99,
             Description = "Introduction to Machine Learning concepts and models.",
             VideoUrl = "https://www.youtube.com/watch?v=GwIo3gDZCVQ",
             ThumbnailUrl = "https://img.youtube.com/vi/GwIo3gDZCVQ/0.jpg",
@@ -252,7 +258,7 @@ namespace TrainingCenterManagement_MVC.Data
             CourseName = "Docker & Kubernetes",
             BatchNumber = 1,
             NumberOfLectures = 13,
-            Price = 900,
+            Price = 94,
             Description = "Get started with containers and orchestration.",
             VideoUrl = "https://www.youtube.com/watch?v=VvCytJVDoyM",
             ThumbnailUrl = "https://img.youtube.com/vi/VvCytJVDoyM/0.jpg",

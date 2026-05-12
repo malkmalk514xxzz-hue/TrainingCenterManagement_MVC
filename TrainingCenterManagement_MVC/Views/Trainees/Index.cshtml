@@ -1,334 +1,199 @@
-﻿@* @model IEnumerable<TrainingCenterManagement_MVC.Models.Trainee>
-
-@{
-    ViewData["Title"] = "Trainees List";
-}
-
-<h1 class="mb-4">Trainees</h1>
-
-<p>
-    <a asp-action="Create" class="btn btn-success">Create New</a>
-</p>
-
-<table class="table table-striped table-bordered table-hover">
-    <thead class="table-dark">
-        <tr>
-            <th>Full Name</th>
-            <th>Email</th>
-            <th>@Html.DisplayNameFor(model => model.User.BirthDate)</th>
-            <th style="width: 150px;">Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        @if (Model.Any())
-        {
-            foreach (var item in Model)
-            {
-                <tr>
-                    <td>@item.User.FullName</td>
-                    <td>@item.User.Email</td>
-                    <td>@item.User.BirthDate.ToShortDateString()</td>
-                    <td>
-                        <a asp-action="Details" asp-route-id="@item.TraineeId" class="btn btn-sm btn-info me-1">Details</a>
-                        <a asp-action="Delete" asp-route-id="@item.TraineeId" class="btn btn-sm btn-danger">Delete</a>
-                    </td>
-                </tr>
-            }
-        }
-        else
-        {
-            <tr>
-                <td colspan="4" class="text-center">No trainees found.</td>
-            </tr>
-        }
-    </tbody>
-</table>
- *@
-
-
 @model IEnumerable<TrainingCenterManagement_MVC.Models.Trainee>
-
+@using TrainingCenterManagement_MVC.Models
 @{
-    ViewData["Title"] = "Trainees List";
+    ViewData["Title"] = "إدارة المتدربين";
+    var list = Model.ToList();
+
+    string AvatarUrl(ApplicationUser u) {
+        if (!string.IsNullOrEmpty(u?.ProfilePictureUrl)) return u.ProfilePictureUrl;
+        var name = Uri.EscapeDataString(u?.FullName ?? "U");
+        var bg   = (u?.Gender == Gender.Female) ? "ec4899" : "4f46e5";
+        return $"https://ui-avatars.com/api/?name={name}&background={bg}&color=ffffff&bold=true&size=128&rounded=true";
+    }
 }
 
 <style>
     :root {
-        --color-background: #fff;
-        --color-header-border: #f0f2f4;
-        --color-text-dark: #111418;
-        --color-text-muted: #617589;
-        --font-family-sans: Inter, "Noto Sans", sans-serif;
+        --pr:#4f46e5;--pr-l:#6366f1;--pr-pale:#eef2ff;
+        --success:#10b981;--danger:#ef4444;--gold:#f59e0b;
+        --body:#f1f5f9;--card:#fff;--t1:#0f172a;--t2:#475569;--t3:#94a3b8;
+        --border:#e2e8f0;--shadow:0 4px 20px rgba(0,0,0,.07);--radius:14px;
     }
+    .tn-page { background:var(--body); padding:28px 32px; direction:rtl; font-family:'Segoe UI',sans-serif; }
 
-    body {
-        font-family: var(--font-family-sans);
-        background-color: var(--color-background);
-        margin: 0;
-        direction: rtl;
-    }
+    /* Header */
+    .tn-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:24px; flex-wrap:wrap; gap:12px; }
+    .tn-header h1 { font-size:1.5rem; font-weight:800; color:var(--t1); margin:0; display:flex; align-items:center; gap:10px; }
+    .tn-header h1 .icon { width:40px;height:40px;border-radius:10px;background:var(--pr-pale);color:var(--pr);display:flex;align-items:center;justify-content:center;font-size:1rem; }
+    .tn-add-btn { display:inline-flex;align-items:center;gap:7px;padding:9px 20px;border-radius:9px;background:var(--pr);color:#fff;text-decoration:none;font-size:.84rem;font-weight:700;transition:all .2s; }
+    .tn-add-btn:hover { background:var(--pr-l);color:#fff; }
 
-    .layout-container {
-        display: flex;
-        flex-direction: column;
-        min-height: 100vh;
-        width: 100%;
-        overflow-x: hidden;
-    }
+    /* Stats */
+    .tn-stats { display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px; }
+    @@media(max-width:600px){ .tn-stats{ grid-template-columns:1fr 1fr; } }
+    .tn-stat { background:var(--card);border-radius:12px;border:1px solid var(--border);padding:18px 20px;box-shadow:var(--shadow);display:flex;align-items:center;gap:14px; }
+    .tn-stat-icon { width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0; }
+    .tn-stat-val { font-size:1.5rem;font-weight:800;color:var(--t1);line-height:1; }
+    .tn-stat-lbl { font-size:.74rem;color:var(--t3);margin-top:2px; }
 
-    .header-style {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        white-space: nowrap;
-        border-bottom: 1px solid var(--color-header-border);
-        padding: 0.75rem 2.5rem;
-    }
+    /* Toolbar */
+    .tn-toolbar { background:var(--card);border-radius:12px;border:1px solid var(--border);padding:14px 18px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:20px; }
+    .tn-search { flex:1;min-width:180px;position:relative; }
+    .tn-search i { position:absolute;right:11px;top:50%;transform:translateY(-50%);color:var(--t3);font-size:.8rem; }
+    .tn-search input { width:100%;padding:8px 34px 8px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:.84rem;font-family:inherit;box-sizing:border-box; }
+    .tn-search input:focus { outline:none;border-color:var(--pr);box-shadow:0 0 0 3px rgba(79,70,229,.1); }
+    .tn-filter { display:flex;gap:6px; }
+    .tn-fb { padding:6px 12px;border-radius:20px;border:1.5px solid var(--border);background:#fff;font-size:.75rem;font-weight:600;color:var(--t2);cursor:pointer;font-family:inherit;transition:all .2s; }
+    .tn-fb.active,.tn-fb:hover { background:var(--pr);color:#fff;border-color:var(--pr); }
+    .tn-count { font-size:.78rem;color:var(--t3);margin-right:auto; }
 
-    .header-logo-section {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        color: var(--color-text-dark);
-    }
+    /* Grid */
+    .tn-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px; }
 
-    .header-logo-svg {
-        width: 1rem;
-        height: 1rem;
-    }
+    /* Card */
+    .tn-card { background:var(--card);border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);padding:20px;display:flex;flex-direction:column;align-items:center;text-align:center;transition:all .2s;position:relative; }
+    .tn-card:hover { transform:translateY(-3px);box-shadow:0 8px 24px rgba(79,70,229,.12);border-color:#c7d2fe; }
+    .tn-avatar-wrap { position:relative;margin-bottom:12px; }
+    .tn-avatar { width:80px;height:80px;border-radius:50%;object-fit:cover;border:3px solid var(--border);transition:border-color .2s; }
+    .tn-card:hover .tn-avatar { border-color:#c7d2fe; }
+    .tn-gender-dot { position:absolute;bottom:2px;left:2px;width:16px;height:16px;border-radius:50%;border:2px solid #fff;display:flex;align-items:center;justify-content:center;font-size:.55rem;color:#fff; }
+    .tn-gender-m { background:#4f46e5; }
+    .tn-gender-f { background:#ec4899; }
+    .tn-name { font-size:.92rem;font-weight:700;color:var(--t1);margin:0 0 3px; }
+    .tn-email { font-size:.71rem;color:var(--t3);margin:0 0 6px;word-break:break-all; }
+    .tn-courses-badge { display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:12px;background:var(--pr-pale);color:var(--pr);font-size:.72rem;font-weight:600;margin-bottom:12px; }
+    .tn-actions { display:flex;gap:7px;width:100%; }
+    .tn-btn { flex:1;padding:7px 10px;border-radius:7px;font-size:.75rem;font-weight:600;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:5px;transition:all .2s;border:none;cursor:pointer;font-family:inherit; }
+    .tn-btn-info { background:var(--pr-pale);color:var(--pr); }
+    .tn-btn-info:hover { background:var(--pr);color:#fff; }
+    .tn-btn-del { background:#fee2e2;color:var(--danger); }
+    .tn-btn-del:hover { background:var(--danger);color:#fff; }
 
-    .header-title {
-        color: var(--color-text-dark);
-        font-size: 1.125rem;
-        font-weight: 700;
-        line-height: 1.25;
-        letter-spacing: -0.015em;
-    }
-
-    .header-links-section {
-        display: flex;
-        flex: 1;
-        justify-content: flex-end;
-        gap: 2rem;
-    }
-
-    .nav-links {
-        display: flex;
-        align-items: center;
-        gap: 2.25rem;
-    }
-
-    .nav-link {
-        color: var(--color-text-dark);
-        font-size: 0.875rem;
-        font-weight: 500;
-        line-height: 1.5;
-        text-decoration: none;
-    }
-
-    .profile-picture {
-        width: 2.5rem;
-        height: 2.5rem;
-        border-radius: 50%;
-        background-position: center;
-        background-repeat: no-repeat;
-        background-size: cover;
-    }
-
-    .main-content {
-        flex: 1;
-        display: flex;
-
-        justify-content: center;
-        padding-top: 1.25rem;
-        padding-bottom: 1.25rem;
-        padding-left: 6rem;
-        padding-right: 6rem;
-    }
-
-    .content-container {
-        display: flex;
-        flex-direction: column;
-        max-width:960px;
-        flex: 1;
-    }
-
-    .header-controls {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: space-between;
-        gap: 0.75rem;
-        padding: 1rem;
-    }
-
-    .page-title {
-        color: var(--color-text-dark);
-        font-size: 2rem;
-        font-weight: 700;
-        line-height: 1.25;
-        min-width: 18rem;
-    }
-
-    .create-button {
-        display: flex;
-        min-width: 84px;
-        max-width: 480px;
-        cursor: pointer;
-        align-items: center;
-        justify-content: center;
-        overflow: hidden;
-        border-radius: 0.5rem;
-        height: 2rem;
-        padding: 0 1rem;
-        background-color: var(--color-header-border);
-        color: var(--color-text-dark);
-        font-size: 0.875rem;
-        font-weight: 500;
-        line-height: 1.5;
-        border: none;
-        text-decoration: none;
-        transition: background-color 0.2s;
-    }
-
-        .create-button:hover {
-            background-color: #e2e6e9;
-        }
-
-    .grid-container {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 1rem;
-        padding: 1rem;
-    }
-
-    .trainee-card {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        padding: 1.5rem;
-        background-color: #ffffff;
-        border-radius: 0.5rem;
-        border: 0px solid #e0e0e0;
-        text-align: center;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    }
-
-    .trainee-image {
-        width: 96px;
-        height: 96px;
-        object-fit: cover;
-        border-radius: 50%;
-        margin-bottom: 1rem;
-        border: 2px solid #ccc;
-    }
-
-    .trainee-name {
-        font-size: 1.125rem;
-        font-weight: 700;
-        color: var(--color-text-dark);
-        margin-bottom: 0.25rem;
-    }
-
-    .trainee-email {
-        font-size: 0.75rem; /* Smaller font size for email */
-        color: var(--color-text-muted);
-        line-height: 1.4;
-        margin-bottom: 1rem;
-        word-wrap: break-word; /* Allows long email to wrap */
-        white-space: normal;
-    }
-
-    .card-actions {
-        display: flex;
-        gap: 0.5rem;
-        justify-content: center;
-    }
-
-        .card-actions a {
-            padding: 0.5rem 1rem;
-            border-radius: 0.25rem;
-            font-size: 0.875rem;
-            text-decoration: none;
-            font-weight: 500;
-        }
-
-    .details-btn {
-        background-color: #fff;
-        color: #1a73e8;
-        border-color: #1a73e8;
-        border-width: 1px;
-        border-radius: 10px;
-        border-style: solid;
-    }
-
-    .delete-btn {
-        background-color: #fff;
-        color: #d9534f;
-        border-color: #d9534f;
-        border-width: 1px;
-        border-radius: 10px;
-        border-style: solid;
-    }
-
-    .details-btn:hover {
-        background-color: #1a73e8;
-        color: #fff;
-    }
-
-    .delete-btn:hover {
-        background-color: #d9534f;
-        color: #fff;
-    }
-
-    .no-data-message {
-        text-align: center;
-        color: var(--color-text-muted);
-        padding: 2rem;
-        grid-column: 1 / -1;
-    }
+    /* Empty */
+    .tn-empty { text-align:center;padding:60px 20px;color:var(--t3); }
+    .tn-empty i { font-size:2.5rem;margin-bottom:12px;display:block; }
 </style>
 
-<div class="layout-container" style="background-color:white">
-    @Html.Partial("_LandingHeader")
-    <div class="main-content">
-        <div class="content-container">
-            <div class="header-controls">
-                <p class="page-title">Trainees</p>
-                <a asp-action="Create" class="create-button">
-                    <span class="truncate">Create New Trainee</span>
-                </a>
-            </div>
-            <div class="grid-container">
-                @if (!Model.Any())
-                {
-                    <div class="no-data-message">
-                        No trainees found.
-                    </div>
-                }
-                else
-                {
-                    var random = new Random();
-                    foreach (var item in Model)
-                    {
-                        var randomImageNumber = random.Next(1, 7);
-                        var imagePath = Url.Content($"~/images/profile/{randomImageNumber}.png");
+<div class="dashboard-wrapper">
+    @await Html.PartialAsync("_AdminSidebar")
+    <main class="dashboard-main tn-page">
 
-                        <div class="trainee-card">
-                            <img src="@imagePath" class="trainee-image" alt="Trainee Profile Picture" />
-                            <p class="trainee-name">@item.User.FullName</p>
-                            @* @if (item.User != null)
-                            {
-                                <p class="trainee-email">@item.User.Email</p>
-                            } *@
-                            <div class="card-actions">
-                                <a asp-action="Details" asp-route-id="@item.TraineeId" class="details-btn">Details</a>
-                                <a asp-action="Delete" asp-route-id="@item.TraineeId" class="delete-btn">Delete</a>
-                            </div>
-                        </div>
-                    }
-                }
+        <!-- Header -->
+        <div class="tn-header">
+            <h1>
+                <span class="icon"><i class="fas fa-user-graduate"></i></span>
+                إدارة المتدربين
+            </h1>
+            <a asp-action="Create" class="tn-add-btn">
+                <i class="fas fa-user-plus"></i> إضافة متدرب
+            </a>
+        </div>
+
+        <!-- Stats -->
+        @{
+            var maleCount   = list.Count(t => t.User?.Gender == Gender.Male);
+            var femaleCount = list.Count(t => t.User?.Gender == Gender.Female);
+            var enrolled    = list.Count(t => t.CourseTrainees?.Any() == true);
+        }
+        <div class="tn-stats">
+            <div class="tn-stat">
+                <div class="tn-stat-icon" style="background:#eef2ff;color:#4f46e5;"><i class="fas fa-users"></i></div>
+                <div><div class="tn-stat-val">@list.Count</div><div class="tn-stat-lbl">إجمالي المتدربين</div></div>
+            </div>
+            <div class="tn-stat">
+                <div class="tn-stat-icon" style="background:#dbeafe;color:#1d4ed8;"><i class="fas fa-mars"></i></div>
+                <div><div class="tn-stat-val">@maleCount</div><div class="tn-stat-lbl">ذكر</div></div>
+            </div>
+            <div class="tn-stat">
+                <div class="tn-stat-icon" style="background:#fce7f3;color:#db2777;"><i class="fas fa-venus"></i></div>
+                <div><div class="tn-stat-val">@femaleCount</div><div class="tn-stat-lbl">أنثى</div></div>
             </div>
         </div>
-    </div>
-    @Html.Partial("_LandingFooter")
+
+        <!-- Toolbar -->
+        <div class="tn-toolbar">
+            <div class="tn-search">
+                <i class="fas fa-search"></i>
+                <input type="text" id="tn-search-input" placeholder="ابحث بالاسم أو الإيميل..." oninput="tnFilter()" />
+            </div>
+            <div class="tn-filter">
+                <button class="tn-fb active" onclick="tnSetFilter('all',this)">الكل</button>
+                <button class="tn-fb" onclick="tnSetFilter('male',this)">ذكر</button>
+                <button class="tn-fb" onclick="tnSetFilter('female',this)">أنثى</button>
+            </div>
+            <span class="tn-count" id="tn-count">@list.Count متدرب</span>
+        </div>
+
+        <!-- Grid -->
+        @if (list.Any())
+        {
+            <div class="tn-grid" id="tn-grid">
+                @foreach (var item in list)
+                {
+                    var av = AvatarUrl(item.User);
+                    var isFemale = item.User?.Gender == Gender.Female;
+                    var courses = item.CourseTrainees?.Count ?? 0;
+                    <div class="tn-card"
+                         data-name="@(item.User?.FullName?.ToLower())"
+                         data-email="@(item.User?.Email?.ToLower())"
+                         data-gender="@(isFemale ? "female" : "male")">
+                        <div class="tn-avatar-wrap">
+                            <img src="@av" class="tn-avatar" alt="@item.User?.FullName"
+                                 onerror="this.src='https://ui-avatars.com/api/?name=U&background=94a3b8&color=fff&rounded=true'" />
+                            <span class="tn-gender-dot @(isFemale ? "tn-gender-f" : "tn-gender-m")">
+                                <i class="fas @(isFemale ? "fa-venus" : "fa-mars")"></i>
+                            </span>
+                        </div>
+                        <div class="tn-name">@item.User?.FullName</div>
+                        <div class="tn-email">@item.User?.Email</div>
+                        @if (courses > 0)
+                        {
+                            <span class="tn-courses-badge">
+                                <i class="fas fa-book-open"></i> @courses كورس
+                            </span>
+                        }
+                        <div class="tn-actions">
+                            <a asp-action="Details" asp-route-id="@item.TraineeId" class="tn-btn tn-btn-info">
+                                <i class="fas fa-eye"></i> تفاصيل
+                            </a>
+                            <a asp-action="Delete" asp-route-id="@item.TraineeId" class="tn-btn tn-btn-del">
+                                <i class="fas fa-trash-alt"></i>
+                            </a>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="tn-empty">
+                <i class="fas fa-user-graduate"></i>
+                <p>لا يوجد متدربون مسجلون بعد</p>
+            </div>
+        }
+
+    </main>
 </div>
+
+<script>
+    var tnCurrentFilter = 'all';
+    function tnSetFilter(f, btn) {
+        tnCurrentFilter = f;
+        document.querySelectorAll('.tn-fb').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        tnApply();
+    }
+    function tnFilter() { tnApply(); }
+    function tnApply() {
+        var q = (document.getElementById('tn-search-input').value || '').trim().toLowerCase();
+        var cards = document.querySelectorAll('#tn-grid .tn-card');
+        var count = 0;
+        cards.forEach(function(c) {
+            var matchQ = !q || (c.dataset.name || '').includes(q) || (c.dataset.email || '').includes(q);
+            var matchF = tnCurrentFilter === 'all' || c.dataset.gender === tnCurrentFilter;
+            c.style.display = (matchQ && matchF) ? '' : 'none';
+            if (matchQ && matchF) count++;
+        });
+        document.getElementById('tn-count').textContent = count + ' متدرب';
+    }
+</script>

@@ -10,6 +10,7 @@ namespace TrainingCenterManagement_MVC.Models
         public string FullName { get; set; }
         public DateTime BirthDate { get; set; }
         public RoleType Role { get; set; } = RoleType.Trainee;
+        public Gender Gender { get; set; } = Gender.Male;
         public string ProfilePictureUrl { get; set; } = string.Empty;
 
         // Navigation properties (اختياري لربط الحساب بصاحب الدور)
@@ -28,5 +29,7 @@ namespace TrainingCenterManagement_MVC.Models
         Trainee = 3,
         Receptionist = 4
     }
+
+    public enum Gender { Male = 1, Female = 2 }
 }
 

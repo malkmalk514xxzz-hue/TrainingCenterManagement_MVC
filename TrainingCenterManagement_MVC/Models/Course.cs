@@ -24,6 +24,8 @@ namespace TrainingCenterManagement_MVC.Models
         [Column(TypeName = "decimal(18,2)")]
         public decimal Price { get; set; }
 
+        public PaymentCurrency CourseCurrency { get; set; } = PaymentCurrency.USD;
+
         public string Description { get; set; }
 
         [Url]

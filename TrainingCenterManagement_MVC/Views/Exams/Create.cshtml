@@ -42,6 +42,19 @@
                             <input asp-for="ExamName" class="form-control" placeholder="مثال: الامتحان النهائي - Python Basics" />
                             <span asp-validation-for="ExamName" class="text-danger small"></span>
                         </div>
+                        @if (ViewBag.IsAdmin == true)
+                        {
+                            <div class="col-12">
+                                <label class="form-label">المدرب <span class="text-danger">*</span></label>
+                                <select name="SelectedTrainerId" class="form-select">
+                                    <option value="">-- اختر المدرب --</option>
+                                    @foreach (var item in ViewData["TrainerId"] as Microsoft.AspNetCore.Mvc.Rendering.SelectList ?? new Microsoft.AspNetCore.Mvc.Rendering.SelectList(new List<object>()))
+                                    {
+                                        <option value="@item.Value">@item.Text</option>
+                                    }
+                                </select>
+                            </div>
+                        }
                         <div class="col-12">
                             <label asp-for="CourseId" class="form-label">الكورس</label>
                             <select asp-for="CourseId" class="form-select" asp-items="@(ViewData["CourseId"] as Microsoft.AspNetCore.Mvc.Rendering.SelectList)">

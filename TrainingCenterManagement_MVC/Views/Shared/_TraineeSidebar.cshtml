@@ -82,6 +82,11 @@
     </div>
     <nav class="sidebar-nav">
         <ul>
+            <li>
+                <a asp-action="Index" asp-controller="Home">
+                    <i class="fas fa-globe"></i><span>الصفحة الرئيسية</span>
+                </a>
+            </li>
             <li class="@(currentPage == "traineedashboard" ? "active" : "")">
                 <a asp-action="TraineeDashboard" asp-controller="Dashboard">
                     <i class="fas fa-home"></i>

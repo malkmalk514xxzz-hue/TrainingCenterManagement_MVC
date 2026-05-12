@@ -122,6 +122,8 @@ namespace TrainingCenterManagement_MVC.Controllers
                         UserName = model.Username,
                         BirthDate = model.BirthDate,
                         PhoneNumber = model.PhoneNumber,
+                        Gender = model.Gender,
+                        ProfilePictureUrl = model.ProfilePictureUrl,
                     };
 
                     var result = await _userHelper.AddUserAsync(user, model.Password);

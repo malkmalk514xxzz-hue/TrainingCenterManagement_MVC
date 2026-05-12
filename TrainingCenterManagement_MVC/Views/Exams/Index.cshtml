@@ -19,7 +19,14 @@
 </style>
 
 <div class="dashboard-wrapper">
-    @await Html.PartialAsync("_TrainerSidebar")
+    @if (User.IsInRole("Admin"))
+    {
+        @await Html.PartialAsync("_AdminSidebar")
+    }
+    else
+    {
+        @await Html.PartialAsync("_TrainerSidebar")
+    }
     <main class="dashboard-main">
         <div class="container-fluid px-4 py-4">
 
@@ -27,7 +34,7 @@
             <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
                 <div>
                     <h2 class="fw-bold mb-0" style="color:#1e293b">
-                        <i class="fas fa-file-alt me-2" style="color:#4f46e5"></i>امتحاناتي
+                        <i class="fas fa-file-alt me-2" style="color:#4f46e5"></i>@(User.IsInRole("Admin") ? "إدارة جميع الامتحانات" : "امتحاناتي")
                     </h2>
                     <p class="text-muted mb-0 mt-1" style="font-size:.9rem">إدارة وإنشاء جميع الامتحانات</p>
                 </div>

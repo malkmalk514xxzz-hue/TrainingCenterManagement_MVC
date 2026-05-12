@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TrainingCenterManagement_MVC.Data;
 using TrainingCenterManagement_MVC.Models;
@@ -15,25 +15,39 @@ namespace TrainingCenterManagement_MVC.Controllers
             _context = context;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            // FIX: Filter soft-deleted courses so they don't appear on the landing page
-            var featuredCourses = _context.Courses
+            var allCourses = await _context.Courses
                 .Where(c => !c.IsDeleted)
-                .ToList();
+                .Include(c => c.CourseTrainees)
+                .Include(c => c.Ratings)
+                .ToListAsync();
 
-            var model = new HomeViewModel { Courses = featuredCourses };
+            var featuredTrainers = await _context.Trainers
+                .Include(t => t.User)
+                .Include(t => t.CourseTrainers)
+                .Take(6)
+                .ToListAsync();
+
+            var model = new HomeViewModel
+            {
+                Courses = allCourses,
+                FeaturedCourses = allCourses.Where(c => c.IsFeatured).Take(6).ToList(),
+                FeaturedTrainers = featuredTrainers,
+                TotalCourses = allCourses.Count,
+                TotalTrainees = await _context.Trainees.CountAsync(),
+                TotalTrainers = await _context.Trainers.CountAsync(),
+                TotalLectures = await _context.Lectures.CountAsync(),
+                TotalCertificates = await _context.Certificates.CountAsync(c => !c.IsDeleted),
+            };
+
+            if (!model.FeaturedCourses.Any())
+                model.FeaturedCourses = allCourses.Take(6).ToList();
+
             return View(model);
         }
 
-        public IActionResult Error()
-        {
-            return View();
-        }
-
-        public IActionResult Error404()
-        {
-            return View();
-        }
+        public IActionResult Error() => View();
+        public IActionResult Error404() => View();
     }
 }

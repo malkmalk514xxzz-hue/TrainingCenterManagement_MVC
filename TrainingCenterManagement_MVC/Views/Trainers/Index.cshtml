@@ -1,329 +1,212 @@
-﻿@* @model IEnumerable<TrainingCenterManagement_MVC.Models.Trainer>
-
-@{
-    ViewData["Title"] = "Index";
-}
-
-<h1>Trainers List</h1>
-
-<p>
-    <a asp-action="Create" class="btn btn-success">Create New</a>
-</p>
-
-<table class="table table-striped table-bordered">
-    <thead class="table-dark">
-        <tr>
-            <th>@Html.DisplayNameFor(model => model.User.FullName)</th>
-            <th>@Html.DisplayNameFor(model => model.Specialty)</th>
-            <th>@Html.DisplayNameFor(model => model.YearsOfExperience)</th>
-            <th>@Html.DisplayNameFor(model => model.BusinessLink)</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model)
-        {
-            <tr>
-                <td>@item.User?.FullName</td>
-                <td>@item.Specialty</td>
-                <td>@item.YearsOfExperience</td>
-                <td>
-                    @if (!string.IsNullOrEmpty(item.BusinessLink))
-                    {
-                        <a href="@item.BusinessLink" target="_blank">@item.BusinessLink</a>
-                    }
-                </td>
-                <td>
-                    <a asp-action="Edit" asp-route-id="@item.TrainerId" class="btn btn-sm btn-primary">Edit</a>
-                    <a asp-action="Details" asp-route-id="@item.TrainerId" class="btn btn-sm btn-info">Details</a>
-                    <a asp-action="Delete" asp-route-id="@item.TrainerId" class="btn btn-sm btn-danger">Delete</a>
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
- *@
-
-
 @model IEnumerable<TrainingCenterManagement_MVC.Models.Trainer>
-
+@using TrainingCenterManagement_MVC.Models
 @{
-    ViewData["Title"] = "Trainers List";
+    ViewData["Title"] = "إدارة المدربين";
+    var list = Model.ToList();
+
+    string AvatarUrl(Trainer t) {
+        if (!string.IsNullOrEmpty(t.User?.ProfilePictureUrl))
+            return t.User.ProfilePictureUrl;
+        var name = Uri.EscapeDataString(t.User?.FullName ?? "T");
+        var bg = (t.User?.Gender == Gender.Female) ? "ec4899" : "7c3aed";
+        return $"https://ui-avatars.com/api/?name={name}&background={bg}&color=ffffff&bold=true&size=128&rounded=true";
+    }
 }
 
 <style>
     :root {
-        --color-background: #fff;
-        --color-header-border: #f0f2f4;
-        --color-text-dark: #111418;
-        --color-text-muted: #617589;
-        --font-family-sans: Inter, "Noto Sans", sans-serif;
+        --tr-pr:#7c3aed;--tr-pr-l:#6d28d9;--tr-pr-pale:#f5f3ff;
+        --success:#10b981;--danger:#ef4444;
+        --body:#f1f5f9;--card:#fff;--t1:#0f172a;--t2:#475569;--t3:#94a3b8;
+        --border:#e2e8f0;--shadow:0 4px 20px rgba(0,0,0,.07);--radius:14px;
     }
+    .tr-page { background:var(--body); padding:28px 32px; direction:rtl; font-family:'Segoe UI',sans-serif; }
 
-    body {
-        font-family: var(--font-family-sans);
-        background-color: var(--color-background);
-        margin: 0;
-        direction: rtl;
-    }
+    .tr-header { display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px; }
+    .tr-header h1 { font-size:1.5rem;font-weight:800;color:var(--t1);margin:0;display:flex;align-items:center;gap:10px; }
+    .tr-header h1 .icon { width:40px;height:40px;border-radius:10px;background:var(--tr-pr-pale);color:var(--tr-pr);display:flex;align-items:center;justify-content:center;font-size:1rem; }
+    .tr-add-btn { display:inline-flex;align-items:center;gap:7px;padding:9px 20px;border-radius:9px;background:var(--tr-pr);color:#fff;text-decoration:none;font-size:.84rem;font-weight:700;transition:all .2s; }
+    .tr-add-btn:hover { background:var(--tr-pr-l);color:#fff; }
 
-    .layout-container {
-        display: flex;
-        flex-direction: column;
-        min-height: 100vh;
-        width: 100%;
-        overflow-x: hidden;
-    }
+    .tr-stats { display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px; }
+    @@media(max-width:700px){ .tr-stats{ grid-template-columns:repeat(2,1fr); } }
+    .tr-stat { background:var(--card);border-radius:12px;border:1px solid var(--border);padding:18px 20px;box-shadow:var(--shadow);display:flex;align-items:center;gap:14px; }
+    .tr-stat-icon { width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0; }
+    .tr-stat-val { font-size:1.5rem;font-weight:800;color:var(--t1);line-height:1; }
+    .tr-stat-lbl { font-size:.74rem;color:var(--t3);margin-top:2px; }
 
-    .header-style {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        white-space: nowrap;
-        border-bottom: 1px solid var(--color-header-border);
-        padding: 0.75rem 2.5rem;
-    }
+    .tr-toolbar { background:var(--card);border-radius:12px;border:1px solid var(--border);padding:14px 18px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:20px; }
+    .tr-search { flex:1;min-width:180px;position:relative; }
+    .tr-search i { position:absolute;right:11px;top:50%;transform:translateY(-50%);color:var(--t3);font-size:.8rem; }
+    .tr-search input { width:100%;padding:8px 34px 8px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:.84rem;font-family:inherit;box-sizing:border-box; }
+    .tr-search input:focus { outline:none;border-color:var(--tr-pr);box-shadow:0 0 0 3px rgba(124,58,237,.1); }
+    .tr-fb { padding:6px 14px;border-radius:20px;border:1.5px solid var(--border);background:#fff;font-size:.75rem;font-weight:600;color:var(--t2);cursor:pointer;font-family:inherit;transition:all .2s; }
+    .tr-fb.active,.tr-fb:hover { background:var(--tr-pr);color:#fff;border-color:var(--tr-pr); }
+    .tr-count { font-size:.78rem;color:var(--t3);margin-right:auto; }
 
-    .header-logo-section {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        color: var(--color-text-dark);
-    }
+    .tr-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:16px; }
 
-    .header-logo-svg {
-        width: 1rem;
-        height: 1rem;
-    }
+    .tr-card { background:var(--card);border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);padding:24px 16px;display:flex;flex-direction:column;align-items:center;text-align:center;transition:all .2s;position:relative;overflow:hidden; }
+    .tr-card::before { content:'';position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--tr-pr),#a78bfa); }
+    .tr-card:hover { transform:translateY(-3px);box-shadow:0 8px 24px rgba(124,58,237,.14);border-color:#c4b5fd; }
+    .tr-avatar-wrap { position:relative;margin-bottom:12px; }
+    .tr-avatar { width:88px;height:88px;border-radius:50%;object-fit:cover;border:3px solid var(--border);transition:border-color .2s; }
+    .tr-card:hover .tr-avatar { border-color:#c4b5fd; }
+    .tr-gender-dot { position:absolute;bottom:2px;left:2px;width:18px;height:18px;border-radius:50%;border:2px solid #fff;display:flex;align-items:center;justify-content:center;font-size:.58rem;color:#fff; }
+    .tr-gm { background:#7c3aed; } .tr-gf { background:#ec4899; }
+    .tr-role-badge { position:absolute;top:16px;right:12px;background:var(--tr-pr-pale);color:var(--tr-pr);font-size:.65rem;font-weight:700;padding:2px 8px;border-radius:10px; }
+    .tr-name { font-size:.95rem;font-weight:700;color:var(--t1);margin:0 0 3px; }
+    .tr-email { font-size:.71rem;color:var(--t3);margin:0 0 6px;word-break:break-all; }
+    .tr-specialty { font-size:.75rem;color:var(--tr-pr);font-weight:600;background:var(--tr-pr-pale);padding:3px 10px;border-radius:10px;margin-bottom:4px;display:inline-block; }
+    .tr-exp { font-size:.72rem;color:var(--t3);margin-bottom:12px; }
+    .tr-actions { display:flex;gap:7px;width:100%; }
+    .tr-btn { flex:1;padding:7px 10px;border-radius:7px;font-size:.75rem;font-weight:600;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:5px;transition:all .2s;border:none;cursor:pointer;font-family:inherit; }
+    .tr-btn-info { background:var(--tr-pr-pale);color:var(--tr-pr); }
+    .tr-btn-info:hover { background:var(--tr-pr);color:#fff; }
+    .tr-btn-edit { background:#fffbeb;color:#92400e; }
+    .tr-btn-edit:hover { background:#f59e0b;color:#fff; }
+    .tr-btn-del { background:#fee2e2;color:var(--danger); }
+    .tr-btn-del:hover { background:var(--danger);color:#fff; }
 
-    .header-title {
-        color: var(--color-text-dark);
-        font-size: 1.125rem;
-        font-weight: 700;
-        line-height: 1.25;
-        letter-spacing: -0.015em;
-    }
-
-    .header-links-section {
-        display: flex;
-        flex: 1;
-        justify-content: flex-end;
-        gap: 2rem;
-    }
-
-    .nav-links {
-        display: flex;
-        align-items: center;
-        gap: 2.25rem;
-    }
-
-    .nav-link {
-        color: var(--color-text-dark);
-        font-size: 0.875rem;
-        font-weight: 500;
-        line-height: 1.5;
-        text-decoration: none;
-    }
-
-    .profile-picture {
-        width: 2.5rem;
-        height: 2.5rem;
-        border-radius: 50%;
-        background-position: center;
-        background-repeat: no-repeat;
-        background-size: cover;
-    }
-
-    .main-content {
-        flex: 1;
-        display: flex;
-        justify-content: center;
-        padding-top: 1.25rem;
-        padding-bottom: 1.25rem;
-        padding-left: 6rem;
-        padding-right: 6rem;
-    }
-
-    .content-container {
-        display: flex;
-        flex-direction: column;
-        max-width: 960px;
-        flex: 1;
-    }
-
-    .header-controls {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: space-between;
-        gap: 0.75rem;
-        padding: 1rem;
-    }
-
-    .page-title {
-        color: var(--color-text-dark);
-        font-size: 2rem;
-        font-weight: 700;
-        line-height: 1.25;
-        min-width: 18rem;
-    }
-
-    .create-button {
-        display: flex;
-        min-width: 84px;
-        max-width: 480px;
-        cursor: pointer;
-        align-items: center;
-        justify-content: center;
-        overflow: hidden;
-        border-radius: 0.5rem;
-        height: 2rem;
-        padding: 0 1rem;
-        background-color: var(--color-header-border);
-        color: var(--color-text-dark);
-        font-size: 0.875rem;
-        font-weight: 500;
-        line-height: 1.5;
-        border: none;
-        text-decoration: none;
-        transition: background-color 0.2s;
-    }
-
-        .create-button:hover {
-            background-color: #e2e6e9;
-        }
-
-    .grid-container {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 1rem;
-        padding: 1rem;
-    }
-
-    .trainer-card {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        padding: 1.5rem;
-        background-color: #ffffff; /* Card background is now white */
-        border-radius: 0.5rem;
-        border: 1px solid #e0e0e0;
-        text-align: center;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    }
-
-    .trainer-image {
-        width: 96px;
-        height: 96px;
-        object-fit: cover;
-        border-radius: 50%;
-        margin-bottom: 1rem;
-        border: 2px solid #ccc;
-    }
-
-    .trainer-name {
-        font-size: 1.125rem;
-        font-weight: 700;
-        color: var(--color-text-dark);
-        margin-bottom: 0.25rem;
-    }
-
-    .trainer-info {
-        font-size: 0.75rem;
-        color: var(--color-text-muted);
-        line-height: 1.4;
-        margin-bottom: 1rem;
-        word-wrap: break-word;
-        white-space: normal;
-    }
-
-    .card-actions {
-        display: flex;
-        gap: 0.2rem; /* Reduced gap between buttons */
-        justify-content: center;
-    }
-
-        .card-actions a {
-            padding: 0.2rem 0.5rem; /* Reduced padding */
-            border-radius: 0.25rem;
-            font-size: 0.875rem;
-            text-decoration: none;
-            font-weight: 500;
-            background-color: #fff; /* Button background is now white */
-            border-width: 1px;
-            border-style: solid;
-        }
-
-    .edit-btn {
-        color: #1a73e8; /* Blue text color */
-        border-color: #1a73e8;
-    }
-
-    .details-btn {
-        color: #617589; /* Gray text color */
-        border-color: #617589;
-    }
-
-    .delete-btn {
-        color: #d9534f; /* Red text color */
-        border-color: #d9534f;
-    }
-
-    .no-data-message {
-        text-align: center;
-        color: var(--color-text-muted);
-        padding: 2rem;
-        grid-column: 1 / -1;
-    }
+    .tr-empty { text-align:center;padding:60px 20px;color:var(--t3); }
+    .tr-empty i { font-size:2.5rem;margin-bottom:12px;display:block; }
 </style>
 
-<div class="layout-container" style="background-color:white">
-    @Html.Partial("_LandingHeader")
-    <div class="main-content">
-        <div class="content-container">
-            <div class="header-controls">
-                <p class="page-title">Trainers</p>
-                <a asp-action="Create" class="create-button">
-                    <span class="truncate">Create New Trainer</span>
-                </a>
-            </div>
-            <div class="grid-container">
-                @if (!Model.Any())
-                {
-                    <div class="no-data-message">
-                        No trainers found.
-                    </div>
-                }
-                else
-                {
-                    var random = new Random();
-                    foreach (var item in Model)
-                    {
-                        var randomImageNumber = random.Next(1, 7);
-                        var imagePath = Url.Content($"~/images/profile/{randomImageNumber}.png");
+<div class="dashboard-wrapper">
+    @await Html.PartialAsync("_AdminSidebar")
+    <main class="dashboard-main tr-page">
 
-                        <div class="trainer-card">
-                            <img src="@imagePath" class="trainer-image" alt="Trainer Profile Picture" />
-                            <p class="trainer-name">@item.User?.FullName</p>
-                            <div class="trainer-info">
-                                <p>@item.Specialty</p>
-                                <p>@item.YearsOfExperience years</p>
-                                @if (!string.IsNullOrEmpty(item.BusinessLink))
-                                {
-                                    <p>
-                                        Business Link: <a href="@item.BusinessLink" target="_blank">View Profile</a>
-                                    </p>
-                                }
-                            </div>
-                            <div class="card-actions">
-                                <a asp-action="Edit" asp-route-id="@item.TrainerId" class="edit-btn">Edit</a>
-                                <a asp-action="Details" asp-route-id="@item.TrainerId" class="details-btn">Details</a>
-                                <a asp-action="Delete" asp-route-id="@item.TrainerId" class="delete-btn">Delete</a>
-                            </div>
-                        </div>
-                    }
-                }
+        <!-- Header -->
+        <div class="tr-header">
+            <h1>
+                <span class="icon"><i class="fas fa-chalkboard-teacher"></i></span>
+                إدارة المدربين
+            </h1>
+            <a asp-action="Create" class="tr-add-btn">
+                <i class="fas fa-user-plus"></i> إضافة مدرب
+            </a>
+        </div>
+
+        <!-- Stats -->
+        @{
+            var male   = list.Count(t => t.User?.Gender == Gender.Male);
+            var female = list.Count(t => t.User?.Gender == Gender.Female);
+            var avgExp = list.Any() ? (int)list.Average(t => t.YearsOfExperience) : 0;
+        }
+        <div class="tr-stats">
+            <div class="tr-stat">
+                <div class="tr-stat-icon" style="background:var(--tr-pr-pale);color:var(--tr-pr);"><i class="fas fa-chalkboard-teacher"></i></div>
+                <div><div class="tr-stat-val">@list.Count</div><div class="tr-stat-lbl">إجمالي المدربين</div></div>
+            </div>
+            <div class="tr-stat">
+                <div class="tr-stat-icon" style="background:#dbeafe;color:#1d4ed8;"><i class="fas fa-mars"></i></div>
+                <div><div class="tr-stat-val">@male</div><div class="tr-stat-lbl">ذكر</div></div>
+            </div>
+            <div class="tr-stat">
+                <div class="tr-stat-icon" style="background:#fce7f3;color:#db2777;"><i class="fas fa-venus"></i></div>
+                <div><div class="tr-stat-val">@female</div><div class="tr-stat-lbl">أنثى</div></div>
+            </div>
+            <div class="tr-stat">
+                <div class="tr-stat-icon" style="background:#d1fae5;color:#059669;"><i class="fas fa-star"></i></div>
+                <div><div class="tr-stat-val">@avgExp</div><div class="tr-stat-lbl">سنوات خبرة (متوسط)</div></div>
             </div>
         </div>
-    </div>
-    @Html.Partial("_LandingFooter")
+
+        <!-- Toolbar -->
+        <div class="tr-toolbar">
+            <div class="tr-search">
+                <i class="fas fa-search"></i>
+                <input type="text" id="tr-q" placeholder="ابحث بالاسم أو التخصص..." oninput="trFilter()" />
+            </div>
+            <button class="tr-fb active" onclick="trSetGender('all',this)">الكل</button>
+            <button class="tr-fb" onclick="trSetGender('male',this)">ذكور</button>
+            <button class="tr-fb" onclick="trSetGender('female',this)">إناث</button>
+            <span class="tr-count" id="tr-count">@list.Count مدرب</span>
+        </div>
+
+        <!-- Grid -->
+        @if (list.Any())
+        {
+            <div class="tr-grid" id="tr-grid">
+                @foreach (var item in list)
+                {
+                    var av = AvatarUrl(item);
+                    var isFemale = item.User?.Gender == Gender.Female;
+                    <div class="tr-card"
+                         data-name="@(item.User?.FullName?.ToLower())"
+                         data-specialty="@(item.Specialty?.ToLower())"
+                         data-gender="@(isFemale ? "female" : "male")">
+                        <span class="tr-role-badge"><i class="fas fa-chalkboard-teacher"></i> مدرب</span>
+                        <div class="tr-avatar-wrap">
+                            <img src="@av" class="tr-avatar" alt="@item.User?.FullName"
+                                 onerror="this.src='https://ui-avatars.com/api/?name=T&background=94a3b8&color=fff&rounded=true'" />
+                            <span class="tr-gender-dot @(isFemale ? "tr-gf" : "tr-gm")">
+                                <i class="fas @(isFemale ? "fa-venus" : "fa-mars")"></i>
+                            </span>
+                        </div>
+                        @if (item.User != null)
+                        {
+                            <div class="tr-name">@item.User.FullName</div>
+                            <div class="tr-email">@item.User.Email</div>
+                        }
+                        else
+                        {
+                            <div class="tr-name" style="color:var(--t3);">لا يوجد مستخدم</div>
+                        }
+                        @if (!string.IsNullOrEmpty(item.Specialty))
+                        {
+                            <span class="tr-specialty">@item.Specialty</span>
+                        }
+                        <div class="tr-exp">
+                            <i class="fas fa-briefcase" style="color:var(--t3);margin-left:4px;font-size:.68rem"></i>
+                            @item.YearsOfExperience سنوات خبرة
+                        </div>
+                        <div class="tr-actions">
+                            <a asp-action="Details" asp-route-id="@item.TrainerId" class="tr-btn tr-btn-info">
+                                <i class="fas fa-eye"></i> تفاصيل
+                            </a>
+                            <a asp-action="Edit" asp-route-id="@item.TrainerId" class="tr-btn tr-btn-edit">
+                                <i class="fas fa-pen"></i>
+                            </a>
+                            <a asp-action="Delete" asp-route-id="@item.TrainerId" class="tr-btn tr-btn-del">
+                                <i class="fas fa-trash-alt"></i>
+                            </a>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="tr-empty">
+                <i class="fas fa-chalkboard-teacher"></i>
+                <p>لا يوجد مدربون مسجلون بعد</p>
+            </div>
+        }
+
+    </main>
 </div>
+
+<script>
+    var trGender_ = 'all';
+    function trSetGender(g, btn) {
+        trGender_ = g;
+        document.querySelectorAll('.tr-fb').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        trApply();
+    }
+    function trFilter() { trApply(); }
+    function trApply() {
+        var q = (document.getElementById('tr-q').value || '').trim().toLowerCase();
+        var cards = document.querySelectorAll('#tr-grid .tr-card');
+        var count = 0;
+        cards.forEach(function(c) {
+            var mQ = !q || (c.dataset.name || '').includes(q) || (c.dataset.specialty || '').includes(q);
+            var mG = trGender_ === 'all' || c.dataset.gender === trGender_;
+            var show = mQ && mG;
+            c.style.display = show ? '' : 'none';
+            if (show) count++;
+        });
+        document.getElementById('tr-count').textContent = count + ' مدرب';
+    }
+</script>

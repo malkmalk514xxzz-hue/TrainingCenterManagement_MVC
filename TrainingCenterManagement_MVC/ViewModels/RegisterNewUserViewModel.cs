@@ -38,5 +38,9 @@ namespace TrainingCenterManagement_MVC.ViewModels
 
         // TemporaryPassword to hold the generated password
         public string? TemporaryPassword { get; set; }
+
+        public TrainingCenterManagement_MVC.Models.Gender Gender { get; set; } = TrainingCenterManagement_MVC.Models.Gender.Male;
+
+        public string? ProfilePictureUrl { get; set; }
     }
 }

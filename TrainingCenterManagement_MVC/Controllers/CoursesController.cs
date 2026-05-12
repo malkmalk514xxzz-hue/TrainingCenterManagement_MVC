@@ -82,7 +82,7 @@ namespace TrainingCenterManagement_MVC.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Create([Bind("CourseId,CourseName,BatchNumber,NumberOfLectures,Price,Description,VideoUrl,ThumbnailUrl,CreatedDate,ReleaseDate,IsDeleted,AdminId")] Course course)
+        public async Task<IActionResult> Create([Bind("CourseId,CourseName,BatchNumber,NumberOfLectures,Price,CourseCurrency,Description,VideoUrl,ThumbnailUrl,CreatedDate,ReleaseDate,IsDeleted,IsFeatured,AdminId")] Course course)
         {
             var courseExists = await _context.Courses
                 .AnyAsync(c => c.CourseName == course.CourseName && c.BatchNumber == course.BatchNumber);

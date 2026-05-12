@@ -9,7 +9,14 @@
 }
 
 <div class="dashboard-wrapper">
-    @Html.Partial("_TrainerSidebar")
+    @if (User.IsInRole("Admin"))
+    {
+        @await Html.PartialAsync("_AdminSidebar")
+    }
+    else
+    {
+        @Html.Partial("_TrainerSidebar")
+    }
 
     <div class="dashboard-main" style="background:#f1f5f9;direction:rtl;font-family:'Segoe UI','Helvetica Neue',Arial,sans-serif;padding:28px 32px;min-height:100vh;overflow-y:auto;">
 

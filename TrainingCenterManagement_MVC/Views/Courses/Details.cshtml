@@ -1,777 +1,983 @@
-﻿@* @model TrainingCenterManagement_MVC.Models.Course
-
-@{
-    ViewData["Title"] = "Course Details";
-}
-
-<div class="container py-5">
-    <div class="row">
-        <div class="col-12">
-            <div class="card shadow-sm border-0 mb-4">
-                <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0">Course Details</h4>
-                </div>
-                <div class="card-body">
-                    <dl class="row mb-0">
-                        <dt class="col-sm-3">Course Name</dt>
-                        <dd class="col-sm-9">@Model.CourseName</dd>
-
-                        <dt class="col-sm-3">Batch Number</dt>
-                        <dd class="col-sm-9">@Model.BatchNumber</dd>
-
-                        <dt class="col-sm-3">Number of Lectures</dt>
-                        <dd class="col-sm-9">@Model.NumberOfLectures</dd>
-
-                        <dt class="col-sm-3">Price</dt>
-                        <dd class="col-sm-9">@Model.Price.ToString("C")</dd>
-
-                        <dt class="col-sm-3">Description</dt>
-                        <dd class="col-sm-9">@Model.Description</dd>
-
-                        <dt class="col-sm-3">Video URL</dt>
-                        <dd class="col-sm-9">@Model.VideoUrl</dd>
-
-                        <dt class="col-sm-3">Thumbnail URL</dt>
-                        <dd class="col-sm-9">@Model.ThumbnailUrl</dd>
-
-                        <dt class="col-sm-3">Created Date</dt>
-                        <dd class="col-sm-9">@Model.CreatedDate.ToShortDateString()</dd>
-
-                        <dt class="col-sm-3">Release Date</dt>
-                        <dd class="col-sm-9">@Model.ReleaseDate.ToShortDateString()</dd>
-
-                        <dt class="col-sm-3">Is Deleted</dt>
-                        <dd class="col-sm-9">
-                            <span class="badge @(Model.IsDeleted ? "bg-danger" : "bg-success")">
-                                @(Model.IsDeleted ? "Yes" : "No")
-                            </span>
-                        </dd>
-
-                        <dt class="col-sm-3">Admin</dt>
-                        <dd class="col-sm-9">@Model.Admin?.User?.FullName</dd>
-                    </dl>
-                </div>
-            </div>
-
-            <!-- Trainers Section -->
-            <div class="card shadow-sm border-0 mb-4">
-                <div class="card-header bg-info text-white">
-                    <h5 class="mb-0">Assigned Trainers</h5>
-                </div>
-                <div class="card-body">
-                    @if (Model.CourseTrainers != null && Model.CourseTrainers.Any())
-                    {
-                        <ul class="list-group list-group-flush">
-                            @foreach (var ct in Model.CourseTrainers)
-                            {
-                                <li class="list-group-item">
-                                    👨‍🏫 <strong>@ct.Trainer.User.FullName</strong> - <em>@ct.Trainer.Specialty</em>
-                                </li>
-                            }
-                        </ul>
-                    }
-                    else
-                    {
-                        <div class="text-muted">No trainers assigned.</div>
-                    }
-                </div>
-            </div>
-
-            <!-- Trainees Section -->
-            <div class="card shadow-sm border-0 mb-4">
-                <div class="card-header bg-secondary text-white">
-                    <h5 class="mb-0">Assigned Trainees</h5>
-                </div>
-                <div class="card-body">
-                    @if (Model.CourseTrainees != null && Model.CourseTrainees.Any())
-                    {
-                        <ul class="list-group list-group-flush">
-                            @foreach (var ct in Model.CourseTrainees)
-                            {
-                                <li class="list-group-item">
-                                    🧑‍🎓 <strong>@ct.Trainee.User.FullName</strong>
-                                    <small class="text-muted">(Birthdate: @ct.Trainee.User.BirthDate.ToShortDateString())</small>
-                                </li>
-                            }
-                        </ul>
-                    }
-                    else
-                    {
-                        <div class="text-muted">No trainees assigned.</div>
-                    }
-                </div>
-            </div>
-            @if (User.IsInRole("Admin"))
-            {
-
-                <!-- Action Buttons -->
-                <div class="d-flex flex-wrap gap-2 justify-content-start mt-4">
-                    <a asp-action="Edit" asp-route-id="@Model.CourseId" class="btn btn-primary">✏️ Edit</a>
-                    <a asp-action="Index" class="btn btn-outline-secondary">🔙 Back to List</a>
-                    <a asp-action="AssignTrainer" asp-route-id="@Model.CourseId" class="btn btn-outline-info">➕ Assign Trainer</a>
-                    <a asp-action="AssignTrainees" asp-route-id="@Model.CourseId" class="btn btn-outline-info">➕ Assign Trainees</a>
-                </div>
-            }
-          
-
-            <!-- Course Analytics -->
-            <div class="mt-5">
-                <h5 class="mb-3">📊 Course Tools & Reports</h5>
-                <div class="d-flex flex-wrap gap-3">
-                    <a asp-action="CourseAttendance" asp-controller="Courses" asp-route-courseId="@Model.CourseId" class="btn btn-info">
-                        View Attendance Statistics
-                    </a>
-                    <a asp-action="ViewLectures" asp-controller="Trainees" asp-route-courseId="@Model.CourseId" class="btn btn-outline-primary">
-                        📚 View Lectures
-                    </a>
-                    <a asp-action="TrackAttendance" asp-controller="Trainees" asp-route-courseId="@Model.CourseId" class="btn btn-outline-success">
-                        📊 Track Attendance
-                    </a>
-                    <a asp-action="ViewPayments" asp-controller="Trainees" asp-route-courseId="@Model.CourseId" class="btn btn-outline-warning">
-                        💳 View Payments
-                    </a>
-                    <a asp-controller="Payments" asp-action="ViewCoursePayments" asp-route-courseId="@Model.CourseId" class="btn btn-outline-primary">
-                        💰 View Course Payments
-                    </a>
-                    <a asp-controller="Payments" asp-action="ExportPaymentsPdf" asp-route-courseId="@Model.CourseId" class="btn btn-outline-danger">
-                        🧾 Export Payments to PDF
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
- *@
-
-
-
 @model TrainingCenterManagement_MVC.Models.Course
-
 @{
+    var ratings   = Model.Ratings?.ToList() ?? new List<TrainingCenterManagement_MVC.Models.CourseRating>();
+    var avgStars  = ratings.Any() ? ratings.Average(r => r.Stars) : 0.0;
+    var myRating  = ViewBag.MyRating as TrainingCenterManagement_MVC.Models.CourseRating;
+    bool isEnrolled = ViewBag.IsEnrolled == true;
+
+    var trainersCount  = Model.CourseTrainers?.Count ?? 0;
+    var traineesCount  = Model.CourseTrainees?.Count ?? 0;
+    var lecturesCount  = Model.NumberOfLectures;
+
     var courseDesc = string.IsNullOrWhiteSpace(Model.Description)
         ? $"تفاصيل كورس {Model.CourseName} — سجّل الآن وانضم لأفضل البرامج التدريبية المهنية."
         : Model.Description.Length > 160 ? Model.Description[..157] + "..." : Model.Description;
 
     ViewData["Title"]       = $"{Model.CourseName} | مركز التدريب";
     ViewData["Description"] = courseDesc;
-    ViewData["Keywords"]    = $"{Model.CourseName}, كورس تدريبي, دورة مهنية, تسجيل في كورس, شهادة تدريب, مركز تدريب, {Model.CourseName} عبر الإنترنت";
-    ViewData["OgImage"]     = string.IsNullOrEmpty(Model.ThumbnailUrl) ? null : Model.ThumbnailUrl;
-    ViewData["JsonLdType"]  = "Course";
-    ViewData["JsonLdName"]  = Model.CourseName;
-    ViewData["JsonLdPrice"] = Model.Price.ToString("F2");
-    ViewData["JsonLdDate"]  = Model.ReleaseDate != default ? Model.ReleaseDate.ToString("yyyy-MM-dd") : null;
+
+    // Extract YouTube video ID for course promo
+    string? promoYtId = null;
+    if (!string.IsNullOrEmpty(Model.VideoUrl))
+    {
+        var v = Model.VideoUrl;
+        if (v.Contains("v="))
+            try { promoYtId = System.Web.HttpUtility.ParseQueryString(new Uri(v).Query)["v"]; } catch { }
+        else if (v.Contains("youtu.be/"))
+            promoYtId = v.Split('/').Last().Split('?').First();
+        else if (v.Contains("/embed/"))
+            promoYtId = v.Split("/embed/").Last().Split('?').First();
+        else if (!v.Contains(".") && v.Length < 20)
+            promoYtId = v;
+    }
+
+    string statusColor = Model.IsDeleted ? "#ef4444" : "#10b981";
+    string statusText  = Model.IsDeleted ? "محذوف" : "نشط";
+    string statusBg    = Model.IsDeleted ? "#fee2e2" : "#d1fae5";
 }
+
+<link rel="stylesheet" href="~/css/TrainerDashboard.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 
 <style>
     :root {
-        --color-primary: #f2c00d;
-        --color-background-light: #f5f4f0;
-        --color-text-dark: #181611;
-        --color-text-muted: #8a8160;
-        --color-border: #e6e4db;
-        --font-family-sans: Inter, "Noto Sans", sans-serif;
+        --pr:#4f46e5; --pr-l:#6366f1; --pr-pale:#eef2ff;
+        --gold:#f59e0b; --gold-pale:#fffbeb;
+        --success:#10b981; --success-pale:#d1fae5;
+        --danger:#ef4444; --danger-pale:#fee2e2;
+        --warn:#f97316; --warn-pale:#fff7ed;
+        --body:#f1f5f9; --card:#fff;
+        --t1:#0f172a; --t2:#475569; --t3:#94a3b8;
+        --border:#e2e8f0;
+        --radius:14px; --radius-sm:8px;
+        --shadow:0 4px 20px rgba(0,0,0,.08);
     }
 
-    body {
-        font-family: var(--font-family-sans);
-        background-color: #fff;
-        color: var(--color-text-dark);
-        margin: 0;
+    /* ── Page Shell ── */
+    .cd-page { padding: 0; background: var(--body); min-height: 100vh; font-family: 'Segoe UI', Tahoma, sans-serif; direction: rtl; }
+
+    /* ── Hero ── */
+    .cd-hero {
+        position: relative; overflow: hidden;
+        background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4338ca 100%);
+        padding: 0;
     }
-
-    .layout-container {
-        display: flex;
-        flex-direction: column;
-        min-height: 100vh;
-        width: 100%;
+    .cd-hero-bg {
+        position: absolute; inset: 0;
+        background-size: cover; background-position: center;
+        opacity: .18; filter: blur(2px);
     }
-
-    .main-content {
-        flex: 1;
-        display: flex;
-        justify-content: center;
-        padding: 20px 0;
-        padding-left: 10rem;
-        padding-right: 10rem;
+    .cd-hero-overlay {
+        position: absolute; inset: 0;
+        background: linear-gradient(to left, rgba(30,27,75,.95) 0%, rgba(49,46,129,.7) 60%, rgba(67,56,202,.4) 100%);
     }
-
-    .content-wrapper {
-        display: flex;
-        flex-direction: column;
-        max-width: 960px;
-        flex: 1;
+    .cd-hero-inner {
+        position: relative; z-index: 2;
+        display: flex; align-items: center; gap: 32px;
+        padding: 40px 48px; max-width: 1200px; margin: 0 auto;
     }
-
-    .header-container {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: space-between;
-        gap: 0.75rem;
-        padding: 1rem;
+    .cd-hero-thumb {
+        flex-shrink: 0; width: 280px; height: 175px;
+        border-radius: 12px; overflow: hidden;
+        box-shadow: 0 8px 32px rgba(0,0,0,.4);
+        background: #1e1b4b;
+        display: flex; align-items: center; justify-content: center;
     }
-
-    .header-title {
-        color: var(--color-text-dark);
-        font-size: 32px;
-        font-weight: 700;
-        line-height: 1;
-        letter-spacing: -0.015em;
-        min-width: 18rem;
+    .cd-hero-thumb img { width:100%; height:100%; object-fit:cover; display:block; }
+    .cd-hero-thumb .no-thumb {
+        font-size: 4rem; color: rgba(255,255,255,.3);
     }
-
-    .info-section {
-        padding: 1rem;
+    .cd-hero-info { flex: 1; color: #fff; }
+    .cd-hero-badges { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px; }
+    .cd-hero-badge {
+        padding: 3px 10px; border-radius: 20px; font-size: .72rem; font-weight: 700;
+        backdrop-filter: blur(6px);
     }
-
-    .card-container {
-        display: flex;
-        flex-direction: column;
-        align-items: stretch;
-        justify-content: flex-start;
-        border-radius: 0.5rem;
+    .cd-hero-badge.active   { background: rgba(16,185,129,.25); border:1px solid rgba(16,185,129,.5); color:#6ee7b7; }
+    .cd-hero-badge.deleted  { background: rgba(239,68,68,.25);  border:1px solid rgba(239,68,68,.5);  color:#fca5a5; }
+    .cd-hero-badge.featured { background: rgba(245,158,11,.25); border:1px solid rgba(245,158,11,.5); color:#fcd34d; }
+    .cd-hero-badge.batch    { background: rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.2); color:#c7d2fe; }
+    .cd-hero-title { font-size: 2rem; font-weight: 800; line-height: 1.2; margin: 0 0 10px; letter-spacing: -.02em; }
+    .cd-hero-desc  { font-size: .9rem; color: rgba(255,255,255,.75); line-height: 1.65; margin: 0 0 20px; max-width: 560px; }
+    .cd-hero-stats { display:flex; gap:24px; flex-wrap:wrap; }
+    .cd-hero-stat  { display:flex; align-items:center; gap:7px; font-size:.84rem; color:rgba(255,255,255,.85); }
+    .cd-hero-stat i { font-size:.9rem; color:var(--gold); }
+    .cd-hero-actions { display:flex; gap:10px; flex-wrap:wrap; margin-top:20px; }
+    .cd-ha {
+        display:inline-flex; align-items:center; gap:6px;
+        padding:9px 18px; border-radius:8px; font-size:.84rem; font-weight:600;
+        text-decoration:none; cursor:pointer; border:none; transition:all .2s;
     }
+    .cd-ha-primary { background: var(--pr); color:#fff; }
+    .cd-ha-primary:hover { background: var(--pr-l); color:#fff; }
+    .cd-ha-outline { background: rgba(255,255,255,.12); color:#fff; border:1px solid rgba(255,255,255,.3); }
+    .cd-ha-outline:hover { background: rgba(255,255,255,.2); color:#fff; }
+    .cd-ha-gold { background: var(--gold); color:#1e1b4b; }
+    .cd-ha-gold:hover { background:#d97706; color:#1e1b4b; }
+    .cd-ha-danger { background: rgba(239,68,68,.2); color:#fca5a5; border:1px solid rgba(239,68,68,.4); }
+    .cd-ha-danger:hover { background:#ef4444; color:#fff; }
 
-        .card-container > .image {
-            width: 100%;
-            background-position: center;
-            background-repeat: no-repeat;
-            background-size: cover;
-            aspect-ratio: 16 / 9;
-            border-radius: 0.5rem;
-        }
-
-        .card-container > .content {
-            display: flex;
-            width: 100%;
-            min-width: 18rem;
-            flex-grow: 1;
-            flex-direction: column;
-            align-items: stretch;
-            justify-content: center;
-            gap: 0.25rem;
-            padding: 1rem 0;
-        }
-
-        .card-container .title {
-            color: var(--color-text-dark);
-            font-size: 18px;
-            font-weight: 700;
-            line-height: 1.25;
-            letter-spacing: -0.015em;
-        }
-
-        .card-container .description {
-            color: var(--color-text-muted);
-            font-size: 16px;
-            font-weight: 400;
-            line-height: 1.5;
-        }
-
-    .details-grid {
-        padding: 1rem;
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+    /* ── Breadcrumb ── */
+    .cd-bc {
+        background: var(--card); border-bottom: 1px solid var(--border);
+        padding: 10px 48px; display:flex; align-items:center; gap:7px;
+        font-size:.8rem; color:var(--t3);
     }
+    .cd-bc a { color:var(--t2); text-decoration:none; }
+    .cd-bc a:hover { color:var(--pr); }
+    .cd-bc i { font-size:.6rem; }
 
-    .detail-item {
-        display: flex;
-        flex-direction: column;
-        gap: 0.25rem;
-        border-top: 1px solid var(--color-border);
-        padding: 1rem 0;
+    /* ── Stats Row ── */
+    .cd-stats { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; padding:24px 48px 0; }
+    @@media(max-width:900px){ .cd-stats{ grid-template-columns:repeat(2,1fr); } }
+    @@media(max-width:500px){ .cd-stats{ grid-template-columns:1fr; padding:16px; } }
+    .cd-stat-card {
+        background:var(--card); border-radius:var(--radius); border:1px solid var(--border);
+        padding:18px 20px; display:flex; align-items:center; gap:14px;
+        box-shadow:var(--shadow);
     }
-
-        .detail-item:nth-child(odd) {
-            padding-right: 0.5rem;
-        }
-
-        .detail-item:nth-child(even) {
-            padding-left: 0.5rem;
-        }
-
-    .detail-label {
-        color: var(--color-text-muted);
-        font-size: 14px;
-        font-weight: 400;
-        line-height: 1.5;
+    .cd-stat-icon {
+        width:44px; height:44px; border-radius:10px;
+        display:flex; align-items:center; justify-content:center;
+        font-size:1.1rem; flex-shrink:0;
     }
+    .cd-stat-val { font-size:1.5rem; font-weight:800; color:var(--t1); line-height:1; }
+    .cd-stat-lbl { font-size:.75rem; color:var(--t3); margin-top:2px; }
 
-    .detail-value {
-        color: var(--color-text-dark);
-        font-size: 14px;
-        font-weight: 400;
-        line-height: 1.5;
+    /* ── Body Layout ── */
+    .cd-body { padding: 24px 48px 48px; max-width: 1200px; margin: 0 auto; }
+    @@media(max-width:700px){ .cd-body{ padding:16px; } }
+
+    /* ── Tabs ── */
+    .cd-tabs { display:flex; gap:0; background:var(--card); border-radius:var(--radius); border:1px solid var(--border); box-shadow:var(--shadow); overflow:hidden; margin-bottom:24px; }
+    .cd-tab {
+        flex:1; padding:13px 10px; border:none; background:transparent;
+        font-size:.84rem; font-weight:600; color:var(--t2); cursor:pointer;
+        font-family:inherit; transition:all .2s; position:relative;
+        display:flex; align-items:center; justify-content:center; gap:6px;
+        border-left:1px solid var(--border);
     }
+    .cd-tab:last-child { border-left:none; }
+    .cd-tab.active { background:var(--pr-pale); color:var(--pr); }
+    .cd-tab.active::after { content:''; position:absolute; bottom:0; left:0; right:0; height:3px; background:var(--pr); border-radius:3px 3px 0 0; }
+    .cd-tab-badge { background:var(--pr); color:#fff; font-size:.65rem; border-radius:10px; padding:1px 6px; min-width:18px; text-align:center; }
+    .cd-tab.active .cd-tab-badge { background:var(--pr-l); }
 
-    .section-title {
-        color: var(--color-text-dark);
-        font-size: 22px;
-        font-weight: 700;
-        line-height: 1.25;
-        letter-spacing: -0.015em;
-        padding: 1.25rem 1rem 0.75rem 1rem;
+    /* ── Panels ── */
+    .cd-panel { display:none; }
+    .cd-panel.active { display:block; }
+
+    /* ── Section Card ── */
+    .cd-card { background:var(--card); border-radius:var(--radius); border:1px solid var(--border); box-shadow:var(--shadow); margin-bottom:20px; overflow:hidden; }
+    .cd-ch { padding:14px 20px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; background:linear-gradient(135deg,var(--pr-pale),#fff); }
+    .cd-ch-left { display:flex; align-items:center; gap:9px; }
+    .cd-ch-left i { font-size:.9rem; color:var(--pr); }
+    .cd-ch-left h3 { font-size:.9rem; font-weight:700; color:var(--t1); margin:0; }
+    .cd-cb { padding:20px; }
+
+    /* ── Info Grid ── */
+    .cd-info-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:0; }
+    @@media(max-width:680px){ .cd-info-grid{ grid-template-columns:repeat(2,1fr); } }
+    .cd-info-item { padding:14px 16px; border-bottom:1px solid var(--border); border-left:1px solid var(--border); }
+    .cd-info-item:nth-child(3n+1) { border-right: 1px solid var(--border); }
+    .cd-info-lbl { font-size:.72rem; color:var(--t3); font-weight:600; text-transform:uppercase; letter-spacing:.05em; margin-bottom:4px; }
+    .cd-info-val { font-size:.88rem; color:var(--t1); font-weight:600; }
+
+    /* ── Video Promo ── */
+    .cd-promo { border-radius:10px; overflow:hidden; aspect-ratio:16/9; background:#000; }
+    .cd-promo iframe { width:100%; height:100%; border:none; display:block; }
+    .cd-promo-placeholder {
+        aspect-ratio:16/9; border-radius:10px; background:linear-gradient(135deg,#1e1b4b,#312e81);
+        display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; color:rgba(255,255,255,.6);
     }
+    .cd-promo-placeholder i { font-size:3rem; }
+    .cd-promo-placeholder p { font-size:.85rem; margin:0; }
 
-    .profile-card {
-        padding: 1rem;
+    /* ── People Cards ── */
+    .cd-people { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:16px; }
+    .cd-person-card {
+        background:var(--body); border:1px solid var(--border); border-radius:10px;
+        padding:16px; display:flex; align-items:center; gap:14px;
+        transition:box-shadow .2s, border-color .2s;
     }
-
-    .profile-item {
-        display: flex;
-        align-items: stretch;
-        justify-content: space-between;
-        gap: 1rem;
-        border-radius: 0.5rem;
+    .cd-person-card:hover { box-shadow:0 4px 12px rgba(79,70,229,.12); border-color:#c7d2fe; }
+    .cd-avatar {
+        width:46px; height:46px; border-radius:50%; flex-shrink:0;
+        display:flex; align-items:center; justify-content:center;
+        font-size:.95rem; font-weight:700; color:#fff;
     }
+    .cd-person-name { font-size:.88rem; font-weight:700; color:var(--t1); }
+    .cd-person-sub  { font-size:.76rem; color:var(--t2); margin-top:2px; }
+    .cd-person-badge { font-size:.67rem; font-weight:600; padding:2px 8px; border-radius:10px; margin-top:5px; display:inline-block; }
 
-        .profile-item .details {
-            display: flex;
-            flex-grow: 2;
-            flex-basis: 0;
-            flex-direction: column;
-            gap: 1rem;
-        }
+    /* ── Empty State ── */
+    .cd-empty { text-align:center; padding:40px 20px; color:var(--t3); }
+    .cd-empty i { font-size:2.5rem; margin-bottom:12px; display:block; }
+    .cd-empty p { font-size:.86rem; margin:0; }
 
-            .profile-item .details .name {
-                font-size: 16px;
-                font-weight: 700;
-                line-height: 1.25;
-                color: var(--color-text-dark);
-            }
-
-            .profile-item .details .specialty {
-                font-size: 14px;
-                font-weight: 400;
-                line-height: 1.5;
-                color: var(--color-text-muted);
-            }
-
-        .profile-item .image {
-            flex-grow: 1;
-            background-position: center;
-            background-repeat: no-repeat;
-            background-size: cover;
-            aspect-ratio: 16 / 9;
-            border-radius: 0.5rem;
-        }
-
-    .empty-state {
-        display: flex;
-        flex-direction: column;
-        padding: 1rem;
+    /* ── Tools Grid ── */
+    .cd-tools { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:14px; }
+    .cd-tool {
+        display:flex; flex-direction:column; align-items:center; justify-content:center;
+        gap:10px; padding:20px 16px; border-radius:10px; border:1.5px solid var(--border);
+        background:var(--card); text-decoration:none; color:var(--t1);
+        font-size:.82rem; font-weight:600; text-align:center;
+        transition:all .2s; cursor:pointer;
     }
-
-    .empty-state-content {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 1.5rem;
-        border: 2px dashed var(--color-border);
-        border-radius: 0.5rem;
-        padding: 3.5rem 1.5rem;
+    .cd-tool:hover { border-color: var(--tool-color,var(--pr)); background: var(--tool-bg,var(--pr-pale)); color: var(--tool-color,var(--pr)); }
+    .cd-tool-icon {
+        width:44px; height:44px; border-radius:10px;
+        display:flex; align-items:center; justify-content:center;
+        font-size:1.1rem; background:var(--tool-bg,var(--pr-pale)); color:var(--tool-color,var(--pr));
+        transition:all .2s;
     }
+    .cd-tool:hover .cd-tool-icon { background:var(--tool-color,var(--pr)); color:#fff; }
 
-    .empty-state-text {
-        display: flex;
-        max-width: 480px;
-        flex-direction: column;
-        align-items: center;
-        gap: 0.5rem;
-        text-align: center;
+    /* ── Admin Actions Bar ── */
+    .cd-admin-bar {
+        background:var(--pr-pale); border:1px solid #c7d2fe; border-radius:var(--radius);
+        padding:14px 20px; display:flex; align-items:center; gap:12px; flex-wrap:wrap;
+        margin-bottom:20px;
     }
-
-        .empty-state-text .title {
-            color: var(--color-text-dark);
-            font-size: 18px;
-            font-weight: 700;
-            line-height: 1.25;
-            letter-spacing: -0.015em;
-        }
-
-        .empty-state-text .description {
-            color: var(--color-text-dark);
-            font-size: 14px;
-            font-weight: 400;
-            line-height: 1.5;
-        }
-
-    .button-group {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.75rem;
-        padding: 0.75rem 1rem;
+    .cd-admin-bar-label { font-size:.78rem; font-weight:700; color:var(--pr); flex-shrink:0; display:flex; align-items:center; gap:5px; }
+    .cd-ab-btn {
+        display:inline-flex; align-items:center; gap:6px;
+        padding:7px 14px; border-radius:7px; font-size:.8rem; font-weight:600;
+        text-decoration:none; cursor:pointer; border:none; font-family:inherit;
+        transition:all .2s;
     }
+    .cd-ab-btn-primary { background:var(--pr); color:#fff; }
+    .cd-ab-btn-primary:hover { background:var(--pr-l); color:#fff; }
+    .cd-ab-btn-outline { background:#fff; color:var(--t2); border:1px solid var(--border); }
+    .cd-ab-btn-outline:hover { border-color:var(--pr); color:var(--pr); }
+    .cd-ab-btn-danger { background:#fff; color:var(--danger); border:1px solid #fca5a5; }
+    .cd-ab-btn-danger:hover { background:var(--danger); color:#fff; }
 
-    .button-container {
-        padding: 0.75rem 1rem;
+    /* ── Ratings ── */
+    .cd-rating-summary { display:flex; align-items:center; gap:24px; padding:16px 20px; border-bottom:1px solid var(--border); }
+    .cd-big-score { font-size:3rem; font-weight:800; color:var(--t1); line-height:1; }
+    .cd-stars-row { display:flex; gap:3px; font-size:1.2rem; }
+    .cd-star-full { color:var(--gold); }
+    .cd-star-empty { color:#e2e8f0; }
+    .cd-rating-count { font-size:.78rem; color:var(--t3); margin-top:4px; }
+    .cd-rating-bars { flex:1; display:flex; flex-direction:column; gap:5px; }
+    .cd-rbar { display:flex; align-items:center; gap:8px; font-size:.73rem; color:var(--t2); }
+    .cd-rbar-track { flex:1; height:6px; background:#e2e8f0; border-radius:3px; overflow:hidden; }
+    .cd-rbar-fill  { height:100%; background:var(--gold); border-radius:3px; transition:width .6s ease; }
+    .cd-review-item { padding:14px 20px; border-bottom:1px solid var(--border); }
+    .cd-review-item:last-child { border-bottom:none; }
+    .cd-review-head { display:flex; align-items:center; gap:10px; margin-bottom:6px; }
+    .cd-review-avatar { width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:.8rem; font-weight:700; color:#fff; flex-shrink:0; }
+    .cd-review-name { font-size:.85rem; font-weight:700; color:var(--t1); }
+    .cd-review-date { font-size:.72rem; color:var(--t3); margin-right:auto; }
+    .cd-review-text { font-size:.83rem; color:var(--t2); line-height:1.6; margin:0; }
+
+    /* ── Rate Form ── */
+    .cd-rate-form { padding:20px; border-top:1px solid var(--border); background:linear-gradient(135deg,var(--pr-pale),#fff); }
+    .cd-rate-title { font-size:.9rem; font-weight:700; color:var(--t1); margin-bottom:12px; display:flex; align-items:center; gap:7px; }
+    .cd-stars-selector { display:flex; gap:6px; font-size:2rem; cursor:pointer; direction:ltr; margin-bottom:12px; }
+    .cd-stars-selector span { transition:transform .1s; }
+    .cd-stars-selector span:hover { transform:scale(1.15); }
+    .cd-rate-ta { width:100%; padding:10px 12px; border:1.5px solid var(--border); border-radius:8px; font-size:.84rem; font-family:inherit; resize:vertical; min-height:80px; box-sizing:border-box; transition:border-color .2s; }
+    .cd-rate-ta:focus { outline:none; border-color:var(--pr); box-shadow:0 0 0 3px rgba(79,70,229,.1); }
+
+    /* ── Notify Banner ── */
+    .cd-notify { margin:16px 0; padding:10px 16px; border-radius:8px; font-size:.84rem; display:flex; align-items:center; gap:8px; }
+    .cd-notify.ok { background:var(--success-pale); color:#065f46; border:1px solid #6ee7b7; }
+    .cd-notify.err { background:var(--danger-pale); color:#991b1b; border:1px solid #fca5a5; }
+    .cd-enrolled-banner {
+        background:linear-gradient(135deg,#ecfdf5,#d1fae5); border:1px solid #6ee7b7;
+        border-radius:var(--radius); padding:16px 20px; margin-bottom:20px;
+        display:flex; align-items:center; gap:12px;
     }
+    .cd-enrolled-icon { width:40px; height:40px; background:var(--success); border-radius:50%; display:flex; align-items:center; justify-content:center; color:#fff; font-size:1rem; flex-shrink:0; }
 
-    .button {
-        display: flex;
-        min-width: 84px;
-        max-width: 480px;
-        cursor: pointer;
-        align-items: center;
-        justify-content: center;
-        overflow: hidden;
-        border-radius: 0.5rem;
-        height: 40px;
-        padding: 0 1rem;
-        background-color: var(--color-background-light);
-        color: var(--color-text-dark);
-        font-size: 14px;
-        font-weight: 700;
-        line-height: 1.5;
-        letter-spacing: 0.015em;
-        border: none;
-        white-space: nowrap;
-        text-decoration: none;
+    /* ── Responsive ── */
+    @@media(max-width:900px) {
+        .cd-hero-inner { flex-direction:column; padding:28px 20px; }
+        .cd-hero-thumb { width:100%; height:200px; }
+        .cd-bc, .cd-body { padding-right:16px; padding-left:16px; }
+        .cd-stats { padding:16px; }
     }
-
-    .button-secondary {
-        background-color: transparent;
-        border: 1px solid var(--color-background-light);
-    }
-
-    .button-primary {
-        background-color: var(--color-primary);
-    }
-
-    .profile-button {
-        display: flex;
-        min-width: 84px;
-        max-width: 480px;
-        cursor: pointer;
-        align-items: center;
-        justify-content: center;
-        overflow: hidden;
-        border-radius: 0.5rem;
-        height: 32px;
-        padding: 0 1rem;
-        background-color: var(--color-background-light);
-        color: var(--color-text-dark);
-        font-size: 14px;
-        font-weight: 500;
-        line-height: 1.5;
-        border: none;
-        width: fit-content;
-        text-decoration: none;
-    }
-
-    .badge {
-        display: inline-block;
-        padding: 0.25em 0.4em;
-        font-size: 75%;
-        font-weight: 700;
-        line-height: 1;
-        text-align: center;
-        white-space: nowrap;
-        vertical-align: baseline;
-        border-radius: 0.25rem;
-        color: #fff;
-    }
-
-    .bg-success {
-        background-color: #28a745;
-    }
-
-    .bg-danger {
-        background-color: #dc3545;
+    @@media(max-width:600px) {
+        .cd-hero-title { font-size:1.45rem; }
+        .cd-tabs { flex-wrap:wrap; }
+        .cd-tab { flex-basis:50%; border-bottom:1px solid var(--border); }
     }
 </style>
-<div class="layout-container">
-@Html.Partial("_LandingHeader")
-    <div class="main-content">
-        <div class="content-wrapper">
-            <div class="header-container">
-                <p class="header-title">Course Details</p>
-                <a class="button" href="@Url.Action("Index", "Courses")">
-                    <span class="truncate">Back to Courses</span>
-                </a>
+
+<div class="cd-page" dir="rtl" lang="ar">
+    @Html.Partial("_LandingHeader")
+
+    <!-- ── Hero ── -->
+    <div class="cd-hero">
+        @if (!string.IsNullOrEmpty(Model.ThumbnailUrl))
+        {
+            <div class="cd-hero-bg" style="background-image:url('@Model.ThumbnailUrl');"></div>
+        }
+        <div class="cd-hero-overlay"></div>
+        <div class="cd-hero-inner">
+
+            <!-- Thumbnail -->
+            <div class="cd-hero-thumb">
+                @if (!string.IsNullOrEmpty(Model.ThumbnailUrl))
+                {
+                    <img src="@Model.ThumbnailUrl" alt="@Model.CourseName" />
+                }
+                else if (promoYtId != null)
+                {
+                    <img src="https://img.youtube.com/vi/@promoYtId/mqdefault.jpg" alt="@Model.CourseName" />
+                }
+                else
+                {
+                    <div class="no-thumb"><i class="fas fa-graduation-cap"></i></div>
+                }
             </div>
 
-            <div class="info-section">
-                <div class="card-container">
-                    @if (!string.IsNullOrEmpty(Model.ThumbnailUrl))
+            <!-- Info -->
+            <div class="cd-hero-info">
+                <div class="cd-hero-badges">
+                    <span class="cd-hero-badge @(Model.IsDeleted ? "deleted" : "active")">
+                        <i class="fas fa-circle" style="font-size:.5rem;vertical-align:middle;"></i>
+                        @statusText
+                    </span>
+                    <span class="cd-hero-badge batch">
+                        <i class="fas fa-layer-group" style="font-size:.7rem;"></i>
+                        الدفعة @Model.BatchNumber
+                    </span>
+                    @if (Model.IsFeatured)
                     {
-                        <div class="image" style='background-image: url("@Model.ThumbnailUrl");'></div>
-                    }
-                    <div class="content">
-                        <p class="title">@Model.CourseName</p>
-                        <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 0.75rem;">
-                            <p class="description">@Model.Description</p>
-                            @if (User.IsInRole("Admin"))
-                            {
-                                <a class="profile-button button-primary" href="@Url.Action("Edit", "Courses", new { id = Model.CourseId })">
-                                    <span class="truncate">Edit Course</span>
-                                </a>
-                            }
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="details-grid">
-                <div class="detail-item">
-                    <p class="detail-label">Course ID</p>
-                    <p class="detail-value">@Model.CourseId</p>
-                </div>
-                <div class="detail-item">
-                    <p class="detail-label">Batch Number</p>
-                    <p class="detail-value">@Model.BatchNumber</p>
-                </div>
-                <div class="detail-item">
-                    <p class="detail-label">Duration</p>
-                    <p class="detail-value">@Model.NumberOfLectures Lectures</p>
-                </div>
-                <div class="detail-item">
-                    <p class="detail-label">Price</p>
-                    <p class="detail-value">@Model.Price.ToString("C")</p>
-                </div>
-                <div class="detail-item">
-                    <p class="detail-label">Status</p>
-                    <p class="detail-value">
-                        <span class="badge @(Model.IsDeleted ? "bg-danger" : "bg-success")">
-                            @(Model.IsDeleted ? "Deleted" : "Active")
+                        <span class="cd-hero-badge featured">
+                            <i class="fas fa-star" style="font-size:.65rem;"></i> مميز
                         </span>
-                    </p>
+                    }
                 </div>
-                <div class="detail-item">
-                    <p class="detail-label">Created Date</p>
-                    <p class="detail-value">@Model.CreatedDate.ToShortDateString()</p>
-                </div>
-                <div class="detail-item">
-                    <p class="detail-label">Release Date</p>
-                    <p class="detail-value">@Model.ReleaseDate.ToShortDateString()</p>
-                </div>
-                <div class="detail-item">
-                    <p class="detail-label">Admin</p>
-                    <p class="detail-value">@Model.Admin?.User?.FullName</p>
-                </div>
-            </div>
 
-            <h2 class="section-title">Trainers</h2>
-            <div class="profile-card">
-                @if (Model.CourseTrainers != null && Model.CourseTrainers.Any())
+                <h1 class="cd-hero-title">@Model.CourseName</h1>
+
+                @if (!string.IsNullOrEmpty(Model.Description))
                 {
-                    @foreach (var ct in Model.CourseTrainers)
+                    <p class="cd-hero-desc">@(Model.Description.Length > 200 ? Model.Description[..197] + "..." : Model.Description)</p>
+                }
+
+                <div class="cd-hero-stats">
+                    <div class="cd-hero-stat">
+                        <i class="fas fa-book-open"></i>
+                        <span>@lecturesCount محاضرة</span>
+                    </div>
+                    <div class="cd-hero-stat">
+                        <i class="fas fa-users"></i>
+                        <span>@traineesCount متدرب</span>
+                    </div>
+                    @if (ratings.Any())
                     {
-                        <div class="profile-item">
-                            <div class="details">
-                                <div style="display: flex; flex-direction: column; gap: 0.25rem;">
-                                    <p class="name">@ct.Trainer.User.FullName</p>
-                                    <p class="specialty">@ct.Trainer.Specialty</p>
-                                </div>
-                                @* <a class="profile-button" href="#">
-                                    <span class="truncate">View Profile</span>
-                                </a> *@
-                            </div>
-                            @* <div class="image" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBnc-QYzT7tDsDftfPWWMfQTae7AvEPxjFqu7Nm-R73pOMCJk0pqmQWeQQCH1l1FpAVKfTVuje0knjTY5lEP3w6FlFVq01qVsL8mxzz2fkMfihYv_pi_IkC7YfYiz2qeWX5QGIyvQtilqNU7j9NVarr9i6AuYogWbwE6jWhpVG7wbzlHKxZndTxrZRYKrC2oxv2Le4dl1suUfTgvGbCGeVailuqoYDiEt0SaePoDl8ixi-kqjXLmUSR33YLn5z54R5ufkedTISCGyA");'></div> *@
+                        <div class="cd-hero-stat">
+                            <i class="fas fa-star"></i>
+                            <span>@avgStars.ToString("F1") / 5 (@ratings.Count تقييم)</span>
                         </div>
                     }
-                }
-                else
-                {
-                    <div class="empty-state">
-                        <div class="empty-state-content">
-                            <div class="empty-state-text">
-                                <p class="title">No Trainers Assigned</p>
-                                <p class="description">Assign trainers to this course to manage and deliver the content.</p>
-                            </div>
-                            @if (User.IsInRole("Admin"))
-                            {
-                                <a class="button" href="@Url.Action("AssignTrainer", "Courses", new { id = Model.CourseId })">
-                                    <span class="truncate">Assign Trainer</span>
-                                </a>
-                            }
-                        </div>
+                    <div class="cd-hero-stat">
+                        <i class="fas fa-tag"></i>
+                        <span>@Model.Price.ToString("N0") ر.س</span>
                     </div>
-                }
-            </div>
+                </div>
 
-            <h2 class="section-title">Trainees</h2>
-            <div class="profile-card">
-                @if (Model.CourseTrainees != null && Model.CourseTrainees.Any())
-                {
-                    @foreach (var ct in Model.CourseTrainees)
+                <div class="cd-hero-actions">
+                    @if (User.IsInRole("Trainee") && isEnrolled)
                     {
-                        <div class="profile-item">
-                            <div class="details">
-                                <div style="display: flex; flex-direction: column; gap: 0.25rem;">
-                                    <p class="name">@ct.Trainee.User.FullName</p>
-                                    <p class="specialty">Born on @ct.Trainee.User.BirthDate.ToShortDateString()</p>
-                                </div>
-                                @* <a class="profile-button" href="#">
-                                    <span class="truncate">View Profile</span>
-                                </a> *@
-                            </div>
-                            @* <div class="image" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAlfLVTF0_Ijdtk65YuPamcsOaOFN9truGmUMESFxJkSDRquGjF_ZSIaxbxs5kKr92ZAK7cQPpdU9iWPU0qU-tGhhCtJE_TSIjfoSHdvsraRYgyJl3CQGa4iVyLm0mwUGHzPHP7S3sUUKwPfrolB7ACem2gaE8MSTSzKTRREzLfuHfM8ArazQTUTlGlv1d07fsoIcV-oxzDQmJxzSWuUBEniV_2na-yI1s6elQIJTsutru5cT3Imj7J-TC9ZGXFkY7GKAkJJGX352o");'></div> *@
-                        </div>
-                    }
-                }
-                else
-                {
-                    <div class="empty-state">
-                        <div class="empty-state-content">
-                            <div class="empty-state-text">
-                                <p class="title">No Trainees Assigned</p>
-                                <p class="description">Assign trainees to this course to track their progress and performance.</p>
-                            </div>
-                            @if (User.IsInRole("Admin"))
-                            {
-                                <a class="button" href="@Url.Action("AssignTrainees", "Courses", new { id = Model.CourseId })">
-                                    <span class="truncate">Assign Trainees</span>
-                                </a>
-                            }
-                        </div>
-                    </div>
-                }
-            </div>
-
-            <h2 class="section-title">Analytics & Tools</h2>
-            <div class="button-container">
-                <div class="button-group">
-                    <a class="button" href="@Url.Action("CourseAttendance", "Courses", new { courseId = Model.CourseId })">
-                        <span class="truncate">Attendance Statistics</span>
-                    </a>
-                    <a class="button" href="@Url.Action("ViewLectures", "Trainees", new { courseId = Model.CourseId })">
-                        <span class="truncate">View Lectures</span>
-                    </a>
-                    <a class="button" href="@Url.Action("TrackAttendance", "Trainees", new { courseId = Model.CourseId })">
-                        <span class="truncate">Track Attendance</span>
-                    </a>
-                    <a class="button" href="@Url.Action("ViewPayments", "Trainees", new { courseId = Model.CourseId })">
-                        <span class="truncate">View Payments</span>
-                    </a>
-                    <a class="button" href="@Url.Action("ExportPaymentsPdf", "Payments", new { courseId = Model.CourseId })">
-                        <span class="truncate">Export Payments</span>
-                    </a>
-                    @if (User.IsInRole("Trainee") && ViewBag.IsEnrolled == true)
-                    {
-                        <a class="button button-primary" href="@Url.Action("CourseProgress", "Progress", new { courseId = Model.CourseId })">
-                            <span class="truncate">تقدمي في الكورس</span>
+                        <a href="@Url.Action("ViewLectures","Trainees", new { courseId = Model.CourseId })" class="cd-ha cd-ha-primary">
+                            <i class="fas fa-play-circle"></i> ابدأ التعلم
+                        </a>
+                        <a href="@Url.Action("CourseProgress","Progress", new { courseId = Model.CourseId })" class="cd-ha cd-ha-outline">
+                            <i class="fas fa-chart-line"></i> تقدمي
                         </a>
                     }
+                    else if (User.IsInRole("Trainee") && !isEnrolled)
+                    {
+                        <span class="cd-ha cd-ha-outline" style="cursor:default; opacity:.7;">
+                            <i class="fas fa-lock"></i> غير مسجل
+                        </span>
+                    }
+                    @if (User.IsInRole("Admin"))
+                    {
+                        <a href="@Url.Action("Edit","Courses", new { id = Model.CourseId })" class="cd-ha cd-ha-primary">
+                            <i class="fas fa-edit"></i> تعديل
+                        </a>
+                        <a href="@Url.Action("AssignTrainer","Courses", new { id = Model.CourseId })" class="cd-ha cd-ha-outline">
+                            <i class="fas fa-user-plus"></i> إضافة مدرب
+                        </a>
+                    }
+                    @if (!string.IsNullOrEmpty(Model.VideoUrl))
+                    {
+                        <button type="button" class="cd-ha cd-ha-gold" onclick="showPromo()">
+                            <i class="fas fa-play"></i> مشاهدة المقدمة
+                        </button>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Breadcrumb ── -->
+    <nav class="cd-bc">
+        <a href="/">الرئيسية</a>
+        <i class="fas fa-chevron-left"></i>
+        <a href="@Url.Action("Index","Courses")">الكورسات</a>
+        <i class="fas fa-chevron-left"></i>
+        <span style="color:var(--t1);font-weight:600;">@Model.CourseName</span>
+    </nav>
+
+    <!-- ── Stats Row ── -->
+    <div class="cd-stats">
+        <div class="cd-stat-card">
+            <div class="cd-stat-icon" style="background:#eef2ff;color:#4f46e5;">
+                <i class="fas fa-book-open"></i>
+            </div>
+            <div>
+                <div class="cd-stat-val">@lecturesCount</div>
+                <div class="cd-stat-lbl">إجمالي المحاضرات</div>
+            </div>
+        </div>
+        <div class="cd-stat-card">
+            <div class="cd-stat-icon" style="background:#d1fae5;color:#059669;">
+                <i class="fas fa-users"></i>
+            </div>
+            <div>
+                <div class="cd-stat-val">@traineesCount</div>
+                <div class="cd-stat-lbl">المتدربون المسجلون</div>
+            </div>
+        </div>
+        <div class="cd-stat-card">
+            <div class="cd-stat-icon" style="background:#fffbeb;color:#d97706;">
+                <i class="fas fa-star"></i>
+            </div>
+            <div>
+                <div class="cd-stat-val">@(ratings.Any() ? avgStars.ToString("F1") : "—")</div>
+                <div class="cd-stat-lbl">متوسط التقييم</div>
+            </div>
+        </div>
+        <div class="cd-stat-card">
+            <div class="cd-stat-icon" style="background:#fff7ed;color:#ea580c;">
+                <i class="fas fa-chalkboard-teacher"></i>
+            </div>
+            <div>
+                <div class="cd-stat-val">@trainersCount</div>
+                <div class="cd-stat-lbl">المدربون</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Body ── -->
+    <div class="cd-body">
+
+        <!-- Enrolled Banner -->
+        @if (User.IsInRole("Trainee") && isEnrolled)
+        {
+            <div class="cd-enrolled-banner">
+                <div class="cd-enrolled-icon"><i class="fas fa-check"></i></div>
+                <div>
+                    <div style="font-size:.88rem;font-weight:700;color:#065f46;">أنت مسجل في هذا الكورس</div>
+                    <div style="font-size:.78rem;color:#047857;margin-top:2px;">يمكنك الوصول إلى جميع المحاضرات والمواد التدريبية</div>
+                </div>
+                <a href="@Url.Action("ViewLectures","Trainees", new { courseId = Model.CourseId })"
+                   style="margin-right:auto;display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:8px;background:var(--success);color:#fff;text-decoration:none;font-size:.82rem;font-weight:600;">
+                    <i class="fas fa-arrow-left"></i> الذهاب للمحاضرات
+                </a>
+            </div>
+        }
+
+        <!-- Admin Bar -->
+        @if (User.IsInRole("Admin"))
+        {
+            <div class="cd-admin-bar">
+                <span class="cd-admin-bar-label"><i class="fas fa-shield-alt"></i> إجراءات الإدارة</span>
+                <a href="@Url.Action("Edit","Courses", new { id = Model.CourseId })" class="cd-ab-btn cd-ab-btn-primary">
+                    <i class="fas fa-edit"></i> تعديل الكورس
+                </a>
+                <a href="@Url.Action("AssignTrainer","Courses", new { id = Model.CourseId })" class="cd-ab-btn cd-ab-btn-outline">
+                    <i class="fas fa-user-tie"></i> إضافة مدرب
+                </a>
+                <a href="@Url.Action("AssignTrainees","Courses", new { id = Model.CourseId })" class="cd-ab-btn cd-ab-btn-outline">
+                    <i class="fas fa-user-graduate"></i> إضافة متدرب
+                </a>
+                <a href="@Url.Action("Index","Lectures")" class="cd-ab-btn cd-ab-btn-outline">
+                    <i class="fas fa-book"></i> إدارة المحاضرات
+                </a>
+                <a href="@Url.Action("Index","Courses")" class="cd-ab-btn cd-ab-btn-outline" style="margin-right:auto;">
+                    <i class="fas fa-arrow-right"></i> قائمة الكورسات
+                </a>
+            </div>
+        }
+
+        <!-- Notifications -->
+        @if (TempData["RatingSuccess"] != null)
+        {
+            <div class="cd-notify ok"><i class="fas fa-check-circle"></i> @TempData["RatingSuccess"]</div>
+        }
+        @if (TempData["RatingError"] != null)
+        {
+            <div class="cd-notify err"><i class="fas fa-exclamation-circle"></i> @TempData["RatingError"]</div>
+        }
+
+        <!-- ── Tabs ── -->
+        <div class="cd-tabs" role="tablist">
+            <button class="cd-tab active" onclick="switchTab(this,'tab-info')">
+                <i class="fas fa-info-circle"></i> معلومات
+            </button>
+            <button class="cd-tab" onclick="switchTab(this,'tab-trainers')">
+                <i class="fas fa-chalkboard-teacher"></i> المدربون
+                @if (trainersCount > 0) { <span class="cd-tab-badge">@trainersCount</span> }
+            </button>
+            @if (User.IsInRole("Admin") || User.IsInRole("Trainer"))
+            {
+                <button class="cd-tab" onclick="switchTab(this,'tab-trainees')">
+                    <i class="fas fa-user-graduate"></i> المتدربون
+                    @if (traineesCount > 0) { <span class="cd-tab-badge">@traineesCount</span> }
+                </button>
+            }
+            <button class="cd-tab" onclick="switchTab(this,'tab-ratings')">
+                <i class="fas fa-star"></i> التقييمات
+                @if (ratings.Any()) { <span class="cd-tab-badge">@ratings.Count</span> }
+            </button>
+            <button class="cd-tab" onclick="switchTab(this,'tab-tools')">
+                <i class="fas fa-tools"></i> الأدوات
+            </button>
+        </div>
+
+        <!-- ══ Tab: Info ══ -->
+        <div id="tab-info" class="cd-panel active">
+            <div class="cd-card">
+                <div class="cd-ch">
+                    <div class="cd-ch-left"><i class="fas fa-info-circle"></i><h3>تفاصيل الكورس</h3></div>
+                </div>
+                <div class="cd-info-grid">
+                    <div class="cd-info-item">
+                        <div class="cd-info-lbl">اسم الكورس</div>
+                        <div class="cd-info-val">@Model.CourseName</div>
+                    </div>
+                    <div class="cd-info-item">
+                        <div class="cd-info-lbl">رقم الدفعة</div>
+                        <div class="cd-info-val">@Model.BatchNumber</div>
+                    </div>
+                    <div class="cd-info-item">
+                        <div class="cd-info-lbl">عدد المحاضرات</div>
+                        <div class="cd-info-val">@Model.NumberOfLectures محاضرة</div>
+                    </div>
+                    <div class="cd-info-item">
+                        <div class="cd-info-lbl">السعر</div>
+                        <div class="cd-info-val" style="color:var(--pr);font-size:1rem;">@Model.Price.ToString("N2") ر.س</div>
+                    </div>
+                    <div class="cd-info-item">
+                        <div class="cd-info-lbl">تاريخ الإصدار</div>
+                        <div class="cd-info-val">@Model.ReleaseDate.ToString("dd/MM/yyyy")</div>
+                    </div>
+                    <div class="cd-info-item">
+                        <div class="cd-info-lbl">تاريخ الإنشاء</div>
+                        <div class="cd-info-val">@Model.CreatedDate.ToString("dd/MM/yyyy")</div>
+                    </div>
+                    <div class="cd-info-item">
+                        <div class="cd-info-lbl">الحالة</div>
+                        <div class="cd-info-val">
+                            <span style="padding:3px 10px;border-radius:12px;font-size:.78rem;font-weight:700;background:@statusBg;color:@statusColor;">
+                                @statusText
+                            </span>
+                        </div>
+                    </div>
+                    <div class="cd-info-item">
+                        <div class="cd-info-lbl">المشرف</div>
+                        <div class="cd-info-val">@(Model.Admin?.User?.FullName ?? "—")</div>
+                    </div>
+                    @if (Model.IsFeatured)
+                    {
+                        <div class="cd-info-item">
+                            <div class="cd-info-lbl">النوع</div>
+                            <div class="cd-info-val">
+                                <span style="padding:3px 10px;border-radius:12px;font-size:.78rem;font-weight:700;background:var(--gold-pale);color:#92400e;">
+                                    <i class="fas fa-star"></i> كورس مميز
+                                </span>
+                            </div>
+                        </div>
+                    }
                 </div>
             </div>
 
-            <!-- Course Ratings -->
-            @{
-                var ratings = Model.Ratings?.ToList() ?? new List<TrainingCenterManagement_MVC.Models.CourseRating>();
-                var avgStars = ratings.Any() ? ratings.Average(r => r.Stars) : 0;
-                var myRating = ViewBag.MyRating as TrainingCenterManagement_MVC.Models.CourseRating;
-            }
-
-            @if (TempData["RatingSuccess"] != null)
+            @if (!string.IsNullOrEmpty(Model.Description))
             {
-                <div style="margin:1rem;padding:0.75rem 1rem;background:#d1fae5;border-radius:8px;color:#065f46;font-size:14px;">
-                    ✓ @TempData["RatingSuccess"]
-                </div>
-            }
-            @if (TempData["RatingError"] != null)
-            {
-                <div style="margin:1rem;padding:0.75rem 1rem;background:#fee2e2;border-radius:8px;color:#991b1b;font-size:14px;">
-                    ✗ @TempData["RatingError"]
-                </div>
-            }
-
-            <h2 class="section-title">تقييمات الطلاب</h2>
-
-            @if (ratings.Any())
-            {
-                <div style="padding:0 1rem 0.5rem 1rem;display:flex;align-items:center;gap:0.75rem;">
-                    <span style="font-size:2rem;font-weight:700;color:#111;">@avgStars.ToString("F1")</span>
-                    <div>
-                        @for (int s = 1; s <= 5; s++)
-                        {
-                            <span style="color:@(s <= Math.Round(avgStars) ? "#f59e0b" : "#d1d5db");font-size:1.25rem;">★</span>
-                        }
-                        <div style="font-size:13px;color:#6b7280;">@ratings.Count @(ratings.Count == 1 ? "تقييم" : "تقييمات")</div>
+                <div class="cd-card">
+                    <div class="cd-ch">
+                        <div class="cd-ch-left"><i class="fas fa-align-right"></i><h3>وصف الكورس</h3></div>
+                    </div>
+                    <div class="cd-cb">
+                        <p style="font-size:.88rem;color:var(--t2);line-height:1.8;margin:0;">@Model.Description</p>
                     </div>
                 </div>
             }
 
-            @foreach (var rating in ratings.OrderByDescending(r => r.CreatedAt).Take(5))
+            @if (promoYtId != null)
             {
-                <div style="padding:0.75rem 1rem;border-top:1px solid #e6e4db;">
-                    <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.25rem;">
-                        <span style="font-weight:600;font-size:14px;">@rating.Trainee?.User?.FullName</span>
-                        <span style="color:#f59e0b;font-size:1rem;">
-                            @for (int s = 1; s <= 5; s++) { <text>@(s <= rating.Stars ? "★" : "☆")</text> }
-                        </span>
-                        <span style="font-size:12px;color:#9ca3af;margin-right:auto;">@rating.CreatedAt.ToString("dd/MM/yyyy")</span>
+                <div class="cd-card">
+                    <div class="cd-ch">
+                        <div class="cd-ch-left"><i class="fas fa-play-circle" style="color:#ef4444;"></i><h3>فيديو تعريفي بالكورس</h3></div>
                     </div>
-                    @if (!string.IsNullOrEmpty(rating.Comment))
-                    {
-                        <p style="font-size:14px;color:#6b7280;margin:0;">@rating.Comment</p>
-                    }
-                </div>
-            }
-
-            @if (User.IsInRole("Trainee") && ViewBag.IsEnrolled == true)
-            {
-                <div style="padding:1rem;border-top:1px solid #e6e4db;">
-                    <h3 style="font-size:16px;font-weight:700;color:#111;margin-bottom:0.75rem;">
-                        @(myRating != null ? "عدّل تقييمك" : "أضف تقييمك")
-                    </h3>
-                    <form asp-controller="CourseRatings" asp-action="Rate" method="post">
-                        @Html.AntiForgeryToken()
-                        <input type="hidden" name="courseId" value="@Model.CourseId" />
-                        <div style="margin-bottom:0.75rem;">
-                            <div id="starSelector" style="display:flex;gap:0.25rem;font-size:2rem;cursor:pointer;direction:ltr;">
-                                @for (int s = 1; s <= 5; s++)
-                                {
-                                    <span class="star-opt" data-val="@s"
-                                          style="color:@(myRating != null && s <= myRating.Stars ? "#f59e0b" : "#d1d5db");">★</span>
-                                }
-                            </div>
-                            <input type="hidden" name="stars" id="starsInput" value="@(myRating?.Stars ?? 0)" required />
+                    <div class="cd-cb">
+                        <div class="cd-promo">
+                            <iframe src="https://www.youtube.com/embed/@promoYtId"
+                                    allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture"
+                                    allowfullscreen></iframe>
                         </div>
-                        <textarea name="comment" rows="3" maxlength="1000" placeholder="اكتب تعليقك هنا (اختياري)..."
-                                  style="width:100%;border:1px solid #e6e4db;border-radius:8px;padding:0.5rem;font-size:14px;resize:vertical;">@myRating?.Comment</textarea>
-                        <div style="margin-top:0.75rem;display:flex;gap:0.5rem;">
-                            <button type="submit" class="button button-primary" style="height:36px;">
-                                <span>@(myRating != null ? "تحديث التقييم" : "إرسال التقييم")</span>
-                            </button>
-                            @if (myRating != null)
-                            {
-                                <form asp-controller="CourseRatings" asp-action="Delete" method="post" style="display:inline;">
-                                    @Html.AntiForgeryToken()
-                                    <input type="hidden" name="courseId" value="@Model.CourseId" />
-                                    <button type="submit" class="button"
-                                            onclick="return confirm('حذف تقييمك؟')"
-                                            style="height:36px;background:#fee2e2;color:#991b1b;">
-                                        <span>حذف</span>
-                                    </button>
-                                </form>
-                            }
-                        </div>
-                    </form>
+                    </div>
                 </div>
             }
         </div>
+
+        <!-- ══ Tab: Trainers ══ -->
+        <div id="tab-trainers" class="cd-panel">
+            <div class="cd-card">
+                <div class="cd-ch">
+                    <div class="cd-ch-left"><i class="fas fa-chalkboard-teacher"></i><h3>المدربون (@trainersCount)</h3></div>
+                    @if (User.IsInRole("Admin"))
+                    {
+                        <a href="@Url.Action("AssignTrainer","Courses", new { id = Model.CourseId })"
+                           style="display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:7px;background:var(--pr);color:#fff;text-decoration:none;font-size:.78rem;font-weight:600;">
+                            <i class="fas fa-plus"></i> إضافة مدرب
+                        </a>
+                    }
+                </div>
+                <div class="cd-cb">
+                    @if (Model.CourseTrainers != null && Model.CourseTrainers.Any())
+                    {
+                        <div class="cd-people">
+                            @{
+                                string[] trainerColors = { "#4f46e5","#7c3aed","#0891b2","#059669","#d97706","#dc2626" };
+                                int tci = 0;
+                            }
+                            @foreach (var ct in Model.CourseTrainers)
+                            {
+                                var col = trainerColors[tci++ % trainerColors.Length];
+                                var initials = string.Join("", ct.Trainer.User.FullName.Split(' ').Take(2).Select(x => x.FirstOrDefault()));
+                                <div class="cd-person-card">
+                                    <div class="cd-avatar" style="background:@col;">@initials</div>
+                                    <div>
+                                        <div class="cd-person-name">@ct.Trainer.User.FullName</div>
+                                        <div class="cd-person-sub">@(ct.Trainer.Specialty ?? "مدرب معتمد")</div>
+                                        <span class="cd-person-badge" style="background:#eef2ff;color:var(--pr);">
+                                            <i class="fas fa-chalkboard-teacher" style="font-size:.65rem;"></i> مدرب
+                                        </span>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="cd-empty">
+                            <i class="fas fa-chalkboard-teacher"></i>
+                            <p>لم يتم تعيين مدربين لهذا الكورس بعد</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- ══ Tab: Trainees ══ -->
+        @if (User.IsInRole("Admin") || User.IsInRole("Trainer"))
+        {
+            <div id="tab-trainees" class="cd-panel">
+                <div class="cd-card">
+                    <div class="cd-ch">
+                        <div class="cd-ch-left"><i class="fas fa-user-graduate"></i><h3>المتدربون (@traineesCount)</h3></div>
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <a href="@Url.Action("AssignTrainees","Courses", new { id = Model.CourseId })"
+                               style="display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:7px;background:var(--pr);color:#fff;text-decoration:none;font-size:.78rem;font-weight:600;">
+                                <i class="fas fa-plus"></i> إضافة متدرب
+                            </a>
+                        }
+                    </div>
+                    <div class="cd-cb">
+                        @if (Model.CourseTrainees != null && Model.CourseTrainees.Any())
+                        {
+                            <!-- Search -->
+                            <div style="margin-bottom:14px;position:relative;">
+                                <i class="fas fa-search" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--t3);font-size:.82rem;"></i>
+                                <input type="text" id="trainee-search" placeholder="ابحث عن متدرب..."
+                                       oninput="filterTrainees(this.value)"
+                                       style="width:100%;padding:8px 36px 8px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:.84rem;font-family:inherit;box-sizing:border-box;" />
+                            </div>
+                            <div class="cd-people" id="trainees-list">
+                                @{
+                                    string[] traineeColors = { "#7c3aed","#0891b2","#059669","#d97706","#4f46e5","#dc2626" };
+                                    int tnci = 0;
+                                }
+                                @foreach (var ct in Model.CourseTrainees)
+                                {
+                                    var col = traineeColors[tnci++ % traineeColors.Length];
+                                    var initials = string.Join("", ct.Trainee.User.FullName.Split(' ').Take(2).Select(x => x.FirstOrDefault()));
+                                    <div class="cd-person-card" data-name="@ct.Trainee.User.FullName.ToLower()">
+                                        <div class="cd-avatar" style="background:@col;">@initials</div>
+                                        <div>
+                                            <div class="cd-person-name">@ct.Trainee.User.FullName</div>
+                                            <div class="cd-person-sub">@ct.Trainee.User.Email</div>
+                                            <span class="cd-person-badge" style="background:var(--success-pale);color:#065f46;">
+                                                <i class="fas fa-check" style="font-size:.65rem;"></i> مسجل
+                                            </span>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="cd-empty">
+                                <i class="fas fa-user-graduate"></i>
+                                <p>لا يوجد متدربون مسجلون في هذا الكورس بعد</p>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+
+        <!-- ══ Tab: Ratings ══ -->
+        <div id="tab-ratings" class="cd-panel">
+            <div class="cd-card">
+                <div class="cd-ch">
+                    <div class="cd-ch-left"><i class="fas fa-star" style="color:var(--gold);"></i><h3>تقييمات الطلاب</h3></div>
+                </div>
+
+                @if (ratings.Any())
+                {
+                    <div class="cd-rating-summary">
+                        <div style="text-align:center;flex-shrink:0;">
+                            <div class="cd-big-score">@avgStars.ToString("F1")</div>
+                            <div class="cd-stars-row" style="justify-content:center;margin:4px 0;">
+                                @for (int s = 1; s <= 5; s++)
+                                {
+                                    <span class="@(s <= Math.Round(avgStars) ? "cd-star-full" : "cd-star-empty")">★</span>
+                                }
+                            </div>
+                            <div class="cd-rating-count">@ratings.Count تقييم</div>
+                        </div>
+                        <div class="cd-rating-bars">
+                            @for (int s = 5; s >= 1; s--)
+                            {
+                                var cnt = ratings.Count(r => r.Stars == s);
+                                var pct = ratings.Any() ? (cnt * 100.0 / ratings.Count) : 0;
+                                <div class="cd-rbar">
+                                    <span style="width:14px;text-align:left;">@s</span>
+                                    <span style="color:var(--gold);font-size:.75rem;">★</span>
+                                    <div class="cd-rbar-track">
+                                        <div class="cd-rbar-fill" style="width:@pct.ToString("F0")%;"></div>
+                                    </div>
+                                    <span style="width:24px;text-align:center;">@cnt</span>
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    @foreach (var rating in ratings.OrderByDescending(r => r.CreatedAt).Take(10))
+                    {
+                        var rInitials = string.Join("", (rating.Trainee?.User?.FullName ?? "م").Split(' ').Take(2).Select(x => x.FirstOrDefault()));
+                        string[] rColors = { "#4f46e5","#7c3aed","#0891b2","#059669","#d97706" };
+                        var rCol = rColors[Math.Abs((rating.Trainee?.TraineeId ?? Guid.Empty).GetHashCode()) % rColors.Length];
+                        <div class="cd-review-item">
+                            <div class="cd-review-head">
+                                <div class="cd-review-avatar" style="background:@rCol;">@rInitials</div>
+                                <div>
+                                    <div class="cd-review-name">@(rating.Trainee?.User?.FullName ?? "متدرب")</div>
+                                    <div class="cd-stars-row" style="font-size:.85rem;">
+                                        @for (int s = 1; s <= 5; s++)
+                                        {
+                                            <span class="@(s <= rating.Stars ? "cd-star-full" : "cd-star-empty")">★</span>
+                                        }
+                                    </div>
+                                </div>
+                                <span class="cd-review-date">@rating.CreatedAt.ToString("dd/MM/yyyy")</span>
+                            </div>
+                            @if (!string.IsNullOrEmpty(rating.Comment))
+                            {
+                                <p class="cd-review-text">@rating.Comment</p>
+                            }
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="cd-empty">
+                        <i class="fas fa-star"></i>
+                        <p>لا توجد تقييمات لهذا الكورس بعد</p>
+                    </div>
+                }
+
+                @if (User.IsInRole("Trainee") && isEnrolled)
+                {
+                    <div class="cd-rate-form">
+                        <div class="cd-rate-title">
+                            <i class="fas fa-pen-to-square" style="color:var(--pr);"></i>
+                            @(myRating != null ? "عدّل تقييمك" : "أضف تقييمك")
+                        </div>
+                        <form asp-controller="CourseRatings" asp-action="Rate" method="post">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="courseId" value="@Model.CourseId" />
+                            <div class="cd-stars-selector" id="starSelector">
+                                @for (int s = 1; s <= 5; s++)
+                                {
+                                    <span class="star-opt" data-val="@s"
+                                          style="color:@(myRating != null && s <= myRating.Stars ? "#f59e0b" : "#e2e8f0");">★</span>
+                                }
+                            </div>
+                            <input type="hidden" name="stars" id="starsInput" value="@(myRating?.Stars ?? 0)" required />
+                            <textarea name="comment" class="cd-rate-ta" rows="3" maxlength="1000"
+                                      placeholder="شاركنا رأيك في هذا الكورس (اختياري)...">@myRating?.Comment</textarea>
+                            <div style="display:flex;gap:10px;margin-top:10px;">
+                                <button type="submit" class="cd-ab-btn cd-ab-btn-primary" style="gap:6px;">
+                                    <i class="fas fa-paper-plane"></i>
+                                    @(myRating != null ? "تحديث التقييم" : "إرسال التقييم")
+                                </button>
+                                @if (myRating != null)
+                                {
+                                    <form asp-controller="CourseRatings" asp-action="Delete" method="post" style="display:inline;">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="courseId" value="@Model.CourseId" />
+                                        <button type="submit" class="cd-ab-btn cd-ab-btn-danger"
+                                                onclick="return confirm('هل تريد حذف تقييمك؟')">
+                                            <i class="fas fa-trash-alt"></i> حذف التقييم
+                                        </button>
+                                    </form>
+                                }
+                            </div>
+                        </form>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- ══ Tab: Tools ══ -->
+        <div id="tab-tools" class="cd-panel">
+            <div class="cd-card">
+                <div class="cd-ch">
+                    <div class="cd-ch-left"><i class="fas fa-tools"></i><h3>الأدوات والتقارير</h3></div>
+                </div>
+                <div class="cd-cb">
+                    <div class="cd-tools">
+                        <a href="@Url.Action("ViewLectures","Trainees", new { courseId = Model.CourseId })"
+                           class="cd-tool" style="--tool-color:#4f46e5;--tool-bg:#eef2ff;">
+                            <div class="cd-tool-icon"><i class="fas fa-book-open"></i></div>
+                            <span>المحاضرات</span>
+                        </a>
+                        <a href="@Url.Action("CourseAttendance","Courses", new { courseId = Model.CourseId })"
+                           class="cd-tool" style="--tool-color:#0891b2;--tool-bg:#ecfeff;">
+                            <div class="cd-tool-icon"><i class="fas fa-clipboard-check"></i></div>
+                            <span>إحصائيات الحضور</span>
+                        </a>
+                        <a href="@Url.Action("TrackAttendance","Trainees", new { courseId = Model.CourseId })"
+                           class="cd-tool" style="--tool-color:#059669;--tool-bg:#ecfdf5;">
+                            <div class="cd-tool-icon"><i class="fas fa-chart-bar"></i></div>
+                            <span>تتبع الحضور</span>
+                        </a>
+                        @if (User.IsInRole("Admin") || User.IsInRole("Trainer"))
+                        {
+                            <a href="@Url.Action("ViewCoursePayments","Payments", new { courseId = Model.CourseId })"
+                               class="cd-tool" style="--tool-color:#d97706;--tool-bg:#fffbeb;">
+                                <div class="cd-tool-icon"><i class="fas fa-money-bill-wave"></i></div>
+                                <span>مدفوعات الكورس</span>
+                            </a>
+                            <a href="@Url.Action("ExportPaymentsPdf","Payments", new { courseId = Model.CourseId })"
+                               class="cd-tool" style="--tool-color:#dc2626;--tool-bg:#fff1f2;">
+                                <div class="cd-tool-icon"><i class="fas fa-file-pdf"></i></div>
+                                <span>تصدير PDF</span>
+                            </a>
+                        }
+                        @if (User.IsInRole("Trainee") && isEnrolled)
+                        {
+                            <a href="@Url.Action("ViewPayments","Trainees", new { courseId = Model.CourseId })"
+                               class="cd-tool" style="--tool-color:#7c3aed;--tool-bg:#f5f3ff;">
+                                <div class="cd-tool-icon"><i class="fas fa-credit-card"></i></div>
+                                <span>مدفوعاتي</span>
+                            </a>
+                            <a href="@Url.Action("CourseProgress","Progress", new { courseId = Model.CourseId })"
+                               class="cd-tool" style="--tool-color:#059669;--tool-bg:#ecfdf5;">
+                                <div class="cd-tool-icon"><i class="fas fa-chart-line"></i></div>
+                                <span>تقدمي في الكورس</span>
+                            </a>
+                        }
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <a href="@Url.Action("Index","Lectures")"
+                               class="cd-tool" style="--tool-color:#4f46e5;--tool-bg:#eef2ff;">
+                                <div class="cd-tool-icon"><i class="fas fa-plus-circle"></i></div>
+                                <span>إدارة المحاضرات</span>
+                            </a>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div><!-- /cd-body -->
+</div><!-- /cd-page -->
+
+<!-- ── Promo Video Modal ── -->
+@if (!string.IsNullOrEmpty(Model.VideoUrl))
+{
+    <div id="promo-modal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.85);align-items:center;justify-content:center;" onclick="hidePromo(event)">
+        <div style="width:min(900px,90vw);border-radius:14px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.6);" onclick="event.stopPropagation()">
+            <div style="background:#0f172a;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;">
+                <span style="color:#fff;font-size:.88rem;font-weight:600;">@Model.CourseName — فيديو تعريفي</span>
+                <button onclick="hidePromo()" style="background:none;border:none;color:#94a3b8;font-size:1.2rem;cursor:pointer;"><i class="fas fa-times"></i></button>
+            </div>
+            <div id="promo-frame-wrap" style="aspect-ratio:16/9;background:#000;"></div>
+        </div>
     </div>
-</div>
+}
 
 <script>
+    /* ── Tabs ── */
+    function switchTab(btn, panelId) {
+        document.querySelectorAll('.cd-tab').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.cd-panel').forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById(panelId)?.classList.add('active');
+    }
+
+    /* ── Star Rating ── */
     (function () {
         var stars = document.querySelectorAll('.star-opt');
         var input = document.getElementById('starsInput');
         if (!stars.length) return;
-        stars.forEach(function (s) {
-            s.addEventListener('mouseover', function () {
-                var v = +this.dataset.val;
-                stars.forEach(function (x) { x.style.color = +x.dataset.val <= v ? '#f59e0b' : '#d1d5db'; });
-            });
-            s.addEventListener('mouseout', function () {
-                var sel = +(input.value || 0);
-                stars.forEach(function (x) { x.style.color = +x.dataset.val <= sel ? '#f59e0b' : '#d1d5db'; });
-            });
-            s.addEventListener('click', function () {
-                input.value = this.dataset.val;
-                var sel = +input.value;
-                stars.forEach(function (x) { x.style.color = +x.dataset.val <= sel ? '#f59e0b' : '#d1d5db'; });
-            });
+        function paint(n) {
+            stars.forEach(s => s.style.color = +s.dataset.val <= n ? '#f59e0b' : '#e2e8f0');
+        }
+        stars.forEach(s => {
+            s.addEventListener('mouseover', () => paint(+s.dataset.val));
+            s.addEventListener('mouseout',  () => paint(+(input?.value || 0)));
+            s.addEventListener('click',     () => { if(input) input.value = s.dataset.val; paint(+s.dataset.val); });
         });
     })();
+
+    /* ── Trainee Search ── */
+    function filterTrainees(q) {
+        q = q.trim().toLowerCase();
+        document.querySelectorAll('#trainees-list .cd-person-card').forEach(card => {
+            card.style.display = card.dataset.name?.includes(q) ? '' : 'none';
+        });
+    }
+
+    /* ── Promo Modal ── */
+    var promoYtId = '@promoYtId';
+    function showPromo() {
+        var wrap = document.getElementById('promo-frame-wrap');
+        if (wrap && promoYtId) {
+            wrap.innerHTML = '<iframe src="https://www.youtube.com/embed/' + promoYtId + '?autoplay=1" allow="autoplay;accelerometer;clipboard-write;encrypted-media;picture-in-picture" allowfullscreen style="width:100%;height:100%;border:none;"></iframe>';
+        }
+        var m = document.getElementById('promo-modal');
+        if (m) { m.style.display = 'flex'; document.body.style.overflow = 'hidden'; }
+    }
+    function hidePromo(e) {
+        var m = document.getElementById('promo-modal');
+        if (m) { m.style.display = 'none'; document.body.style.overflow = ''; }
+        var wrap = document.getElementById('promo-frame-wrap');
+        if (wrap) wrap.innerHTML = '';
+    }
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') hidePromo(); });
 </script>

@@ -1,1446 +1,625 @@
-﻿@* @using System.Globalization
-@using TrainingCenterManagement_MVC.Resources
-@using TrainingCenterManagement_MVC.ViewModels
-@model HomeViewModel
-<head>
- 
-    
+@model TrainingCenterManagement_MVC.ViewModels.HomeViewModel
+@using TrainingCenterManagement_MVC.Models
+@{
+    ViewData["Title"] = "Training Center — منصة التدريب";
+    Layout = "_Layout";
+}
 
+@section Styles {
+<style>
+/* ── CSS Variables ─────────────────────────────────────────── */
+:root {
+    --pr:#4f46e5; --pr-l:#6366f1; --pr-d:#3730a3; --pr-pale:#eef2ff;
+    --gold:#f59e0b; --gold-pale:#fffbeb;
+    --success:#10b981; --danger:#ef4444;
+    --t1:#0f172a; --t2:#334155; --t3:#64748b; --t4:#94a3b8;
+    --bg:#f8fafc; --card:#fff;
+    --border:#e2e8f0; --shadow:0 4px 24px rgba(0,0,0,.07);
+    --radius:16px;
+}
 
-    <link id="u-page-google-font" rel="stylesheet" href="https://fonts.googleapis.com/css2?display=swap&amp;family=Roboto:ital,wght@0,100..900;1,100..900&amp;family=Open+Sans:ital,wght@0,300..800;1,300..800&amp;family=Montserrat:ital,wght@0,100..900;1,100..900">
-   
-  
-</head>
-<body data-path-to-root="./" data-include-products="true" class="u-body u-clearfix u-xl-mode" data-lang="en">
-    @Html.Partial("_LandingHeader")
-    <section class="u-clearfix u-valign-middle-sm u-valign-middle-xs u-section-1" id="sec-7f46">
-        <div class="data-layout-selected u-clearfix u-expanded-width u-gutter-30 u-layout-wrap u-layout-wrap-1">
-            <div class="u-layout">
-                <div class="u-layout-col">
-                    <div class="u-size-30">
-                        <div class="u-layout-row">
-                            <div class="u-container-style u-layout-cell u-size-40 u-layout-cell-1">
-                                <div class="u-container-layout u-container-layout-1">
-                                    <h5 class="u-align-left u-text u-text-default u-text-1">@SharedResource.DiscoverLearningCenter</h5>
-                                    <h1 class="u-align-left u-text u-text-default u-text-2">@SharedResource.EmpowerFuture</h1>
-                                    <p class="u-align-left u-text u-text-default u-text-3"> @SharedResource.TransformativeJourney</p><span class="u-file-icon u-icon u-icon-1"><img src="~/images/20959.png" alt=""></span>
-                                </div>
-                            </div>
-                            <div class="u-container-style u-grey-5 u-layout-cell u-radius u-shape-round u-size-20 u-layout-cell-2" data-animation-name="flipIn" data-animation-duration="2000" data-animation-delay="0" data-animation-direction="X">
-                                <div class="u-container-layout u-valign-bottom u-container-layout-2">
-                                    <p class="u-text u-text-default u-text-4">@SharedResource.CuttingEdgePrograms</p>
-                                    <div class="u-social-icons u-social-icons-1">
-                                        <a class="u-social-url" title="facebook" target="_blank" href="https://facebook.com/name">
-                                            <span class="u-icon u-social-facebook u-social-icon u-text-black u-icon-2">
-                                                <svg class="u-svg-link" preserveAspectRatio="xMidYMin slice" viewBox="0 0 112 112" style=""><use xlink:href="#svg-765c"></use></svg>
-                                                <svg class="u-svg-content" viewBox="0 0 112 112" x="0" y="0" id="svg-765c">
-                                                    <circle fill="currentColor" cx="56.1" cy="56.1" r="55"></circle>
-                                                    <path fill="#FFFFFF" d="M73.5,31.6h-9.1c-1.4,0-3.6,0.8-3.6,3.9v8.5h12.6L72,58.3H60.8v40.8H43.9V58.3h-8V43.9h8v-9.2
-c0-6.7,3.1-17,17-17h12.5v13.9H73.5z"></path>
-                                                </svg>
-                                            </span>
-                                        </a>
-                                        <a class="u-social-url" title="twitter" target="_blank" href="https://twitter.com/name">
-                                            <span class="u-icon u-social-icon u-social-twitter u-text-black u-icon-3">
-                                                <svg class="u-svg-link" preserveAspectRatio="xMidYMin slice" viewBox="0 0 112.2 112.2" style=""><use xlink:href="#svg-fbc8"></use></svg>
-                                                <svg class="u-svg-content" viewBox="0 0 112.2 112.2" x="0px" y="0px" id="svg-fbc8">
-                                                    <circle fill="currentColor" cx="56" cy="56" r="55"></circle>
-                                                    <path fill="#FFFFFF" d="M63.9,51l22.4-24h-8.6L60.3,45.9L46.9,27H24l23.3,32.8L24,85h8.2L51,64.9L65.3,85H88L63.9,51z M55.3,60.2
-l-3.7-5.1L35.7,33.1h8.1l12.3,17.2l3.7,5.1l16.6,23.4h-7.8L55.3,60.2z"></path>
-                                                </svg>
-                                            </span>
-                                        </a>
-                                        <a class="u-social-url" title="instagram" target="_blank" href="https://instagram.com/name">
-                                            <span class="u-icon u-social-icon u-social-instagram u-text-black u-icon-4">
-                                                <svg class="u-svg-link" preserveAspectRatio="xMidYMin slice" viewBox="0 0 112 112" style=""><use xlink:href="#svg-b115"></use></svg>
-                                                <svg class="u-svg-content" viewBox="0 0 112 112" x="0" y="0" id="svg-b115">
-                                                    <circle fill="currentColor" cx="56.1" cy="56.1" r="55"></circle>
-                                                    <path fill="#FFFFFF" d="M55.9,38.2c-9.9,0-17.9,8-17.9,17.9C38,66,46,74,55.9,74c9.9,0,17.9-8,17.9-17.9C73.8,46.2,65.8,38.2,55.9,38.2
-z M55.9,66.4c-5.7,0-10.3-4.6-10.3-10.3c-0.1-5.7,4.6-10.3,10.3-10.3c5.7,0,10.3,4.6,10.3,10.3C66.2,61.8,61.6,66.4,55.9,66.4z"></path>
-                                                    <path fill="#FFFFFF" d="M74.3,33.5c-2.3,0-4.2,1.9-4.2,4.2s1.9,4.2,4.2,4.2s4.2-1.9,4.2-4.2S76.6,33.5,74.3,33.5z"></path>
-                                                    <path fill="#FFFFFF" d="M73.1,21.3H38.6c-9.7,0-17.5,7.9-17.5,17.5v34.5c0,9.7,7.9,17.6,17.5,17.6h34.5c9.7,0,17.5-7.9,17.5-17.5V38.8
-C90.6,29.1,82.7,21.3,73.1,21.3z M83,73.3c0,5.5-4.5,9.9-9.9,9.9H38.6c-5.5,0-9.9-4.5-9.9-9.9V38.8c0-5.5,4.5-9.9,9.9-9.9h34.5
-c5.5,0,9.9,4.5,9.9,9.9V73.3z"></path>
-                                                </svg>
-                                            </span>
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="u-size-30">
-                        <div class="u-layout-row">
-                            <div class="u-container-style u-grey-5 u-layout-cell u-radius u-shape-round u-size-20 u-layout-cell-3" data-animation-name="flipIn" 
-                            data-animation-duration="2000" data-animation-delay="0" data-animation-direction="X">
-                                <div class="u-container-layout u-valign-middle u-container-layout-3">
-                                    <h4 class="u-text u-text-5">@SharedResource.WhtYouWhateFor</h4>
-                                    <a href="#" class="u-black u-border-none u-btn u-button-style u-btn-1">@SharedResource.getStarted </a>
-                                </div>
-                            </div>
-   
-                            <div class="u-container-align-center u-container-style u-image u-image-round u-layout-cell u-radius u-size-40 u-image-1"
-                                 data-image-width="425" data-image-height="283" data-animation-name="customAnimationIn" 
-                                 data-animation-duration="2000" data-animation-delay="0" style="will-change: transform, opacity; animation-duration: 2000ms;">
-                                <div class="u-container-layout u-container-layout-4"></div>
-                                   
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-    <section class="u-clearfix u-container-align-center u-section-2" id="sec-008c">
-        <div class="u-clearfix u-sheet u-valign-middle u-sheet-1">
-            <h2 class="u-align-center u-text u-text-default u-text-1">@SharedResource.UnlockPotential</h2>
-            <p class="u-align-center u-text u-text-2">@SharedResource.DynamicCurriculum</p>
-            <a href="#" class="u-black u-border-none u-btn u-button-style u-btn-1">@SharedResource.contact  </a>
-        </div>
-    </section>
-    <section class="skrollable u-clearfix u-image u-parallax u-section-3" id="sec-3c99" data-image-width="425"
-    data-image-height="283">
-        
-        <div class="u-clearfix u-sheet u-sheet-1">
-            
-            <div class="u-container-style u-group u-radius u-shape-round u-white u-group-1" data-animation-name="customAnimationIn" data-animation-duration="2000" data-animation-delay="0">
-                
-                <div class="u-container-layout u-valign-top u-container-layout-1">
-                    <h3 class="u-text u-text-default u-text-1">@SharedResource.HandsOnWorkshops</h3>
-                    <p class="u-text u-text-default u-text-2"> @SharedResource.EngagingSessions</p><span class="u-file-icon u-icon u-icon-1" data-href="#">
-                        <img src="~/images/20959.png" alt=""></span>
-                </div>
-            </div>
-        </div>
-    </section>
-    <section class="skrollable u-clearfix u-container-align-center u-image u-parallax u-section-4" id="sec-94b6" data-image-width="425" data-image-height="283">
-        <div class="u-clearfix u-sheet u-sheet-1"></div>
-    </section>
-    <section class="u-clearfix u-valign-middle u-section-5" id="sec-2daa">
-        <div class="data-layout-selected u-clearfix u-expanded-width u-gutter-30 u-layout-wrap u-layout-wrap-1">
-            <div class="u-layout">
-                <div class="u-layout-row">
-                    <div class="u-container-align-center u-container-style u-image u-image-round u-layout-cell u-radius u-size-40 u-image-1" data-image-width="425" data-image-height="239" data-animation-name="customAnimationIn" data-animation-duration="2000" data-animation-delay="0">
-                        <div class="u-container-layout u-container-layout-1"></div>
-                    </div>
-                    <div class="u-container-align-left u-container-style u-grey-5 u-layout-cell u-radius u-shape-round u-size-20 u-layout-cell-2" data-animation-name="flipIn" data-animation-duration="2000" data-animation-delay="0" data-animation-direction="X">
-                        <div class="u-container-layout u-valign-middle u-container-layout-2">
-                            <ul class="u-align-left u-custom-font u-custom-list u-file-icon u-font-montserrat u-spacing-10 u-text u-text-default u-text-1">
-                                <li style="padding-left: 10px;">
-                                    <div class="u-list-icon">
-                                        <img src="~/images/35243881.png" alt="">
-                                    </div> @SharedResource.MathematicsExcellence
-                                </li>
-                                <li style="padding-left: 10px;">
-                                    <div class="u-list-icon">
-                                        <img src="~/images/35243881.png" alt="">
-                                    </div>@SharedResource.ScienceDiscovery
-                                </li>
-                                <li style="padding-left: 10px;">
-                                    <div class="u-list-icon">
-                                        <img src="~/images/35243881.png" alt="">
-                                    </div>@SharedResource.LanguageMastery
-                                </li>
-                                <li style="padding-left: 10px;">
-                                    <div class="u-list-icon">
-                                        <img src="~/images/35243881.png" alt="">
-                                    </div>@SharedResource.CodingAcademy
-                                </li>
-                                <li style="padding-left: 10px;">
-                                    <div class="u-list-icon">
-                                        <img src="~/images/35243881.png" alt="">
-                                    </div>@SharedResource.CriticalThinking
-                                </li>
-                                <li style="padding-left: 10px;">
-                                    <div class="u-list-icon">
-                                        <img src="~/images/35243881.png" alt="">
-                                    </div>@SharedResource.CreativeArts
-                                </li>
-                            </ul>
-                            <p class="u-align-left u-text u-text-2"></p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-    <section class="u-clearfix u-container-align-left u-section-6" id="sec-b8a6">
-        <div class="u-clearfix u-sheet u-sheet-1">
-            <div class="data-layout-selected u-clearfix u-expanded-width u-gutter-30 u-layout-wrap u-layout-wrap-1">
-                <div class="u-layout">
-                    <div class="u-layout-row">
-                        <div class="u-container-style u-layout-cell u-size-20 u-layout-cell-1">
-                            <div class="u-container-layout u-valign-top u-container-layout-1">
-                                <div class="u-container-align-left u-container-style u-expanded-width u-grey-5 u-group u-radius u-shape-round u-group-1" data-animation-name="flipIn" data-animation-duration="2000" data-animation-delay="0" data-animation-direction="X">
-                                    <div class="u-container-layout u-valign-middle u-container-layout-2">
-                                        <h5 class="u-align-left u-text u-text-default u-text-1"> @SharedResource.InspireMind </h5>
-                                        <p class="u-align-left u-text u-text-default u-text-2">@SharedResource.CaptivatingLessons</p>
-                                    </div>
-                                </div>
-                                <img class="u-image u-image-circle u-image-1" src="~/images/portrait-robot-scifi.jpg" alt="" data-image-width="2000" data-image-height="2926" data-animation-name="customAnimationIn" data-animation-duration="2000" data-animation-delay="0">
-                                <p class="u-text u-text-3">@SharedResource.CaptivatingLessons</p><span class="u-file-icon u-icon u-icon-1" data-href="#"><img src="~/images/20959.png" alt=""></span>
-                            </div>
-                        </div>
-                        <div class="u-container-align-center u-container-style u-layout-cell u-size-20 u-layout-cell-2">
-                            <div class="u-container-layout u-valign-middle u-container-layout-3">
-                                <div class="u-container-align-left u-container-style u-expanded-width u-grey-5 u-group u-radius u-shape-round u-group-2" data-animation-name="flipIn" data-animation-duration="2000" data-animation-delay="0" data-animation-direction="X">
-                                    <div class="u-container-layout u-valign-middle u-container-layout-4">
-                                        <h5 class="u-align-left u-text u-text-default u-text-4">@SharedResource.InnovativeTeaching</h5>
-                                        <p class="u-align-left u-text u-text-default u-text-5">@SharedResource.ModernMethods</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="u-container-style u-layout-cell u-size-20 u-layout-cell-3">
-                            <div class="u-container-layout u-container-layout-5">
-                                <p class="u-text u-text-default u-text-6">@SharedResource.DiverseCourses</p>
-                                <div class="u-container-align-left u-container-style u-expanded-width-sm u-expanded-width-xs u-grey-5 u-group u-radius u-shape-round u-group-3" data-animation-name="flipIn" data-animation-duration="2000" data-animation-delay="0" data-animation-direction="X">
-                                    <div class="u-container-layout u-valign-middle u-container-layout-6">
-                                        <h5 class="u-align-left u-text u-text-default u-text-7"> @SharedResource.LifelongLearning</h5>
-                                        <p class="u-align-left u-text u-text-default u-text-8">@SharedResource.ComprehensivePrograms</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-    <section class="u-clearfix u-grey-5 u-valign-middle u-section-7" id="sec-dd8f">
-        <h2 class="u-align-center u-text u-text-default u-text-1">@SharedResource.ElevateSkills</h2>
-        <div class="data-layout-selected u-clearfix u-expanded-width u-layout-wrap u-layout-wrap-1">
-            <div class="u-layout">
-                <div class="u-layout-row">
-                    <div class="u-container-style u-layout-cell u-size-30 u-layout-cell-1">
-                        <div class="u-container-layout u-valign-middle u-container-layout-1">
-                            <div class="u-expanded-width u-list u-list-1">
-                                <div class="u-repeater u-repeater-1">
-                                    <div class="u-border-1 u-border-grey-40 u-border-no-left u-border-no-right u-border-no-top u-container-style u-list-item u-repeater-item">
-                                        <div class="u-container-layout u-similar-container u-container-layout-2">
-                                            <span class="u-align-left u-file-icon u-icon u-icon-rounded u-palette-1-base u-radius u-text-white u-icon-1"><img src="~/images/3483127-d1c058cb.png" alt=""></span>
-                                            <h5 class="u-text u-text-default u-text-2">@SharedResource.MasterFundamentals</h5>
-                                            <p class="u-text u-text-3"> @SharedResource.TailoredCourses</p>
-                                        </div>
-                                    </div>
-                                    <div class="u-border-1 u-border-grey-40 u-border-no-left u-border-no-right u-border-no-top u-container-style u-list-item u-repeater-item">
-                                        <div class="u-container-layout u-similar-container u-container-layout-3">
-                                            <span class="u-align-left u-file-icon u-icon u-icon-rounded u-palette-1-base u-radius u-text-white u-icon-2"><img src="~/images/8593364-08248f1e.png" alt=""></span>
-                                            <h5 class="u-text u-text-default u-text-4"> @SharedResource.PersonalizedEducation<</h5>
-                                            <p class="u-text u-text-5"> @SharedResource.CustomizedPath</p>
-                                        </div>
-                                    </div>
-                                    <div class="u-border-1 u-border-grey-40 u-border-no-left u-border-no-right u-border-no-top u-container-style u-list-item u-repeater-item">
-                                        <div class="u-container-layout u-similar-container u-container-layout-4">
-                                            <span class="u-align-left u-file-icon u-icon u-icon-rounded u-palette-1-base u-radius u-text-white u-icon-3"><img src="~/images/2591945-7b224637.png" alt=""></span>
-                                            <h5 class="u-text u-text-default u-text-6"> @SharedResource.HolisticSkillBuilding</h5>
-                                            <p class="u-text u-text-7">@SharedResource.EssentialSkills</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="u-container-align-center u-container-style u-image u-image-round u-layout-cell u-radius u-size-30 u-image-1" data-image-width="425" data-image-height="283" data-animation-name="customAnimationIn" data-animation-duration="2000" data-animation-delay="0">
-                        <div class="u-container-layout u-container-layout-5"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-    <section class="u-clearfix u-container-align-left u-section-8" id="sec-ec68">
-        <div class="u-clearfix u-sheet u-valign-middle u-sheet-1">
-            <div class="u-accordion u-expanded-width u-faq u-accordion-1" role="tablist">
-                <div class="u-accordion-item">
-                    <a class="active u-accordion-link u-button-style u-custom-font u-font-montserrat u-text-body-color u-accordion-link-1" id="link-" aria-controls="" aria-selected="true" role="tab">
-                        <span class="u-accordion-link-text">  
-                            1. @SharedResource.FAQ1Question?
-                        </span><span class="u-accordion-link-icon u-black u-icon u-icon-rounded u-radius u-text-white u-icon-1">
-                            <svg class="u-svg-link" preserveAspectRatio="xMidYMin slice" viewBox="0 0 16 16" style=""><use xlink:href="#svg-2164"></use></svg>
-                            <svg class="u-svg-content" viewBox="0 0 16 16" x="0px" y="0px" id="svg-2164">
-                                <path d="M8,10.7L1.6,5.3c-0.4-0.4-1-0.4-1.3,0c-0.4,0.4-0.4,0.9,0,1.3l7.2,6.1c0.1,0.1,0.4,0.2,0.6,0.2s0.4-0.1,0.6-0.2l7.1-6
-	c0.4-0.4,0.4-0.9,0-1.3c-0.4-0.4-1-0.4-1.3,0L8,10.7z"></path>
-                            </svg>
-                        </span>
-                    </a>
-                    <div class="u-accordion-active u-accordion-pane u-container-style u-accordion-pane-1" aria-labelledby="link-" role="tabpanel">
-                        <div class="u-container-layout u-container-layout-1">
-                            <div class="fr-view u-clearfix u-rich-text u-text">
-                                <p>@SharedResource.FAQ1Answer.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="u-accordion-item">
-                    <a class="u-accordion-link u-button-style u-custom-font u-font-montserrat u-text-body-color u-accordion-link-2" id="link-" aria-controls="" aria-selected="false" role="tab">
-                        <span class="u-accordion-link-text">
-                            2. @SharedResource.FAQ2Question?
-                        </span><span class="u-accordion-link-icon u-black u-icon u-icon-rounded u-radius u-text-white u-icon-2">
-                            <svg class="u-svg-link" preserveAspectRatio="xMidYMin slice" viewBox="0 0 16 16" style=""><use xlink:href="#svg-b44f"></use></svg>
-                            <svg class="u-svg-content" viewBox="0 0 16 16" x="0px" y="0px" id="svg-b44f">
-                                <path d="M8,10.7L1.6,5.3c-0.4-0.4-1-0.4-1.3,0c-0.4,0.4-0.4,0.9,0,1.3l7.2,6.1c0.1,0.1,0.4,0.2,0.6,0.2s0.4-0.1,0.6-0.2l7.1-6
-	c0.4-0.4,0.4-0.9,0-1.3c-0.4-0.4-1-0.4-1.3,0L8,10.7z"></path>
-                            </svg>
-                        </span>
-                    </a>
-                    <div class="u-accordion-pane u-container-style u-accordion-pane-2" id="" aria-labelledby="link-" role="tabpanel">
-                        <div class="u-container-layout u-container-layout-2">
-                            <div class="fr-view u-clearfix u-rich-text u-text">
-                                <p>@SharedResource.FAQ2Answer.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="u-accordion-item">
-                    <a class="u-accordion-link u-button-style u-custom-font u-font-montserrat u-text-body-color u-accordion-link-3" id="link-" aria-controls="" aria-selected="false" role="tab">
-                        <span class="u-accordion-link-text">
+/* ── Reset & Base ──────────────────────────────────────────── */
+*, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+html { scroll-behavior:smooth; }
+body { font-family:'Segoe UI',system-ui,sans-serif; color:var(--t2); background:#fff; overflow-x:hidden; }
+a { text-decoration:none; }
+img { max-width:100%; }
 
-                            3. @SharedResource.FAQ3Question?
-                        </span><span class="u-accordion-link-icon u-black u-icon u-icon-rounded u-radius u-text-white u-icon-3">
-                            <svg class="u-svg-link" preserveAspectRatio="xMidYMin slice" viewBox="0 0 16 16" style=""><use xlink:href="#svg-f783"></use></svg>
-                            <svg class="u-svg-content" viewBox="0 0 16 16" x="0px" y="0px" id="svg-f783">
-                                <path d="M8,10.7L1.6,5.3c-0.4-0.4-1-0.4-1.3,0c-0.4,0.4-0.4,0.9,0,1.3l7.2,6.1c0.1,0.1,0.4,0.2,0.6,0.2s0.4-0.1,0.6-0.2l7.1-6
-	c0.4-0.4,0.4-0.9,0-1.3c-0.4-0.4-1-0.4-1.3,0L8,10.7z"></path>
-                            </svg>
-                        </span>
-                    </a>
-                    <div class="u-accordion-pane u-container-style u-accordion-pane-3" aria-labelledby="link-" role="tabpanel">
-                        <div class="u-container-layout u-container-layout-3">
-                            <div class="u-clearfix u-rich-text u-text">
-                                <p>@SharedResource.FAQ3Answer.</p>
-                            </div>
-                        </div>
-                    </div>
+/* ── Hero ──────────────────────────────────────────────────── */
+.hero {
+    position:relative; min-height:100vh; display:flex; align-items:center;
+    background:linear-gradient(135deg,#0f172a 0%,#1e1b4b 40%,#312e81 70%,#4f46e5 100%);
+    overflow:hidden; direction:rtl;
+}
+.hero-bg-dots {
+    position:absolute; inset:0; opacity:.15;
+    background-image:radial-gradient(circle, #ffffff 1px, transparent 1px);
+    background-size:32px 32px;
+}
+.hero-glow {
+    position:absolute; width:600px; height:600px; border-radius:50%;
+    background:radial-gradient(circle,rgba(99,102,241,.4),transparent 70%);
+    top:-100px; left:-100px; pointer-events:none;
+}
+.hero-glow-2 {
+    position:absolute; width:400px; height:400px; border-radius:50%;
+    background:radial-gradient(circle,rgba(245,158,11,.2),transparent 70%);
+    bottom:-100px; right:10%; pointer-events:none;
+}
+.hero-container { position:relative; z-index:2; max-width:1200px; margin:0 auto; padding:0 32px; display:grid; grid-template-columns:1fr 1fr; gap:64px; align-items:center; width:100%; }
+.hero-badge { display:inline-flex; align-items:center; gap:8px; background:rgba(255,255,255,.1); backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,.2); color:#a5b4fc; font-size:.78rem; font-weight:600; padding:6px 14px; border-radius:20px; margin-bottom:20px; letter-spacing:.04em; }
+.hero-title { font-size:3.2rem; font-weight:900; color:#fff; line-height:1.15; margin-bottom:20px; }
+.hero-title span { background:linear-gradient(90deg,#a5b4fc,#f9a8d4); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+.hero-desc { font-size:1.05rem; color:#cbd5e1; line-height:1.8; margin-bottom:32px; }
+.hero-btns { display:flex; gap:14px; flex-wrap:wrap; }
+.hero-btn-primary { padding:13px 28px; background:linear-gradient(135deg,var(--pr),var(--pr-l)); color:#fff; border-radius:10px; font-weight:700; font-size:.95rem; transition:all .2s; display:inline-flex; align-items:center; gap:8px; box-shadow:0 4px 20px rgba(79,70,229,.4); }
+.hero-btn-primary:hover { transform:translateY(-2px); box-shadow:0 8px 28px rgba(79,70,229,.5); color:#fff; }
+.hero-btn-secondary { padding:13px 28px; background:rgba(255,255,255,.1); backdrop-filter:blur(10px); color:#fff; border-radius:10px; font-weight:600; font-size:.95rem; border:1px solid rgba(255,255,255,.25); transition:all .2s; display:inline-flex; align-items:center; gap:8px; }
+.hero-btn-secondary:hover { background:rgba(255,255,255,.2); color:#fff; transform:translateY(-2px); }
+.hero-stats { display:flex; gap:28px; margin-top:40px; flex-wrap:wrap; }
+.hero-stat { text-align:center; }
+.hero-stat-val { font-size:1.8rem; font-weight:900; color:#fff; display:block; }
+.hero-stat-lbl { font-size:.72rem; color:#94a3b8; font-weight:500; margin-top:2px; }
+.hero-stat-divider { width:1px; background:rgba(255,255,255,.15); align-self:stretch; }
+
+/* Hero visual */
+.hero-visual { display:flex; justify-content:center; align-items:center; position:relative; }
+.hero-card-stack { position:relative; width:380px; height:420px; }
+.hcard { position:absolute; border-radius:var(--radius); overflow:hidden; box-shadow:0 20px 60px rgba(0,0,0,.4); }
+.hcard-main { width:280px; height:340px; top:40px; right:40px; background:linear-gradient(135deg,#1e293b,#0f172a); border:1px solid rgba(255,255,255,.1); display:flex; flex-direction:column; padding:20px; }
+.hcard-thumb { width:100%; height:140px; border-radius:10px; object-fit:cover; background:linear-gradient(135deg,#4f46e5,#7c3aed); margin-bottom:14px; display:flex; align-items:center; justify-content:center; overflow:hidden; }
+.hcard-thumb img { width:100%; height:100%; object-fit:cover; }
+.hcard-thumb-fallback { font-size:2.5rem; color:rgba(255,255,255,.6); }
+.hcard-title { font-size:.9rem; font-weight:700; color:#f1f5f9; margin-bottom:6px; }
+.hcard-sub { font-size:.72rem; color:#64748b; margin-bottom:12px; }
+.hcard-price { font-size:1.1rem; font-weight:800; color:#a5b4fc; }
+.hcard-float { width:160px; height:80px; top:0; right:0; background:linear-gradient(135deg,#4f46e5,#7c3aed); display:flex; align-items:center; justify-content:center; gap:10px; padding:16px; border-radius:12px; }
+.hcard-float2 { width:140px; height:70px; bottom:20px; right:0; background:linear-gradient(135deg,#f59e0b,#ef4444); display:flex; align-items:center; justify-content:center; gap:10px; padding:14px; border-radius:12px; }
+.hcard-float-icon { font-size:1.4rem; color:#fff; flex-shrink:0; }
+.hcard-float-val { font-size:1.1rem; font-weight:800; color:#fff; line-height:1; }
+.hcard-float-lbl { font-size:.65rem; color:rgba(255,255,255,.7); }
+
+/* floating animation */
+@@keyframes floatUp { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-14px)} }
+.hero-visual { animation:floatUp 6s ease-in-out infinite; }
+
+/* ── Section Shared ──────────────────────────────────────────── */
+.section { padding:80px 0; }
+.section-alt { background:var(--bg); }
+.container { max-width:1200px; margin:0 auto; padding:0 32px; }
+.section-head { text-align:center; margin-bottom:56px; direction:rtl; }
+.section-tag { display:inline-flex; align-items:center; gap:6px; background:var(--pr-pale); color:var(--pr); font-size:.75rem; font-weight:700; padding:5px 14px; border-radius:20px; margin-bottom:12px; letter-spacing:.04em; }
+.section-title { font-size:2.2rem; font-weight:900; color:var(--t1); margin-bottom:12px; line-height:1.25; }
+.section-sub { font-size:1rem; color:var(--t3); max-width:560px; margin:0 auto; line-height:1.7; }
+
+/* ── Stats Strip ──────────────────────────────────────────────── */
+.stats-strip { background:linear-gradient(135deg,#1e1b4b,#312e81); padding:60px 0; }
+.stats-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:32px; direction:rtl; }
+.stat-item { text-align:center; }
+.stat-num { font-size:2.6rem; font-weight:900; color:#fff; display:block; line-height:1; }
+.stat-num-suffix { font-size:1.4rem; color:#a5b4fc; }
+.stat-lbl { font-size:.8rem; color:#a5b4fc; font-weight:600; margin-top:8px; letter-spacing:.04em; }
+.stat-icon { font-size:1.6rem; color:#6366f1; margin-bottom:10px; }
+
+/* ── Course Cards ──────────────────────────────────────────────── */
+.courses-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:24px; direction:rtl; }
+.course-card { background:var(--card); border-radius:var(--radius); border:1px solid var(--border); box-shadow:var(--shadow); overflow:hidden; transition:all .25s; display:flex; flex-direction:column; }
+.course-card:hover { transform:translateY(-6px); box-shadow:0 16px 48px rgba(79,70,229,.14); border-color:#c7d2fe; }
+.course-thumb { height:180px; overflow:hidden; position:relative; }
+.course-thumb img { width:100%; height:100%; object-fit:cover; transition:transform .4s; }
+.course-card:hover .course-thumb img { transform:scale(1.05); }
+.course-thumb-fallback { width:100%; height:100%; background:linear-gradient(135deg,var(--pr),var(--pr-l)); display:flex; align-items:center; justify-content:center; font-size:2.5rem; color:rgba(255,255,255,.4); }
+.course-badge-wrap { position:absolute; top:12px; right:12px; display:flex; flex-direction:column; gap:5px; }
+.c-badge { font-size:.65rem; font-weight:700; padding:3px 9px; border-radius:10px; }
+.c-badge-featured { background:#f59e0b; color:#fff; }
+.c-badge-new { background:var(--pr); color:#fff; }
+.course-body { padding:20px; flex:1; display:flex; flex-direction:column; }
+.course-category { font-size:.7rem; font-weight:700; color:var(--pr); text-transform:uppercase; letter-spacing:.06em; margin-bottom:8px; }
+.course-title { font-size:1rem; font-weight:700; color:var(--t1); margin-bottom:10px; line-height:1.4; }
+.course-meta { display:flex; align-items:center; gap:14px; font-size:.75rem; color:var(--t4); margin-bottom:14px; flex-wrap:wrap; }
+.course-meta i { color:var(--pr); font-size:.7rem; }
+.course-stars { display:flex; align-items:center; gap:3px; margin-bottom:12px; }
+.star { color:#f59e0b; font-size:.75rem; }
+.star-empty { color:#e2e8f0; font-size:.75rem; }
+.star-count { font-size:.72rem; color:var(--t4); margin-right:5px; }
+.course-footer { display:flex; align-items:center; justify-content:space-between; padding-top:14px; border-top:1px solid var(--border); margin-top:auto; }
+.course-price { font-size:1.2rem; font-weight:800; color:var(--pr); }
+.course-price-currency { font-size:.75rem; font-weight:600; color:var(--t4); margin-right:3px; }
+.btn-enroll { padding:7px 16px; background:var(--pr-pale); color:var(--pr); border-radius:8px; font-size:.8rem; font-weight:700; transition:all .2s; }
+.btn-enroll:hover { background:var(--pr); color:#fff; }
+
+/* ── Features ──────────────────────────────────────────────── */
+.features-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:28px; direction:rtl; }
+.feature-card { background:var(--card); border-radius:var(--radius); border:1px solid var(--border); padding:32px 28px; text-align:center; transition:all .25s; }
+.feature-card:hover { transform:translateY(-4px); box-shadow:var(--shadow); border-color:#c7d2fe; }
+.feature-icon-wrap { width:64px; height:64px; border-radius:16px; display:flex; align-items:center; justify-content:center; font-size:1.6rem; margin:0 auto 18px; }
+.feature-title { font-size:1.05rem; font-weight:700; color:var(--t1); margin-bottom:10px; }
+.feature-desc { font-size:.85rem; color:var(--t3); line-height:1.7; }
+
+/* ── Trainers ──────────────────────────────────────────────── */
+.trainers-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:20px; direction:rtl; }
+.trainer-card { background:var(--card); border-radius:var(--radius); border:1px solid var(--border); padding:28px 20px; text-align:center; transition:all .25s; }
+.trainer-card:hover { transform:translateY(-4px); box-shadow:var(--shadow); border-color:#c7d2fe; }
+.trainer-avatar { width:80px; height:80px; border-radius:50%; object-fit:cover; border:3px solid var(--border); margin:0 auto 14px; transition:border-color .2s; display:block; }
+.trainer-card:hover .trainer-avatar { border-color:#a5b4fc; }
+.trainer-name { font-size:.95rem; font-weight:700; color:var(--t1); margin-bottom:4px; }
+.trainer-spec { font-size:.75rem; color:var(--pr); font-weight:600; background:var(--pr-pale); padding:3px 10px; border-radius:10px; display:inline-block; margin-bottom:8px; }
+.trainer-courses { font-size:.72rem; color:var(--t4); }
+
+/* ── Process Steps ──────────────────────────────────────────── */
+.steps-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:24px; direction:rtl; position:relative; }
+.steps-grid::before { content:''; position:absolute; top:36px; right:12.5%; left:12.5%; height:2px; background:linear-gradient(90deg,var(--pr),var(--pr-l)); opacity:.2; }
+.step-card { text-align:center; position:relative; padding:0 12px; }
+.step-num { width:56px; height:56px; border-radius:50%; background:linear-gradient(135deg,var(--pr),var(--pr-l)); color:#fff; font-size:1.3rem; font-weight:900; display:flex; align-items:center; justify-content:center; margin:0 auto 16px; box-shadow:0 4px 16px rgba(79,70,229,.35); }
+.step-title { font-size:.95rem; font-weight:700; color:var(--t1); margin-bottom:8px; }
+.step-desc { font-size:.82rem; color:var(--t3); line-height:1.6; }
+
+/* ── Testimonials ──────────────────────────────────────────── */
+.testimonials-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:24px; direction:rtl; }
+.testimonial-card { background:var(--card); border-radius:var(--radius); border:1px solid var(--border); padding:28px; box-shadow:var(--shadow); position:relative; }
+.testimonial-card::before { content:'"'; position:absolute; top:16px; right:20px; font-size:4rem; color:var(--pr-pale); font-family:serif; line-height:1; }
+.testimonial-text { font-size:.88rem; color:var(--t2); line-height:1.8; margin-bottom:20px; font-style:italic; }
+.testimonial-author { display:flex; align-items:center; gap:12px; }
+.testimonial-avatar { width:42px; height:42px; border-radius:50%; object-fit:cover; border:2px solid var(--border); }
+.testimonial-name { font-size:.85rem; font-weight:700; color:var(--t1); }
+.testimonial-role { font-size:.72rem; color:var(--t4); }
+.testimonial-stars { display:flex; gap:2px; margin-bottom:12px; }
+
+/* ── CTA Banner ──────────────────────────────────────────────── */
+.cta-banner { background:linear-gradient(135deg,#1e1b4b 0%,#4f46e5 50%,#7c3aed 100%); border-radius:24px; padding:64px 48px; text-align:center; position:relative; overflow:hidden; direction:rtl; }
+.cta-banner::before { content:''; position:absolute; inset:0; background-image:radial-gradient(circle,rgba(255,255,255,.06) 1px,transparent 1px); background-size:24px 24px; }
+.cta-title { font-size:2.4rem; font-weight:900; color:#fff; margin-bottom:16px; position:relative; }
+.cta-sub { font-size:1rem; color:#c7d2fe; margin-bottom:32px; position:relative; }
+.cta-btns { display:flex; gap:14px; justify-content:center; flex-wrap:wrap; position:relative; }
+.cta-btn-white { padding:13px 32px; background:#fff; color:var(--pr); border-radius:10px; font-weight:700; font-size:.95rem; transition:all .2s; display:inline-flex; align-items:center; gap:8px; }
+.cta-btn-white:hover { background:#f1f5f9; transform:translateY(-2px); color:var(--pr-d); }
+.cta-btn-outline { padding:13px 32px; background:transparent; color:#fff; border:2px solid rgba(255,255,255,.4); border-radius:10px; font-weight:600; font-size:.95rem; transition:all .2s; display:inline-flex; align-items:center; gap:8px; }
+.cta-btn-outline:hover { background:rgba(255,255,255,.1); transform:translateY(-2px); }
+
+/* ── Responsive ──────────────────────────────────────────────── */
+@@media(max-width:900px) {
+    .hero-container { grid-template-columns:1fr; gap:32px; text-align:center; }
+    .hero-visual { display:none; }
+    .hero-title { font-size:2.2rem; }
+    .hero-btns { justify-content:center; }
+    .hero-stats { justify-content:center; }
+    .stats-grid { grid-template-columns:repeat(3,1fr); }
+    .features-grid { grid-template-columns:1fr 1fr; }
+    .steps-grid { grid-template-columns:1fr 1fr; }
+    .testimonials-grid { grid-template-columns:1fr; }
+    .steps-grid::before { display:none; }
+}
+@@media(max-width:600px) {
+    .stats-grid { grid-template-columns:repeat(2,1fr); }
+    .features-grid { grid-template-columns:1fr; }
+    .steps-grid { grid-template-columns:1fr; }
+    .hero-title { font-size:1.8rem; }
+    .section-title { font-size:1.7rem; }
+    .cta-banner { padding:40px 24px; }
+    .cta-title { font-size:1.7rem; }
+}
+</style>
+}
+
+@* ─── HEADER ───────────────────────────────────── *@
+@await Html.PartialAsync("_LandingHeader")
+
+@* ─── HERO ────────────────────────────────────── *@
+<section class="hero">
+    <div class="hero-bg-dots"></div>
+    <div class="hero-glow"></div>
+    <div class="hero-glow-2"></div>
+    <div class="hero-container">
+        <div class="hero-content">
+            <div class="hero-badge">
+                <i class="fas fa-graduation-cap"></i>
+                <span>منصة التدريب المتكاملة #1</span>
+            </div>
+            <h1 class="hero-title">
+                ابدأ رحلتك<br>
+                نحو <span>المستقبل</span><br>
+                من هنا
+            </h1>
+            <p class="hero-desc">
+                منصة تدريبية متخصصة تجمع أفضل المدربين وأحدث المناهج.<br>
+                اكتسب المهارات التي يحتاجها سوق العمل واحصل على شهادات معتمدة.
+            </p>
+            <div class="hero-btns">
+                <a asp-action="Index" asp-controller="Courses" class="hero-btn-primary">
+                    <i class="fas fa-play-circle"></i> تصفح الكورسات
+                </a>
+                <a asp-action="Login" asp-controller="Account" class="hero-btn-secondary">
+                    <i class="fas fa-sign-in-alt"></i> تسجيل الدخول
+                </a>
+            </div>
+            <div class="hero-stats">
+                <div class="hero-stat">
+                    <span class="hero-stat-val">@Model.TotalCourses<span class="hero-stat-suffix" style="font-size:1.2rem;color:#a5b4fc">+</span></span>
+                    <span class="hero-stat-lbl">كورس متاح</span>
                 </div>
-                <div class="u-accordion-item">
-                    <a class="u-accordion-link u-button-style u-custom-font u-font-montserrat u-text-body-color u-accordion-link-4" id="link-ae24" aria-controls="ae24" aria-selected="false" role="tab">
-                        <span class="u-accordion-link-text">
-                            4. @SharedResource.FAQ4Question?
-                        </span><span class="u-accordion-link-icon u-black u-icon u-icon-rounded u-radius u-text-white u-icon-4">
-                            <svg class="u-svg-link" preserveAspectRatio="xMidYMin slice" viewBox="0 0 16 16" style=""><use xlink:href="#svg-1a33"></use></svg>
-                            <svg class="u-svg-content" viewBox="0 0 16 16" x="0px" y="0px" id="svg-1a33">
-                                <path d="M8,10.7L1.6,5.3c-0.4-0.4-1-0.4-1.3,0c-0.4,0.4-0.4,0.9,0,1.3l7.2,6.1c0.1,0.1,0.4,0.2,0.6,0.2s0.4-0.1,0.6-0.2l7.1-6
-	c0.4-0.4,0.4-0.9,0-1.3c-0.4-0.4-1-0.4-1.3,0L8,10.7z"></path>
-                            </svg>
-                        </span>
-                    </a>
-                    <div class="u-accordion-pane u-container-style u-accordion-pane-4" id="ae24" aria-labelledby="link-ae24" role="tabpanel">
-                        <div class="u-container-layout u-container-layout-4">
-                            <div class="u-clearfix u-rich-text u-text">
-                                <p>@SharedResource.FAQ4Answer</p>
-                            </div>
-                        </div>
-                    </div>
+                <div class="hero-stat-divider"></div>
+                <div class="hero-stat">
+                    <span class="hero-stat-val">@Model.TotalTrainees<span style="font-size:1.2rem;color:#a5b4fc">+</span></span>
+                    <span class="hero-stat-lbl">متدرب</span>
+                </div>
+                <div class="hero-stat-divider"></div>
+                <div class="hero-stat">
+                    <span class="hero-stat-val">@Model.TotalTrainers<span style="font-size:1.2rem;color:#a5b4fc">+</span></span>
+                    <span class="hero-stat-lbl">مدرب خبير</span>
+                </div>
+                <div class="hero-stat-divider"></div>
+                <div class="hero-stat">
+                    <span class="hero-stat-val">@Model.TotalCertificates<span style="font-size:1.2rem;color:#a5b4fc">+</span></span>
+                    <span class="hero-stat-lbl">شهادة ممنوحة</span>
                 </div>
             </div>
         </div>
-    </section>
-    <section class="u-clearfix u-grey-5 u-section-9" id="sec-b6ec">
-        <img class="u-expanded-width u-image u-image-round u-radius u-image-1" 
-        src="~/images/md-duran-1VqHRwxcCCw-unsplash.jpg" alt=""
-             data-image-width="425" data-image-height="305" data-animation-name="fadeIn" 
-        data-animation-duration="1000" data-animation-delay="0">
-        <div class="u-container-style u-group u-radius u-shape-round u-white u-group-1" data-animation-name="customAnimationIn" data-animation-duration="2000" data-animation-delay="0">
-            <div class="u-container-layout u-container-layout-1">
-                <span class="u-align-left u-file-icon u-icon u-text-palette-1-base u-icon-1">
-                    <img src="~/images/527995-73b227c5.png" alt=""></span>
-                <h2 class="u-text u-text-default u-text-1">@SharedResource.CuttingEdgeSolutions</h2>
-                <ul class="u-custom-font u-custom-list u-file-icon u-font-montserrat u-spacing-10 u-text u-text-2">
-                    <li style="padding-left: 10px;">
-                        <div class="u-list-icon">
-                            <img src="~/images/35243881.png" alt="">
-                        </div> @SharedResource.MathematicsExcellence
-                    </li>
-                    <li style="padding-left: 10px;">
-                        <div class="u-list-icon">
-                            <img src="~/images/35243881.png" alt="">
-                        </div>@SharedResource.ScienceDiscovery
-                    </li>
-                    <li style="padding-left: 10px;">
-                        <div class="u-list-icon">
-                            <img src="~/images/35243881.png" alt="">
-                        </div>@SharedResource.LanguageMastery
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </section>
-    <!-- //classes and subjects section -->
-    <!-- why choose block -->
-    <section class="w3l-service-1 py-5">
-        <div class="container py-md-5 py-4">
-            <div class="title-main text-center mx-auto mb-md-5 mb-4" style="max-width:500px;">
-                <p class="text-uppercase">@SharedResource.WhyChooseUs</p>
-                <h3 class="title-style">@SharedResource.EmpoweringLearners</h3>
-            </div>
-            <div class="row content23-col-2 text-center">
-                <div class="col-md-6">
-                    <div class="content23-grid content23-grid1">
-                        <h4>@SharedResource.ExpertMentors</h4>
-                        <p>@SharedResource.ProfessionalGuidance</p>
-                    </div>
-                </div>
-                <div class="col-md-6 mt-md-0 mt-4">
-                    <div class="content23-grid content23-grid2">
-                        <h4>@SharedResource.InspiringSpaces</h4>
-                        <p>@SharedResource.CollaborativeEnvironment</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-    <!-- //home image with content block -->
-    <!-- courses section -->
-    <div class="w3l-grids-block-5 home-course-bg py-5" id="courses">
-        <div class="container py-md-5 py-4">
-            <div class="title-main text-center mx-auto mb-md-5 mb-4" style="max-width:500px;">
-                <p class="text-uppercase">@SharedResource.BestCourses</p>
-                <h3 class="title-style">@SharedResource.FindRightCourse</h3>
-            </div>
-            <div class="row justify-content-center">
-                @if (Model.Courses.Any())
-                {
-                    foreach (var course in Model.Courses)
-                    {
-                        <div class="col-lg-4 col-md-6 mt-4">
-                            <div class="coursecard-single">
-                                <div class="grids5-info position-relative">
-                                    <img src="@Url.Content("~/images/classrom.jpg")" alt="Course Image" class="img-fluid" />
-                                    <div class="meta-list">
-                                        <span class="text-muted">@course.CourseName</span>
-                                    </div>
-                                </div>
-                                <div class="content-main-top">
-                                    <div class="content-top mb-4 mt-3">
-                                        <ul class="list-unstyled d-flex align-items-center justify-content-between">
-                                            <li><i class="fas fa-clock"></i> @course.Description @SharedResource.Weeks</li>
-                                        </ul>
-                                    </div>
-                                    <h4><span class="text-muted">@course.CreatedDate</span></h4>
-                                    <p>@course.Description</p>
-                                    <div class="top-content-border d-flex align-items-center justify-content-between mt-4 pt-4">
-                                        <h6>@course.Price</h6>
-                                        <span class="btn btn-style-primary disabled">@SharedResource.KnowDetails <i class="fas fa-arrow-right"></i></span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    }
+
+        <div class="hero-visual">
+            <div class="hero-card-stack">
+                @{
+                    var firstCourse = Model.FeaturedCourses.FirstOrDefault() ?? Model.Courses.FirstOrDefault();
                 }
-                else
-                {
-                    <p>@SharedResource.NoCoursesAvailable.</p>
-                }
-            </div>
-            <div class="text-center mt-sm-5 mt-4 pt-sm-0 pt-1">
-                <span class="btn btn-style btn-style-secondary disabled mt-sm-3">
-                    @SharedResource.BrowseMoreCourses
-                </span>
+                <div class="hcard hcard-main">
+                    <div class="hcard-thumb">
+                        @if (firstCourse != null && !string.IsNullOrEmpty(firstCourse.ThumbnailUrl))
+                        {
+                            <img src="@firstCourse.ThumbnailUrl" alt="@firstCourse.CourseName" />
+                        }
+                        else
+                        {
+                            <div class="hcard-thumb-fallback"><i class="fas fa-book-open"></i></div>
+                        }
+                    </div>
+                    <div class="hcard-title">@(firstCourse?.CourseName ?? "Python Basics")</div>
+                    <div class="hcard-sub">@(firstCourse?.Description?.Length > 60 ? firstCourse.Description[..60] + "…" : firstCourse?.Description ?? "برمجة احترافية")</div>
+                    <div class="hcard-price">$@(firstCourse?.Price.ToString("F0") ?? "49")</div>
+                </div>
+                <div class="hcard hcard-float">
+                    <div class="hcard-float-icon"><i class="fas fa-users"></i></div>
+                    <div>
+                        <div class="hcard-float-val">@Model.TotalTrainees+</div>
+                        <div class="hcard-float-lbl">طالب نشط</div>
+                    </div>
+                </div>
+                <div class="hcard hcard-float2">
+                    <div class="hcard-float-icon"><i class="fas fa-certificate"></i></div>
+                    <div>
+                        <div class="hcard-float-val">@Model.TotalCertificates+</div>
+                        <div class="hcard-float-lbl">شهادة</div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-    <!-- //stats block -->
-    <!-- testimonials block -->
-    <section class="w3l-index4 py-5" id="testimonials">
-        <div class="container py-md-5 py-4">
-            <div class="content-slider text-center">
-                <div class="clients-slider">
-                    <div class="mask">
-                        <ul>
-                            <li class="anim1">
-                                <img src="~/images/testi1.jpg" class="img-fluid rounded-circle" alt="client image" />
-                                <blockquote class="quote">
-                                    <q>@SharedResource.Testimonial1</q>
-                                </blockquote>
-                                <div class="source">@SharedResource.TestimonialAuthor1</div>
-                            </li>
+</section>
 
-                            <li class="anim2">
-                                <img src="~/images/testi2.jpg" class="img-fluid rounded-circle" alt="client image" />
-                                <blockquote class="quote">
-                                    <q>@SharedResource.Testimonial2</q>
-                                </blockquote>
-                                <div class="source">@SharedResource.TestimonialAuthor2</div>
-                            </li>
-
-                            <li class="anim3">
-                                <img src="~/images/testi3.jpg" class="img-fluid rounded-circle" alt="client image" />
-                                <blockquote class="quote">
-                                    <q>@SharedResource.Testimonial3</q>
-                                </blockquote>
-                                <div class="source">@SharedResource.TestimonialAuthor3</div>
-                            </li>
-
-                            <li class="anim4">
-                                <img src="~/images/testi1.jpg" class="img-fluid rounded-circle" alt="client image" />
-                                <blockquote class="quote">
-                                    <q>@SharedResource.Testimonial4</q>
-                                </blockquote>
-                                <div class="source">@SharedResource.TestimonialAuthor4</div>
-                            </li>
-
-                            <li class="anim5">
-                                <img src="~/images/testi2.jpg" class="img-fluid rounded-circle" alt="client image" />
-                                <blockquote class="quote">
-                                    <q>@SharedResource.Testimonial5</q>
-                                </blockquote>
-                                <div class="source">@SharedResource.TestimonialAuthor5</div>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
+@* ─── STATS STRIP ─────────────────────────────── *@
+<section class="stats-strip">
+    <div class="container">
+        <div class="stats-grid">
+            <div class="stat-item">
+                <div class="stat-icon"><i class="fas fa-book-open"></i></div>
+                <span class="stat-num">@Model.TotalCourses<span class="stat-num-suffix">+</span></span>
+                <div class="stat-lbl">كورس متاح</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-icon"><i class="fas fa-user-graduate"></i></div>
+                <span class="stat-num">@Model.TotalTrainees<span class="stat-num-suffix">+</span></span>
+                <div class="stat-lbl">متدرب مسجّل</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-icon"><i class="fas fa-chalkboard-teacher"></i></div>
+                <span class="stat-num">@Model.TotalTrainers<span class="stat-num-suffix">+</span></span>
+                <div class="stat-lbl">مدرب خبير</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-icon"><i class="fas fa-video"></i></div>
+                <span class="stat-num">@Model.TotalLectures<span class="stat-num-suffix">+</span></span>
+                <div class="stat-lbl">محاضرة تعليمية</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-icon"><i class="fas fa-certificate"></i></div>
+                <span class="stat-num">@Model.TotalCertificates<span class="stat-num-suffix">+</span></span>
+                <div class="stat-lbl">شهادة ممنوحة</div>
             </div>
         </div>
-    </section>
-    <section class="u-clearfix u-container-align-left u-section-10" id="carousel_8ce7">
-        <div class="u-clearfix u-sheet u-sheet-1">
-            <h3 class="u-align-left u-text u-text-1"> @SharedResource.ShapeAcademicFuture</h3>
-            <div class="u-expanded-width u-list u-list-1">
-                <div class="u-repeater u-repeater-1">
-                    <div class="u-container-align-center u-container-style u-grey-5 u-list-item u-radius u-repeater-item u-shape-round u-list-item-1" data-animation-name="flipIn" data-animation-duration="1000" data-animation-direction="X">
-                        <div class="u-container-layout u-similar-container u-valign-middle u-container-layout-1">
-                            <img class="u-image u-image-contain u-image-default u-image-1" src="~/images/logo4.png" alt="" data-image-width="274" data-image-height="131">
-                            <h5 class="u-align-center u-text u-text-default u-text-2"> @SharedResource.InteractiveLearningLabs</h5>
-                            <p class="u-align-center u-text u-text-default-lg u-text-default-md u-text-default-xl u-text-3">
-                                @SharedResource.HandsOnActivities
-                            </p>
-                        </div>
-                    </div>
-                    <div class="u-container-align-center u-container-style u-grey-5 u-list-item u-radius u-repeater-item u-shape-round u-list-item-2" data-animation-name="flipIn" data-animation-duration="1000" data-animation-direction="X">
-                        <div class="u-container-layout u-similar-container u-valign-middle u-container-layout-2">
-                            <img class="u-image u-image-contain u-image-default u-image-2" src="~/images/logo5.png" alt="" data-image-width="153" data-image-height="124">
-                            <h5 class="u-align-center u-text u-text-default u-text-4">@SharedResource.ExpertInstructors</h5>
-                            <p class="u-align-center u-text u-text-default-lg u-text-default-md u-text-default-xl u-text-5">
-                                @SharedResource.DedicatedEducators
-                            </p>
-                        </div>
-                    </div>
-                    <div class="u-container-align-center u-container-style u-grey-5 u-list-item u-radius u-repeater-item u-shape-round u-list-item-3" data-animation-name="flipIn" data-animation-duration="2000" data-animation-delay="0" data-animation-direction="X">
-                        <div class="u-container-layout u-similar-container u-valign-middle u-container-layout-3">
-                            <img class="u-image u-image-contain u-image-default u-image-3" src="~/images/logo8.png" alt="" data-image-width="401" data-image-height="152">
-                            <h5 class="u-align-center u-text u-text-default u-text-6">@SharedResource.CareerReadySkills</h5>
-                            <p class="u-align-center u-text u-text-default-lg u-text-default-md u-text-default-xl u-text-7">
-                                @SharedResource.PracticalSkills
-                            </p>
-                        </div>
-                    </div>
-                    <div class="u-container-align-center u-container-style u-grey-5 u-list-item u-radius u-repeater-item u-shape-round u-list-item-4" data-animation-name="flipIn" data-animation-duration="1000" data-animation-direction="X">
-                        <div class="u-container-layout u-similar-container u-valign-middle u-container-layout-4">
-                            <img class="u-image u-image-contain u-image-default u-image-4" src="~/images/logo6.png" alt="" data-image-width="144" data-image-height="184">
-                            <h5 class="u-align-center u-text u-text-default u-text-8">@SharedResource.VibrantCommunity</h5>
-                            <p class="u-align-center u-text u-text-default-lg u-text-default-md u-text-default-xl u-text-9">
-                                @SharedResource.SupportiveCommunity
-                            </p>
-                        </div>
-                    </div>
-                </div>
+    </div>
+</section>
+
+@* ─── FEATURED COURSES ────────────────────────── *@
+@if (Model.FeaturedCourses.Any())
+{
+    <section class="section">
+        <div class="container">
+            <div class="section-head">
+                <div class="section-tag"><i class="fas fa-fire"></i> أبرز الكورسات</div>
+                <h2 class="section-title">اختر كورسك وابدأ التعلم</h2>
+                <p class="section-sub">كورسات مختارة بعناية من قِبل خبراء المجال لتضمن لك أفضل تجربة تعليمية</p>
             </div>
-        </div>
-    </section>
-
-
-
-    @Html.Partial("_LandingFooter")
-    <section class="u-backlink u-clearfix u-grey-80"></section>
-    <script>
-        document.getElementById('current-year').textContent = new Date().getFullYear();
-
-        const mobileMenuButton = document.querySelector('.mobile-menu-button');
-        const mobileMenu = document.querySelector('.mobile-menu');
-
-        mobileMenuButton.addEventListener('click', () => {
-          mobileMenu.classList.toggle('active');
-          if (mobileMenu.classList.contains('active')) {
-            mobileMenuButton.innerHTML = '<i class="fas fa-times"></i>';
-          } else {
-            mobileMenuButton.innerHTML = '<i class="fas fa-bars"></i>';
-          }
-        });
-
-        const themeToggle = document.querySelector('.theme-toggle');
-        const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
-
-        const currentTheme = localStorage.getItem('theme') || (prefersDarkScheme.matches ? 'dark' : 'light');
-
-        if (currentTheme === 'dark') {
-          document.body.classList.add('dark-theme');
-        }
-
-        themeToggle.addEventListener('click', () => {
-          document.body.classList.toggle('dark-theme');
-          const theme = document.body.classList.contains('dark-theme') ? 'dark' : 'light';
-          localStorage.setItem('theme', theme);
-        });
-    </script>
-    @section Scripts {
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
-        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-        <script>
-            const connection = new signalR.HubConnectionBuilder()
-                .withUrl("/chatHub")
-                .build();
-
-
-
-            connection.start()
-                .then(() => console.log("SignalR Connected"))
-                .catch(err => {
-                    console.error("SignalR Connection Error:", err);
-                    $("#status").text("Failed to connect to chat server");
-                });
-                                // معالج استقبال الإشعارات للرسائل الخاصة
-                connection.on("ReceiveNotification", (sender, message) => {
-                    if (Notification.permission === "granted") {
-                        new Notification(`رسالة جديدة من ${sender}`, {
-                            body: message,
-                                icon: 'success' // استبدل بمسار أيقونة فعلي
-                        });
-                    }
-                });
-
-        </script>
-    }
-    </script>
-    <script class="u-script" type="text/javascript" src="~/js/jquery.js" defer=""></script>
-    <script class="u-script" type="text/javascript" src="~/js/nicepage.js" defer=""></script>
-</body>
-  *@
-
-
-
-
-@using System.Globalization
-@using TrainingCenterManagement_MVC.Resources
-@using TrainingCenterManagement_MVC.ViewModels
-@model HomeViewModel
-@{
-    Layout = null; // remove if you want to use your _Layout
-    var dir = (CultureInfo.CurrentUICulture.TextInfo.IsRightToLeft) ? "rtl" : "ltr";
-}
-<!DOCTYPE html>
-<html lang="@CultureInfo.CurrentUICulture.TwoLetterISOLanguageName" dir="@dir">
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>@SharedResource.EmpowerFuture</title>
-    <meta name="description" content="مركز التدريب المهني — اكتشف دورات تدريبية متخصصة في تطوير المهارات، الحصول على شهادات معتمدة، والتقدم في مسيرتك المهنية. سجّل الآن وانضم لآلاف المتدربين." />
-    <meta name="keywords" content="مركز تدريب, دورات مهنية, كورسات تدريبية, شهادات معتمدة, تطوير المهارات, تعلم عبر الإنترنت, دورات احترافية, برامج تعليمية, تدريب مهني" />
-    <meta name="robots" content="index, follow" />
-    <meta name="author" content="مركز التدريب المهني" />
-    <link rel="canonical" href="@(Context.Request.Scheme + "://" + Context.Request.Host + "/")" />
-    <!-- Open Graph -->
-    <meta property="og:type" content="website" />
-    <meta property="og:title" content="@SharedResource.EmpowerFuture" />
-    <meta property="og:description" content="مركز التدريب المهني — اكتشف دورات تدريبية متخصصة في تطوير المهارات والحصول على شهادات معتمدة." />
-    <meta property="og:url" content="@(Context.Request.Scheme + "://" + Context.Request.Host + "/")" />
-    <!-- Twitter Card -->
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="@SharedResource.EmpowerFuture" />
-    <meta name="twitter:description" content="مركز التدريب المهني — دورات تدريبية متخصصة وشهادات معتمدة." />
-    <!-- JSON-LD WebSite Schema -->
-    <script type="application/ld+json">
-    {
-      "@@context": "https://schema.org",
-      "@@type": "WebSite",
-      "name": "@Html.Raw(SharedResource.EmpowerFuture?.Replace("\"", "\\\""))",
-      "url": "@(Context.Request.Scheme + "://" + Context.Request.Host + "/")",
-      "description": "مركز التدريب المهني — دورات مهنية متخصصة وشهادات معتمدة لتطوير المهارات.",
-      "potentialAction": {
-        "@@type": "SearchAction",
-        "target": {
-          "@@type": "EntryPoint",
-          "urlTemplate": "@(Context.Request.Scheme + "://" + Context.Request.Host + "/Courses?search={search_term_string}")"
-        },
-        "query-input": "required name=search_term_string"
-      }
-    }
-    </script>
-    <!-- No external libraries; all styling below -->
-    <style>
-        :root {
-            --bg: #ffffff;
-            --text: #111418;
-            --muted: #60758a;
-            --line: #dbe0e6;
-            --soft: #f0f2f5;
-            --brand: #0d80f2;
-            --brand-600: #0b70d3;
-            --radius: 16px;
-            --radius-lg: 20px;
-            --shadow: 0 6px 24px rgba(17,20,24,0.08);
-            --shadow-lg: 0 18px 60px rgba(17,20,24,0.12);
-        }
-
-        * {
-            box-sizing: border-box;
-        }
-
-        html, body {
-            height: 100%;
-        }
-
-        body {
-            margin: 0;
-            font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans", "Helvetica Neue", Arial, "Apple Color Emoji", "Segoe UI Emoji";
-            background: var(--bg);
-            color: var(--text);
-            line-height: 1.6;
-        }
-
-        a {
-            color: inherit;
-            text-decoration: none;
-        }
-
-        .container {
-            width: 100%;
-            max-width: 1120px;
-            margin-inline: auto;
-            padding-inline: 16px;
-        }
-
-        header.site-header {
-            position: sticky;
-            top: 0;
-            z-index: 50;
-            background: rgba(255,255,255,.85);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid #f0f2f5;
-            padding: 12px 20px;
-        }
-
-        .nav {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 16px;
-        }
-
-        .brand {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-weight: 700;
-        }
-
-        .dot {
-            width: 18px;
-            height: 18px;
-            border-radius: 50%;
-            background: var(--text);
-            display: inline-block;
-        }
-
-        .menu {
-            display: flex;
-            align-items: center;
-            gap: 24px;
-            font-weight: 600;
-            font-size: 14px;
-        }
-
-        .right {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .search {
-            display: flex;
-            align-items: center;
-            height: 40px;
-            background: var(--soft);
-            border-radius: 12px;
-            padding: 0 12px;
-            min-width: 220px;
-        }
-
-            .search input {
-                border: 0;
-                outline: 0;
-                background: transparent;
-                font-size: 14px;
-                width: 180px;
-                color: var(--text);
-            }
-
-        .icon-btn {
-            height: 40px;
-            min-width: 40px;
-            display: grid;
-            place-items: center;
-            background: var(--soft);
-            border: 0;
-            border-radius: 12px;
-            cursor: pointer;
-        }
-
-        .avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: #ccc url('~/images/avatar-placeholder.png') center/cover no-repeat;
-        }
-
-        /* hero */
-        .hero {
-            position: relative;
-            min-height: 58vh;
-            display: flex;
-            align-items: flex-end;
-            border-radius: var(--radius-lg);
-            overflow: hidden;
-            box-shadow: var(--shadow-lg);
-        }
-
-            .hero::before {
-                content: "";
-                position: absolute;
-                inset: 0;
-                background: linear-gradient(180deg, rgba(0,0,0,.12), rgba(0,0,0,.55));
-            }
-
-            .hero .bg {
-                position: absolute;
-                inset: 0;
-               /*  background: url('~/images/banner.jpg') center/cover no-repeat; */
-                transform: scale(1.02);
-            }
-
-            .hero .content {
-                position: relative;
-                z-index: 1;
-                padding: 28px 28px 40px;
-                max-width: 720px;
-                color: #fff;
-            }
-
-            .hero h1 {
-                margin: 0 0 8px;
-                font-size: clamp(28px, 4vw, 44px);
-                line-height: 1.1;
-                font-weight: 900;
-                letter-spacing: -.02em;
-            }
-
-            .hero p {
-                margin: 0 0 18px;
-                font-size: clamp(14px, 2vw, 18px);
-                opacity: .95;
-            }
-
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            height: 44px;
-            padding: 0 16px;
-            border-radius: 12px;
-            font-weight: 800;
-            border: 0;
-            cursor: pointer;
-        }
-
-        .btn-primary {
-            background: var(--brand);
-            color: #fff;
-            box-shadow: 0 6px 16px rgba(13,128,242,.35);
-        }
-
-            .btn-primary:hover {
-                background: var(--brand-600);
-            }
-
-        /* sections */
-        section {
-            padding: 48px 0;
-        }
-
-        .stack {
-            display: flex;
-            flex-direction: column;
-            gap: 18px;
-        }
-
-        .section-title {
-            font-size: clamp(24px, 3vw, 32px);
-            font-weight: 900;
-            letter-spacing: -.02em;
-            margin: 0;
-        }
-
-        .section-sub {
-            color: var(--muted);
-            margin: 0;
-            max-width: 720px;
-        }
-
-        /* feature cards */
-        .grid {
-            display: grid;
-            gap: 12px;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-        }
-
-        .card {
-            border: 1px solid var(--line);
-            border-radius: 16px;
-            background: #fff;
-            padding: 16px;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            box-shadow: var(--shadow);
-        }
-
-            .card .ico {
-                width: 28px;
-                height: 28px;
-                color: var(--text);
-                opacity: .9;
-            }
-
-            .card h3 {
-                font-size: 16px;
-                margin: 0;
-            }
-
-            .card p {
-                font-size: 14px;
-                margin: 0;
-                color: var(--muted);
-            }
-
-        /* courses */
-        .courses {
-            display: grid;
-            gap: 12px;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-        }
-
-        .course {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .thumb {
-            aspect-ratio: 1 / 1;
-            width: 100%;
-            border-radius: 16px;
-            background: #e6ebf1 center/cover no-repeat;
-            box-shadow: var(--shadow);
-        }
-
-        .course h4 {
-            margin: 0;
-            font-weight: 700;
-        }
-
-        .course p {
-            margin: 0;
-            color: var(--muted);
-            font-size: 14px;
-        }
-
-        /* testimonials horizontal scroll */
-        .scroll-x {
-            display: flex;
-            overflow: auto;
-            gap: 12px;
-            padding: 12px 0;
-            scroll-snap-type: x mandatory;
-        }
-
-        .testi {
-            min-width: 260px;
-            scroll-snap-align: start;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        /* FAQ (accordion) */
-        .faq {
-            border-top: 1px solid var(--line);
-        }
-
-        .faq-item {
-            border-bottom: 1px solid var(--line);
-        }
-
-        .faq-btn {
-            width: 100%;
-            text-align: inherit;
-            background: #fff;
-            border: 0;
-            padding: 16px;
-            font: inherit;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            cursor: pointer;
-        }
-
-        .faq-panel {
-            display: grid;
-            grid-template-rows: 0fr;
-            transition: grid-template-rows .3s ease;
-        }
-
-            .faq-panel.open {
-                grid-template-rows: 1fr;
-            }
-
-        .faq-inner {
-            overflow: hidden;
-            padding: 0 16px 16px;
-            color: var(--muted);
-        }
-
-        .chev {
-            transition: transform .25s ease;
-        }
-
-        .faq-panel.open + .chev, .faq-btn[aria-expanded="true"] .chev {
-            transform: rotate(180deg);
-        }
-
-        /* responsive helpers */
-        .pad {
-            padding-inline: 16px;
-        }
-
-        /* RTL tweaks */
-        [dir="rtl"] .menu {
-            flex-direction: row-reverse;
-        }
-
-        [dir="rtl"] .right {
-            flex-direction: row-reverse;
-        }
-
-        [dir="rtl"] .faq-btn {
-            text-align: right;
-        }
-
-
-        .courses { display:grid; gap:12px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
-.course { display:flex; flex-direction:column; gap:12px; border:1px solid var(--line); border-radius:16px; padding:12px; background:#fff; box-shadow:var(--shadow); transition:transform .2s ease; }
-.course:hover { transform:translateY(-4px); box-shadow:var(--shadow-lg); }
-.thumb { aspect-ratio: 16/9; width:100%; border-radius:12px; background:#e6ebf1 center/cover no-repeat; }
-.course h4 { margin:0; font-weight:700; font-size:16px; }
-.course p { margin:0; color:var(--muted); font-size:14px; line-height:1.4; }
-.price { font-weight:800; color:var(--brand); font-size:14px; }
-
-
-
-.testimonial-container { position:relative; width:100%; max-width:600px; margin:auto; overflow:hidden; }
-.testi { opacity:0; transform:translateY(20px); transition:all .6s ease; position:absolute; top:0; left:0; right:0; display:flex; flex-direction:column; gap:12px; border:1px solid var(--line); border-radius:16px; background:#fff; padding:20px; box-shadow:var(--shadow-lg); align-items:center; text-align:center; }
-.testi.active { opacity:1; transform:translateY(0); position:relative; }
-.testi .thumb { width:90px; height:90px; border-radius:50%; background:#e6ebf1 center/cover no-repeat; }
-.testi p { margin:0; font-size:15px; line-height:1.6; }
-.testi .name { color:var(--muted); font-size:14px; }
-.stars { color:#f5b50a; font-size:18px; }
-    </style>
-</head>
-<body>
-    <!-- Header -->
-    @Html.Partial("_LandingHeader")
-
-    <main id="home" class="container pad" style="padding-top:24px;">
-        <!-- HERO -->
-        <section>
-            @{
-
-                var imagePath = Url.Content($"~/images/banner.jpg");
-            }
-            <div class="hero" style="background-image:url('@imagePath')">
-                <div class="bg" aria-hidden="true" style="background-image:url('@imagePath')"></div>
-                <div class="content">
-                    <h1>@SharedResource.EmpowerFuture</h1>
-                    <p>@SharedResource.TransformativeJourney</p>
-                    <button class="btn btn-primary" onclick="location.href='#courses'">@SharedResource.getStarted</button>
-                </div>
-            </div>
-        </section>
-
-        <!-- UNLOCK SECTION -->
-        <section class="stack">
-            <h2 class="section-title">@SharedResource.UnlockPotential</h2>
-            <p class="section-sub">@SharedResource.DynamicCurriculum</p>
-            <div>
-                <button class="btn btn-primary" onclick="location.href='#contact'">@SharedResource.contact</button>
-            </div>
-        </section>
-
-        <!-- FEATURES GRID -->
-        <section class="stack">
-            <div class="grid">
-                <article class="card">
-                    <svg class="ico" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M216,40H136V24a8,8,0,0,0-16,0V40H40A16,16,0,0,0,24,56V176a16,16,0,0,0,16,16H79.36L57.75,219a8,8,0,0,0,12.5,10l29.59-37h56.32l29.59,37a8,8,0,1,0,12.5-10l-21.61-27H216a16,16,0,0,0,16-16V56A16,16,0,0,0,216,40Zm0,136H40V56H216V176Z"></path></svg>
-                    <h3>@SharedResource.HandsOnWorkshops</h3>
-                    <p>@SharedResource.EngagingSessions</p>
-                </article>
-                <article class="card">
-                    <svg class="ico" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M220.27,158.54a8,8,0,0,0-7.7-.46,20,20,0,1,1,0-36.16A8,8,0,0,0,224,114.69V72a16,16,0,0,0-16-16H171.78a35.36,35.36,0,0,0,.22-4,36.11,36.11,0,0,0-11.36-26.24,36,36,0,0,0-60.55,23.62,36.56,36.56,0,0,0,.14,6.62H64A16,16,0,0,0,48,72v32.22a35.36,35.36,0,0,0-4-.22,36.12,36.12,0,0,0-26.24,11.36,35.7,35.7,0,0,0-9.69,27,36.08,36.08,0,0,0,33.31,33.6,35.68,35.68,0,0,0,6.62-.14V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V165.31A8,8,0,0,0,220.27,158.54Z"></path></svg>
-                    <h3>@SharedResource.InnovativeTeaching</h3>
-                    <p>@SharedResource.ModernMethods</p>
-                </article>
-                <article class="card">
-                    <svg class="ico" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M244.8,150.4a8,8,0,0,1-11.2-1.6A51.6,51.6,0,0,0,192,128a8,8,0,0,1-7.37-4.89,8,8,0,0,1,0-6.22A8,8,0,0,1,192,112a24,24,0,1,0-23.24-30,8,8,0,1,1-15.5-4A40,40,0,1,1,219,117.51a67.94,67.94,0,0,1,27.43,21.68A8,8,0,0,1,244.8,150.4ZM190.92,212a8,8,0,1,1-13.84,8,57,57,0,0,0-98.16,0,8,8,0,1,1-13.84-8,72.06,72.06,0,0,1,33.74-29.92,48,48,0,1,1,58.36,0A72.06,72.06,0,0,1,190.92,212Z"></path></svg>
-                    <h3>@SharedResource.DiverseCourses</h3>
-                    <p>@SharedResource.ComprehensivePrograms</p>
-                </article>
-            </div
-           
-        </section>
-
-        <!-- COURSES -->
-        
-        @* <section id="courses" class="stack">
-            <h2 class="section-title">@SharedResource.CuttingEdgePrograms</h2>
-            <div class="courses">
-                <article class="course">
-                    <div class="thumb" style="background-image:url('~/images/course-math.jpg');"></div>
-                    <h4>@SharedResource.MathematicsExcellence</h4>
-                    <p>@SharedResource.MasterFundamentals</p>
-                </article>
-                <article class="course">
-                    <div class="thumb" style="background-image:url('~/images/course-science.jpg');"></div>
-                    <h4>@SharedResource.ScienceDiscovery</h4>
-                    <p>@SharedResource.EngagingSessions</p>
-                </article>
-                <article class="course">
-                    <div class="thumb" style="background-image:url('~/images/course-language.jpg');"></div>
-                    <h4>@SharedResource.LanguageMastery</h4>
-                    <p>@SharedResource.CustomizedPath</p>
-                </article>
-                <article class="course">
-                    <div class="thumb" style="background-image:url('~/images/course-coding.jpg');"></div>
-                    <h4>@SharedResource.CodingAcademy</h4>
-                    <p>@SharedResource.EssentialSkills</p>
-                </article>
-                <article class="course">
-                    <div class="thumb" style="background-image:url('~/images/course-thinking.jpg');"></div>
-                    <h4>@SharedResource.CriticalThinking</h4>
-                    <p>@SharedResource.TailoredCourses</p>
-                </article>
-                <article class="course">
-                    <div class="thumb" style="background-image:url('~/images/course-arts.jpg');"></div>
-                    <h4>@SharedResource.CreativeArts</h4>
-                    <p>@SharedResource.LifelongLearning</p>
-                </article>
-            </div>
-        </section> *@
-        <!-- COURSES -->
-        <section id="courses" class="stack">
-            <h2 class="section-title">@SharedResource.CuttingEdgePrograms</h2>
-            <div class="courses">
-                @foreach (var course in Model.Courses.Where(c => c != null ).OrderByDescending(c => c.CreatedDate).Take(6))
+            <div class="courses-grid">
+                @foreach (var course in Model.FeaturedCourses)
                 {
-                    <article class="course">
-                        <div class="thumb" style="background-image:url('@(string.IsNullOrEmpty(course.ThumbnailUrl) ? Url.Content("~/images/course-placeholder.jpg") : course.ThumbnailUrl)');"></div>
-                        <h4>@(string.IsNullOrEmpty(course.CourseName) ? SharedResource.DiverseCourses : course.CourseName)</h4>
-                        <p>@(string.IsNullOrWhiteSpace(course.Description) ? SharedResource.LifelongLearning : course.Description)</p>
-                        <span class="price">@(course.Price > 0 ? "$" + course.Price.ToString("F2") : SharedResource.Free)</span>
-                        <div class="meta">
-                            @if(course.BatchNumber > 0){<span>@SharedResource.Batch: @course.BatchNumber</span>}<br />
-                            @if(course.NumberOfLectures > 0){<span>@SharedResource.Lectures: @course.NumberOfLectures</span>}<br />
-                            @if(course.ReleaseDate != default(DateTime)){<span>@SharedResource.ReleaseDate: @course.ReleaseDate.ToShortDateString()</span>}
+                    var avgRating = course.Ratings?.Any() == true ? course.Ratings.Average(r => r.Stars) : 0;
+                    var studentCount = course.CourseTrainees?.Count ?? 0;
+                    var isNew = (DateTime.UtcNow - course.CreatedDate).TotalDays < 30;
+                    <div class="course-card">
+                        <div class="course-thumb">
+                            @if (!string.IsNullOrEmpty(course.ThumbnailUrl))
+                            {
+                                <img src="@course.ThumbnailUrl" alt="@course.CourseName" loading="lazy" />
+                            }
+                            else
+                            {
+                                <div class="course-thumb-fallback"><i class="fas fa-book"></i></div>
+                            }
+                            <div class="course-badge-wrap">
+                                @if (course.IsFeatured) { <span class="c-badge c-badge-featured"><i class="fas fa-star"></i> مميز</span> }
+                                @if (isNew) { <span class="c-badge c-badge-new">جديد</span> }
+                            </div>
                         </div>
-                    </article>
+                        <div class="course-body">
+                            <div class="course-category">الدفعة @course.BatchNumber</div>
+                            <div class="course-title">@course.CourseName</div>
+                            <div class="course-meta">
+                                <span><i class="fas fa-video"></i> @course.NumberOfLectures محاضرة</span>
+                                <span><i class="fas fa-users"></i> @studentCount طالب</span>
+                            </div>
+                            @if (avgRating > 0)
+                            {
+                                <div class="course-stars">
+                                    @for (int i = 1; i <= 5; i++)
+                                    {
+                                        <i class="fas fa-star @(i <= avgRating ? "star" : "star-empty")"></i>
+                                    }
+                                    <span class="star-count">(@course.Ratings.Count)</span>
+                                </div>
+                            }
+                            <div class="course-footer">
+                                <div class="course-price">
+                                    <span class="course-price-currency">@course.CourseCurrency</span>@course.Price.ToString("F0")
+                                </div>
+                                <a asp-action="Details" asp-controller="Courses" asp-route-id="@course.CourseId" class="btn-enroll">
+                                    عرض الكورس
+                                </a>
+                            </div>
+                        </div>
+                    </div>
                 }
             </div>
-        </section>
-        <!-- TESTIMONIALS (dummy copy; replace with your resources if you have) -->
-       
-
-        <section class="stack">
-        <h2 class="section-title">@SharedResource.ElevateSkills</h2>
-        <div class="testimonial-container">
-        @* <div class="testi active">
-        <div class="thumb" style="background-image:url('@Url.Content("~/images/profile/1.png")');"></div>
-        <p>"هذا الموقع رائع جدًا! ساعدني أتعلم بسرعة وبسهولة. المحتوى منظم والتمارين العملية مفيدة جدًا لتثبيت المعلومات."</p>
-        <div class="stars">★★★★★</div>
-        <p class="name">أحمد • متدرب برمجة</p>
-        </div> *@
-
-
-        <div class="testi active">
-            <div class="thumb" style="background-image:url('@Url.Content("~/images/profile/1.png")');"></div>
-            @if (CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "ar")
-            {
-                <p>"هذا الموقع رائع جدًا! ساعدني أتعلم بسرعة وبسهولة. المحتوى منظم والتمارين العملية مفيدة جدًا لتثبيت المعلومات."</p>
-                <div class="stars">★★★★★</div>
-                <p class="name">أحمد • متدرب برمجة</p>
-            }
-            else
-            {
-                <p>"This website is absolutely amazing! It helped me learn quickly and easily. The content is organized and the exercises are very useful to reinforce knowledge."</p>
-                <div class="stars">★★★★★</div>
-                <p class="name">Ahmed • Programming Trainee</p>
-            }
-        </div>
-
-        <div class="testi">
-            <div class="thumb" style="background-image:url('@Url.Content("~/images/profile/2.png")');"></div>
-            @if (CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "ar")
-            {
-                <p>"المحتوى منظم والمدربين ممتازين. التجربة التعليمية هنا أعطتني ثقة أكبر بمهاراتي وخلتني أبدأ بمشاريع شخصية."</p>
-                <div class="stars">★★★★★</div>
-                <p class="name">خالد • دورة تصميم</p>
-            }
-            else
-            {
-                <p>"The content is well-organized and the trainers are excellent. The learning experience here gave me more confidence in my skills and allowed me to start personal projects."</p>
-                <div class="stars">★★★★★</div>
-                <p class="name">Khalid • Design Course</p>
-            }
-        </div>
-
-        <div class="testi">
-            <div class="thumb" style="background-image:url('@Url.Content("~/images/profile/3.png")');"></div>
-            @if (CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "ar")
-            {
-                <p>"الدورات هنا فعلاً غيرت مساري المهني. المنهج متكامل والدعم الفني سريع وفعال. شكراً لكم!"</p>
-                <div class="stars">★★★★☆</div>
-                <p class="name">محمد • دورة إدارة أعمال</p>
-            }
-            else
-            {
-                <p>"The courses here truly changed my career path. The curriculum is comprehensive and technical support is fast and effective. Thank you!"</p>
-                <div class="stars">★★★★☆</div>
-                <p class="name">Mohammed • Business Management Course</p>
-            }
-        </div>
-
-        <div class="testi">
-            <div class="thumb" style="background-image:url('@Url.Content("~/images/profile/4.png")');"></div>
-            @if (CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "ar")
-            {
-                <p>"أجواء التعلم ممتعة والتفاعل رائع. حسيت إني جزء من فريق حقيقي. أنصح أي شخص يبحث عن تجربة تعليمية مميزة."</p>
-                <div class="stars">★★★★★</div>
-                <p class="name">سارة • دورة لغة إنجليزية</p>
-            }
-            else
-            {
-                <p>"The learning atmosphere is enjoyable and the interaction is great. I felt like part of a real team. I recommend it to anyone looking for a distinctive educational experience."</p>
-                <div class="stars">★★★★★</div>
-                <p class="name">Sarah • English Language Course</p>
-            }
-        </div>
-
-        <div class="testi">
-            <div class="thumb" style="background-image:url('@Url.Content("~/images/profile/5.png")');"></div>
-            @if (CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "ar")
-            {
-                <p>"الدعم الفني سريع والموقع سهل الاستخدام. قدرت أتعلم مهارات جديدة بسهولة وأطبقها مباشرة بشغلي."</p>
-                <div class="stars">★★★★☆</div>
-                <p class="name">ليلى • دورة علوم البيانات</p>
-            }
-            else
-            {
-                <p>"Technical support is fast and the website is easy to use. I was able to learn new skills easily and apply them directly in my work."</p>
-                <div class="stars">★★★★☆</div>
-                <p class="name">Layla • Data Science Course</p>
-            }
-        </div>
-
-        <div class="testi">
-            <div class="thumb" style="background-image:url('@Url.Content("~/images/profile/6.png")');"></div>
-            @if (CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "ar")
-            {
-                <p>"الموقع قدم لي فرص تعلم جديدة طورت مستواي بشكل ملحوظ. تجربة ممتازة بتستحق كل دقيقة."</p>
-                <div class="stars">★★★★★</div>
-                <p class="name">ريم • دورة تسويق رقمي</p>
-            }
-            else
-            {
-                <p>"The website provided me with new learning opportunities that significantly improved my level. An excellent experience worth every minute."</p>
-                <div class="stars">★★★★★</div>
-                <p class="name">Reem • Digital Marketing Course</p>
-            }
-        </div>
-        </div>  </section>
-        <script>
-                // Auto switch testimonials every 5s with animation
-                const testimonials = document.querySelectorAll('.testi');
-                let current = 0;
-                setInterval(() => {
-                    testimonials[current].classList.remove('active');
-                    current = (current + 1) % testimonials.length;
-                    testimonials[current].classList.add('active');
-                    }, 5000);
-        </script>
-
-
-        <script>
-// Auto switch testimonials every 5s
-const testimonials = document.querySelectorAll('.testi');
-let current = 0;
-setInterval(() => {
-testimonials[current].classList.remove('active');
-current = (current + 1) % testimonials.length;
-testimonials[current].classList.add('active');
-}, 5000);
-</script>
-
-        <!-- WHY CHOOSE US -->
-        <section id="why" class="stack">
-            <h2 class="section-title">@SharedResource.WhyChooseUs</h2>
-            <p class="section-sub">@SharedResource.EmpoweringLearners</p>
-            <div class="grid">
-                <article class="card">
-                    <svg class="ico" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M117.25,157.92a60,60,0,1,0-66.5,0A95.83,95.83,0,0,0,3.53,195.63a8,8,0,1,0,13.4,8.74,80,80,0,0,1,134.14,0,8,8,0,0,0,13.4-8.74A95.83,95.83,0,0,0,117.25,157.92ZM40,108a44,44,0,1,1,44,44A44.05,44.05,0,0,1,40,108Z"></path></svg>
-                    <h3>@SharedResource.ExpertMentors</h3>
-                    <p>@SharedResource.ProfessionalGuidance</p>
-                </article>
-                <article class="card">
-                    <svg class="ico" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M240,208H224V96a16,16,0,0,0-16-16H144V32a16,16,0,0,0-24.88-13.32L39.12,72A16,16,0,0,0,32,85.34V208H16a8,8,0,0,0,0,16H240a8,8,0,0,0,0-16ZM208,96V208H144V96ZM48,85.34,128,32V208H48Z"></path></svg>
-                    <h3>@SharedResource.InspiringSpaces</h3>
-                    <p>@SharedResource.CollaborativeEnvironment</p>
-                </article>
-                <article class="card">
-                    <svg class="ico" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M176,232a8,8,0,0,1-8,8H88a8,8,0,0,1,0-16h80A8,8,0,0,1,176,232Zm40-128a87.55,87.55,0,0,1-33.64,69.21A16.24,16.24,0,0,0,176,186v6a16,16,0,0,1-16,16H96a16,16,0,0,1-16-16v-6a16,16,0,0,0-6.23-12.66A87.59,87.59,0,0,1,40,104.49C39.74,56.83,72.63,24,112,24s72.26,32.83,72,72.49c-.24,38.1-22.21,57.31-32.77,67.05A16.06,16.06,0,0,0,144,177.94V184a16,16,0,0,1-16,16H128a16,16,0,0,1-16-16v-6a16.06,16.06,0,0,0-7.23-13.46C94.21,153.8,72.24,134.59,72,96.49,71.74,56.83,104.63,24,144,24S216.26,56.83,216,96.49Z"></path></svg>
-                    <h3>@SharedResource.InnovativeTeaching</h3>
-                    <p>@SharedResource.ModernMethods</p>
-                </article>
+            <div style="text-align:center;margin-top:40px">
+                <a asp-action="Index" asp-controller="Courses" style="display:inline-flex;align-items:center;gap:8px;padding:12px 28px;border-radius:10px;border:2px solid var(--pr);color:var(--pr);font-weight:700;font-size:.9rem;transition:all .2s">
+                    <i class="fas fa-th-large"></i> عرض جميع الكورسات
+                </a>
             </div>
-        </section>
+        </div>
+    </section>
+}
 
-        <!-- FAQ -->
-        <section class="stack">
-            <h2 class="section-title">FAQ</h2>
-            <div class="faq" id="faq">
-                <div class="faq-item">
-                    <button class="faq-btn" aria-expanded="false">
-                        <span>1. @SharedResource.FAQ1Question?</span>
-                        <svg class="chev" width="20" height="20" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M5 8l5 5 5-5H5z" /></svg>
-                    </button>
-                    <div class="faq-panel"><div class="faq-inner"><p>@SharedResource.FAQ1Answer.</p></div></div>
-                </div>
-                <div class="faq-item">
-                    <button class="faq-btn" aria-expanded="false">
-                        <span>2. @SharedResource.FAQ2Question?</span>
-                        <svg class="chev" width="20" height="20" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M5 8l5 5 5-5H5z" /></svg>
-                    </button>
-                    <div class="faq-panel"><div class="faq-inner"><p>@SharedResource.FAQ2Answer.</p></div></div>
-                </div>
-                <div class="faq-item">
-                    <button class="faq-btn" aria-expanded="false">
-                        <span>3. @SharedResource.FAQ3Question?</span>
-                        <svg class="chev" width="20" height="20" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M5 8l5 5 5-5H5z" /></svg>
-                    </button>
-                    <div class="faq-panel"><div class="faq-inner"><p>@SharedResource.FAQ3Answer.</p></div></div>
-                </div>
-                <div class="faq-item">
-                    <button class="faq-btn" aria-expanded="false">
-                        <span>4. @SharedResource.FAQ4Question?</span>
-                        <svg class="chev" width="20" height="20" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M5 8l5 5 5-5H5z" /></svg>
-                    </button>
-                    <div class="faq-panel"><div class="faq-inner"><p>@SharedResource.FAQ4Answer</p></div></div>
-                </div>
+@* ─── FEATURES ────────────────────────────────── *@
+<section class="section section-alt">
+    <div class="container">
+        <div class="section-head">
+            <div class="section-tag"><i class="fas fa-sparkles"></i> لماذا نحن؟</div>
+            <h2 class="section-title">مزايا تجعلنا الخيار الأفضل</h2>
+            <p class="section-sub">نقدم تجربة تعليمية متكاملة تجمع بين الجودة والمرونة وأحدث التقنيات</p>
+        </div>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon-wrap" style="background:#eef2ff;color:#4f46e5"><i class="fas fa-video"></i></div>
+                <div class="feature-title">محاضرات تفاعلية</div>
+                <div class="feature-desc">محتوى مرئي عالي الجودة يمكنك متابعته في أي وقت ومن أي مكان بكل سهولة ومرونة.</div>
             </div>
-        </section>
+            <div class="feature-card">
+                <div class="feature-icon-wrap" style="background:#fef3c7;color:#d97706"><i class="fas fa-certificate"></i></div>
+                <div class="feature-title">شهادات معتمدة</div>
+                <div class="feature-desc">احصل على شهادة اجتياز معتمدة فور إتمام الكورس وتحقيق الدرجة المطلوبة في الاختبار.</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon-wrap" style="background:#d1fae5;color:#059669"><i class="fas fa-chalkboard-teacher"></i></div>
+                <div class="feature-title">مدربون خبراء</div>
+                <div class="feature-desc">فريق من أفضل المدربين والمتخصصين ذوي الخبرة العملية الواسعة في مجالاتهم.</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon-wrap" style="background:#fce7f3;color:#db2777"><i class="fas fa-file-alt"></i></div>
+                <div class="feature-title">اختبارات وتقييمات</div>
+                <div class="feature-desc">نظام اختبارات ذكي يقيس تقدمك بشكل مستمر ويضمن استيعابك الكامل للمحتوى.</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon-wrap" style="background:#ede9fe;color:#7c3aed"><i class="fas fa-comments"></i></div>
+                <div class="feature-title">دعم مستمر</div>
+                <div class="feature-desc">فريق دعم متاح على مدار الساعة للإجابة على استفساراتك ومساعدتك في مسيرتك التعليمية.</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon-wrap" style="background:#e0f2fe;color:#0891b2"><i class="fas fa-chart-line"></i></div>
+                <div class="feature-title">متابعة التقدم</div>
+                <div class="feature-desc">لوحة تحكم شخصية تعرض تقدمك ونسبة إتمامك للكورسات وإحصائياتك التعليمية بشكل مرئي.</div>
+            </div>
+        </div>
+    </div>
+</section>
 
-        <!-- CONTACT (anchor only) -->
-        <section id="contact" style="padding-bottom: 80px;">
-            <div class="stack">
-                <h2 class="section-title">@SharedResource.contact</h2>
-                <p class="section-sub">@SharedResource.TransformativeJourney</p>
-                <form class="grid" method="post" action="#">
-                    <input aria-label="name" name="name" placeholder="Your name" style="height:46px; padding:0 12px; border:1px solid var(--line); border-radius:12px;" />
-                    <input aria-label="email" name="email" type="email" placeholder="Your email" style="height:46px; padding:0 12px; border:1px solid var(--line); border-radius:12px;" />
-                    <textarea aria-label="message" name="message" placeholder="Message" rows="4" style="padding:12px; border:1px solid var(--line); border-radius:12px; grid-column: 1 / -1;"></textarea>
-                    <div>
-                        <button type="submit" class="btn btn-primary">@SharedResource.getStarted</button>
+@* ─── HOW IT WORKS ────────────────────────────── *@
+<section class="section">
+    <div class="container">
+        <div class="section-head">
+            <div class="section-tag"><i class="fas fa-route"></i> كيف تبدأ؟</div>
+            <h2 class="section-title">أربع خطوات بسيطة للنجاح</h2>
+        </div>
+        <div class="steps-grid">
+            <div class="step-card">
+                <div class="step-num">1</div>
+                <div class="step-title">أنشئ حسابك</div>
+                <div class="step-desc">سجّل حسابًا جديدًا في دقيقة واحدة فقط وابدأ رحلتك التعليمية فورًا.</div>
+            </div>
+            <div class="step-card">
+                <div class="step-num">2</div>
+                <div class="step-title">اختر الكورس</div>
+                <div class="step-desc">تصفح مئات الكورسات المتنوعة واختر ما يناسب مجالك واهتمامك.</div>
+            </div>
+            <div class="step-card">
+                <div class="step-num">3</div>
+                <div class="step-title">تعلّم وتفاعل</div>
+                <div class="step-desc">شاهد المحاضرات، شارك في الاختبارات، وتفاعل مع المدربين والزملاء.</div>
+            </div>
+            <div class="step-card">
+                <div class="step-num">4</div>
+                <div class="step-title">احصل على شهادتك</div>
+                <div class="step-desc">أتمّ الكورس بنجاح واحصل على شهادتك الرقمية المعتمدة على الفور.</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@* ─── TRAINERS ────────────────────────────────── *@
+@if (Model.FeaturedTrainers.Any())
+{
+    <section class="section section-alt">
+        <div class="container">
+            <div class="section-head">
+                <div class="section-tag"><i class="fas fa-users"></i> مدربونا</div>
+                <h2 class="section-title">تعلّم من الأفضل</h2>
+                <p class="section-sub">فريق من الخبراء المتخصصين مستعدون لمشاركتك معرفتهم وتجاربهم القيّمة</p>
+            </div>
+            <div class="trainers-grid">
+                @foreach (var trainer in Model.FeaturedTrainers)
+                {
+                    var isFemale = trainer.User?.Gender == Gender.Female;
+                    var pic = !string.IsNullOrEmpty(trainer.User?.ProfilePictureUrl)
+                        ? trainer.User.ProfilePictureUrl
+                        : $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(trainer.User?.FullName ?? "T")}&background={(isFemale ? "ec4899" : "4f46e5")}&color=fff&size=128&rounded=true";
+                    var courseCount = trainer.CourseTrainers?.Count ?? 0;
+                    <div class="trainer-card">
+                        <img src="@pic" class="trainer-avatar" alt="@trainer.User?.FullName"
+                             onerror="this.src='https://ui-avatars.com/api/?name=T&background=94a3b8&color=fff&rounded=true'" />
+                        <div class="trainer-name">@trainer.User?.FullName</div>
+                        @if (!string.IsNullOrEmpty(trainer.Specialty))
+                        {
+                            <span class="trainer-spec">@trainer.Specialty</span>
+                        }
+                        <div class="trainer-courses">
+                            <i class="fas fa-briefcase" style="color:#94a3b8;margin-left:3px;font-size:.65rem"></i>
+                            @trainer.YearsOfExperience سنوات خبرة
+                        </div>
                     </div>
-                </form>
+                }
             </div>
-        </section>
-    </main>
+        </div>
+    </section>
+}
 
-    <script>
-        // simple accordion
-        document.querySelectorAll('.faq-btn').forEach(function(btn){
-            btn.addEventListener('click', function(){
-                var expanded = this.getAttribute('aria-expanded') === 'true';
-                this.setAttribute('aria-expanded', String(!expanded));
-                var panel = this.parentElement.querySelector('.faq-panel');
-                panel.classList.toggle('open');
-            });
-        });
-   
-    
-    </script>
+@* ─── TESTIMONIALS ────────────────────────────── *@
+<section class="section">
+    <div class="container">
+        <div class="section-head">
+            <div class="section-tag"><i class="fas fa-quote-right"></i> آراء طلابنا</div>
+            <h2 class="section-title">ماذا يقول من سبقوك؟</h2>
+        </div>
+        <div class="testimonials-grid">
+            <div class="testimonial-card">
+                <div class="testimonial-stars">
+                    @for (int i = 0; i < 5; i++) { <i class="fas fa-star" style="color:#f59e0b;font-size:.8rem"></i> }
+                </div>
+                <p class="testimonial-text">المنصة رائعة جداً! الكورسات منظمة بشكل ممتاز والمدربون محترفون. حصلت على شهادتي في Python في وقت قياسي وهي الآن تفتح لي أبواباً كثيرة في مجال البرمجة.</p>
+                <div class="testimonial-author">
+                    <img src="https://ui-avatars.com/api/?name=Ahmed+Khalid&background=4f46e5&color=fff&size=84&rounded=true" class="testimonial-avatar" alt="أحمد خالد" />
+                    <div>
+                        <div class="testimonial-name">أحمد خالد</div>
+                        <div class="testimonial-role">مطوّر برمجيات — خريج دورة Python</div>
+                    </div>
+                </div>
+            </div>
+            <div class="testimonial-card">
+                <div class="testimonial-stars">
+                    @for (int i = 0; i < 5; i++) { <i class="fas fa-star" style="color:#f59e0b;font-size:.8rem"></i> }
+                </div>
+                <p class="testimonial-text">أفضل منصة تعليمية جربتها! المحتوى عميق ومنظم، ونظام الاختبارات يساعدك على قياس مستواك بدقة. أنصح بها لكل من يريد التطور المهني الحقيقي.</p>
+                <div class="testimonial-author">
+                    <img src="https://ui-avatars.com/api/?name=Sara+Mahmoud&background=ec4899&color=fff&size=84&rounded=true" class="testimonial-avatar" alt="سارة محمود" />
+                    <div>
+                        <div class="testimonial-name">سارة محمود</div>
+                        <div class="testimonial-role">مصممة UI/UX — خريجة دورة Web Dev</div>
+                    </div>
+                </div>
+            </div>
+            <div class="testimonial-card">
+                <div class="testimonial-stars">
+                    @for (int i = 0; i < 5; i++) { <i class="fas fa-star" style="color:#f59e0b;font-size:.8rem"></i> }
+                </div>
+                <p class="testimonial-text">الدعم الفني ممتاز والمدربون يجيبون على أسئلتي بسرعة. الشهادة التي حصلت عليها معترف بها وساعدتني في الحصول على عمل أحلامي في مجال الأمن السيبراني.</p>
+                <div class="testimonial-author">
+                    <img src="https://ui-avatars.com/api/?name=Omar+Hassan&background=059669&color=fff&size=84&rounded=true" class="testimonial-avatar" alt="عمر حسن" />
+                    <div>
+                        <div class="testimonial-name">عمر حسن</div>
+                        <div class="testimonial-role">متخصص أمن سيبراني — خريج دورة Cybersec</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
 
+@* ─── CTA ─────────────────────────────────────── *@
+<section class="section section-alt">
+    <div class="container">
+        <div class="cta-banner">
+            <h2 class="cta-title">مستعد لتغيير مسيرتك المهنية؟</h2>
+            <p class="cta-sub">انضم إلى آلاف الطلاب الذين غيّروا حياتهم معنا — ابدأ اليوم مجاناً</p>
+            <div class="cta-btns">
+                <a asp-action="Index" asp-controller="Courses" class="cta-btn-white">
+                    <i class="fas fa-rocket"></i> ابدأ الآن
+                </a>
+                <a asp-action="Login" asp-controller="Account" class="cta-btn-outline">
+                    <i class="fas fa-sign-in-alt"></i> تسجيل الدخول
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
 
-   
-    <section class="u-backlink u-clearfix u-grey-80"></section>
-    <script>
-        document.getElementById('current-year').textContent = new Date().getFullYear();
-
-        const mobileMenuButton = document.querySelector('.mobile-menu-button');
-        const mobileMenu = document.querySelector('.mobile-menu');
-
-        mobileMenuButton.addEventListener('click', () => {
-          mobileMenu.classList.toggle('active');
-          if (mobileMenu.classList.contains('active')) {
-            mobileMenuButton.innerHTML = '<i class="fas fa-times"></i>';
-          } else {
-            mobileMenuButton.innerHTML = '<i class="fas fa-bars"></i>';
-          }
-        });
-
-        const themeToggle = document.querySelector('.theme-toggle');
-        const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
-
-        const currentTheme = localStorage.getItem('theme') || (prefersDarkScheme.matches ? 'dark' : 'light');
-
-        if (currentTheme === 'dark') {
-          document.body.classList.add('dark-theme');
-        }
-
-        themeToggle.addEventListener('click', () => {
-          document.body.classList.toggle('dark-theme');
-          const theme = document.body.classList.contains('dark-theme') ? 'dark' : 'light';
-          localStorage.setItem('theme', theme);
-        });
-    </script>
-    @section Scripts {
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
-        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-        <script>
-            const connection = new signalR.HubConnectionBuilder()
-                .withUrl("/chatHub")
-                .build();
-
-
-
-            connection.start()
-                .then(() => console.log("SignalR Connected"))
-                .catch(err => {
-                    console.error("SignalR Connection Error:", err);
-                    $("#status").text("Failed to connect to chat server");
-                });
-                                // معالج استقبال الإشعارات للرسائل الخاصة
-                connection.on("ReceiveNotification", (sender, message) => {
-                    if (Notification.permission === "granted") {
-                        new Notification(`رسالة جديدة من ${sender}`, {
-                            body: message,
-                                icon: 'success' // استبدل بمسار أيقونة فعلي
-                        });
-                    }
-                });
-
-        </script>
-    }
-    </script>
-    <script class="u-script" type="text/javascript" src="~/js/jquery.js" defer=""></script>
-    <script class="u-script" type="text/javascript" src="~/js/nicepage.js" defer=""></script>
-</body>
-</html>
-@Html.Partial("_LandingFooter")
+@* ─── FOOTER ──────────────────────────────────── *@
+<footer style="background:#0f172a;color:#94a3b8;padding:48px 0 24px;direction:rtl">
+    <div class="container">
+        <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:40px;margin-bottom:40px">
+            <div>
+                <div style="font-size:1.2rem;font-weight:800;color:#fff;margin-bottom:14px;display:flex;align-items:center;gap:8px">
+                    <i class="fas fa-graduation-cap" style="color:#6366f1"></i> Training Center
+                </div>
+                <p style="font-size:.84rem;line-height:1.8;max-width:260px">منصة تدريبية متكاملة تهدف إلى رفع مستوى الكفاءات وتطوير المهارات التقنية والمهنية.</p>
+                <div style="display:flex;gap:10px;margin-top:16px">
+                    <a href="#" style="width:34px;height:34px;border-radius:8px;background:rgba(255,255,255,.1);color:#fff;display:flex;align-items:center;justify-content:center;font-size:.85rem;transition:.2s" onmouseover="this.style.background='#4f46e5'" onmouseout="this.style.background='rgba(255,255,255,.1)'"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#" style="width:34px;height:34px;border-radius:8px;background:rgba(255,255,255,.1);color:#fff;display:flex;align-items:center;justify-content:center;font-size:.85rem;transition:.2s" onmouseover="this.style.background='#0891b2'" onmouseout="this.style.background='rgba(255,255,255,.1)'"><i class="fab fa-twitter"></i></a>
+                    <a href="#" style="width:34px;height:34px;border-radius:8px;background:rgba(255,255,255,.1);color:#fff;display:flex;align-items:center;justify-content:center;font-size:.85rem;transition:.2s" onmouseover="this.style.background='#db2777'" onmouseout="this.style.background='rgba(255,255,255,.1)'"><i class="fab fa-instagram"></i></a>
+                    <a href="#" style="width:34px;height:34px;border-radius:8px;background:rgba(255,255,255,.1);color:#fff;display:flex;align-items:center;justify-content:center;font-size:.85rem;transition:.2s" onmouseover="this.style.background='#0e7490'" onmouseout="this.style.background='rgba(255,255,255,.1)'"><i class="fab fa-linkedin-in"></i></a>
+                </div>
+            </div>
+            <div>
+                <div style="font-size:.85rem;font-weight:700;color:#fff;margin-bottom:14px;text-transform:uppercase;letter-spacing:.06em">الكورسات</div>
+                <ul style="list-style:none;display:flex;flex-direction:column;gap:8px">
+                    <li><a asp-action="Index" asp-controller="Courses" style="font-size:.84rem;color:#94a3b8;transition:.2s" onmouseover="this.style.color='#a5b4fc'" onmouseout="this.style.color='#94a3b8'">جميع الكورسات</a></li>
+                    <li><a asp-action="Index" asp-controller="Courses" style="font-size:.84rem;color:#94a3b8;transition:.2s" onmouseover="this.style.color='#a5b4fc'" onmouseout="this.style.color='#94a3b8'">الكورسات المميزة</a></li>
+                    <li><a asp-action="Index" asp-controller="Courses" style="font-size:.84rem;color:#94a3b8;transition:.2s" onmouseover="this.style.color='#a5b4fc'" onmouseout="this.style.color='#94a3b8'">أحدث الكورسات</a></li>
+                </ul>
+            </div>
+            <div>
+                <div style="font-size:.85rem;font-weight:700;color:#fff;margin-bottom:14px;text-transform:uppercase;letter-spacing:.06em">الحساب</div>
+                <ul style="list-style:none;display:flex;flex-direction:column;gap:8px">
+                    <li><a asp-action="Login" asp-controller="Account" style="font-size:.84rem;color:#94a3b8;transition:.2s" onmouseover="this.style.color='#a5b4fc'" onmouseout="this.style.color='#94a3b8'">تسجيل الدخول</a></li>
+                    <li><a asp-action="AdminDashboard" asp-controller="Dashboard" style="font-size:.84rem;color:#94a3b8;transition:.2s" onmouseover="this.style.color='#a5b4fc'" onmouseout="this.style.color='#94a3b8'">لوحة التحكم</a></li>
+                </ul>
+            </div>
+            <div>
+                <div style="font-size:.85rem;font-weight:700;color:#fff;margin-bottom:14px;text-transform:uppercase;letter-spacing:.06em">تواصل معنا</div>
+                <ul style="list-style:none;display:flex;flex-direction:column;gap:10px">
+                    <li style="display:flex;align-items:center;gap:8px;font-size:.84rem"><i class="fas fa-envelope" style="color:#6366f1;width:16px"></i> info&#64;trainingcenter.com</li>
+                    <li style="display:flex;align-items:center;gap:8px;font-size:.84rem"><i class="fas fa-phone" style="color:#6366f1;width:16px"></i> +963 11 123 4567</li>
+                    <li style="display:flex;align-items:center;gap:8px;font-size:.84rem"><i class="fas fa-map-marker-alt" style="color:#6366f1;width:16px"></i> دمشق، سوريا</li>
+                </ul>
+            </div>
+        </div>
+        <div style="border-top:1px solid rgba(255,255,255,.08);padding-top:24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+            <span style="font-size:.8rem">© @DateTime.Now.Year Training Center — جميع الحقوق محفوظة</span>
+            <span style="font-size:.8rem">صُنع بـ <i class="fas fa-heart" style="color:#ef4444"></i> لخدمة المتعلمين</span>
+        </div>
+    </div>
+</footer>

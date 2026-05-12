@@ -38,6 +38,19 @@ namespace TrainingCenterManagement_MVC.Controllers
         [Authorize(Roles = "Trainer,Admin")]
         public async Task<IActionResult> Index()
         {
+            if (User.IsInRole("Admin"))
+            {
+                var allExams = await _context.Exams
+                    .Include(e => e.Course)
+                    .Include(e => e.Trainer).ThenInclude(t => t.User)
+                    .Include(e => e.ExamQuestions)
+                    .Include(e => e.ExamAttempts)
+                    .OrderByDescending(e => e.StartDateTime)
+                    .ToListAsync();
+                ViewBag.IsAdmin = true;
+                return View(allExams);
+            }
+
             var trainerId = await GetCurrentTrainerIdAsync();
             if (trainerId == null) return Forbid();
 
@@ -69,15 +82,24 @@ namespace TrainingCenterManagement_MVC.Controllers
         [Authorize(Roles = "Trainer,Admin")]
         public async Task<IActionResult> Create()
         {
-            var trainerId = await GetCurrentTrainerIdAsync();
-            if (trainerId == null) return Forbid();
-
-            var courses = await _context.CourseTrainers
-                .Where(ct => ct.TrainerId == trainerId)
-                .Select(ct => ct.Course)
-                .ToListAsync();
-
+            List<Course> courses;
+            if (User.IsInRole("Admin"))
+            {
+                courses = await _context.Courses.Where(c => !c.IsDeleted).ToListAsync();
+                ViewBag.IsAdmin = true;
+            }
+            else
+            {
+                var trainerId = await GetCurrentTrainerIdAsync();
+                if (trainerId == null) return Forbid();
+                courses = await _context.CourseTrainers
+                    .Where(ct => ct.TrainerId == trainerId)
+                    .Select(ct => ct.Course)
+                    .ToListAsync();
+            }
             ViewData["CourseId"] = new SelectList(courses, "CourseId", "CourseName");
+            if (User.IsInRole("Admin"))
+                ViewData["TrainerId"] = new SelectList(await _context.Trainers.Include(t => t.User).ToListAsync(), "TrainerId", "User.FullName");
             return View();
         }
 
@@ -85,15 +107,36 @@ namespace TrainingCenterManagement_MVC.Controllers
         [Authorize(Roles = "Trainer,Admin")]
         public async Task<IActionResult> Create(CreateExamDto dto)
         {
-            var trainerId = await GetCurrentTrainerIdAsync();
-            if (trainerId == null) return Forbid();
-
-            if (!ModelState.IsValid)
+            Guid? trainerId;
+            if (User.IsInRole("Admin"))
             {
-                var courses = await _context.CourseTrainers
-                    .Where(ct => ct.TrainerId == trainerId)
-                    .Select(ct => ct.Course)
-                    .ToListAsync();
+                Guid.TryParse(Request.Form["SelectedTrainerId"], out var selectedTid);
+                trainerId = selectedTid != Guid.Empty ? selectedTid : (Guid?)null;
+                if (trainerId == null) ModelState.AddModelError("", "يجب اختيار مدرب.");
+            }
+            else
+            {
+                trainerId = await GetCurrentTrainerIdAsync();
+            }
+
+            if (trainerId == null && !User.IsInRole("Admin")) return Forbid();
+
+            if (!ModelState.IsValid || (User.IsInRole("Admin") && trainerId == null))
+            {
+                List<Course> courses;
+                if (User.IsInRole("Admin"))
+                {
+                    courses = await _context.Courses.Where(c => !c.IsDeleted).ToListAsync();
+                    ViewData["TrainerId"] = new SelectList(await _context.Trainers.Include(t => t.User).ToListAsync(), "TrainerId", "User.FullName");
+                    ViewBag.IsAdmin = true;
+                }
+                else
+                {
+                    courses = await _context.CourseTrainers
+                        .Where(ct => ct.TrainerId == trainerId)
+                        .Select(ct => ct.Course)
+                        .ToListAsync();
+                }
                 ViewData["CourseId"] = new SelectList(courses, "CourseId", "CourseName", dto.CourseId);
                 return View(dto);
             }
@@ -136,10 +179,19 @@ namespace TrainingCenterManagement_MVC.Controllers
         [Authorize(Roles = "Trainer,Admin")]
         public async Task<IActionResult> Edit(UpdateExamDto dto)
         {
-            var trainerId = await GetCurrentTrainerIdAsync();
-            if (trainerId == null) return Forbid();
-
             if (!ModelState.IsValid) return View(dto);
+
+            Guid? trainerId;
+            if (User.IsInRole("Admin"))
+            {
+                var exam = await _context.Exams.FindAsync(dto.ExamId);
+                trainerId = exam?.TrainerId;
+            }
+            else
+            {
+                trainerId = await GetCurrentTrainerIdAsync();
+            }
+            if (trainerId == null) return Forbid();
 
             try
             {
@@ -158,7 +210,16 @@ namespace TrainingCenterManagement_MVC.Controllers
         [Authorize(Roles = "Trainer,Admin")]
         public async Task<IActionResult> Delete(Guid id)
         {
-            var trainerId = await GetCurrentTrainerIdAsync();
+            Guid? trainerId;
+            if (User.IsInRole("Admin"))
+            {
+                var exam = await _context.Exams.FindAsync(id);
+                trainerId = exam?.TrainerId;
+            }
+            else
+            {
+                trainerId = await GetCurrentTrainerIdAsync();
+            }
             if (trainerId == null) return Forbid();
 
             await _examService.DeleteExamAsync(id, trainerId.Value);
@@ -170,7 +231,16 @@ namespace TrainingCenterManagement_MVC.Controllers
         [Authorize(Roles = "Trainer,Admin")]
         public async Task<IActionResult> Publish(Guid id)
         {
-            var trainerId = await GetCurrentTrainerIdAsync();
+            Guid? trainerId;
+            if (User.IsInRole("Admin"))
+            {
+                var exam = await _context.Exams.FindAsync(id);
+                trainerId = exam?.TrainerId;
+            }
+            else
+            {
+                trainerId = await GetCurrentTrainerIdAsync();
+            }
             if (trainerId == null) return Forbid();
 
             try
@@ -190,7 +260,16 @@ namespace TrainingCenterManagement_MVC.Controllers
         [Authorize(Roles = "Trainer,Admin")]
         public async Task<IActionResult> Unpublish(Guid id)
         {
-            var trainerId = await GetCurrentTrainerIdAsync();
+            Guid? trainerId;
+            if (User.IsInRole("Admin"))
+            {
+                var exam = await _context.Exams.FindAsync(id);
+                trainerId = exam?.TrainerId;
+            }
+            else
+            {
+                trainerId = await GetCurrentTrainerIdAsync();
+            }
             if (trainerId == null) return Forbid();
 
             try

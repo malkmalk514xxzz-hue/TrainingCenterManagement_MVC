@@ -1,17 +1,77 @@
-﻿@model TrainingCenterManagement_MVC.ViewModels.RegisterNewUserViewModel
+@model TrainingCenterManagement_MVC.ViewModels.RegisterNewUserViewModel
 @{
-    ViewData["Title"] = "Register";
+    ViewData["Title"] = "تسجيل مستخدم جديد";
     Layout = "_LayoutAccount";
 }
 
-<div class="container mt-5" data-aos="fade-up" data-aos-duration="1000">
-    <h2 class="form-account-title text-center mb-4">
-        <i class="fas fa-user-plus me-2"></i>Register
-    </h2>
+<style>
+    .rg-wrap { max-width:680px;margin:0 auto;padding:24px 16px;direction:rtl;font-family:'Segoe UI',sans-serif; }
+    .rg-title { text-align:center;font-size:1.5rem;font-weight:800;color:#0f172a;margin-bottom:6px;display:flex;align-items:center;justify-content:center;gap:8px; }
+    .rg-sub { text-align:center;color:#94a3b8;font-size:.85rem;margin-bottom:24px; }
+
+    .rg-card { background:#fff;border-radius:16px;border:1px solid #e2e8f0;box-shadow:0 4px 20px rgba(0,0,0,.06);padding:28px 32px; }
+    .rg-section { margin-bottom:22px; }
+    .rg-section-lbl { font-size:.75rem;font-weight:700;color:#4f46e5;text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px;padding-bottom:6px;border-bottom:1px solid #e2e8f0; }
+    .rg-grid2 { display:grid;grid-template-columns:1fr 1fr;gap:14px; }
+    @@media(max-width:520px){ .rg-grid2{ grid-template-columns:1fr; } }
+
+    .rg-group { display:flex;flex-direction:column;gap:4px; }
+    .rg-lbl { font-size:.82rem;font-weight:600;color:#475569;display:flex;align-items:center;gap:5px; }
+    .rg-lbl i { color:#94a3b8;font-size:.78rem; }
+    .rg-inp, .rg-sel {
+        padding:9px 13px;border:1.5px solid #e2e8f0;border-radius:9px;
+        font-size:.88rem;font-family:inherit;background:#fff;color:#0f172a;
+        transition:border-color .2s,box-shadow .2s;width:100%;box-sizing:border-box;
+    }
+    .rg-inp:focus, .rg-sel:focus { outline:none;border-color:#4f46e5;box-shadow:0 0 0 3px rgba(79,70,229,.1); }
+    .rg-err { font-size:.75rem;color:#ef4444;margin-top:2px; }
+
+    /* Gender cards */
+    .gender-cards { display:grid;grid-template-columns:1fr 1fr;gap:12px; }
+    .gender-card { border:2px solid #e2e8f0;border-radius:12px;padding:16px;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:12px;position:relative; }
+    .gender-card:hover { border-color:#c7d2fe; }
+    .gender-card input[type="radio"] { position:absolute;opacity:0;width:0;height:0; }
+    .gender-card.selected-male { border-color:#4f46e5;background:#eef2ff; }
+    .gender-card.selected-female { border-color:#ec4899;background:#fdf2f8; }
+    .gender-icon { width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0; }
+    .gi-male   { background:#dbeafe;color:#1d4ed8; }
+    .gi-female { background:#fce7f3;color:#db2777; }
+    .gender-label { font-weight:700;color:#0f172a;font-size:.9rem; }
+    .gender-sublabel { font-size:.73rem;color:#94a3b8; }
+
+    /* Profile picture picker */
+    .pic-section { margin-top:14px; }
+    .pic-grid { display:flex;gap:12px;flex-wrap:wrap;justify-content:center; }
+    .pic-option { width:72px;height:72px;border-radius:50%;object-fit:cover;cursor:pointer;border:3px solid transparent;transition:all .2s;opacity:.7; }
+    .pic-option:hover { opacity:1;transform:scale(1.05); }
+    .pic-option.selected { border-color:#4f46e5;opacity:1;box-shadow:0 0 0 3px rgba(79,70,229,.2); }
+    .pic-option.selected-f { border-color:#ec4899;opacity:1;box-shadow:0 0 0 3px rgba(236,72,153,.2); }
+    .pic-hint { text-align:center;font-size:.76rem;color:#94a3b8;margin-top:8px; }
+
+    /* Password input group */
+    .pw-group { position:relative; }
+    .pw-group .rg-inp { padding-left:42px; }
+    .pw-toggle { position:absolute;left:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:#94a3b8;cursor:pointer;padding:0;font-size:.85rem; }
+
+    /* Role */
+    .role-cards { display:grid;grid-template-columns:1fr 1fr;gap:12px; }
+    .role-card { border:2px solid #e2e8f0;border-radius:10px;padding:12px 16px;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:10px;position:relative; }
+    .role-card:hover { border-color:#c7d2fe; }
+    .role-card input[type="radio"] { position:absolute;opacity:0;width:0;height:0; }
+    .role-card.selected { border-color:#4f46e5;background:#eef2ff; }
+    .role-icon { width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0; }
+
+    .rg-submit { width:100%;padding:11px;border-radius:10px;background:linear-gradient(135deg,#4f46e5,#6366f1);color:#fff;font-size:.9rem;font-weight:700;border:none;cursor:pointer;transition:opacity .2s;display:flex;align-items:center;justify-content:center;gap:7px; }
+    .rg-submit:hover { opacity:.9; }
+</style>
+
+<div class="rg-wrap" data-aos="fade-up" data-aos-duration="800">
+    <div class="rg-title"><i class="fas fa-user-plus" style="color:#4f46e5"></i> تسجيل مستخدم جديد</div>
+    <div class="rg-sub">أدخل بيانات المستخدم الجديد</div>
 
     @if (!ViewData.ModelState.IsValid)
     {
-        <div class="alert alert-danger text-center" data-aos="fade-up" data-aos-delay="100">
+        <div class="alert alert-danger mb-3">
             <ul class="mb-0">
                 @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
                 {
@@ -21,127 +81,193 @@
         </div>
     }
 
-    <div class="row justify-content-center">
-        <div class="col-md-6 col-lg-4">
-            <div class="card p-4 shadow rounded">
-                <form method="post" class="form-account-bg-form">
-                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+    <div class="rg-card">
+        <form method="post" class="form-account-bg-form">
+            @Html.AntiForgeryToken()
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
-                    <div class="form-group form-account-group mb-3">
-                        <label asp-for="FullName" class="form-label">
-                            <i class="fas fa-user me-2"></i>Full Name
-                        </label>
-                        <input asp-for="FullName" class="form-control" placeholder="Enter your full name" />
-                        <span asp-validation-for="FullName" class="text-warning"></span>
+            <!-- المعلومات الشخصية -->
+            <div class="rg-section">
+                <div class="rg-section-lbl"><i class="fas fa-id-card me-1"></i> المعلومات الشخصية</div>
+                <div class="rg-grid2">
+                    <div class="rg-group">
+                        <label class="rg-lbl"><i class="fas fa-user"></i> الاسم الكامل</label>
+                        <input asp-for="FullName" class="rg-inp" placeholder="أدخل الاسم الكامل" />
+                        <span asp-validation-for="FullName" class="rg-err"></span>
                     </div>
-
-                    <div class="form-group form-account-group mb-3">
-                        <label asp-for="Username" class="form-label">
-                            <i class="fas fa-at me-2"></i>Username
-                        </label>
-                        <input asp-for="Username" class="form-control" placeholder="Enter your username" />
-                        <span asp-validation-for="Username" class="text-warning"></span>
+                    <div class="rg-group">
+                        <label class="rg-lbl"><i class="fas fa-at"></i> البريد الإلكتروني</label>
+                        <input asp-for="Username" class="rg-inp" placeholder="example@gmail.com" dir="ltr" />
+                        <span asp-validation-for="Username" class="rg-err"></span>
                     </div>
-
-                    <div class="form-group form-account-group mb-3">
-                        <label asp-for="BirthDate" class="form-label">
-                            <i class="fas fa-calendar-alt me-2"></i>Birth Date
-                        </label>
-                        <input asp-for="BirthDate" type="date" class="form-control" />
-                        <span asp-validation-for="BirthDate" class="text-warning"></span>
+                    <div class="rg-group">
+                        <label class="rg-lbl"><i class="fas fa-calendar-alt"></i> تاريخ الميلاد</label>
+                        <input asp-for="BirthDate" type="date" class="rg-inp" />
+                        <span asp-validation-for="BirthDate" class="rg-err"></span>
                     </div>
-                    <div class="form-group form-account-group mb-3">
-                        <label asp-for="Address" class="form-label">
-                            <i class="fas fa-phone me-2"></i>Address
-                        </label>
-                        <input asp-for="Address" class="form-control" placeholder="Enter your Address" />
-                        <span asp-validation-for="Address" class="text-warning"></span>
+                    <div class="rg-group">
+                        <label class="rg-lbl"><i class="fas fa-phone"></i> رقم الهاتف</label>
+                        <input asp-for="PhoneNumber" class="rg-inp" placeholder="+963 ..." dir="ltr" />
+                        <span asp-validation-for="PhoneNumber" class="rg-err"></span>
                     </div>
-
-
-                    <div class="form-group form-account-group mb-3">
-                        <label class="form-label">
-                            <i class="fas fa-user-tag me-2"></i>Role
-                        </label>
-                        <div class="form-check">
-                            <input asp-for="Role" type="radio" value="Trainee" class="form-check-input" id="roleTrainee" checked />
-                            <label class="form-check-label" for="roleTrainee">Trainee</label>
-                            <input asp-for="Role" type="radio" value="Trainer" class="form-check-input" id="roleTrainer" />
-                            <label class="form-check-label" for="roleTrainer">Trainer</label>
-                        </div>
-
-                        <span asp-validation-for="Role" class="text-warning"></span>
+                    <div class="rg-group" style="grid-column:1/-1">
+                        <label class="rg-lbl"><i class="fas fa-map-marker-alt"></i> العنوان</label>
+                        <input asp-for="Address" class="rg-inp" placeholder="المدينة، الحي..." />
+                        <span asp-validation-for="Address" class="rg-err"></span>
                     </div>
-
-                    <div class="form-group form-account-group mb-3">
-                        <label asp-for="PhoneNumber" class="form-label">
-                            <i class="fas fa-phone me-2"></i>Phone Number
-                        </label>
-                        <input asp-for="PhoneNumber" class="form-control" placeholder="Enter your phone number" />
-                        <span asp-validation-for="PhoneNumber" class="text-warning"></span>
-                    </div>
-
-                    <div class="form-group form-account-group mb-3">
-                        <label asp-for="Password" class="form-label">
-                            <i class="fas fa-lock me-2"></i>Password
-                        </label>
-                        <div class="input-group">
-                            <input asp-for="Password" type="password" class="form-control" placeholder="Enter your password" id="passwordInput" value="@Model.TemporaryPassword" />
-                            <button type="button" class="btn btn-outline-secondary" onclick="togglePassword('passwordInput', 'toggleIconPassword')">
-                                <i class="fas fa-eye" id="toggleIconPassword"></i>
-                            </button>
-                        </div>
-                        <span asp-validation-for="Password" class="text-warning"></span>
-                    </div>
-
-                    <div class="form-group form-account-group mb-3">
-                        <label asp-for="Confirm" class="form-label">
-                            <i class="fas fa-lock me-2"></i>Confirm Password
-                        </label>
-                        <div class="input-group">
-                            <input asp-for="Confirm" type="password" class="form-control" placeholder="Confirm your password" id="confirmPasswordInput" value="@Model.TemporaryPassword" />
-                            <button type="button" class="btn btn-outline-secondary" onclick="togglePassword('confirmPasswordInput', 'toggleIconConfirm')">
-                                <i class="fas fa-eye" id="toggleIconConfirm"></i>
-                            </button>
-                        </div>
-                        <span asp-validation-for="Confirm" class="text-warning"></span>
-                    </div>
-
-                    <div class="form-group form-account-group d-flex justify-content-center mb-3">
-                        <input type="submit" value="Register New User" class="btn btn-primary px-4" />
-                    </div>
-
-                    @if (ViewBag.Message != null)
-                    {
-                        <div class="alert alert-success mt-3 text-center" data-aos="fade-up" data-aos-delay="200">
-                            <p>@ViewBag.Message</p>
-                        </div>
-                    }
-                </form>
+                </div>
             </div>
-        </div>
+
+            <!-- الجنس -->
+            <div class="rg-section">
+                <div class="rg-section-lbl"><i class="fas fa-venus-mars me-1"></i> الجنس</div>
+                <div class="gender-cards">
+                    <label class="gender-card selected-male" id="card-male" onclick="selectGender(1, this)">
+                        <input type="radio" asp-for="Gender" value="1" id="gender-male" checked />
+                        <div class="gender-icon gi-male"><i class="fas fa-mars"></i></div>
+                        <div>
+                            <div class="gender-label">ذكر</div>
+                            <div class="gender-sublabel">Male</div>
+                        </div>
+                    </label>
+                    <label class="gender-card" id="card-female" onclick="selectGender(2, this)">
+                        <input type="radio" asp-for="Gender" value="2" id="gender-female" />
+                        <div class="gender-icon gi-female"><i class="fas fa-venus"></i></div>
+                        <div>
+                            <div class="gender-label">أنثى</div>
+                            <div class="gender-sublabel">Female</div>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- الصورة الشخصية -->
+            <div class="rg-section">
+                <div class="rg-section-lbl"><i class="fas fa-camera me-1"></i> الصورة الشخصية</div>
+                <div class="pic-grid" id="pic-grid">
+                    <img src="/images/profile/1.png" class="pic-option" data-gender="male" data-url="/images/profile/1.png" onclick="selectPic(this)" alt="صورة 1" />
+                    <img src="/images/profile/2.png" class="pic-option" data-gender="male" data-url="/images/profile/2.png" onclick="selectPic(this)" alt="صورة 2" />
+                    <img src="/images/profile/3.png" class="pic-option" data-gender="male" data-url="/images/profile/3.png" onclick="selectPic(this)" alt="صورة 3" />
+                    <img src="/images/profile/4.png" class="pic-option" data-gender="female" data-url="/images/profile/4.png" onclick="selectPic(this)" style="display:none" alt="صورة 4" />
+                    <img src="/images/profile/5.png" class="pic-option" data-gender="female" data-url="/images/profile/5.png" onclick="selectPic(this)" style="display:none" alt="صورة 5" />
+                    <img src="/images/profile/6.png" class="pic-option" data-gender="female" data-url="/images/profile/6.png" onclick="selectPic(this)" style="display:none" alt="صورة 6" />
+                </div>
+                <div class="pic-hint">اختر صورة شخصية (اختياري)</div>
+                <input type="hidden" asp-for="ProfilePictureUrl" id="ProfilePictureUrl" />
+            </div>
+
+            <!-- الدور -->
+            <div class="rg-section">
+                <div class="rg-section-lbl"><i class="fas fa-user-tag me-1"></i> الدور</div>
+                <div class="role-cards">
+                    <label class="role-card selected" id="role-trainee" onclick="selectRole(this)">
+                        <input type="radio" asp-for="Role" value="Trainee" checked />
+                        <div class="role-icon" style="background:#d1fae5;color:#065f46"><i class="fas fa-user-graduate"></i></div>
+                        <div>
+                            <div style="font-weight:700;font-size:.85rem;color:#0f172a">متدرب</div>
+                            <div style="font-size:.72rem;color:#94a3b8">Trainee</div>
+                        </div>
+                    </label>
+                    <label class="role-card" id="role-trainer" onclick="selectRole(this)">
+                        <input type="radio" asp-for="Role" value="Trainer" />
+                        <div class="role-icon" style="background:#f5f3ff;color:#7c3aed"><i class="fas fa-chalkboard-teacher"></i></div>
+                        <div>
+                            <div style="font-weight:700;font-size:.85rem;color:#0f172a">مدرب</div>
+                            <div style="font-size:.72rem;color:#94a3b8">Trainer</div>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- كلمة المرور -->
+            <div class="rg-section">
+                <div class="rg-section-lbl"><i class="fas fa-lock me-1"></i> كلمة المرور</div>
+                <div class="rg-grid2">
+                    <div class="rg-group">
+                        <label class="rg-lbl"><i class="fas fa-lock"></i> كلمة المرور</label>
+                        <div class="pw-group">
+                            <input asp-for="Password" type="password" class="rg-inp" id="passwordInput" value="@Model.TemporaryPassword" />
+                            <button type="button" class="pw-toggle" onclick="togglePw('passwordInput','icon-pw')">
+                                <i class="fas fa-eye" id="icon-pw"></i>
+                            </button>
+                        </div>
+                        <span asp-validation-for="Password" class="rg-err"></span>
+                    </div>
+                    <div class="rg-group">
+                        <label class="rg-lbl"><i class="fas fa-lock"></i> تأكيد كلمة المرور</label>
+                        <div class="pw-group">
+                            <input asp-for="Confirm" type="password" class="rg-inp" id="confirmInput" value="@Model.TemporaryPassword" />
+                            <button type="button" class="pw-toggle" onclick="togglePw('confirmInput','icon-cf')">
+                                <i class="fas fa-eye" id="icon-cf"></i>
+                            </button>
+                        </div>
+                        <span asp-validation-for="Confirm" class="rg-err"></span>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="rg-submit">
+                <i class="fas fa-user-plus"></i> تسجيل المستخدم
+            </button>
+
+            @if (ViewBag.Message != null)
+            {
+                <div class="alert alert-success mt-3 text-center">
+                    <i class="fas fa-check-circle me-2"></i>@ViewBag.Message
+                </div>
+            }
+        </form>
     </div>
 </div>
 
 @section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
-    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
     <script>
-        AOS.init();
+        var currentGender = 1; // 1 = Male, 2 = Female
 
-        function togglePassword(inputId, iconId) {
-            const passwordInput = document.getElementById(inputId);
-            const toggleIcon = document.getElementById(iconId);
-            if (passwordInput.type === 'password') {
-                passwordInput.type = 'text';
-                toggleIcon.classList.remove('fa-eye');
-                toggleIcon.classList.add('fa-eye-slash');
+        function selectGender(val, clickedCard) {
+            currentGender = val;
+            // update radio
+            document.getElementById(val === 1 ? 'gender-male' : 'gender-female').checked = true;
+            // update card styles
+            var cardMale = document.getElementById('card-male');
+            var cardFemale = document.getElementById('card-female');
+            cardMale.className = 'gender-card' + (val === 1 ? ' selected-male' : '');
+            cardFemale.className = 'gender-card' + (val === 2 ? ' selected-female' : '');
+            // show/hide pics
+            document.querySelectorAll('.pic-option').forEach(function(img) {
+                var genderMatch = (val === 1 && img.dataset.gender === 'male') ||
+                                  (val === 2 && img.dataset.gender === 'female');
+                img.style.display = genderMatch ? 'block' : 'none';
+                img.classList.remove('selected', 'selected-f');
+            });
+            document.getElementById('ProfilePictureUrl').value = '';
+        }
+
+        function selectPic(el) {
+            document.querySelectorAll('.pic-option').forEach(function(p) {
+                p.classList.remove('selected', 'selected-f');
+            });
+            var cls = currentGender === 1 ? 'selected' : 'selected-f';
+            el.classList.add(cls);
+            document.getElementById('ProfilePictureUrl').value = el.dataset.url;
+        }
+
+        function selectRole(card) {
+            document.querySelectorAll('.role-card').forEach(function(c) { c.classList.remove('selected'); });
+            card.classList.add('selected');
+            card.querySelector('input[type="radio"]').checked = true;
+        }
+
+        function togglePw(inputId, iconId) {
+            var inp = document.getElementById(inputId);
+            var ico = document.getElementById(iconId);
+            if (inp.type === 'password') {
+                inp.type = 'text';
+                ico.classList.replace('fa-eye', 'fa-eye-slash');
             } else {
-                passwordInput.type = 'password';
-                toggleIcon.classList.remove('fa-eye-slash');
-                toggleIcon.classList.add('fa-eye');
+                inp.type = 'password';
+                ico.classList.replace('fa-eye-slash', 'fa-eye');
             }
         }
     </script>
