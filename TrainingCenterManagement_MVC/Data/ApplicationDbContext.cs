@@ -60,6 +60,13 @@ namespace TrainingCenterManagement_MVC.Data
         public DbSet<EmployeeSalary> EmployeeSalaries { get; set; }
         public DbSet<SalaryPayment>  SalaryPayments  { get; set; }
 
+        // ── AI Assistant ─────────────────────────────────────────────
+        public DbSet<AIChatMessage>    AIChatMessages    { get; set; }
+        public DbSet<AIAccessLog>      AIAccessLogs      { get; set; }
+        public DbSet<AIPermissionRole> AIPermissionRoles { get; set; }
+        public DbSet<AISystemConfig>   AISystemConfigs   { get; set; }
+        public DbSet<AIKnowledgeEntry> AIKnowledgeEntries { get; set; }
+
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
@@ -608,6 +615,132 @@ namespace TrainingCenterManagement_MVC.Data
         builder.Entity<LectureSession>()
             .HasIndex(ls => new { ls.LectureId, ls.TraineeId })
             .HasDatabaseName("IX_LectureSession_LectureId_TraineeId");
+
+        // ══════════════════════════════════════════════════════════
+        //  AI ASSISTANT
+        // ══════════════════════════════════════════════════════════
+
+        builder.Entity<AIChatMessage>()
+            .HasOne(m => m.User)
+            .WithMany(u => u.AIChatMessages)
+            .HasForeignKey(m => m.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.Entity<AIChatMessage>()
+            .HasQueryFilter(m => !m.IsDeleted);
+
+        builder.Entity<AIChatMessage>()
+            .HasIndex(m => m.UserId)
+            .HasDatabaseName("IX_AIChatMessages_UserId");
+
+        builder.Entity<AIChatMessage>()
+            .HasIndex(m => m.CreatedAt)
+            .HasDatabaseName("IX_AIChatMessages_CreatedAt");
+
+        builder.Entity<AIChatMessage>()
+            .HasIndex(m => new { m.UserId, m.CreatedAt })
+            .HasDatabaseName("IX_AIChatMessages_UserId_CreatedAt");
+
+        builder.Entity<AIAccessLog>()
+            .HasOne(l => l.User)
+            .WithMany(u => u.AIAccessLogs)
+            .HasForeignKey(l => l.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.Entity<AIAccessLog>()
+            .HasIndex(l => l.UserId)
+            .HasDatabaseName("IX_AIAccessLogs_UserId");
+
+        builder.Entity<AIAccessLog>()
+            .HasIndex(l => l.AccessedAt)
+            .HasDatabaseName("IX_AIAccessLogs_AccessedAt");
+
+        builder.Entity<AIPermissionRole>()
+            .HasIndex(r => r.RoleName)
+            .IsUnique()
+            .HasDatabaseName("UX_AIPermissionRoles_RoleName");
+
+        // ── AI System Config (single-row settings) ────────────────
+        builder.Entity<AISystemConfig>()
+            .HasData(new AISystemConfig
+            {
+                Id                 = 1,
+                Provider           = AIProviderType.Anthropic,
+                OllamaUrl          = "http://localhost:11434",
+                OllamaModel        = "llama3.2",
+                MaxTokensPerResponse = 1024,
+                SystemDailyLimit   = 500,
+                IsEnabled          = true,
+                UpdatedAt          = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+            });
+
+        // ── AI Knowledge Base ─────────────────────────────────────
+        builder.Entity<AIKnowledgeEntry>()
+            .HasIndex(e => e.IsActive)
+            .HasDatabaseName("IX_AIKnowledgeEntries_IsActive");
+
+        builder.Entity<AIPermissionRole>().HasData(
+            new AIPermissionRole
+            {
+                PermissionId            = new Guid("a1b2c3d4-0001-0001-0001-000000000001"),
+                RoleName                = "Trainee",
+                CanReadPersonalData     = true,
+                CanReadOtherUsersData   = false,
+                CanReadAdminData        = false,
+                CanModifyPersonalData   = false,
+                CanModifyOtherUsersData = false,
+                DailyQueryLimit         = 50,
+                AllowedDataCategories   = "Courses,Lectures,Progress,Grades,Attendance",
+                BlockedDataCategories   = "AdminSettings,OtherUsersData,PaymentDetails",
+                CanAccessAdvancedFeatures = false,
+                CreatedBy               = "System"
+            },
+            new AIPermissionRole
+            {
+                PermissionId            = new Guid("a1b2c3d4-0002-0002-0002-000000000002"),
+                RoleName                = "Trainer",
+                CanReadPersonalData     = true,
+                CanReadOtherUsersData   = false,
+                CanReadAdminData        = false,
+                CanModifyPersonalData   = false,
+                CanModifyOtherUsersData = false,
+                DailyQueryLimit         = 100,
+                AllowedDataCategories   = "Courses,Lectures,MyCourseStudents,Grades,Analytics",
+                BlockedDataCategories   = "AdminSettings,OtherUsersData,PaymentDetails",
+                CanAccessAdvancedFeatures = true,
+                CreatedBy               = "System"
+            },
+            new AIPermissionRole
+            {
+                PermissionId            = new Guid("a1b2c3d4-0003-0003-0003-000000000003"),
+                RoleName                = "Admin",
+                CanReadPersonalData     = true,
+                CanReadOtherUsersData   = true,
+                CanReadAdminData        = true,
+                CanModifyPersonalData   = false,
+                CanModifyOtherUsersData = false,
+                DailyQueryLimit         = -1,
+                AllowedDataCategories   = "All",
+                BlockedDataCategories   = "",
+                CanAccessAdvancedFeatures = true,
+                CreatedBy               = "System"
+            },
+            new AIPermissionRole
+            {
+                PermissionId            = new Guid("a1b2c3d4-0004-0004-0004-000000000004"),
+                RoleName                = "Receptionist",
+                CanReadPersonalData     = true,
+                CanReadOtherUsersData   = false,
+                CanReadAdminData        = false,
+                CanModifyPersonalData   = false,
+                CanModifyOtherUsersData = false,
+                DailyQueryLimit         = 100,
+                AllowedDataCategories   = "Courses,Enrollments,Payments,Students",
+                BlockedDataCategories   = "AdminSettings,Grades,ExamDetails",
+                CanAccessAdvancedFeatures = false,
+                CreatedBy               = "System"
+            }
+        );
 
         }
     }

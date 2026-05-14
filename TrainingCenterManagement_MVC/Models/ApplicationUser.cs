@@ -20,6 +20,8 @@ namespace TrainingCenterManagement_MVC.Models
         public Receptionist Receptionist { get; set; }
         public ICollection<Message> Messages { get; set; } = new List<Message>();
         public ICollection<UserNotification> Notifications { get; set; } = new List<UserNotification>();
+        public ICollection<AIChatMessage> AIChatMessages { get; set; } = new List<AIChatMessage>();
+        public ICollection<AIAccessLog> AIAccessLogs { get; set; } = new List<AIAccessLog>();
     }
 
     public enum RoleType

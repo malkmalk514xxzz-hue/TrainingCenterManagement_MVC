@@ -125,6 +125,18 @@
                     <i class="fas fa-comments"></i><span>محادثات الدعم</span>
                 </a>
             </li>
+            <li>
+                <a href="javascript:void(0)" onclick="aiW.toggle()" class="ai-sidebar-link">
+                    <i class="fas fa-robot" style="color:#a78bfa"></i>
+                    <span>المساعد الذكي</span>
+                    <span class="ai-sidebar-badge">AI</span>
+                </a>
+            </li>
+            <li class="@(IsActive("AdminAI") ? "active" : "")">
+                <a asp-action="Settings" asp-controller="AdminAI">
+                    <i class="fas fa-cog" style="color:#a78bfa"></i><span>إعدادات AI</span>
+                </a>
+            </li>
             <li class="@(IsActive("Notifications") ? "active" : "")">
                 <a asp-action="Index" asp-controller="Notifications" style="position:relative;">
                     <i class="fas fa-bell"></i>

@@ -34,5 +34,6 @@ namespace TrainingCenterManagement_MVC.ViewModels
         [Url(ErrorMessage = "رابط العمل غير صالح")]
         [Display(Name = "رابط العمل / LinkedIn")]
         public string? BusinessLink { get; set; }
+
     }
 }

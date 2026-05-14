@@ -199,6 +199,10 @@
  
     @await Html.PartialAsync("_NotificationsScript")
     @RenderSection("Scripts", required: false)
+    @if (User.Identity?.IsAuthenticated == true)
+    {
+        @await Html.PartialAsync("_AIChat")
+    }
 </body>
 </html>
 

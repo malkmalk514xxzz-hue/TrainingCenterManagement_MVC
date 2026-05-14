@@ -12,6 +12,7 @@ using TrainingCenterManagement_MVC.Models;
 var builder = WebApplication.CreateBuilder(args);
 
 // ====================== Basic Services ======================
+builder.Services.AddHttpClient();
 builder.Services.AddControllersWithViews()
     .AddJsonOptions(options =>
     {
@@ -74,6 +75,9 @@ builder.Services.AddSignalR(options =>
     options.ClientTimeoutInterval = TimeSpan.FromSeconds(30);
 }).AddJsonProtocol(options => options.PayloadSerializerOptions.PropertyNamingPolicy = null);
 
+// In-memory cache (for AI config caching)
+builder.Services.AddMemoryCache();
+
 // Custom Services
 builder.Services.AddScoped<ISettingsService, SettingsService>();
 builder.Services.AddScoped<DashboardHelper>();
@@ -87,6 +91,10 @@ builder.Services.AddScoped<TrainingCenterManagement_MVC.Services.IExamService,
                            TrainingCenterManagement_MVC.Services.ExamService>();
 builder.Services.AddScoped<TrainingCenterManagement_MVC.Services.ILectureResourceService,
                            TrainingCenterManagement_MVC.Services.LectureResourceService>();
+builder.Services.AddScoped<TrainingCenterManagement_MVC.Services.IAIPermissionService,
+                           TrainingCenterManagement_MVC.Services.AIPermissionService>();
+builder.Services.AddScoped<TrainingCenterManagement_MVC.Services.IAIAssistantService,
+                           TrainingCenterManagement_MVC.Services.AIAssistantService>();
 
 // ====================== Build App ======================
 var app = builder.Build();

@@ -12,19 +12,19 @@ namespace TrainingCenterManagement_MVC.Controllers
     public class ProfileController : Controller
     {
         private readonly UserManager<ApplicationUser> _userManager;
-        private readonly ApplicationDbContext _context;
-        private readonly IWebHostEnvironment _env;
+        private readonly ApplicationDbContext         _context;
+        private readonly IWebHostEnvironment          _env;
 
         private static readonly string[] AllowedExtensions = { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
-        private const long MaxPhotoBytes = 5 * 1024 * 1024; // 5 MB
+        private const long MaxPhotoBytes = 5 * 1024 * 1024;
 
         public ProfileController(UserManager<ApplicationUser> userManager,
                                  ApplicationDbContext context,
                                  IWebHostEnvironment env)
         {
             _userManager = userManager;
-            _context    = context;
-            _env        = env;
+            _context     = context;
+            _env         = env;
         }
 
         // GET /Profile

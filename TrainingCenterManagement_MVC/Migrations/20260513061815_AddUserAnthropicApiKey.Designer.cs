@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TrainingCenterManagement_MVC.Data;
 
@@ -11,9 +12,11 @@ using TrainingCenterManagement_MVC.Data;
 namespace TrainingCenterManagement_MVC.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260513061815_AddUserAnthropicApiKey")]
+    partial class AddUserAnthropicApiKey
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -288,49 +291,6 @@ namespace TrainingCenterManagement_MVC.Migrations
                     b.ToTable("AIChatMessages");
                 });
 
-            modelBuilder.Entity("TrainingCenterManagement_MVC.Models.AIKnowledgeEntry", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Category")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Content")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("CreatedByUserId")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
-                    b.Property<int>("SortOrder")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("IsActive")
-                        .HasDatabaseName("IX_AIKnowledgeEntries_IsActive");
-
-                    b.ToTable("AIKnowledgeEntries");
-                });
-
             modelBuilder.Entity("TrainingCenterManagement_MVC.Models.AIPermissionRole", b =>
                 {
                     b.Property<Guid>("PermissionId")
@@ -405,7 +365,7 @@ namespace TrainingCenterManagement_MVC.Migrations
                             CanReadAdminData = false,
                             CanReadOtherUsersData = false,
                             CanReadPersonalData = true,
-                            CreatedAt = new DateTime(2026, 5, 13, 6, 38, 25, 257, DateTimeKind.Utc).AddTicks(2110),
+                            CreatedAt = new DateTime(2026, 5, 13, 6, 18, 14, 833, DateTimeKind.Utc).AddTicks(3456),
                             CreatedBy = "System",
                             DailyQueryLimit = 50,
                             RoleName = "Trainee"
@@ -421,7 +381,7 @@ namespace TrainingCenterManagement_MVC.Migrations
                             CanReadAdminData = false,
                             CanReadOtherUsersData = false,
                             CanReadPersonalData = true,
-                            CreatedAt = new DateTime(2026, 5, 13, 6, 38, 25, 257, DateTimeKind.Utc).AddTicks(2123),
+                            CreatedAt = new DateTime(2026, 5, 13, 6, 18, 14, 833, DateTimeKind.Utc).AddTicks(3470),
                             CreatedBy = "System",
                             DailyQueryLimit = 100,
                             RoleName = "Trainer"
@@ -437,7 +397,7 @@ namespace TrainingCenterManagement_MVC.Migrations
                             CanReadAdminData = true,
                             CanReadOtherUsersData = true,
                             CanReadPersonalData = true,
-                            CreatedAt = new DateTime(2026, 5, 13, 6, 38, 25, 257, DateTimeKind.Utc).AddTicks(2127),
+                            CreatedAt = new DateTime(2026, 5, 13, 6, 18, 14, 833, DateTimeKind.Utc).AddTicks(3475),
                             CreatedBy = "System",
                             DailyQueryLimit = -1,
                             RoleName = "Admin"
@@ -453,62 +413,10 @@ namespace TrainingCenterManagement_MVC.Migrations
                             CanReadAdminData = false,
                             CanReadOtherUsersData = false,
                             CanReadPersonalData = true,
-                            CreatedAt = new DateTime(2026, 5, 13, 6, 38, 25, 257, DateTimeKind.Utc).AddTicks(2130),
+                            CreatedAt = new DateTime(2026, 5, 13, 6, 18, 14, 833, DateTimeKind.Utc).AddTicks(3477),
                             CreatedBy = "System",
                             DailyQueryLimit = 100,
                             RoleName = "Receptionist"
-                        });
-                });
-
-            modelBuilder.Entity("TrainingCenterManagement_MVC.Models.AISystemConfig", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<bool>("IsEnabled")
-                        .HasColumnType("bit");
-
-                    b.Property<int>("MaxTokensPerResponse")
-                        .HasColumnType("int");
-
-                    b.Property<string>("OllamaModel")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("OllamaUrl")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("Provider")
-                        .HasColumnType("int");
-
-                    b.Property<int>("SystemDailyLimit")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("UpdatedByUserId")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("AISystemConfigs");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            IsEnabled = true,
-                            MaxTokensPerResponse = 1024,
-                            OllamaModel = "llama3.2",
-                            OllamaUrl = "http://localhost:11434",
-                            Provider = 1,
-                            SystemDailyLimit = 500,
-                            UpdatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
                         });
                 });
 
@@ -559,6 +467,9 @@ namespace TrainingCenterManagement_MVC.Migrations
 
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("int");
+
+                    b.Property<string>("AnthropicApiKey")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("BirthDate")
                         .HasColumnType("datetime2");

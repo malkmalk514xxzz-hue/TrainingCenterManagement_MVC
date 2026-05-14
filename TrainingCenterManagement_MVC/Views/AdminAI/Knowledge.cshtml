@@ -1,0 +1,163 @@
+@model List<TrainingCenterManagement_MVC.Models.AIKnowledgeEntry>
+@{
+    ViewData["Title"] = "قاعدة معرفة المركز";
+    var categories = new[] { "عام", "سياسات المركز", "الدورات", "الأسئلة الشائعة", "تعليمات", "جداول وأوقات" };
+}
+
+<style>
+.k-card  { border-radius:14px; border:1.5px solid #e2e8f0; background:#fff; padding:24px; margin-bottom:20px; }
+.k-entry { background:#f8fafc; border-radius:10px; padding:14px 16px; margin-bottom:10px; border:1px solid #e2e8f0; }
+.k-entry.inactive { opacity:.5; }
+.cat-badge { display:inline-block; padding:2px 10px; border-radius:20px; font-size:.72rem; font-weight:700;
+             background:#ede9fe; color:#5b21b6; margin-left:6px; }
+.add-btn { background:linear-gradient(135deg,#10b981,#059669); color:#fff; border:none; border-radius:10px; padding:10px 24px; font-weight:600; cursor:pointer; }
+.add-btn:hover { opacity:.88; }
+.field-lbl  { font-size:.8rem; font-weight:600; color:#64748b; margin-bottom:4px; display:block; }
+.field-ctrl { border:1.5px solid #e2e8f0; border-radius:10px; padding:9px 14px; font-size:.87rem; background:#f8fafc; width:100%; }
+.field-ctrl:focus { border-color:#6366f1; outline:none; background:#fff; }
+</style>
+
+<div class="dashboard-wrapper">
+    @await Html.PartialAsync("_AdminSidebar")
+    <main class="dashboard-main">
+        <div class="container-fluid px-4 py-4" style="max-width:900px">
+
+            <div class="d-flex align-items-center gap-3 mb-4">
+                <a asp-action="Settings" asp-controller="AdminAI" class="btn btn-sm btn-outline-secondary" style="border-radius:10px">
+                    <i class="fas fa-arrow-right"></i>
+                </a>
+                <div>
+                    <h2 class="fw-bold mb-0" style="color:#1e293b">قاعدة معرفة المركز</h2>
+                    <p class="text-muted mb-0" style="font-size:.83rem">أضف معلومات خاصة بالمركز ليتعلمها المساعد الذكي</p>
+                </div>
+                <span class="ms-auto" style="background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0;border-radius:20px;padding:4px 14px;font-size:.8rem;font-weight:600">
+                    @Model.Count(e => e.IsActive) مُفعَّل / @Model.Count إجمالي
+                </span>
+            </div>
+
+            @if (TempData["KnowledgeSuccess"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show mb-4 py-2" style="border-radius:10px;font-size:.88rem">
+                    <i class="fas fa-check-circle me-2"></i>@TempData["KnowledgeSuccess"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+            @if (TempData["KnowledgeError"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show mb-4 py-2" style="border-radius:10px;font-size:.88rem">
+                    <i class="fas fa-exclamation-circle me-2"></i>@TempData["KnowledgeError"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            <!-- Info banner -->
+            <div class="k-card" style="background:linear-gradient(135deg,#ede9fe,#e0e7ff);border-color:#c4b5fd">
+                <div style="display:flex;gap:12px;align-items:flex-start">
+                    <i class="fas fa-lightbulb" style="color:#7c3aed;font-size:1.2rem;margin-top:2px"></i>
+                    <div style="font-size:.85rem;color:#4c1d95">
+                        <strong>كيف تعمل قاعدة المعرفة؟</strong><br>
+                        كل معلومة تضيفها هنا تُحقن تلقائياً في سياق المساعد الذكي عند كل محادثة.
+                        أضف سياسات المركز، الأسئلة الشائعة، جداول الدوام، معلومات الدورات الخاصة — وسيجيب المساعد عليها بدقة.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Add form -->
+            <div class="k-card">
+                <div class="fw-bold mb-3" style="color:#1e293b;font-size:.95rem">
+                    <i class="fas fa-plus-circle me-2" style="color:#10b981"></i>إضافة معلومة جديدة
+                </div>
+                <form asp-action="AddKnowledge" asp-controller="AdminAI" method="post">
+                    @Html.AntiForgeryToken()
+                    <div class="row g-3">
+                        <div class="col-12 col-md-6">
+                            <label class="field-lbl">العنوان *</label>
+                            <input type="text" name="title" class="field-ctrl" placeholder="مثال: ساعات عمل المركز" maxlength="200">
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <label class="field-lbl">الفئة</label>
+                            <select name="category" class="field-ctrl">
+                                @foreach (var cat in categories)
+                                {
+                                    <option>@cat</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-12 col-md-2">
+                            <label class="field-lbl">الترتيب</label>
+                            <input type="number" name="sortOrder" class="field-ctrl" value="0" min="0">
+                        </div>
+                        <div class="col-12">
+                            <label class="field-lbl">المحتوى *</label>
+                            <textarea name="content" class="field-ctrl" rows="4"
+                                      placeholder="أدخل المعلومات التفصيلية هنا...&#10;مثال: يعمل المركز من الأحد إلى الخميس، 9 صباحاً حتى 5 مساءً."></textarea>
+                        </div>
+                        <div class="col-12">
+                            <button type="submit" class="add-btn">
+                                <i class="fas fa-plus me-2"></i>إضافة
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Entries list -->
+            @if (!Model.Any())
+            {
+                <div class="k-card text-center" style="color:#94a3b8;padding:40px">
+                    <i class="fas fa-book-open" style="font-size:2rem;margin-bottom:10px;display:block"></i>
+                    لا توجد معلومات مضافة بعد — ابدأ بإضافة معلومات عن مركزك
+                </div>
+            }
+            else
+            {
+                <div class="k-card">
+                    <div class="fw-bold mb-3" style="color:#1e293b;font-size:.95rem">
+                        <i class="fas fa-list me-2" style="color:#6366f1"></i>المعلومات المضافة
+                    </div>
+                    @foreach (var entry in Model)
+                    {
+                        <div class="k-entry @(!entry.IsActive ? "inactive" : "")">
+                            <div class="d-flex align-items-start gap-2">
+                                <div class="flex-grow-1">
+                                    <div class="d-flex align-items-center gap-2 mb-1">
+                                        <span class="fw-semibold" style="font-size:.88rem;color:#1e293b">@entry.Title</span>
+                                        <span class="cat-badge">@entry.Category</span>
+                                        @if (!entry.IsActive)
+                                        {
+                                            <span style="background:#fee2e2;color:#991b1b;border-radius:20px;padding:1px 8px;font-size:.68rem;font-weight:700">معطّل</span>
+                                        }
+                                    </div>
+                                    <div style="font-size:.8rem;color:#475569;white-space:pre-line;max-height:80px;overflow:hidden">@entry.Content</div>
+                                    <div style="font-size:.7rem;color:#94a3b8;margin-top:4px">
+                                        أُضيف: @entry.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
+                                    </div>
+                                </div>
+                                <div class="d-flex gap-1 flex-shrink-0">
+                                    <form asp-action="ToggleKnowledge" asp-controller="AdminAI" method="post">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@entry.Id">
+                                        <button type="submit" class="btn btn-sm"
+                                                style="border-radius:8px;font-size:.75rem;background:@(entry.IsActive ? "#fef3c7" : "#d1fae5");color:@(entry.IsActive ? "#92400e" : "#065f46");border:none">
+                                            <i class="fas @(entry.IsActive ? "fa-eye-slash" : "fa-eye")"></i>
+                                        </button>
+                                    </form>
+                                    <form asp-action="DeleteKnowledge" asp-controller="AdminAI" method="post"
+                                          onsubmit="return confirm('هل تريد حذف هذه المعلومة؟')">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@entry.Id">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger"
+                                                style="border-radius:8px;font-size:.75rem">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+
+        </div>
+    </main>
+</div>

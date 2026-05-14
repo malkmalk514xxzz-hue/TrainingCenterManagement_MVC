@@ -1,0 +1,608 @@
+@model TrainingCenterManagement_MVC.Models.AISystemConfig
+@{
+    ViewData["Title"] = "إعدادات المساعد الذكي";
+    bool anthropicOk = (bool)(ViewBag.AnthropicKeyConfigured ?? false);
+    var currentModel = Model.OllamaModel ?? "";
+}
+
+<style>
+.ai-card { border-radius:14px; border:1.5px solid #e2e8f0; background:#fff; padding:24px; margin-bottom:20px; }
+.ai-card-header { font-weight:700; font-size:.95rem; color:#1e293b; margin-bottom:16px; display:flex; align-items:center; gap:8px; }
+.provider-option { border:2px solid #e2e8f0; border-radius:12px; padding:16px; cursor:pointer; transition:all .2s; margin-bottom:10px; }
+.provider-option:has(input:checked) { border-color:#6366f1; background:#f5f3ff; }
+.provider-option label { cursor:pointer; margin:0; width:100%; }
+.provider-icon { width:40px; height:40px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1.1rem; flex-shrink:0; }
+.field-lbl { font-size:.8rem; font-weight:600; color:#64748b; margin-bottom:4px; display:block; }
+.field-ctrl { border:1.5px solid #e2e8f0; border-radius:10px; padding:9px 14px; font-size:.87rem; background:#f8fafc; transition:border-color .2s; width:100%; }
+.field-ctrl:focus { border-color:#6366f1; outline:none; background:#fff; }
+.save-btn { background:linear-gradient(135deg,#6366f1,#4f46e5); color:#fff; border:none; border-radius:10px; padding:10px 28px; font-size:.9rem; font-weight:600; cursor:pointer; transition:opacity .2s; }
+.save-btn:hover { opacity:.88; }
+.status-dot { width:8px; height:8px; border-radius:50%; display:inline-block; }
+.dot-green { background:#10b981; }
+.dot-red   { background:#ef4444; }
+
+/* Model browser */
+.model-tab {
+  border:1.5px solid #e2e8f0; border-radius:8px; padding:7px 18px;
+  font-size:.83rem; font-weight:600; cursor:pointer; background:#f8fafc;
+  color:#64748b; transition:all .18s;
+}
+.model-tab.active { background:#ede9fe; border-color:#c4b5fd; color:#5b21b6; }
+.tab-badge {
+  background:#e2e8f0; border-radius:20px; padding:1px 8px;
+  font-size:.7rem; margin-right:5px; vertical-align:middle;
+}
+.model-tab.active .tab-badge { background:#c4b5fd; color:#3b0764; }
+
+.model-grid {
+  display:grid; grid-template-columns:repeat(auto-fill,minmax(190px,1fr));
+  gap:10px; max-height:360px; overflow-y:auto; padding:2px;
+}
+.model-card {
+  border:1.5px solid #e2e8f0; border-radius:12px; padding:13px;
+  cursor:default; transition:all .18s; background:#fff; position:relative;
+  display:flex; flex-direction:column;
+}
+.model-card.clickable { cursor:pointer; }
+.model-card.clickable:hover { border-color:#c4b5fd; background:#faf5ff; transform:translateY(-1px); }
+.model-card.is-current { border-color:#6366f1; background:#f0f3ff; }
+.model-tag {
+  font-size:.64rem; font-weight:700; border-radius:20px; padding:2px 8px;
+  display:inline-block; margin-bottom:6px; line-height:1.6;
+}
+.tag-rec   { background:#fef3c7; color:#92400e; }
+.tag-light { background:#dcfce7; color:#166534; }
+.tag-pow   { background:#dbeafe; color:#1e40af; }
+.tag-ar    { background:#fce7f3; color:#9d174d; }
+.tag-code  { background:#f1f5f9; color:#334155; }
+.tag-multi { background:#e0f2fe; color:#0369a1; }
+.tag-think { background:#ede9fe; color:#5b21b6; }
+
+.model-name { font-weight:700; font-size:.87rem; color:#1e293b; }
+.model-desc { font-size:.73rem; color:#64748b; margin-top:3px; line-height:1.4; flex:1; }
+.model-size { font-size:.72rem; color:#94a3b8; margin-top:5px; }
+.installed-dot {
+  position:absolute; top:10px; left:10px;
+  width:8px; height:8px; border-radius:50%; background:#10b981;
+}
+.model-action-btn {
+  margin-top:10px; width:100%; padding:6px 0; border-radius:8px; border:none;
+  font-size:.78rem; font-weight:600; cursor:pointer; transition:all .15s; display:flex;
+  align-items:center; justify-content:center; gap:5px;
+}
+.btn-activate { background:#d1fae5; color:#065f46; }
+.btn-activate:hover { background:#10b981; color:#fff; }
+.btn-dl       { background:#ede9fe; color:#5b21b6; }
+.btn-dl:hover { background:#7c3aed; color:#fff; }
+.btn-current  { background:#e0e7ff; color:#4338ca; cursor:default; }
+</style>
+
+<div class="dashboard-wrapper">
+    @await Html.PartialAsync("_AdminSidebar")
+    <main class="dashboard-main">
+        <div class="container-fluid px-4 py-4" style="max-width:900px">
+
+            <div class="d-flex align-items-center gap-3 mb-4">
+                <a href="javascript:history.back()" class="btn btn-sm btn-outline-secondary" style="border-radius:10px">
+                    <i class="fas fa-arrow-right"></i>
+                </a>
+                <div>
+                    <h2 class="fw-bold mb-0" style="color:#1e293b">إعدادات المساعد الذكي</h2>
+                    <p class="text-muted mb-0" style="font-size:.83rem">اختر مزود AI وضبط حدود الاستخدام</p>
+                </div>
+                <a asp-action="Knowledge" asp-controller="AdminAI" class="btn btn-sm ms-auto"
+                   style="background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0;border-radius:10px;font-size:.82rem">
+                    <i class="fas fa-book me-1"></i>قاعدة المعرفة
+                </a>
+            </div>
+
+            @if (TempData["AISettingsSuccess"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show mb-4 py-2" style="border-radius:10px;font-size:.88rem">
+                    <i class="fas fa-check-circle me-2"></i>@TempData["AISettingsSuccess"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            <form asp-action="Settings" method="post">
+                @Html.AntiForgeryToken()
+
+                <!-- Provider -->
+                <div class="ai-card">
+                    <div class="ai-card-header">
+                        <i class="fas fa-network-wired" style="color:#6366f1"></i> اختر مزود الذكاء الاصطناعي
+                    </div>
+                    <div class="provider-option">
+                        <label class="d-flex align-items-center gap-3">
+                            <input type="radio" name="Provider" value="1"
+                                   @(Model.Provider == TrainingCenterManagement_MVC.Models.AIProviderType.Anthropic ? "checked" : "")
+                                   onchange="toggleProviders()">
+                            <div class="provider-icon" style="background:#fff3e0">
+                                <i class="fas fa-cloud" style="color:#f59e0b"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="fw-semibold" style="font-size:.9rem">Claude (Anthropic API)</div>
+                                <div style="font-size:.76rem;color:#64748b">يستخدم نموذج Claude عبر Anthropic API — يتطلب مفتاح API</div>
+                            </div>
+                            <span class="status-dot @(anthropicOk ? "dot-green" : "dot-red")"></span>
+                            @if (anthropicOk)
+                            {
+                                <span style="font-size:.72rem;color:#10b981;font-weight:600">مفعّل</span>
+                            }
+                            else
+                            {
+                                <span style="font-size:.72rem;color:#ef4444;font-weight:600">يحتاج مفتاح</span>
+                            }
+                        </label>
+                    </div>
+                    <div class="provider-option">
+                        <label class="d-flex align-items-center gap-3">
+                            <input type="radio" name="Provider" value="2"
+                                   @(Model.Provider == TrainingCenterManagement_MVC.Models.AIProviderType.Ollama ? "checked" : "")
+                                   onchange="toggleProviders()">
+                            <div class="provider-icon" style="background:#ede9fe">
+                                <i class="fas fa-server" style="color:#7c3aed"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="fw-semibold" style="font-size:.9rem">Ollama (نموذج محلي)</div>
+                                <div style="font-size:.76rem;color:#64748b">يعمل على خادمك المحلي — مجاني تماماً، لا يحتاج إنترنت</div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Anthropic notice -->
+                <div id="anthropic-section" style="display:@(Model.Provider == TrainingCenterManagement_MVC.Models.AIProviderType.Anthropic ? "block" : "none")">
+                    <div class="ai-card" style="border-color:@(anthropicOk ? "#bbf7d0" : "#fecaca");background:@(anthropicOk ? "#f0fdf4" : "#fff5f5")">
+                        @if (anthropicOk)
+                        {
+                            <div style="color:#15803d;font-size:.88rem">
+                                <i class="fas fa-check-circle me-2"></i>
+                                مفتاح Anthropic API مُعيَّن في <code>appsettings.json</code>
+                            </div>
+                        }
+                        else
+                        {
+                            <div style="color:#b91c1c;font-size:.88rem">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                لم يُعيَّن مفتاح Anthropic API — أضفه في <code>appsettings.json</code>:
+                                <pre style="background:#fff;border-radius:8px;padding:10px;margin-top:8px;font-size:.8rem;border:1px solid #fecaca;direction:ltr;text-align:left">"Anthropic": {
+  "ApiKey": "sk-ant-api03-..."
+}</pre>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <!-- Ollama Section -->
+                <div id="ollama-section" style="display:@(Model.Provider == TrainingCenterManagement_MVC.Models.AIProviderType.Ollama ? "block" : "none")">
+                    <div class="ai-card">
+                        <div class="ai-card-header">
+                            <i class="fas fa-server" style="color:#7c3aed"></i> إعدادات Ollama والنماذج
+                        </div>
+
+                        <!-- URL + Fetch -->
+                        <div class="row g-3 mb-3">
+                            <div class="col-12 col-md-8">
+                                <label class="field-lbl">عنوان خادم Ollama</label>
+                                <input type="text" name="OllamaUrl" class="field-ctrl" id="ollamaUrl"
+                                       value="@Model.OllamaUrl" placeholder="http://localhost:11434">
+                            </div>
+                            <div class="col-12 col-md-4 d-flex align-items-end">
+                                <button type="button" id="fetchBtn" onclick="fetchAllModels()"
+                                        style="background:#ede9fe;color:#5b21b6;border:none;border-radius:10px;padding:10px;font-size:.85rem;font-weight:600;width:100%;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">
+                                    <i class="fas fa-sync-alt"></i> جلب النماذج
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Hidden model input (submitted with form) -->
+                        <input type="hidden" name="OllamaModel" id="ollamaModelInput" value="@currentModel">
+
+                        <!-- Current model badge -->
+                        <div id="current-model-display" style="@(string.IsNullOrEmpty(currentModel) ? "display:none" : "")margin-bottom:14px">
+                            <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:10px">
+                                <span style="width:9px;height:9px;border-radius:50%;background:#10b981;flex-shrink:0"></span>
+                                <span style="font-size:.85rem;color:#15803d;font-weight:600">
+                                    النموذج المرتبط بالموقع: <code id="currentModelName">@currentModel</code>
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Fetch status line -->
+                        <div id="fetchStatus" style="display:none;font-size:.82rem;margin-bottom:12px;padding:8px 12px;border-radius:8px;background:#f8fafc;border:1px solid #e2e8f0"></div>
+
+                        <!-- ══ Model Browser ══ -->
+                        <div id="model-browser" style="display:none">
+
+                            <!-- Tabs -->
+                            <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
+                                <button type="button" id="tab-installed" class="model-tab active" onclick="switchTab('installed')">
+                                    <i class="fas fa-check-circle" style="margin-left:4px"></i>
+                                    المثبتة <span id="cnt-installed" class="tab-badge">0</span>
+                                </button>
+                                <button type="button" id="tab-available" class="model-tab" onclick="switchTab('available')">
+                                    <i class="fas fa-cloud-download-alt" style="margin-left:4px"></i>
+                                    متاحة للتحميل <span id="cnt-available" class="tab-badge">0</span>
+                                </button>
+                            </div>
+
+                            <!-- Installed grid -->
+                            <div id="grid-installed" class="model-grid"></div>
+                            <!-- Available grid -->
+                            <div id="grid-available" class="model-grid" style="display:none"></div>
+                        </div>
+
+                        <!-- ══ Download Progress ══ -->
+                        <div id="pull-panel" style="display:none;margin-top:14px">
+                            <div style="background:#faf5ff;border:1.5px solid #ddd6fe;border-radius:12px;padding:16px">
+                                <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+                                    <div class="spinner-border spinner-border-sm" role="status"
+                                         style="color:#7c3aed;width:16px;height:16px;border-width:2px;flex-shrink:0"></div>
+                                    <span style="font-size:.88rem;font-weight:700;color:#5b21b6;flex:1">
+                                        جاري تحميل: <span id="pull-name"></span>
+                                    </span>
+                                    <span id="pull-pct" style="font-size:.88rem;font-weight:800;color:#7c3aed">0%</span>
+                                </div>
+                                <div style="background:#e9d5ff;border-radius:6px;height:10px;overflow:hidden;margin-bottom:8px">
+                                    <div id="pull-bar" style="background:linear-gradient(90deg,#7c3aed,#4f46e5);height:100%;width:0%;transition:width .3s;border-radius:6px"></div>
+                                </div>
+                                <div id="pull-status" style="font-size:.76rem;color:#6d28d9"></div>
+                            </div>
+                        </div>
+
+                        <!-- ══ Activation Panel ══ -->
+                        <div id="act-panel" style="display:none;margin-top:14px">
+                            <div style="background:#0f172a;border-radius:14px;overflow:hidden">
+                                <div style="padding:11px 16px;background:rgba(255,255,255,.06);display:flex;align-items:center;justify-content:space-between">
+                                    <span style="color:#a5b4fc;font-size:.8rem;font-weight:600">
+                                        <i class="fas fa-terminal" style="margin-left:6px"></i>أوامر تشغيل النموذج
+                                    </span>
+                                    <span id="act-badge" style="background:#7c3aed;color:#fff;border-radius:20px;padding:2px 12px;font-size:.71rem;font-weight:700"></span>
+                                </div>
+                                <pre id="act-cmds" style="color:#e2e8f0;padding:16px;margin:0;font-family:Consolas,monospace;font-size:.82rem;line-height:1.75;direction:ltr;text-align:left;white-space:pre-wrap"></pre>
+                            </div>
+                            <div style="display:flex;align-items:center;gap:12px;margin-top:12px;flex-wrap:wrap">
+                                <button type="button" id="apply-btn" onclick="applyModel()"
+                                        style="background:linear-gradient(135deg,#10b981,#059669);color:#fff;border:none;border-radius:10px;padding:11px 28px;font-size:.88rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:8px">
+                                    <i class="fas fa-link"></i> ربط بالموقع
+                                </button>
+                                <span id="apply-msg" style="font-size:.83rem"></span>
+                            </div>
+                        </div>
+
+                        <!-- Info -->
+                        <div style="margin-top:16px;padding:10px 14px;background:#faf5ff;border-radius:10px;border:1px solid #ddd6fe;font-size:.8rem;color:#5b21b6">
+                            <i class="fas fa-info-circle" style="margin-left:5px"></i>
+                            لتثبيت Ollama: <strong>ollama.ai</strong> — بعد التثبيت اضغط <strong>جلب النماذج</strong> لتصفح وتحميل النماذج مباشرةً
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Limits -->
+                <div class="ai-card">
+                    <div class="ai-card-header">
+                        <i class="fas fa-sliders-h" style="color:#0ea5e9"></i> حدود الاستخدام
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-12 col-md-4">
+                            <label class="field-lbl">الحد اليومي للنظام</label>
+                            <input type="number" name="SystemDailyLimit" class="field-ctrl"
+                                   value="@Model.SystemDailyLimit" min="-1" max="100000"
+                                   placeholder="500 (0 أو -1 = غير محدود)">
+                            <div style="font-size:.72rem;color:#94a3b8;margin-top:3px">0 أو -1 = غير محدود</div>
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <label class="field-lbl">الحد الأقصى للرد (tokens)</label>
+                            <input type="number" name="MaxTokensPerResponse" class="field-ctrl"
+                                   value="@Model.MaxTokensPerResponse" min="256" max="4096">
+                            <div style="font-size:.72rem;color:#94a3b8;margin-top:3px">256–4096 | الموصى به: 1024</div>
+                        </div>
+                        <div class="col-12 col-md-4 d-flex align-items-center gap-3" style="padding-top:22px">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" name="IsEnabled" id="isEnabled"
+                                       value="true" @(Model.IsEnabled ? "checked" : "")>
+                                <label class="form-check-label fw-semibold" for="isEnabled" style="font-size:.88rem">
+                                    المساعد الذكي مفعّل
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end">
+                    <button type="submit" class="save-btn">
+                        <i class="fas fa-save me-2"></i>حفظ الإعدادات
+                    </button>
+                </div>
+            </form>
+
+        </div>
+    </main>
+</div>
+
+<script>
+/* ─── state ─────────────────────────────────────────────── */
+let _data        = null;          // last OllamaAllModels response
+let _selModel    = '@currentModel';
+let _curModel    = '@currentModel';
+let _pullSrc     = null;          // active EventSource
+
+/* ─── tag styles ─────────────────────────────────────────── */
+const TAG = {
+  'موصى به': 'tag-rec', 'خفيف': 'tag-light', 'قوي': 'tag-pow',
+  'عربي': 'tag-ar', 'كود': 'tag-code', 'متعدد اللغات': 'tag-multi', 'تفكير': 'tag-think'
+};
+
+/* ─── status messages ────────────────────────────────────── */
+const STATUS_MAP = {
+  'pulling manifest':               'جاري قراءة معلومات النموذج...',
+  'verifying sha256 digest':        'جاري التحقق من الملفات...',
+  'writing manifest':               'جاري كتابة النموذج...',
+  'removing any unused layers':     'جاري التنظيف...',
+  'success':                        'اكتمل التحميل بنجاح!'
+};
+
+/* ─── Provider toggle ────────────────────────────────────── */
+function toggleProviders() {
+  var ant = document.querySelector('input[name="Provider"][value="1"]').checked;
+  document.getElementById('anthropic-section').style.display = ant ? 'block' : 'none';
+  document.getElementById('ollama-section').style.display    = ant ? 'none'  : 'block';
+}
+
+/* ─── Fetch all models ───────────────────────────────────── */
+async function fetchAllModels() {
+  const url      = document.getElementById('ollamaUrl').value.trim() || 'http://localhost:11434';
+  const fetchBtn = document.getElementById('fetchBtn');
+  const statusEl = document.getElementById('fetchStatus');
+
+  fetchBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الجلب...';
+  fetchBtn.disabled  = true;
+  statusEl.style.display = 'block';
+  statusEl.innerHTML = '<i class="fas fa-spinner fa-spin" style="color:#7c3aed;margin-left:6px"></i> جاري الاتصال بـ Ollama...';
+
+  try {
+    const res  = await fetch('/AdminAI/OllamaAllModels?url=' + encodeURIComponent(url));
+    const data = await res.json();
+
+    fetchBtn.innerHTML = '<i class="fas fa-sync-alt"></i> تحديث';
+    fetchBtn.disabled  = false;
+
+    if (!data.success) {
+      statusEl.style.background = '#fff5f5';
+      statusEl.style.borderColor = '#fecaca';
+      statusEl.innerHTML = `<span style="color:#dc2626"><i class="fas fa-exclamation-circle" style="margin-left:5px"></i>${data.error}</span>`;
+      return;
+    }
+
+    statusEl.style.background  = '#f0fdf4';
+    statusEl.style.borderColor = '#bbf7d0';
+    statusEl.innerHTML = `<span style="color:#15803d"><i class="fas fa-check-circle" style="margin-left:5px"></i>متصل — ${data.installed.length} نموذج مثبت، ${data.popular.length} متاح للتحميل</span>`;
+
+    _data = data;
+    renderBrowser(data);
+  } catch {
+    fetchBtn.innerHTML = '<i class="fas fa-sync-alt"></i> إعادة المحاولة';
+    fetchBtn.disabled  = false;
+    statusEl.style.background = '#fff5f5';
+    statusEl.innerHTML = '<span style="color:#dc2626"><i class="fas fa-times-circle" style="margin-left:5px"></i>تعذّر الاتصال بـ Ollama</span>';
+  }
+}
+
+/* ─── Render browser ─────────────────────────────────────── */
+function renderBrowser(data) {
+  document.getElementById('cnt-installed').textContent = data.installed.length;
+  document.getElementById('cnt-available').textContent = data.popular.length;
+
+  // Installed
+  const instGrid = document.getElementById('grid-installed');
+  if (data.installed.length === 0) {
+    instGrid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:28px;color:#94a3b8;font-size:.84rem"><i class="fas fa-inbox fa-2x" style="display:block;margin-bottom:8px"></i>لا توجد نماذج مثبتة بعد</div>';
+  } else {
+    instGrid.innerHTML = data.installed.map(name => {
+      const pop = data.popular.find(p => isSame(name, p.name));
+      return card({ name, size: pop?.size || '', desc: pop?.desc || 'نموذج مثبت محلياً', tag: pop?.tag || '', installed: true });
+    }).join('');
+  }
+
+  // Available
+  document.getElementById('grid-available').innerHTML =
+    data.popular.map(p => card({ name: p.name, size: p.size, desc: p.desc, tag: p.tag, installed: p.isInstalled })).join('');
+
+  document.getElementById('model-browser').style.display = 'block';
+}
+
+/* ─── Model card HTML ────────────────────────────────────── */
+function card({ name, size, desc, tag, installed }) {
+  const isCurrent = (name === _curModel);
+  const tagHtml   = tag ? `<span class="model-tag ${TAG[tag]||''}">${tag}</span>` : '';
+  const sizeHtml  = size ? `<div class="model-size"><i class="fas fa-hdd" style="margin-left:4px"></i>${size}</div>` : '';
+  const dot       = installed ? '<span class="installed-dot"></span>' : '';
+
+  let btn = '';
+  let extra = '';
+  if (isCurrent) {
+    extra = ' is-current';
+    btn = `<button class="model-action-btn btn-current" disabled>
+             <i class="fas fa-check-circle"></i> مرتبط بالموقع
+           </button>`;
+  } else if (installed) {
+    btn = `<button class="model-action-btn btn-activate clickable" onclick="selectInstalled('${name}')">
+             <i class="fas fa-bolt"></i> تفعيل
+           </button>`;
+  } else {
+    btn = `<button class="model-action-btn btn-dl clickable" onclick="startPull('${name}')">
+             <i class="fas fa-download"></i> تحميل وتثبيت
+           </button>`;
+  }
+
+  return `<div class="model-card${extra}">${dot}
+    <div>${tagHtml}</div>
+    <div class="model-name">${name}</div>
+    <div class="model-desc">${desc}</div>
+    ${sizeHtml}
+    ${btn}
+  </div>`;
+}
+
+/* ─── Tab switch ─────────────────────────────────────────── */
+function switchTab(tab) {
+  ['installed','available'].forEach(t => {
+    document.getElementById(`grid-${t}`).style.display  = t === tab ? 'grid' : 'none';
+    document.getElementById(`tab-${t}`).className       = 'model-tab' + (t === tab ? ' active' : '');
+  });
+}
+
+/* ─── Select already-installed model ────────────────────── */
+function selectInstalled(name) {
+  _selModel = name;
+  document.getElementById('ollamaModelInput').value = name;
+  showActPanel(name);
+}
+
+/* ─── Pull (download) a model via SSE ───────────────────── */
+function startPull(modelName) {
+  if (_pullSrc) { _pullSrc.close(); _pullSrc = null; }
+
+  _selModel = modelName;
+
+  const pullPanel  = document.getElementById('pull-panel');
+  const pullBar    = document.getElementById('pull-bar');
+  const pullPct    = document.getElementById('pull-pct');
+  const pullStatus = document.getElementById('pull-status');
+  const pullName   = document.getElementById('pull-name');
+  const actPanel   = document.getElementById('act-panel');
+
+  actPanel.style.display = 'none';
+  pullPanel.style.display = 'block';
+  pullBar.style.width   = '0%';
+  pullPct.textContent   = '0%';
+  pullName.textContent  = modelName;
+  pullStatus.textContent = 'جاري التحضير...';
+  pullPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+  const url = document.getElementById('ollamaUrl').value.trim() || 'http://localhost:11434';
+  const sse = `/AdminAI/PullModel?url=${encodeURIComponent(url)}&model=${encodeURIComponent(modelName)}`;
+
+  _pullSrc = new EventSource(sse);
+
+  _pullSrc.onmessage = e => {
+    try {
+      const d = JSON.parse(e.data);
+
+      if (d.error) {
+        pullStatus.innerHTML = `<span style="color:#dc2626"><i class="fas fa-times-circle" style="margin-left:4px"></i>${d.error}</span>`;
+        _pullSrc.close();
+        return;
+      }
+
+      if (d.percent > 0) {
+        pullBar.style.width = d.percent + '%';
+        pullPct.textContent = d.percent + '%';
+      }
+
+      let txt = STATUS_MAP[d.status] || d.status || '';
+      if (d.status && d.status.startsWith('pulling') && d.percent > 0)
+        txt = `جاري تحميل الطبقات — ${d.percent}%`;
+      pullStatus.textContent = txt;
+
+      if (d.done) {
+        pullBar.style.width = '100%';
+        pullPct.textContent  = '100%';
+        pullStatus.innerHTML = '<span style="color:#10b981;font-weight:600"><i class="fas fa-check-circle" style="margin-left:4px"></i>اكتمل التحميل بنجاح!</span>';
+        _pullSrc.close();
+        _pullSrc = null;
+        setTimeout(() => {
+          pullPanel.style.display = 'none';
+          document.getElementById('ollamaModelInput').value = modelName;
+          showActPanel(modelName);
+          // Refresh browser list
+          fetchAllModels();
+        }, 1400);
+      }
+    } catch {}
+  };
+
+  _pullSrc.onerror = () => {
+    pullStatus.innerHTML = '<span style="color:#dc2626">انقطع الاتصال — تحقق من تشغيل Ollama</span>';
+    _pullSrc.close();
+    _pullSrc = null;
+  };
+}
+
+/* ─── Show activation commands panel ────────────────────── */
+function showActPanel(modelName) {
+  document.getElementById('act-badge').textContent = modelName;
+  document.getElementById('act-cmds').textContent =
+`# تشغيل النموذج في الطرفية
+ollama run ${modelName}
+
+# عرض جميع النماذج المثبتة
+ollama list
+
+# إيقاف خادم Ollama (اختياري)
+ollama stop`;
+
+  const panel = document.getElementById('act-panel');
+  panel.style.display = 'block';
+  document.getElementById('apply-msg').textContent = '';
+
+  const btn = document.getElementById('apply-btn');
+  btn.innerHTML  = '<i class="fas fa-link"></i> ربط بالموقع';
+  btn.disabled   = false;
+  btn.style.background = 'linear-gradient(135deg,#10b981,#059669)';
+
+  panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+/* ─── Apply (link) model to website ─────────────────────── */
+async function applyModel() {
+  const model   = _selModel;
+  const url     = document.getElementById('ollamaUrl').value.trim() || 'http://localhost:11434';
+  const applyBtn = document.getElementById('apply-btn');
+  const applyMsg = document.getElementById('apply-msg');
+
+  applyBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الربط...';
+  applyBtn.disabled  = true;
+
+  try {
+    const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
+    const form  = new FormData();
+    form.append('url',   url);
+    form.append('model', model);
+    form.append('__RequestVerificationToken', token);
+
+    const res  = await fetch('/AdminAI/ApplyModel', { method: 'POST', body: form });
+    const data = await res.json();
+
+    if (data.success) {
+      applyBtn.innerHTML = '<i class="fas fa-check-circle"></i> تم الربط';
+      applyBtn.style.background = '#10b981';
+      applyMsg.innerHTML = `<span style="color:#10b981;font-weight:600">${data.message}</span>`;
+
+      _curModel = model;
+      document.getElementById('currentModelName').textContent = model;
+      document.getElementById('current-model-display').style.display = 'block';
+      document.getElementById('ollamaModelInput').value = model;
+
+      // Refresh cards to show "مرتبط بالموقع" badge
+      if (_data) renderBrowser(_data);
+    } else {
+      applyBtn.innerHTML = '<i class="fas fa-link"></i> ربط بالموقع';
+      applyBtn.disabled  = false;
+      applyMsg.innerHTML = `<span style="color:#dc2626">${data.message}</span>`;
+    }
+  } catch {
+    applyBtn.innerHTML = '<i class="fas fa-link"></i> ربط بالموقع';
+    applyBtn.disabled  = false;
+    applyMsg.innerHTML = '<span style="color:#dc2626">خطأ في الاتصال</span>';
+  }
+}
+
+/* ─── Util: compare model names ─────────────────────────── */
+function isSame(a, b) {
+  const sp = s => [s.split(':')[0].toLowerCase(), (s.includes(':') ? s.split(':')[1] : 'latest').toLowerCase()];
+  const [aB, aT] = sp(a), [bB, bT] = sp(b);
+  return aB === bB && aT === bT;
+}
+</script>
