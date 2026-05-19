@@ -51,6 +51,25 @@
                            value="@ViewBag.ScheduledAtLocal" />
                 </div>
 
+                <div class="ls-form-group">
+                    <label class="ls-label"><i class="fas fa-clock"></i> مدة الجلسة</label>
+                    <div style="display:flex;gap:10px;align-items:center;">
+                        <select id="durationPreset" class="ls-input" style="flex:1;" onchange="applyDurationPreset(this.value)">
+                            <option value="">— اختر مدة —</option>
+                            <option value="30">30 دقيقة</option>
+                            <option value="45">45 دقيقة</option>
+                            <option value="60">ساعة واحدة</option>
+                            <option value="90">ساعة ونصف</option>
+                            <option value="120">ساعتان</option>
+                            <option value="180">3 ساعات</option>
+                            <option value="custom">مخصص...</option>
+                        </select>
+                        <input asp-for="DurationMinutes" id="durationInput" class="ls-input" type="number"
+                               min="15" max="480" placeholder="دقيقة" style="width:110px;flex-shrink:0;" />
+                    </div>
+                    <span style="font-size:.78rem;color:#94a3b8;margin-top:2px;">اتركه فارغاً لجلسة بدون حد زمني</span>
+                </div>
+
                 <div style="display:flex;gap:12px;margin-top:24px;">
                     <button type="submit" class="ls-btn-submit">
                         <i class="fas fa-save"></i> حفظ التعديلات وإشعار الطلاب
@@ -85,3 +104,17 @@
     }
     .ls-btn-secondary:hover { background:#e2e8f0;text-decoration:none;color:#475569; }
 </style>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        function applyDurationPreset(val) {
+            const input = document.getElementById('durationInput');
+            if (val === 'custom' || val === '') { input.value = ''; input.focus(); }
+            else input.value = val;
+        }
+        document.getElementById('durationInput')?.addEventListener('input', function () {
+            document.getElementById('durationPreset').value = '';
+        });
+    </script>
+}

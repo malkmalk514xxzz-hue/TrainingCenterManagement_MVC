@@ -1,0 +1,285 @@
+@model TrainingCenterManagement_MVC.Models.PaymentRequest
+@{
+    ViewData["Title"] = "مراجعة طلب دفع";
+    var isPdf       = Model.ReceiptFilePath?.EndsWith(".pdf") == true;
+    var symMap      = new Dictionary<TrainingCenterManagement_MVC.Models.PaymentCurrency, string> {
+        [TrainingCenterManagement_MVC.Models.PaymentCurrency.SYP] = "ل.س",
+        [TrainingCenterManagement_MVC.Models.PaymentCurrency.USD] = "$",
+        [TrainingCenterManagement_MVC.Models.PaymentCurrency.EUR] = "€"
+    };
+    var sym         = symMap[Model.Currency];
+    var isPending   = Model.Status == TrainingCenterManagement_MVC.Models.PaymentRequestStatus.Pending;
+    var isSham      = Model.Method == TrainingCenterManagement_MVC.Models.OnlinePaymentMethod.ShamCash;
+
+    var shamName    = (string)(ViewBag.ShamCashAccountName   ?? "");
+    var shamAccount = (string)(ViewBag.ShamCashAccountNumber ?? "");
+    var binWallet   = (string)(ViewBag.BinanceWalletAddress  ?? "");
+    var binNetwork  = (string)(ViewBag.BinanceNetwork        ?? "TRC20");
+}
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+<div class="dashboard-wrapper" style="display:flex;direction:rtl;min-height:100vh">
+@await Html.PartialAsync("_AdminSidebar")
+<main style="flex:1;padding:28px 32px;background:#f8fafc;overflow-x:hidden">
+
+<a href="@Url.Action("Manage","PaymentRequests")" style="display:inline-flex;align-items:center;gap:6px;color:#64748b;text-decoration:none;font-size:.88rem;margin-bottom:20px;">
+    <i class="fas fa-arrow-right"></i> العودة إلى قائمة الطلبات
+</a>
+
+@if (TempData["Error"] != null)
+{
+    <div style="background:#fee2e2;border:1px solid #fca5a5;border-radius:10px;padding:12px 18px;margin-bottom:20px;color:#b91c1c;font-weight:600;">
+        <i class="fas fa-exclamation-circle"></i> @TempData["Error"]
+    </div>
+}
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start;">
+
+    <!-- Left: Receipt Viewer -->
+    <div style="background:#fff;border-radius:14px;box-shadow:0 2px 16px rgba(0,0,0,.07);border:1px solid #e2e8f0;padding:20px;">
+        <h3 style="font-size:.95rem;font-weight:700;color:#0f172a;margin:0 0 14px;">
+            <i class="fas fa-file-alt" style="color:#4f46e5;margin-left:6px;"></i> إيصال الدفع
+        </h3>
+        @if (!string.IsNullOrEmpty(Model.ReceiptFilePath))
+        {
+            @if (isPdf)
+            {
+                <iframe src="@Model.ReceiptFilePath" width="100%" height="500px" style="border:1px solid #e2e8f0;border-radius:8px;"></iframe>
+                <a href="@Model.ReceiptFilePath" target="_blank" download
+                   style="display:inline-flex;align-items:center;gap:6px;margin-top:10px;padding:7px 14px;background:#eef2ff;color:#4f46e5;border-radius:7px;text-decoration:none;font-size:.82rem;font-weight:600;">
+                    <i class="fas fa-download"></i> تحميل PDF
+                </a>
+            }
+            else
+            {
+                <img src="@Model.ReceiptFilePath" alt="إيصال" style="width:100%;border-radius:8px;border:1px solid #e2e8f0;" />
+                <a href="@Model.ReceiptFilePath" target="_blank" download
+                   style="display:inline-flex;align-items:center;gap:6px;margin-top:10px;padding:7px 14px;background:#eef2ff;color:#4f46e5;border-radius:7px;text-decoration:none;font-size:.82rem;font-weight:600;">
+                    <i class="fas fa-download"></i> تحميل الصورة
+                </a>
+            }
+        }
+        else
+        {
+            <div style="text-align:center;padding:40px;color:#94a3b8;">
+                <i class="fas fa-file-times" style="font-size:2rem;margin-bottom:8px;display:block;"></i>
+                لم يرفق الطالب إيصالاً
+            </div>
+        }
+    </div>
+
+    <!-- Right: Details + Actions -->
+    <div>
+        <!-- Request Details -->
+        <div style="background:#fff;border-radius:14px;box-shadow:0 2px 16px rgba(0,0,0,.07);border:1px solid #e2e8f0;padding:20px;margin-bottom:16px;">
+            <h3 style="font-size:.95rem;font-weight:700;color:#0f172a;margin:0 0 14px;">تفاصيل الطلب</h3>
+            @{
+                void Row(string label, string value, string? color = null)
+                {
+                    <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f1f5f9;">
+                        <span style="font-size:.82rem;color:#64748b;">@label</span>
+                        <span style="font-size:.85rem;font-weight:600;color:@(color ?? "#0f172a");">@value</span>
+                    </div>
+                }
+            }
+            @{ Row("الطالب",  Model.Trainee?.User?.FullName ?? "—"); }
+            @{ Row("الكورس",  Model.Course?.CourseName      ?? "—"); }
+            @{ Row("المبلغ",  $"{Model.Amount:N0} {sym}",    "#059669"); }
+            @{ Row("طريقة الدفع", isSham ? "شام كاش" : "Binance Pay"); }
+            @{ Row("تاريخ الطلب", Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")); }
+
+            @if (!string.IsNullOrEmpty(Model.TransactionReference))
+            {
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f1f5f9;">
+                    <span style="font-size:.82rem;color:#64748b;">Transaction Hash</span>
+                    <span style="font-size:.78rem;font-weight:600;color:#0f172a;font-family:monospace;word-break:break-all;text-align:left;max-width:200px;">@Model.TransactionReference</span>
+                </div>
+            }
+
+            @if (!string.IsNullOrEmpty(Model.StudentNotes))
+            {
+                <div style="margin-top:10px;padding:10px;background:#f8fafc;border-radius:8px;font-size:.82rem;color:#374151;">
+                    <strong>ملاحظة الطالب:</strong> @Model.StudentNotes
+                </div>
+            }
+        </div>
+
+        @{
+            bool hasExtracted = !string.IsNullOrEmpty(Model.RcptSenderName)
+                             || !string.IsNullOrEmpty(Model.RcptRecipientName)
+                             || !string.IsNullOrEmpty(Model.RcptAmount);
+
+            // Match check helpers
+            bool nameMatch   = !string.IsNullOrEmpty(shamName) && !string.IsNullOrEmpty(Model.RcptRecipientName)
+                                && Model.RcptRecipientName.Contains(shamName, StringComparison.OrdinalIgnoreCase);
+            bool acctMatch   = !string.IsNullOrEmpty(shamAccount) && !string.IsNullOrEmpty(Model.RcptRecipientAccount)
+                                && (Model.RcptRecipientAccount.Replace("*","").Length > 3
+                                    ? shamAccount.Contains(Model.RcptRecipientAccount.Replace("*",""), StringComparison.OrdinalIgnoreCase)
+                                    : true);
+
+            string MatchBadge(bool? ok) => ok == true
+                ? "<span style='font-size:.68rem;padding:2px 7px;border-radius:20px;background:#d1fae5;color:#065f46;font-weight:700;margin-right:6px;'>✓ متطابق</span>"
+                : ok == false
+                    ? "<span style='font-size:.68rem;padding:2px 7px;border-radius:20px;background:#fee2e2;color:#b91c1c;font-weight:700;margin-right:6px;'>✗ غير متطابق</span>"
+                    : "<span style='font-size:.68rem;padding:2px 7px;border-radius:20px;background:#f1f5f9;color:#94a3b8;font-weight:700;margin-right:6px;'>غير متاح</span>";
+        }
+
+        <!-- Comparison Table: Expected vs Extracted -->
+        @if (isSham)
+        {
+            <div style="background:#fafafa;border:1.5px solid #e2e8f0;border-radius:12px;padding:16px 18px;margin-bottom:16px;">
+                <div style="font-weight:700;color:#0f172a;margin-bottom:12px;font-size:.88rem;display:flex;align-items:center;justify-content:space-between;">
+                    <span><i class="fas fa-balance-scale" style="color:#4f46e5;margin-left:6px;"></i> مقارنة بيانات الإيصال</span>
+                    @if (hasExtracted)
+                    {
+                        <span style="font-size:.72rem;padding:3px 10px;border-radius:20px;background:#ede9fe;color:#7c3aed;font-weight:600;">
+                            <i class="fas fa-magic" style="margin-left:3px;"></i> تم الاستخراج تلقائياً
+                        </span>
+                    }
+                    else
+                    {
+                        <span style="font-size:.72rem;padding:3px 10px;border-radius:20px;background:#fef9c3;color:#854d0e;font-weight:600;">
+                            راجع الإيصال يدوياً
+                        </span>
+                    }
+                </div>
+
+                <!-- Comparison grid header -->
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:6px;">
+                    <div style="font-size:.72rem;font-weight:700;color:#64748b;padding:4px 10px;">المتوقع (بيانات حسابك)</div>
+                    <div style="font-size:.72rem;font-weight:700;color:#64748b;padding:4px 10px;">المستخرج من الإيصال</div>
+                </div>
+
+                <!-- اسم المستلم -->
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;align-items:center;">
+                    <div style="padding:9px 12px;background:#fff;border-radius:8px;border:1px solid #e2e8f0;">
+                        <div style="font-size:.7rem;color:#64748b;margin-bottom:2px;">اسم المستلم</div>
+                        <div style="font-size:.88rem;font-weight:700;color:#0f172a;">@(string.IsNullOrEmpty(shamName) ? "—" : shamName)</div>
+                    </div>
+                    <div style="padding:9px 12px;border-radius:8px;border:1.5px solid @(string.IsNullOrEmpty(Model.RcptRecipientName) ? "#e2e8f0" : nameMatch ? "#6ee7b7" : "#fca5a5");background:@(string.IsNullOrEmpty(Model.RcptRecipientName) ? "#fff" : nameMatch ? "#f0fdf4" : "#fff5f5");">
+                        <div style="font-size:.7rem;color:#64748b;margin-bottom:2px;">اسم المستلم @Html.Raw(MatchBadge(string.IsNullOrEmpty(Model.RcptRecipientName) ? (bool?)null : nameMatch))</div>
+                        <div style="font-size:.88rem;font-weight:700;color:#0f172a;">@(string.IsNullOrEmpty(Model.RcptRecipientName) ? "—" : Model.RcptRecipientName)</div>
+                    </div>
+                </div>
+
+                <!-- حساب المستلم -->
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;align-items:center;">
+                    <div style="padding:9px 12px;background:#fff;border-radius:8px;border:1px solid #e2e8f0;">
+                        <div style="font-size:.7rem;color:#64748b;margin-bottom:2px;">حساب المستلم</div>
+                        <div style="font-size:.8rem;font-weight:700;color:#0f172a;font-family:monospace;word-break:break-all;">@(string.IsNullOrEmpty(shamAccount) ? "—" : shamAccount)</div>
+                    </div>
+                    <div style="padding:9px 12px;background:#fff;border-radius:8px;border:1px solid #e2e8f0;">
+                        <div style="font-size:.7rem;color:#64748b;margin-bottom:2px;">حساب المستلم (من الإيصال)</div>
+                        <div style="font-size:.8rem;font-weight:700;color:#0f172a;font-family:monospace;">@(string.IsNullOrEmpty(Model.RcptRecipientAccount) ? "—" : Model.RcptRecipientAccount)</div>
+                    </div>
+                </div>
+
+                <!-- اسم المرسل -->
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;align-items:center;">
+                    <div style="padding:9px 12px;background:#f8fafc;border-radius:8px;border:1px dashed #e2e8f0;">
+                        <div style="font-size:.7rem;color:#94a3b8;margin-bottom:2px;">اسم المرسل</div>
+                        <div style="font-size:.82rem;color:#94a3b8;">اسم الطالب (أي اسم مقبول)</div>
+                    </div>
+                    <div style="padding:9px 12px;background:#fff;border-radius:8px;border:1px solid #e2e8f0;">
+                        <div style="font-size:.7rem;color:#64748b;margin-bottom:2px;">اسم المرسل (من الإيصال)</div>
+                        <div style="font-size:.88rem;font-weight:700;color:#0f172a;">@(string.IsNullOrEmpty(Model.RcptSenderName) ? "—" : Model.RcptSenderName)</div>
+                    </div>
+                </div>
+
+                <!-- المبلغ + التاريخ -->
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:center;">
+                    <div style="padding:9px 12px;background:#f0fdf4;border-radius:8px;border:1px solid #6ee7b7;">
+                        <div style="font-size:.7rem;color:#065f46;margin-bottom:2px;">المبلغ المطلوب</div>
+                        <div style="font-size:.95rem;font-weight:800;color:#059669;">@Model.Amount.ToString("N0") @sym</div>
+                    </div>
+                    <div style="padding:9px 12px;background:#fff;border-radius:8px;border:1px solid #e2e8f0;">
+                        <div style="font-size:.7rem;color:#64748b;margin-bottom:2px;">
+                            المبلغ (من الإيصال)
+                            @if (!string.IsNullOrEmpty(Model.RcptPaymentDate))
+                            { <span style="font-size:.68rem;color:#94a3b8;"> — @Model.RcptPaymentDate</span> }
+                        </div>
+                        <div style="font-size:.95rem;font-weight:800;color:#059669;">@(string.IsNullOrEmpty(Model.RcptAmount) ? "—" : Model.RcptAmount)</div>
+                        @if (!string.IsNullOrEmpty(Model.RcptOperationNumber))
+                        {
+                            <div style="font-size:.7rem;color:#94a3b8;margin-top:2px;">رقم العملية: @Model.RcptOperationNumber</div>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+        else
+        {
+            <!-- Binance: just show wallet comparison -->
+            <div style="background:#fffbeb;border:1.5px solid #fde68a;border-radius:12px;padding:14px 18px;margin-bottom:16px;font-size:.83rem;">
+                <div style="font-weight:700;color:#92400e;margin-bottom:6px;"><i class="fas fa-check-double" style="margin-left:4px;"></i> تحقق من:</div>
+                <div style="color:#92400e;">• عنوان المحفظة المستقبِلة: <strong style="font-family:monospace;font-size:.78rem;">@(string.IsNullOrEmpty(binWallet) ? "غير مُعيَّن" : binWallet)</strong> (@binNetwork)</div>
+                <div style="color:#92400e;margin-top:4px;">• المبلغ المتوقع: <strong>@Model.Amount.ToString("N0") @sym</strong></div>
+                @if (!string.IsNullOrEmpty(Model.TransactionReference))
+                {
+                    <div style="color:#92400e;margin-top:4px;">• Transaction Hash: <strong style="font-family:monospace;font-size:.78rem;">@Model.TransactionReference</strong></div>
+                }
+            </div>
+        }
+
+        <!-- Status / Actions -->
+        @if (isPending)
+        {
+            <!-- Approve -->
+            <div style="background:#fff;border-radius:14px;box-shadow:0 2px 16px rgba(0,0,0,.07);border:1px solid #e2e8f0;padding:20px;margin-bottom:12px;">
+                <h3 style="font-size:.9rem;font-weight:700;color:#065f46;margin:0 0 12px;"><i class="fas fa-check-circle" style="margin-left:4px;"></i> موافقة على الطلب</h3>
+                <form method="post" asp-controller="PaymentRequests" asp-action="Approve">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="requestId" value="@Model.RequestId" />
+                    <textarea name="adminNotes" rows="2" placeholder="ملاحظات الموافقة (اختياري)..."
+                              style="width:100%;padding:9px 12px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:.82rem;font-family:inherit;box-sizing:border-box;margin-bottom:10px;"></textarea>
+                    <button type="submit"
+                            style="width:100%;padding:10px;background:#10b981;color:#fff;border:none;border-radius:9px;font-size:.88rem;font-weight:700;cursor:pointer;">
+                        <i class="fas fa-check"></i> الموافقة وتسجيل الدفعة
+                    </button>
+                </form>
+            </div>
+
+            <!-- Reject -->
+            <div style="background:#fff;border-radius:14px;box-shadow:0 2px 16px rgba(0,0,0,.07);border:1px solid #e2e8f0;padding:20px;">
+                <h3 style="font-size:.9rem;font-weight:700;color:#b91c1c;margin:0 0 12px;"><i class="fas fa-times-circle" style="margin-left:4px;"></i> رفض الطلب</h3>
+                <form method="post" asp-controller="PaymentRequests" asp-action="Reject">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="requestId" value="@Model.RequestId" />
+                    <textarea name="rejectionReason" rows="2" placeholder="سبب الرفض (اختياري — سيُرسَل للطالب)..."
+                              style="width:100%;padding:9px 12px;border:1.5px solid #fca5a5;border-radius:8px;font-size:.82rem;font-family:inherit;box-sizing:border-box;margin-bottom:10px;"></textarea>
+                    <button type="submit"
+                            style="width:100%;padding:10px;background:#ef4444;color:#fff;border:none;border-radius:9px;font-size:.88rem;font-weight:700;cursor:pointer;">
+                        <i class="fas fa-times"></i> رفض الطلب
+                    </button>
+                </form>
+            </div>
+        }
+        else
+        {
+            var (bgC, txtC, icon, label) = Model.Status == TrainingCenterManagement_MVC.Models.PaymentRequestStatus.Approved
+                ? ("#d1fae5", "#065f46", "fa-check-circle", "تمت الموافقة")
+                : ("#fee2e2", "#b91c1c", "fa-times-circle", "تم الرفض");
+            <div style="background:@bgC;border-radius:12px;padding:18px;color:@txtC;font-weight:700;font-size:.95rem;text-align:center;">
+                <i class="fas @icon" style="margin-left:6px;font-size:1.2rem;"></i> @label
+                @if (Model.ProcessedAt.HasValue)
+                { <div style="font-size:.78rem;font-weight:400;margin-top:4px;">@Model.ProcessedAt.Value.ToString("dd/MM/yyyy HH:mm")</div> }
+            </div>
+            @if (!string.IsNullOrEmpty(Model.RejectionReason))
+            {
+                <div style="margin-top:10px;padding:12px;background:#fff7ed;border-radius:8px;font-size:.83rem;color:#92400e;">
+                    <strong>سبب الرفض:</strong> @Model.RejectionReason
+                </div>
+            }
+            @if (!string.IsNullOrEmpty(Model.AdminNotes))
+            {
+                <div style="margin-top:10px;padding:12px;background:#f0fdf4;border-radius:8px;font-size:.83rem;color:#065f46;">
+                    <strong>ملاحظات الإدارة:</strong> @Model.AdminNotes
+                </div>
+            }
+        }
+    </div>
+</div>
+
+</main>
+</div>

@@ -1,0 +1,100 @@
+@using TrainingCenterManagement_MVC.Models
+@model TrainingCenterManagement_MVC.ViewModels.ReceptionistEditViewModel
+
+@{
+    ViewData["Title"] = "تعديل موظف الاستقبال";
+}
+
+<div class="dashboard-wrapper">
+    @await Html.PartialAsync("_AdminSidebar")
+    <main class="dashboard-main" style="padding:32px 28px;direction:rtl;font-family:'Segoe UI',sans-serif;">
+
+        <div style="max-width:600px;">
+            <div style="margin-bottom:24px;">
+                <a asp-action="Index" style="color:#0891b2;font-size:.9rem;text-decoration:none;">
+                    <i class="fas fa-arrow-right"></i> العودة للقائمة
+                </a>
+                <h2 style="font-size:1.4rem;font-weight:800;color:#0f172a;margin:8px 0 4px;">
+                    <i class="fas fa-user-edit" style="color:#0891b2;margin-left:8px;"></i> تعديل موظف الاستقبال
+                </h2>
+                <p style="color:#64748b;font-size:.88rem;margin:0;">تعديل بيانات الحساب والمعلومات الشخصية.</p>
+            </div>
+
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="fas fa-check-circle me-2"></i>@TempData["Success"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            <div style="background:#fff;border-radius:14px;border:1px solid #e2e8f0;box-shadow:0 4px 20px rgba(0,0,0,.07);padding:28px 32px;">
+                <form asp-action="Edit" method="post">
+                    @Html.AntiForgeryToken()
+                    <input asp-for="ReceptionistId" type="hidden" />
+
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-3"></div>
+
+                    <!-- الاسم + البريد -->
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px;">
+                        <div>
+                            <label asp-for="FullName" class="form-label fw-semibold" style="font-size:.84rem;color:#475569;"></label>
+                            <input asp-for="FullName" class="form-control" placeholder="الاسم الكامل" />
+                            <span asp-validation-for="FullName" class="text-danger small"></span>
+                        </div>
+                        <div>
+                            <label asp-for="Email" class="form-label fw-semibold" style="font-size:.84rem;color:#475569;"></label>
+                            <input asp-for="Email" class="form-control" placeholder="example@email.com" />
+                            <span asp-validation-for="Email" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <!-- الهاتف + تاريخ الميلاد -->
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px;">
+                        <div>
+                            <label asp-for="PhoneNumber" class="form-label fw-semibold" style="font-size:.84rem;color:#475569;"></label>
+                            <input asp-for="PhoneNumber" class="form-control" placeholder="+963XXXXXXXXX" />
+                            <span asp-validation-for="PhoneNumber" class="text-danger small"></span>
+                        </div>
+                        <div>
+                            <label asp-for="BirthDate" class="form-label fw-semibold" style="font-size:.84rem;color:#475569;"></label>
+                            <input asp-for="BirthDate" class="form-control" type="date" />
+                            <span asp-validation-for="BirthDate" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <!-- الجنس -->
+                    <div style="margin-bottom:18px;">
+                        <label asp-for="Gender" class="form-label fw-semibold" style="font-size:.84rem;color:#475569;"></label>
+                        <select asp-for="Gender" class="form-select">
+                            <option value="@Gender.Male">ذكر</option>
+                            <option value="@Gender.Female">أنثى</option>
+                        </select>
+                    </div>
+
+                    <!-- كلمة المرور الجديدة -->
+                    <div style="margin-bottom:24px;">
+                        <label asp-for="NewPassword" class="form-label fw-semibold" style="font-size:.84rem;color:#475569;"></label>
+                        <input asp-for="NewPassword" class="form-control" type="password" placeholder="اتركها فارغة لعدم التغيير" />
+                        <span asp-validation-for="NewPassword" class="text-danger small"></span>
+                    </div>
+
+                    <div style="display:flex;gap:12px;border-top:1px solid #e2e8f0;padding-top:18px;">
+                        <button type="submit"
+                                style="display:inline-flex;align-items:center;gap:7px;padding:10px 24px;border-radius:9px;background:#0891b2;color:#fff;border:none;font-size:.9rem;font-weight:700;cursor:pointer;">
+                            <i class="fas fa-save"></i> حفظ التعديلات
+                        </button>
+                        <a asp-action="Index"
+                           style="display:inline-flex;align-items:center;padding:10px 20px;border-radius:9px;background:#f1f5f9;color:#475569;border:1.5px solid #e2e8f0;font-size:.88rem;font-weight:600;text-decoration:none;">
+                            إلغاء
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+</div>
+
+@section Scripts {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+}

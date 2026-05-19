@@ -31,11 +31,12 @@ namespace TrainingCenterManagement_MVC.Controllers
             if (!isEnrolled) return Forbid();
 
             var course = await _context.Courses
-                .Include(c => c.Lectures.Where(l => !l.IsDeleted).OrderBy(l => l.LectureDate))
+                .Include(c => c.Lectures.Where(l => !l.IsDeleted))
                     .ThenInclude(l => l.Videos)
                 .Include(c => c.Lectures.Where(l => !l.IsDeleted))
                     .ThenInclude(l => l.Materials)
                 .Include(c => c.Exams)
+                .AsSplitQuery()
                 .FirstOrDefaultAsync(c => c.CourseId == courseId);
 
             if (course == null) return NotFound();

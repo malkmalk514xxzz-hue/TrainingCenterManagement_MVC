@@ -9,6 +9,7 @@ using TrainingCenterManagement_MVC.Data;
 using TrainingCenterManagement_MVC.Helpers;
 using TrainingCenterManagement_MVC.Models;
 using TrainingCenterManagement_MVC.ViewModels;
+using Microsoft.AspNetCore.Identity;
 
 namespace TrainingCenterManagement_MVC.Controllers
 {
@@ -158,6 +159,78 @@ namespace TrainingCenterManagement_MVC.Controllers
             }
 
             return View(model);
+        }
+
+        // ── Public Sign Up (Trainee only) ────────────────────────────────────
+
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult SignUp()
+        {
+            if (User.Identity.IsAuthenticated)
+                return RedirectToAction("Index", "Home");
+
+            return View();
+        }
+
+        [HttpPost]
+        [AllowAnonymous]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SignUp(SignUpViewModel model)
+        {
+            if (!ModelState.IsValid)
+                return View(model);
+
+            var existing = await _userHelper.GetUserByEmailAsync(model.Email);
+            if (existing != null)
+            {
+                ModelState.AddModelError(string.Empty, "هذا البريد الإلكتروني مسجل مسبقاً.");
+                return View(model);
+            }
+
+            var user = new ApplicationUser
+            {
+                FullName          = model.FullName,
+                Email             = model.Email,
+                UserName          = model.Email,
+                BirthDate         = model.BirthDate,
+                PhoneNumber       = model.PhoneNumber,
+                Gender            = model.Gender,
+                ProfilePictureUrl = string.Empty,
+            };
+
+            var result = await _userHelper.AddUserAsync(user, model.Password);
+            if (result != IdentityResult.Success)
+            {
+                foreach (var error in result.Errors)
+                    ModelState.AddModelError(string.Empty, error.Description);
+                return View(model);
+            }
+
+            await _userHelper.AddUserToRoleAsync(user, "Trainee");
+            await _context.Trainees.AddAsync(new Trainee { User = user });
+            await _context.SaveChangesAsync();
+
+            // ── Notify all admins about new registration ────────────────
+            var adminUsers = await _userManager.GetUsersInRoleAsync("Admin");
+            if (adminUsers.Any())
+            {
+                var adminNotifications = adminUsers.Select(a => new UserNotification
+                {
+                    NotificationId = Guid.NewGuid(),
+                    UserId    = a.Id,
+                    Title     = "طالب جديد انضم للمنصة",
+                    Message   = $"سجّل {user.FullName} ({user.Email}) حساباً جديداً كمتدرب عبر صفحة التسجيل العام.",
+                    Type      = NotificationType.General,
+                    IsRead    = false,
+                    CreatedAt = DateTime.UtcNow,
+                }).ToList();
+                _context.Notifications.AddRange(adminNotifications);
+                await _context.SaveChangesAsync();
+            }
+
+            TempData["SignUpSuccess"] = "تم إنشاء حسابك بنجاح! يمكنك تسجيل الدخول الآن.";
+            return RedirectToAction("Login");
         }
 
         // ── Change User Details ───────────────────────────────────────────────

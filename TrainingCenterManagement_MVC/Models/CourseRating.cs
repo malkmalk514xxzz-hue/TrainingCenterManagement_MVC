@@ -20,7 +20,7 @@ namespace TrainingCenterManagement_MVC.Models
         public int Stars { get; set; }
 
         [MaxLength(1000)]
-        public string Comment { get; set; }
+        public string? Comment { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? UpdatedAt { get; set; }

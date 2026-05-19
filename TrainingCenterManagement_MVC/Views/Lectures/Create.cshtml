@@ -178,10 +178,10 @@
 
                                 <!-- Tabs -->
                                 <div class="vt-tabs">
-                                    <button type="button" class="vt-tab active" onclick="switchVTab(this,'vt-yt')">
+                                    <button type="button" class="vt-tab active" data-panel="vt-yt">
                                         <i class="fab fa-youtube" style="color:#ef4444;margin-left:4px;"></i> رابط YouTube
                                     </button>
-                                    <button type="button" class="vt-tab" onclick="switchVTab(this,'vt-up')">
+                                    <button type="button" class="vt-tab" data-panel="vt-up">
                                         <i class="fas fa-upload" style="margin-left:4px;"></i> رفع ملف فيديو
                                     </button>
                                 </div>
@@ -300,138 +300,196 @@
     @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script>
-        $(document).ready(function () {
-            $('.select2').select2({ placeholder: "-- اختر الدورة --", allowClear: true, width: '100%' });
-        });
+    document.addEventListener('DOMContentLoaded', function () {
 
-        /* Video tab */
-        function switchVTab(btn, id) {
-            document.querySelectorAll('.vt-tab').forEach(b => b.classList.remove('active'));
-            document.querySelectorAll('.vt-panel').forEach(p => p.classList.remove('active'));
-            btn.classList.add('active');
-            document.getElementById(id).classList.add('active');
-            document.getElementById('vtype').value = id === 'vt-yt' ? 'youtube' : 'upload';
+        /* ── Select2 ── */
+        if (typeof $ !== 'undefined') {
+            $('.select2').select2({ placeholder: "-- اختر الدورة --", allowClear: true, width: '100%' });
         }
 
-        /* YouTube live preview */
-        document.getElementById('yt-url').addEventListener('input', function () {
-            const id = ytId(this.value.trim());
-            const p = document.getElementById('yt-preview');
-            if (id) {
-                document.getElementById('yt-frame').src = `https://www.youtube.com/embed/${id}`;
-                p.style.display = 'block';
-            } else {
-                document.getElementById('yt-frame').src = '';
-                p.style.display = 'none';
+        /* ── Video tab switch ── */
+        document.querySelectorAll('.vt-tab').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                var id = this.dataset.panel;
+                document.querySelectorAll('.vt-tab').forEach(function(b) { b.classList.remove('active'); });
+                document.querySelectorAll('.vt-panel').forEach(function(p) { p.classList.remove('active'); });
+                this.classList.add('active');
+                document.getElementById(id).classList.add('active');
+                document.getElementById('vtype').value = id === 'vt-yt' ? 'youtube' : 'upload';
+            });
+        });
+
+        /* ── YouTube preview ── */
+        var ytInput = document.getElementById('yt-url');
+        if (ytInput) {
+            ytInput.addEventListener('input', function() {
+                var id = ytId(this.value.trim());
+                var p  = document.getElementById('yt-preview');
+                if (id) {
+                    document.getElementById('yt-frame').src = 'https://www.youtube.com/embed/' + id;
+                    p.style.display = 'block';
+                } else {
+                    document.getElementById('yt-frame').src = '';
+                    p.style.display = 'none';
+                }
+            });
+        }
+
+        /* ── Video file label ── */
+        var videoInput = document.getElementById('video-input');
+        if (videoInput) {
+            videoInput.addEventListener('change', function() {
+                if (!this.files || !this.files[0]) return;
+                var f = this.files[0];
+                if (f.size > 500 * 1024 * 1024) { alert('حجم الملف يتجاوز 500 MB'); this.value = ''; return; }
+                var lbl = document.getElementById('video-label');
+                lbl.classList.add('has-file');
+                lbl.querySelector('.file-label-text').textContent = f.name;
+                document.getElementById('video-size').textContent = fmtBytes(f.size);
+            });
+        }
+
+        /* ── Thumbnail file label ── */
+        var thumbInput = document.getElementById('thumb-input');
+        if (thumbInput) {
+            thumbInput.addEventListener('change', function() {
+                if (!this.files || !this.files[0]) return;
+                var f = this.files[0];
+                if (f.size > 5 * 1024 * 1024) { alert('حجم الصورة يتجاوز 5 MB'); this.value = ''; return; }
+                var lbl = document.getElementById('thumb-label');
+                lbl.classList.add('has-file');
+                lbl.querySelector('.file-label-text').textContent = f.name;
+                document.getElementById('thumb-size').textContent = fmtBytes(f.size);
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('thumb-preview-img').src = e.target.result;
+                    document.getElementById('thumb-preview').style.display = 'block';
+                };
+                reader.readAsDataURL(f);
+            });
+        }
+
+        /* ── Add resource button ── */
+        var addBtn = document.getElementById('add-res-btn');
+        if (addBtn) {
+            addBtn.addEventListener('click', addRes);
+        }
+
+    }); // end DOMContentLoaded
+
+    /* ── Helpers (global so inline onclick can call them) ── */
+
+    function ytId(url) {
+        try {
+            var u = new URL(url);
+            return u.hostname.indexOf('youtu.be') !== -1 ? u.pathname.slice(1) : u.searchParams.get('v');
+        } catch(e) { return null; }
+    }
+
+    function fmtBytes(b) {
+        if (b < 1024) return b + ' B';
+        if (b < 1048576) return (b / 1024).toFixed(1) + ' KB';
+        return (b / 1048576).toFixed(1) + ' MB';
+    }
+
+    /* ── Resource type options (hardcoded — no Razor in JS) ── */
+    var rtypes = [
+        { v: 0, l: 'شرائح المحاضرة' },
+        { v: 1, l: 'ملاحظات' },
+        { v: 2, l: 'واجب' },
+        { v: 3, l: 'الحل' },
+        { v: 4, l: 'ملفات المشروع' },
+        { v: 5, l: 'مراجع إضافية' },
+        { v: 6, l: 'أكواد' },
+        { v: 7, l: 'ملفات أخرى' }
+    ];
+    var rc = 0;
+
+    function addRes() {
+        var i = rc++;
+        var opts = rtypes.map(function(o) {
+            return '<option value="' + o.v + '">' + o.l + '</option>';
+        }).join('');
+
+        /* ── Create hidden file input and attach it to the form ── */
+        var fileInput = document.createElement('input');
+        fileInput.type     = 'file';
+        fileInput.name     = 'resourceFiles';
+        fileInput.id       = 'rf-' + i;
+        fileInput.accept   = '.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.zip,.rar,.txt,.png,.jpg,.jpeg,.mp4,.py,.js,.java,.cs,.cpp';
+        fileInput.style.cssText = 'position:absolute;width:0;height:0;opacity:0;overflow:hidden;pointer-events:none;';
+        var form = document.querySelector('form');
+        form.appendChild(fileInput);
+
+        fileInput.addEventListener('change', function() {
+            var lbl    = document.getElementById('rl-' + i);
+            var sizeEl = document.getElementById('rs-' + i);
+            if (this.files && this.files[0]) {
+                var f = this.files[0];
+                if (lbl) {
+                    lbl.classList.add('has-file');
+                    var txt = lbl.querySelector('.file-label-text');
+                    if (txt) txt.textContent = f.name;
+                }
+                if (sizeEl) sizeEl.textContent = fmtBytes(f.size);
             }
         });
-        function ytId(url) {
-            try { const u = new URL(url); return u.hostname.includes('youtu.be') ? u.pathname.slice(1) : u.searchParams.get('v'); }
-            catch { return null; }
-        }
 
-        /* Video file */
-        function onVideoFile(input) {
-            if (!input.files || !input.files[0]) return;
-            const f = input.files[0];
-            if (f.size > 500 * 1024 * 1024) { alert('حجم الملف يتجاوز 500 MB'); input.value = ''; return; }
-            const lbl = document.getElementById('video-label');
-            lbl.classList.add('has-file');
-            lbl.querySelector('.file-label-text').textContent = f.name;
-            document.getElementById('video-size').textContent = fmtBytes(f.size);
-        }
+        /* ── Create visible row ── */
+        var el = document.createElement('div');
+        el.className = 'res-item';
+        el.id = 'ri-' + i;
+        el.innerHTML =
+            '<div class="res-item-head">' +
+                '<span class="res-item-num">ملف #' + (i + 1) + '</span>' +
+                '<button type="button" class="res-del"><i class="fas fa-trash-alt"></i></button>' +
+            '</div>' +
+            '<div class="res-fields">' +
+                '<div>' +
+                    '<div class="file-label" id="rl-' + i + '" style="cursor:pointer;">' +
+                        '<span class="file-label-icon"><i class="fas fa-file-upload"></i></span>' +
+                        '<div style="flex-grow:1;">' +
+                            '<div class="file-label-text">انقر لاختيار الملف</div>' +
+                            '<div class="file-label-hint">PDF, Word, PowerPoint, Excel, ZIP, صور, كود...</div>' +
+                            '<div class="file-label-size" id="rs-' + i + '"></div>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>' +
+                '<div>' +
+                    '<span class="res-sub-lbl">نوع الملف</span>' +
+                    '<select name="resourceTypes" class="res-sel">' + opts + '</select>' +
+                '</div>' +
+                '<div>' +
+                    '<span class="res-sub-lbl">وصف (اختياري)</span>' +
+                    '<input type="text" name="resourceDescriptions" class="res-inp-small" placeholder="وصف مختصر..." />' +
+                '</div>' +
+                '<label class="res-check-row">' +
+                    '<input type="checkbox" name="resourceRequired" value="true" style="accent-color:var(--primary);width:14px;height:14px;" />' +
+                    ' إلزامي للطلاب' +
+                '</label>' +
+            '</div>';
 
-        /* Thumbnail file */
-        function onThumbFile(input) {
-            if (!input.files || !input.files[0]) return;
-            const f = input.files[0];
-            if (f.size > 5 * 1024 * 1024) { alert('حجم الصورة يتجاوز 5 MB'); input.value = ''; return; }
-            const lbl = document.getElementById('thumb-label');
-            lbl.classList.add('has-file');
-            lbl.querySelector('.file-label-text').textContent = f.name;
-            document.getElementById('thumb-size').textContent = fmtBytes(f.size);
-            // Live preview
-            const reader = new FileReader();
-            reader.onload = e => {
-                document.getElementById('thumb-preview-img').src = e.target.result;
-                document.getElementById('thumb-preview').style.display = 'block';
-            };
-            reader.readAsDataURL(f);
-        }
+        document.getElementById('res-container').appendChild(el);
 
-        /* Resource rows */
-        var rc = 0;
-        const rtypes = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(
-            Enum.GetValues(typeof(ResourceType)).Cast<ResourceType>()
-            .Select(t => new { v = (int)t, l = t switch {
-                ResourceType.LectureSlides => "شرائح المحاضرة",
-                ResourceType.Notes => "ملاحظات",
-                ResourceType.Assignment => "واجب",
-                ResourceType.Solution => "الحل",
-                ResourceType.ProjectFiles => "ملفات المشروع",
-                ResourceType.Reference => "مراجع إضافية",
-                ResourceType.Code => "أكواد",
-                _ => "أخرى"
-            }})
-        ));
+        /* ── Bind click on upload area → open file dialog ── */
+        document.getElementById('rl-' + i).addEventListener('click', function() {
+            document.getElementById('rf-' + i).click();
+        });
 
-        function addRes() {
-            const i = rc++;
-            const opts = rtypes.map(o => `<option value="${o.v}">${o.l}</option>`).join('');
-            const el = document.createElement('div');
-            el.className = 'res-item';
-            el.id = `ri-${i}`;
-            el.innerHTML = `
-              <div class="res-item-head">
-                <span class="res-item-num">ملف #${i + 1}</span>
-                <button type="button" class="res-del" onclick="rmRes(${i})"><i class="fas fa-trash-alt"></i></button>
-              </div>
-              <div class="res-fields">
-                <div>
-                  <input type="file" id="rf-${i}" name="resourceFiles"
-                    accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.zip,.rar,.txt,.png,.jpg,.jpeg,.mp4,.py,.js,.java,.cs,.cpp"
-                    style="position:fixed;top:-9999px;left:-9999px;opacity:0;"
-                    onchange="onResFile(this,${i})" />
-                  <label for="rf-${i}" class="file-label" id="rl-${i}" style="cursor:pointer;display:flex;align-items:center;gap:10px;">
-                    <span class="file-label-icon"><i class="fas fa-file-upload"></i></span>
-                    <div style="flex-grow:1;">
-                      <div class="file-label-text">انقر لاختيار الملف</div>
-                      <div class="file-label-hint">PDF، Word، PowerPoint، Excel، ZIP، صور، كود...</div>
-                      <div class="file-label-size" id="rs-${i}"></div>
-                    </div>
-                  </label>
-                </div>
-                <div>
-                  <span class="res-sub-lbl">نوع الملف</span>
-                  <select name="resourceTypes" class="res-sel">${opts}</select>
-                </div>
-                <div>
-                  <span class="res-sub-lbl">وصف (اختياري)</span>
-                  <input type="text" name="resourceDescriptions" class="res-inp-small" placeholder="وصف مختصر..." />
-                </div>
-                <label class="res-check-row">
-                  <input type="checkbox" name="resourceRequired" value="true" style="accent-color:var(--primary);width:14px;height:14px;" />
-                  إلزامي للطلاب
-                </label>
-              </div>`;
-            document.getElementById('res-container').appendChild(el);
-        }
+        /* ── Bind delete button ── */
+        el.querySelector('.res-del').addEventListener('click', function() {
+            el.remove();
+            fileInput.remove();
+        });
+    }
 
-        function rmRes(i) { const el = document.getElementById(`ri-${i}`); if (el) el.remove(); }
-
-        function onResFile(input, i) {
-            if (!input.files || !input.files[0]) return;
-            const f = input.files[0];
-            const lbl = document.getElementById(`rl-${i}`);
-            lbl.classList.add('has-file');
-            lbl.querySelector('.file-label-text').textContent = f.name;
-            document.getElementById(`rs-${i}`).textContent = fmtBytes(f.size);
-        }
-
-        function fmtBytes(b) {
-            if (b < 1024) return b + ' B';
-            if (b < 1048576) return (b / 1024).toFixed(1) + ' KB';
-            return (b / 1048576).toFixed(1) + ' MB';
-        }
+    /* ── switchVTab kept global for inline onclick on buttons ── */
+    function switchVTab(btn, id) {
+        document.querySelectorAll('.vt-tab').forEach(function(b) { b.classList.remove('active'); });
+        document.querySelectorAll('.vt-panel').forEach(function(p) { p.classList.remove('active'); });
+        btn.classList.add('active');
+        document.getElementById(id).classList.add('active');
+        document.getElementById('vtype').value = id === 'vt-yt' ? 'youtube' : 'upload';
+    }
     </script>
 }

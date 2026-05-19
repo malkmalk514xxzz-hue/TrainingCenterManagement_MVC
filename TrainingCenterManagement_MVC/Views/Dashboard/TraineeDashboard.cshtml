@@ -3,7 +3,8 @@
 @model TraineeDashboardViewModel
 
 @{
-    ViewData["Title"] = "لوحة تحكم الطالب";
+    ViewData["Title"]  = "لوحة تحكم المتدرب";
+    ViewData["Robots"] = "noindex, nofollow";
     var today = DateTime.Now.ToString("dddd، d MMMM yyyy", new System.Globalization.CultureInfo("ar-SA"));
     var avatarChar = Model.FullName?.Length > 0 ? Model.FullName[0].ToString() : "T";
 }

@@ -1,6 +1,9 @@
 ﻿@model TrainingCenterManagement_MVC.Models.Certificate
 @{
-    ViewData["Title"] = "Verify Certificate";
+    ViewData["Title"]       = $"التحقق من شهادة {Model.Trainee?.User?.FullName} | مركز التدريب";
+    ViewData["Description"] = $"تحقق من صحة شهادة {Model.Trainee?.User?.FullName} في دورة {Model.Course?.CourseName} الصادرة من مركز التدريب.";
+    ViewData["Keywords"]    = "التحقق من الشهادة, شهادة معتمدة, مركز تدريب";
+    ViewData["Robots"]      = "noindex, follow";
 }
 
 <div class="container py-5">

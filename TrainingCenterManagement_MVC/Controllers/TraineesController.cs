@@ -36,18 +36,28 @@ namespace TrainingCenterManagement_MVC.Controllers
 
         public async Task<IActionResult> Details(Guid? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            if (id == null) return NotFound();
 
             var trainee = await _context.Trainees
                 .Include(t => t.User)
+                .Include(t => t.CourseTrainees).ThenInclude(ct => ct.Course)
+                .Include(t => t.Certificates).ThenInclude(c => c.Course)
+                .Include(t => t.ExamAttempts)
+                .Include(t => t.Presences)
                 .FirstOrDefaultAsync(m => m.TraineeId == id);
-            if (trainee == null)
-            {
-                return NotFound();
-            }
+
+            if (trainee == null) return NotFound();
+
+            var totalPresences = trainee.Presences.Count;
+            var attended       = trainee.Presences.Count(p => p.IsPresent);
+            ViewBag.AttendanceRate = totalPresences > 0
+                ? Math.Round(attended * 100.0 / totalPresences, 1)
+                : 0.0;
+
+            var scoredAttempts = trainee.ExamAttempts.Where(a => a.ScorePercentage.HasValue).ToList();
+            ViewBag.BestExamScore = scoredAttempts.Any()
+                ? (double?)Math.Round((double)scoredAttempts.Max(a => a.ScorePercentage!.Value), 1)
+                : null;
 
             return View(trainee);
         }
@@ -184,6 +194,20 @@ namespace TrainingCenterManagement_MVC.Controllers
         [Authorize(Roles = "Trainee")]
         public async Task<IActionResult> ViewLectures(Guid courseId)
         {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var trainee = await _context.Trainees.FirstOrDefaultAsync(t => t.UserId == userId);
+            if (trainee != null)
+            {
+                var enrollment = await _context.CourseTrainees
+                    .FirstOrDefaultAsync(ct => ct.CourseId == courseId && ct.TraineeId == trainee.TraineeId);
+                if (enrollment?.IsSuspended == true)
+                {
+                    TempData["IsSuspendedRedirect"] = true;
+                    TempData["SuspendedMessage"] = enrollment.SuspensionReason ?? "";
+                    return RedirectToAction("Details", "Courses", new { id = courseId });
+                }
+            }
+
             var lectures = await _context.Lectures
                 .Include(l => l.Videos)
                 .Include(l => l.Resources)

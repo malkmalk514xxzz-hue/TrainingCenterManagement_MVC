@@ -60,6 +60,9 @@ namespace TrainingCenterManagement_MVC.Data
         public DbSet<EmployeeSalary> EmployeeSalaries { get; set; }
         public DbSet<SalaryPayment>  SalaryPayments  { get; set; }
 
+        // ── Online Payment Requests ───────────────────────────────────
+        public DbSet<PaymentRequest> PaymentRequests { get; set; }
+
         // ── AI Assistant ─────────────────────────────────────────────
         public DbSet<AIChatMessage>    AIChatMessages    { get; set; }
         public DbSet<AIAccessLog>      AIAccessLogs      { get; set; }
@@ -143,7 +146,24 @@ namespace TrainingCenterManagement_MVC.Data
                 .HasOne(p => p.Course)
                 .WithMany(c => c.Payments)
                 .HasForeignKey(p => p.CourseId)
-                .OnDelete(DeleteBehavior.Restrict); // 👈 أو ممكن ترك واحدة منها Cascade
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // PaymentRequest - no cascade to avoid multiple path issue
+            builder.Entity<PaymentRequest>()
+                .Property(r => r.Amount)
+                .HasColumnType("decimal(18,2)");
+
+            builder.Entity<PaymentRequest>()
+                .HasOne(r => r.Trainee)
+                .WithMany()
+                .HasForeignKey(r => r.TraineeId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<PaymentRequest>()
+                .HasOne(r => r.Course)
+                .WithMany()
+                .HasForeignKey(r => r.CourseId)
+                .OnDelete(DeleteBehavior.Restrict);
 
 
 

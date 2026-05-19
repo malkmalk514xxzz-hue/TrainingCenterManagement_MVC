@@ -108,11 +108,13 @@ namespace TrainingCenterManagement_MVC.Controllers
 
                     return new CourseDebtEntry
                     {
-                        CourseId      = ct.CourseId,
-                        CourseName    = ct.Course.CourseName,
-                        CoursePrice   = coursePrice,
-                        TotalPaidSAR  = paidDisplay,
-                        RemainingDebt = coursePrice - paidDisplay
+                        CourseId         = ct.CourseId,
+                        CourseName       = ct.Course.CourseName,
+                        CoursePrice      = coursePrice,
+                        TotalPaidSAR     = paidDisplay,
+                        RemainingDebt    = coursePrice - paidDisplay,
+                        IsSuspended      = ct.IsSuspended,
+                        SuspensionReason = ct.SuspensionReason
                     };
                 }).ToList();
 

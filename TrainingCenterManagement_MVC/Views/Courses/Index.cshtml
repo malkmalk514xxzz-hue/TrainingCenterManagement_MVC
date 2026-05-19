@@ -1,6 +1,8 @@
 @model IEnumerable<TrainingCenterManagement_MVC.Models.Course>
 @{
-    ViewData["Title"] = "الكورسات والدورات التدريبية | مركز التدريب";
+    ViewData["Title"]       = "الكورسات والدورات التدريبية | مركز التدريب";
+    ViewData["Description"] = "استعرض جميع الدورات التدريبية المتاحة في مركز التدريب. كورسات عملية بإشراف مدربين محترفين مع شهادات معتمدة.";
+    ViewData["Keywords"]    = "دورات تدريبية, كورسات, تدريب مهني, شهادات, مركز تدريب";
     var allCourses = Model.ToList();
     var activeCourses = allCourses.Where(c => !c.IsDeleted).ToList();
     var isAdmin = User.IsInRole("Admin");
@@ -181,6 +183,21 @@
                             @if (!string.IsNullOrEmpty(item.Description))
                             {
                                 <p class="ci-card-desc">@item.Description</p>
+                            }
+                            @{
+                                var cardRatings = item.Ratings?.ToList() ?? new List<TrainingCenterManagement_MVC.Models.CourseRating>();
+                                var cardAvg = cardRatings.Any() ? cardRatings.Average(r => r.Stars) : 0.0;
+                                var cardRounded = (int)Math.Round(cardAvg);
+                            }
+                            @if (cardRatings.Any())
+                            {
+                                <div style="display:flex;align-items:center;gap:5px;margin-bottom:6px;">
+                                    @for (int s = 1; s <= 5; s++)
+                                    {
+                                        <span style="color:@(s <= cardRounded ? "#f59e0b" : "#d1d5db");font-size:.9rem;">★</span>
+                                    }
+                                    <span style="font-size:.76rem;color:#6b7280;font-weight:600;">@cardAvg.ToString("F1") (@cardRatings.Count)</span>
+                                </div>
                             }
                             <div class="ci-card-meta">
                                 <span class="ci-meta-item"><i class="fas fa-layer-group"></i> الدفعة @item.BatchNumber</span>

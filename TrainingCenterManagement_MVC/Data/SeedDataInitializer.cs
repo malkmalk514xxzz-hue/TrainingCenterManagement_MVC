@@ -293,6 +293,8 @@ namespace TrainingCenterManagement_MVC.Data
 
         private async Task SeedLecturesAsync()
         {
+            if (await _context.Lectures.AnyAsync()) return;
+
             var lectures = new List<Lecture>();
             var now = DateTime.UtcNow;
 
@@ -718,6 +720,8 @@ namespace TrainingCenterManagement_MVC.Data
         #region Payments
         private async Task SeedPaymentsAsync()
         {
+            if (await _context.Payments.AnyAsync()) return;
+
             var trainees = await _context.Trainees.Include(t => t.User).ToListAsync();
             var courses = await _context.Courses.ToListAsync();
             var courseTrainees = await _context.CourseTrainees.ToListAsync();
@@ -795,6 +799,8 @@ namespace TrainingCenterManagement_MVC.Data
         #region Attendance
         private async Task SeedPresencesAsync()
         {
+            if (await _context.Presences.AnyAsync()) return;
+
             var trainees = await _context.Trainees.Include(t => t.User).ToListAsync();
             var lectures = await _context.Lectures.ToListAsync();
 
@@ -1258,6 +1264,8 @@ namespace TrainingCenterManagement_MVC.Data
         #region Certifcates
         private async Task SeedCertificatesAsync()
         {
+            if (await _context.Certificates.AnyAsync()) return;
+
             var courses = await _context.Courses.ToListAsync();
             var trainees = await _context.Trainees.Include(t=>t.User).ToListAsync();
             var trainers = await _context.Trainers.Include(t => t.User).ToListAsync();

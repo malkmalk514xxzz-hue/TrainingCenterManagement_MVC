@@ -65,6 +65,8 @@ namespace TrainingCenterManagement_MVC.ViewModels
         public decimal TotalPaidSAR { get; set; }
         public decimal RemainingDebt { get; set; }
         public bool IsFullyPaid => RemainingDebt <= 0;
+        public bool IsSuspended { get; set; }
+        public string? SuspensionReason { get; set; }
     }
 
     public class PaymentHistoryEntry

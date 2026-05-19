@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using TrainingCenterManagement_MVC.Data;
 using TrainingCenterManagement_MVC.Models;
 using TrainingCenterManagement_MVC.ViewModels;
+using TrainingCenterManagement_MVC.Helpers;
 using ClosedXML.Excel;
 using System.Security.Claims;
 
@@ -29,8 +30,9 @@ namespace TrainingCenterManagement_MVC.Controllers
             // FIX: Filter out soft-deleted courses
             var courses = await _context.Courses
                 .Where(c => !c.IsDeleted)
-                .Include(c => c.Admin)
-                    .ThenInclude(a => a.User)
+                .Include(c => c.Admin).ThenInclude(a => a.User)
+                .Include(c => c.Ratings)
+                .Include(c => c.CourseTrainees)
                 .ToListAsync();
 
             return View(courses);
@@ -52,18 +54,120 @@ namespace TrainingCenterManagement_MVC.Controllers
             if (course == null)
                 return NotFound();
 
+            // ── Currency conversion ─────────────────────────────────────
+            var dbRates = await _context.ExchangeRates.ToListAsync();
+            var rates = new Dictionary<PaymentCurrency, decimal>
+            {
+                [PaymentCurrency.SYP] = 1m,
+                [PaymentCurrency.USD] = dbRates.FirstOrDefault(r => r.Currency == PaymentCurrency.USD)?.RateToSYP
+                                        ?? CurrencyHelper.DefaultRates[PaymentCurrency.USD],
+                [PaymentCurrency.EUR] = dbRates.FirstOrDefault(r => r.Currency == PaymentCurrency.EUR)?.RateToSYP
+                                        ?? CurrencyHelper.DefaultRates[PaymentCurrency.EUR],
+            };
+            var priceInSyp = CurrencyHelper.ToSYP(course.Price, course.CourseCurrency, rates);
+            ViewBag.PriceInSYP          = Math.Round(priceInSyp, 0);
+            ViewBag.PriceInUSD          = rates[PaymentCurrency.USD] > 0 ? Math.Round(priceInSyp / rates[PaymentCurrency.USD], 2) : 0;
+            ViewBag.PriceInEUR          = rates[PaymentCurrency.EUR] > 0 ? Math.Round(priceInSyp / rates[PaymentCurrency.EUR], 2) : 0;
+            ViewBag.CourseCurrencySymbol = CurrencyHelper.GetSymbol(course.CourseCurrency);
+            ViewBag.CourseCurrencyCode   = CurrencyHelper.GetCode(course.CourseCurrency);
+            ViewBag.CoursePrice          = course.Price;
+
+            // ── Trainee-specific data ───────────────────────────────────
             if (User.IsInRole("Trainee"))
             {
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 var trainee = await _context.Trainees.FirstOrDefaultAsync(t => t.UserId == userId);
                 if (trainee != null)
                 {
-                    ViewBag.IsEnrolled = course.CourseTrainees.Any(ct => ct.TraineeId == trainee.TraineeId);
-                    ViewBag.MyRating = course.Ratings.FirstOrDefault(r => r.TraineeId == trainee.TraineeId);
+                    var enrollment = course.CourseTrainees.FirstOrDefault(ct => ct.TraineeId == trainee.TraineeId);
+                    ViewBag.IsEnrolled       = enrollment != null;
+                    ViewBag.IsSuspended      = enrollment?.IsSuspended ?? false;
+                    ViewBag.SuspensionReason = enrollment?.SuspensionReason;
+                    ViewBag.MyRating         = course.Ratings.FirstOrDefault(r => r.TraineeId == trainee.TraineeId);
                 }
             }
 
             return View(course);
+        }
+
+        // POST: Courses/SuspendTrainee
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SuspendTrainee(Guid courseId, Guid traineeId, string? reason, string? returnUrl)
+        {
+            var ct = await _context.CourseTrainees
+                .FirstOrDefaultAsync(x => x.CourseId == courseId && x.TraineeId == traineeId);
+            if (ct == null) return NotFound();
+
+            ct.IsSuspended      = true;
+            ct.SuspensionReason = reason?.Trim();
+            ct.SuspendedAt      = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+
+            var trainee = await _context.Trainees.Include(t => t.User)
+                .FirstOrDefaultAsync(t => t.TraineeId == traineeId);
+            if (trainee != null)
+            {
+                var course = await _context.Courses.FindAsync(courseId);
+                _context.Notifications.Add(new UserNotification
+                {
+                    NotificationId = Guid.NewGuid(),
+                    UserId    = trainee.UserId,
+                    Title     = "تم إيقاف وصولك مؤقتاً",
+                    Message   = $"تم إيقاف وصولك إلى دورة \"{course?.CourseName}\" بسبب: {(string.IsNullOrWhiteSpace(reason) ? "متأخر في الدفع" : reason)}. يرجى التواصل مع الإدارة.",
+                    Type      = NotificationType.General,
+                    IsRead    = false,
+                    CreatedAt = DateTime.UtcNow,
+                    RelatedId = courseId.ToString()
+                });
+                await _context.SaveChangesAsync();
+            }
+
+            TempData["Success"] = "تم إيقاف الطالب بنجاح.";
+            if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+                return Redirect(returnUrl);
+            return RedirectToAction(nameof(Details), new { id = courseId });
+        }
+
+        // POST: Courses/UnsuspendTrainee
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UnsuspendTrainee(Guid courseId, Guid traineeId, string? returnUrl)
+        {
+            var ct = await _context.CourseTrainees
+                .FirstOrDefaultAsync(x => x.CourseId == courseId && x.TraineeId == traineeId);
+            if (ct == null) return NotFound();
+
+            ct.IsSuspended      = false;
+            ct.SuspensionReason = null;
+            ct.SuspendedAt      = null;
+            await _context.SaveChangesAsync();
+
+            var trainee = await _context.Trainees.Include(t => t.User)
+                .FirstOrDefaultAsync(t => t.TraineeId == traineeId);
+            if (trainee != null)
+            {
+                var course = await _context.Courses.FindAsync(courseId);
+                _context.Notifications.Add(new UserNotification
+                {
+                    NotificationId = Guid.NewGuid(),
+                    UserId    = trainee.UserId,
+                    Title     = "تم تفعيل وصولك",
+                    Message   = $"تم إعادة تفعيل وصولك إلى دورة \"{course?.CourseName}\". يمكنك متابعة الدراسة الآن.",
+                    Type      = NotificationType.General,
+                    IsRead    = false,
+                    CreatedAt = DateTime.UtcNow,
+                    RelatedId = courseId.ToString()
+                });
+                await _context.SaveChangesAsync();
+            }
+
+            TempData["Success"] = "تم تفعيل الطالب بنجاح.";
+            if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+                return Redirect(returnUrl);
+            return RedirectToAction(nameof(Details), new { id = courseId });
         }
 
         // GET: Courses/Create
@@ -200,7 +304,7 @@ namespace TrainingCenterManagement_MVC.Controllers
                 "User.FullName"
             );
             ViewBag.CourseId = id;
-            return View(course);
+            return View(id.Value);
         }
 
         // POST: Assign Trainer to Course
@@ -243,7 +347,7 @@ namespace TrainingCenterManagement_MVC.Controllers
                 "User.FullName"
             );
             ViewBag.CourseId = id;
-            return View(course);
+            return View(id.Value);
         }
 
         // POST: Assign Trainee to Course (Admin)

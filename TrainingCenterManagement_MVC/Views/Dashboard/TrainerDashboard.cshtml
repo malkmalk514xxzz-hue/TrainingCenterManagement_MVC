@@ -3,7 +3,8 @@
 @model TrainerDashboardViewModel
 
 @{
-    ViewData["Title"] = "لوحة تحكم المدرب";
+    ViewData["Title"]  = "لوحة تحكم المدرب";
+    ViewData["Robots"] = "noindex, nofollow";
     var today = DateTime.Now.ToString("dddd، d MMMM yyyy", new System.Globalization.CultureInfo("ar-SA"));
     var avatarFallbackChar = Model.FullName?.Length > 0 ? Model.FullName[0].ToString() : "T";
 }

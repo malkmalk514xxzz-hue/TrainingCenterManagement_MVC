@@ -123,7 +123,13 @@
                     <span>امتحاناتي</span>
                 </a>
             </li>
-           
+            <li class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "PaymentRequests" ? "active" : "")">
+                <a asp-controller="PaymentRequests" asp-action="MyRequests">
+                    <i class="fas fa-credit-card"></i>
+                    <span>مدفوعاتي</span>
+                </a>
+            </li>
+
             <li class="@(currentPage == "customersupportchat" ? "active" : "")">
                 <a asp-controller="Chat" asp-action="Index">
                     <i class="fas fa-comments"></i>

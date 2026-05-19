@@ -1,28 +1,189 @@
-﻿@model IEnumerable<TrainingCenterManagement_MVC.Models.Payment>
-
+@model IEnumerable<TrainingCenterManagement_MVC.Models.Payment>
 @{
-    ViewData["Title"] = "Course Payments";
+    ViewData["Title"] = "مدفوعات الدورة";
+    var list         = Model.ToList();
+    var totalAmount  = list.Sum(p => p.TotalAmount);
+    var traineeCount = list.Select(p => p.TraineeId).Distinct().Count();
+    var courseId     = ViewBag.CourseId as Guid? ?? Guid.Empty;
+    var courseName   = ViewBag.CourseName as string ?? "الدورة";
 }
 
-<h2>مدفوعات دورة: @ViewBag.CourseName</h2>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+<style>
+    .cp-header { background:linear-gradient(135deg,#0f172a 0%,#7c3aed 60%,#a78bfa 100%); border-radius:16px; padding:26px 32px; color:#fff; margin-bottom:28px; display:flex; align-items:center; gap:16px; }
+    .cp-header h1 { margin:0; font-size:1.3rem; font-weight:700; }
+    .cp-header p  { margin:4px 0 0; opacity:.8; font-size:.86rem; }
+    .cp-header-icon { width:54px; height:54px; border-radius:14px; background:rgba(255,255,255,.15); display:flex; align-items:center; justify-content:center; font-size:1.5rem; flex-shrink:0; }
+    .cp-kpis { display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:16px; margin-bottom:28px; }
+    .cp-kpi { background:#fff; border-radius:12px; box-shadow:0 2px 12px rgba(0,0,0,.06); border:1px solid #e2e8f0; padding:18px 20px; display:flex; align-items:center; gap:14px; }
+    .cp-kpi-icon { width:42px; height:42px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1.1rem; flex-shrink:0; }
+    .cp-kpi .val { font-size:1.3rem; font-weight:800; color:#0f172a; }
+    .cp-kpi .lbl { font-size:.78rem; color:#64748b; margin-top:1px; }
+    .cp-card { background:#fff; border-radius:14px; box-shadow:0 2px 16px rgba(0,0,0,.07); border:1px solid #e2e8f0; overflow:hidden; }
+    .cp-card-head { padding:16px 20px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid #f1f5f9; }
+    .cp-card-head h2 { margin:0; font-size:.95rem; font-weight:700; color:#0f172a; }
+    .cp-table { width:100%; border-collapse:collapse; font-size:.88rem; }
+    .cp-table th { padding:10px 16px; background:#f8fafc; color:#475569; font-weight:600; font-size:.78rem; text-transform:uppercase; letter-spacing:.03em; border-bottom:1px solid #e2e8f0; }
+    .cp-table td { padding:12px 16px; border-bottom:1px solid #f1f5f9; vertical-align:middle; color:#374151; }
+    .cp-table tr:last-child td { border-bottom:none; }
+    .cp-table tr:hover td { background:#fafbff; }
+    .trainee-cell { display:flex; align-items:center; gap:10px; }
+    .trainee-av { width:34px; height:34px; border-radius:50%; background:linear-gradient(135deg,#7c3aed,#6d28d9); color:#fff; display:flex; align-items:center; justify-content:center; font-size:.85rem; font-weight:700; flex-shrink:0; }
+    .amount-cell { font-weight:700; color:#059669; font-size:.9rem; }
+    .cur-badge { display:inline-block; border-radius:4px; padding:2px 6px; font-size:.7rem; font-weight:700; margin-right:4px; }
+    .cur-syp { background:#e0f2fe; color:#0369a1; }
+    .cur-usd { background:#dcfce7; color:#16a34a; }
+    .cur-eur { background:#fef3c7; color:#b45309; }
+    .note-cell { font-size:.8rem; color:#94a3b8; font-style:italic; }
+    .action-btn { display:inline-flex; align-items:center; gap:4px; border-radius:6px; padding:5px 10px; font-size:.78rem; font-weight:600; text-decoration:none; border:none; cursor:pointer; }
+    .btn-del  { background:#fee2e2; color:#dc2626; }
+    .btn-del:hover  { background:#fecaca; color:#dc2626; }
+    .pdf-btn { background:linear-gradient(135deg,#dc2626,#b91c1c); color:#fff; border:none; border-radius:9px; padding:9px 18px; font-weight:700; font-size:.84rem; text-decoration:none; display:inline-flex; align-items:center; gap:7px; }
+    .pdf-btn:hover { opacity:.9; color:#fff; }
+    .back-btn { background:#f1f5f9; color:#475569; border:1px solid #e2e8f0; border-radius:9px; padding:9px 16px; font-weight:600; font-size:.84rem; text-decoration:none; display:inline-flex; align-items:center; gap:7px; }
+    .back-btn:hover { background:#e2e8f0; color:#374151; }
+    .empty-state { text-align:center; padding:48px 24px; color:#94a3b8; }
+    .empty-state i { font-size:2.5rem; margin-bottom:12px; display:block; }
+    @@media (max-width:640px) { .cp-kpis { grid-template-columns:1fr 1fr; } }
+</style>
 
-<table class="table table-bordered table-striped">
-    <thead class="table-dark">
-        <tr>
-            <th>المتدرب</th>
-            <th>المبلغ</th>
-            <th>تاريخ الدفع</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model)
-        {
-            <tr>
-                <td>@item.Trainee.User.FullName</td>
-                <td>@item.TotalAmount.ToString("C")</td>
-                <td>@item.CreatedDate.ToString("yyyy-MM-dd")</td>
-            </tr>
-        }
-    </tbody>
-</table>
+<div class="dashboard-wrapper" style="display:flex;direction:rtl;min-height:100vh">
+@await Html.PartialAsync("_AdminSidebar")
+<main style="flex:1;padding:28px 32px;background:#f8fafc;overflow-x:hidden">
 
+<!-- Header -->
+<div class="cp-header">
+    <div class="cp-header-icon"><i class="fas fa-receipt"></i></div>
+    <div style="flex:1">
+        <h1>مدفوعات دورة: @courseName</h1>
+        <p>سجل كامل بجميع الدفعات المسجلة لهذه الدورة</p>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <a href="@Url.Action("ExportPaymentsPdf","Payments", new { courseId })" class="pdf-btn">
+            <i class="fas fa-file-pdf"></i> تصدير PDF
+        </a>
+        <a href="@Url.Action("Index","Payments")" class="back-btn">
+            <i class="fas fa-arrow-right"></i> العودة
+        </a>
+    </div>
+</div>
+
+<!-- KPIs -->
+<div class="cp-kpis">
+    <div class="cp-kpi">
+        <div class="cp-kpi-icon" style="background:#ede9fe;color:#7c3aed"><i class="fas fa-receipt"></i></div>
+        <div>
+            <div class="val">@list.Count</div>
+            <div class="lbl">إجمالي الدفعات</div>
+        </div>
+    </div>
+    <div class="cp-kpi">
+        <div class="cp-kpi-icon" style="background:#dcfce7;color:#16a34a"><i class="fas fa-coins"></i></div>
+        <div>
+            <div class="val">@totalAmount.ToString("N0")</div>
+            <div class="lbl">مجموع المبالغ</div>
+        </div>
+    </div>
+    <div class="cp-kpi">
+        <div class="cp-kpi-icon" style="background:#e0f2fe;color:#0369a1"><i class="fas fa-users"></i></div>
+        <div>
+            <div class="val">@traineeCount</div>
+            <div class="lbl">طالب دافع</div>
+        </div>
+    </div>
+    <div class="cp-kpi">
+        <div class="cp-kpi-icon" style="background:#fef3c7;color:#d97706"><i class="fas fa-calendar-alt"></i></div>
+        <div>
+            <div class="val">@(list.Any() ? list.Max(p => p.CreatedDate).ToString("dd/MM/yyyy") : "—")</div>
+            <div class="lbl">آخر دفعة</div>
+        </div>
+    </div>
+</div>
+
+<!-- Table card -->
+<div class="cp-card">
+    <div class="cp-card-head">
+        <h2><i class="fas fa-list" style="color:#7c3aed;margin-left:8px;"></i> قائمة الدفعات</h2>
+        <a asp-action="Create" asp-controller="Payments"
+           style="padding:7px 16px;background:#7c3aed;color:#fff;border-radius:8px;text-decoration:none;font-size:.82rem;font-weight:600;">
+            <i class="fas fa-plus" style="margin-left:5px;"></i> إضافة دفعة
+        </a>
+    </div>
+
+    @if (!list.Any())
+    {
+        <div class="empty-state">
+            <i class="fas fa-inbox"></i>
+            <p style="font-size:1rem;font-weight:600;margin:0">لا توجد دفعات مسجلة لهذه الدورة</p>
+        </div>
+    }
+    else
+    {
+        <table class="cp-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>الطالب</th>
+                    <th>المبلغ</th>
+                    <th>تاريخ الدفع</th>
+                    <th>ملاحظات</th>
+                    <th>الإجراءات</th>
+                </tr>
+            </thead>
+            <tbody>
+                @{ int row = 0; }
+                @foreach (var item in list.OrderByDescending(p => p.CreatedDate))
+                {
+                    row++;
+                    var traineeName = item.Trainee?.User?.FullName ?? "—";
+                    var avatarChar  = traineeName.Length > 0 ? traineeName[0].ToString() : "؟";
+                    var (curClass, curCode, curSymbol) = item.Currency switch {
+                        TrainingCenterManagement_MVC.Models.PaymentCurrency.USD => ("cur-usd", "USD", "$"),
+                        TrainingCenterManagement_MVC.Models.PaymentCurrency.EUR => ("cur-eur", "EUR", "€"),
+                        _ => ("cur-syp", "SYP", "ل.س")
+                    };
+                    <tr>
+                        <td style="color:#94a3b8;font-size:.8rem;width:36px;">@row</td>
+                        <td>
+                            <div class="trainee-cell">
+                                <div class="trainee-av">@avatarChar</div>
+                                <span>@traineeName</span>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="amount-cell">@item.TotalAmount.ToString("N0")</span>
+                            <span class="cur-badge @curClass">@curCode</span>
+                        </td>
+                        <td style="color:#64748b;font-size:.82rem;">@item.CreatedDate.ToString("dd/MM/yyyy")</td>
+                        <td>
+                            @if (!string.IsNullOrEmpty(item.Notes))
+                            { <span class="note-cell">@item.Notes</span> }
+                            else
+                            { <span style="color:#e2e8f0">—</span> }
+                        </td>
+                        <td>
+                            <a asp-action="Details" asp-controller="Payments" asp-route-id="@item.PaymentId"
+                               class="action-btn" style="background:#e0f2fe;color:#0369a1;margin-left:4px;">
+                                <i class="fas fa-eye"></i> تفاصيل
+                            </a>
+                            <a asp-action="Delete" asp-controller="Payments" asp-route-id="@item.PaymentId"
+                               class="action-btn btn-del">
+                                <i class="fas fa-trash"></i> حذف
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+            <tfoot>
+                <tr style="background:#f8fafc;">
+                    <td colspan="2" style="padding:12px 16px;font-weight:700;color:#374151;font-size:.88rem;">الإجمالي</td>
+                    <td style="padding:12px 16px;font-weight:800;color:#059669;font-size:.92rem;">@totalAmount.ToString("N0")</td>
+                    <td colspan="3"></td>
+                </tr>
+            </tfoot>
+        </table>
+    }
+</div>
+
+</main>
+</div>

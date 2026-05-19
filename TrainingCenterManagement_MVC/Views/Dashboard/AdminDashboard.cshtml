@@ -3,7 +3,8 @@
 @model AdminDashboardViewModelModel
 
 @{
-    ViewData["Title"] = "لوحة تحكم الإدارة";
+    ViewData["Title"]  = "لوحة تحكم الإدارة";
+    ViewData["Robots"] = "noindex, nofollow";
     var today = DateTime.Now.ToString("dddd، d MMMM yyyy", new System.Globalization.CultureInfo("ar-SA"));
     var avatarChar = Model.AdminName?.Length > 0 ? Model.AdminName[0].ToString() : "A";
     var stats = Model.Stats;

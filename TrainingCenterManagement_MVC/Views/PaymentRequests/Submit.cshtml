@@ -1,0 +1,254 @@
+@{
+    ViewData["Title"] = "إرسال طلب دفع";
+    var course  = ViewBag.Course  as TrainingCenterManagement_MVC.Models.Course;
+    var method  = (string)(ViewBag.Method ?? "ShamCash");
+    var isSham  = method == "ShamCash";
+
+    var shamName    = (string)(ViewBag.ShamCashAccountName   ?? "");
+    var shamAccount = (string)(ViewBag.ShamCashAccountNumber ?? "");
+    var shamQr      = (string)(ViewBag.ShamCashQrCodeUrl ?? "");
+    var binWallet   = (string)(ViewBag.BinanceWalletAddress ?? "");
+    var binNetwork  = (string)(ViewBag.BinanceNetwork ?? "TRC20");
+    var binQr       = (string)(ViewBag.BinanceQrCodeUrl ?? "");
+    bool hasPending = ViewBag.HasPending == true;
+}
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+<style>
+    .pr-page { max-width:720px; margin:40px auto; padding:0 16px; direction:rtl; font-family:'Segoe UI',Tahoma,sans-serif; }
+    .pr-card { background:#fff; border-radius:16px; box-shadow:0 4px 24px rgba(0,0,0,.09); border:1px solid #e2e8f0; padding:28px; margin-bottom:20px; }
+    .pr-tabs { display:flex; gap:10px; margin-bottom:24px; }
+    .pr-tab  { flex:1; padding:12px; border-radius:10px; border:2px solid #e2e8f0; background:#f8fafc; cursor:pointer; text-align:center; font-size:.9rem; font-weight:600; color:#64748b; text-decoration:none; transition:.15s; }
+    .pr-tab.active { border-color:#7c3aed; background:#f5f3ff; color:#7c3aed; }
+    .pr-tab.active.binance { border-color:#f59e0b; background:#fffbeb; color:#92400e; }
+    .gateway-box { background:#f8fafc; border:1.5px dashed #c7d2fe; border-radius:12px; padding:20px; margin-bottom:20px; display:flex; gap:20px; align-items:center; flex-wrap:wrap; }
+    .gateway-box.binance { border-color:#fde68a; background:#fffbeb; }
+    .gateway-qr  { width:130px; height:130px; object-fit:contain; border:1px solid #e2e8f0; border-radius:10px; background:#fff; padding:4px; flex-shrink:0; }
+    .gateway-info { flex:1; }
+    .gateway-label { font-size:.75rem; color:#64748b; font-weight:600; margin-bottom:2px; }
+    .gateway-value { font-size:1.05rem; font-weight:800; color:#0f172a; word-break:break-all; display:flex; align-items:center; gap:8px; }
+    .copy-btn { background:#eef2ff; border:none; border-radius:6px; padding:3px 9px; color:#4f46e5; cursor:pointer; font-size:.72rem; font-weight:600; }
+    .copy-btn:hover { background:#c7d2fe; }
+    .step { display:flex; align-items:flex-start; gap:12px; margin-bottom:14px; }
+    .step-num { width:28px; height:28px; border-radius:50%; background:#7c3aed; color:#fff; font-weight:700; font-size:.82rem; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+    .step-num.binance { background:#f59e0b; }
+    .form-field { margin-bottom:16px; }
+    .form-field label { font-size:.84rem; font-weight:600; color:#374151; display:block; margin-bottom:6px; }
+    .form-field input, .form-field select, .form-field textarea {
+        width:100%; padding:10px 14px; border:1.5px solid #e2e8f0; border-radius:8px; font-size:.84rem;
+        font-family:inherit; box-sizing:border-box; transition:.15s;
+    }
+    .form-field input:focus, .form-field select:focus, .form-field textarea:focus { border-color:#7c3aed; outline:none; }
+    .upload-zone { border:2px dashed #c7d2fe; border-radius:10px; padding:28px; text-align:center; cursor:pointer; background:#fafafa; transition:.15s; }
+    .upload-zone:hover { border-color:#7c3aed; background:#f5f3ff; }
+    .upload-zone.has-file { border-color:#10b981; background:#f0fdf4; }
+    .submit-btn { width:100%; padding:13px; background:linear-gradient(135deg,#7c3aed,#4f46e5); color:#fff; border:none; border-radius:10px; font-size:1rem; font-weight:700; cursor:pointer; }
+    .submit-btn.binance { background:linear-gradient(135deg,#f59e0b,#d97706); }
+    .pending-banner { background:#fef9c3; border:1.5px solid #fde68a; border-radius:10px; padding:14px 18px; margin-bottom:20px; display:flex; align-items:center; gap:10px; color:#854d0e; font-weight:600; font-size:.88rem; }
+</style>
+
+<div class="pr-page">
+    <h2 style="font-size:1.2rem;font-weight:700;color:#0f172a;margin-bottom:6px;">دفع رسوم الكورس</h2>
+    <p style="color:#64748b;font-size:.88rem;margin-bottom:20px;">
+        <i class="fas fa-graduation-cap" style="color:#4f46e5;"></i>
+        @course?.CourseName
+    </p>
+
+    @if (hasPending)
+    {
+        <div class="pending-banner">
+            <i class="fas fa-clock"></i>
+            لديك طلب دفع قيد المراجعة لهذا الكورس. يرجى الانتظار حتى تتم معالجته.
+        </div>
+    }
+
+    <!-- Method Tabs -->
+    <div class="pr-tabs">
+        <a href="@Url.Action("Submit","PaymentRequests", new { courseId = course?.CourseId, method = "ShamCash" })"
+           class="pr-tab @(isSham ? "active" : "")">
+            <i class="fas fa-mobile-alt" style="margin-left:6px;"></i> شام كاش
+        </a>
+        <a href="@Url.Action("Submit","PaymentRequests", new { courseId = course?.CourseId, method = "Binance" })"
+           class="pr-tab @(!isSham ? "active binance" : "")">
+            <i class="fab fa-bitcoin" style="margin-alt:6px;margin-left:6px;"></i> Binance Pay
+        </a>
+    </div>
+
+    @if (!hasPending)
+    {
+        <!-- Gateway Info Box -->
+        <div class="pr-card">
+            <h3 style="font-size:.95rem;font-weight:700;margin:0 0 16px;color:#0f172a;">
+                @(isSham ? "بيانات حساب شام كاش" : "بيانات محفظة Binance")
+            </h3>
+
+            <div class="gateway-box @(!isSham ? "binance" : "")">
+                @if (isSham)
+                {
+                    @if (!string.IsNullOrEmpty(shamQr))
+                    {
+                        <img src="@shamQr" class="gateway-qr" alt="QR شام كاش" />
+                    }
+                    <div class="gateway-info">
+                        <div style="margin-bottom:10px;">
+                            <div class="gateway-label">اسم المستلم</div>
+                            <div class="gateway-value" style="font-size:.98rem;">
+                                @(string.IsNullOrEmpty(shamName) ? "—" : shamName)
+                            </div>
+                            <div style="font-size:.72rem;color:#7c3aed;margin-top:2px;font-weight:600;">
+                                <i class="fas fa-exclamation-circle"></i> يجب أن يطابق هذا الاسم حقل "اسم المستلم" في الإيصال
+                            </div>
+                        </div>
+                        <div>
+                            <div class="gateway-label">الرقم التسلسلي للحساب (حساب المستلم)</div>
+                            <div class="gateway-value" id="accountNum" style="font-size:.88rem;font-family:monospace;">
+                                @(string.IsNullOrEmpty(shamAccount) ? "غير مُعيَّن — يرجى التواصل مع الإدارة" : shamAccount)
+                                @if (!string.IsNullOrEmpty(shamAccount))
+                                {
+                                    <button class="copy-btn" onclick="copyText('@shamAccount')"><i class="fas fa-copy"></i> نسخ</button>
+                                }
+                            </div>
+                            <div style="font-size:.72rem;color:#7c3aed;margin-top:2px;font-weight:600;">
+                                <i class="fas fa-exclamation-circle"></i> يجب أن تطابق الأرقام الظاهرة في حقل "حساب المستلم" بالإيصال
+                            </div>
+                        </div>
+                        <p style="font-size:.78rem;color:#64748b;margin-top:10px;padding-top:10px;border-top:1px dashed #e2e8f0;">
+                            قم بتحويل المبلغ إلى هذا الحساب عبر تطبيق شام كاش، ثم ارفع إيصال الدفع أدناه.
+                        </p>
+                    </div>
+                }
+                else
+                {
+                    @if (!string.IsNullOrEmpty(binQr))
+                    {
+                        <img src="@binQr" class="gateway-qr" alt="QR Binance" />
+                    }
+                    <div class="gateway-info">
+                        <div class="gateway-label">عنوان المحفظة (@binNetwork)</div>
+                        <div class="gateway-value" id="walletAddr" style="font-size:.88rem;font-family:monospace;">
+                            @(string.IsNullOrEmpty(binWallet) ? "غير مُعيَّن — يرجى التواصل مع الإدارة" : binWallet)
+                            @if (!string.IsNullOrEmpty(binWallet))
+                            {
+                                <button class="copy-btn" onclick="copyText('@binWallet')"><i class="fas fa-copy"></i> نسخ</button>
+                            }
+                        </div>
+                        <p style="font-size:.78rem;color:#64748b;margin-top:8px;">
+                            تأكد من اختيار الشبكة الصحيحة <strong>@binNetwork</strong> عند الإرسال.
+                        </p>
+                    </div>
+                }
+            </div>
+
+            <!-- Steps -->
+            <div style="margin-bottom:8px;">
+                @if (isSham)
+                {
+                    <div class="step"><span class="step-num">1</span><span style="font-size:.85rem;color:#374151;padding-top:3px;">افتح تطبيق شام كاش وأرسل المبلغ المطلوب إلى الرقم أعلاه.</span></div>
+                    <div class="step"><span class="step-num">2</span><span style="font-size:.85rem;color:#374151;padding-top:3px;">احفظ إيصال الدفع (PDF أو صورة) من داخل التطبيق.</span></div>
+                    <div class="step"><span class="step-num">3</span><span style="font-size:.85rem;color:#374151;padding-top:3px;">أكمل النموذج أدناه وارفع الإيصال لتتم الموافقة على دفعتك.</span></div>
+                }
+                else
+                {
+                    <div class="step"><span class="step-num binance">1</span><span style="font-size:.85rem;color:#374151;padding-top:3px;">افتح Binance Pay أو محفظتك وأرسل المبلغ المطلوب بعملة USDT إلى العنوان أعلاه.</span></div>
+                    <div class="step"><span class="step-num binance">2</span><span style="font-size:.85rem;color:#374151;padding-top:3px;">احفظ لقطة شاشة أو ملف PDF للتحويل ويتضمن hash المعاملة.</span></div>
+                    <div class="step"><span class="step-num binance">3</span><span style="font-size:.85rem;color:#374151;padding-top:3px;">أكمل النموذج أدناه وأدخل hash المعاملة وارفع الإثبات.</span></div>
+                }
+            </div>
+        </div>
+
+        <!-- Submit Form -->
+        <div class="pr-card">
+            <h3 style="font-size:.95rem;font-weight:700;margin:0 0 18px;color:#0f172a;">تفاصيل الدفعة</h3>
+            <form method="post" enctype="multipart/form-data"
+                  asp-controller="PaymentRequests" asp-action="Submit">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="courseId" value="@course?.CourseId" />
+                <input type="hidden" name="method"   value="@method" />
+
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                    <div class="form-field">
+                        <label>المبلغ المدفوع <span style="color:#ef4444;">*</span></label>
+                        <input type="number" name="amount" min="1" step="0.01" placeholder="أدخل المبلغ" required />
+                    </div>
+                    <div class="form-field">
+                        <label>العملة <span style="color:#ef4444;">*</span></label>
+                        <select name="currency">
+                            <option value="1">ل.س — ليرة سورية</option>
+                            <option value="2">$ — دولار أمريكي</option>
+                            <option value="3">€ — يورو</option>
+                        </select>
+                    </div>
+                </div>
+
+                @if (!isSham)
+                {
+                    <div class="form-field">
+                        <label>Transaction Hash / رقم العملية <span style="color:#ef4444;">*</span></label>
+                        <input type="text" name="transactionReference"
+                               placeholder="0x... أو رقم العملية من Binance"
+                               style="font-family:monospace;" required />
+                    </div>
+                }
+
+                <div class="form-field">
+                    <label>ملاحظات (اختياري)</label>
+                    <textarea name="studentNotes" rows="2" placeholder="أي معلومات إضافية..."></textarea>
+                </div>
+
+                <div class="form-field">
+                    <label>إيصال الدفع (PDF أو صورة) <span style="color:#ef4444;">*</span></label>
+                    <div class="upload-zone" id="uploadZone" onclick="document.getElementById('receiptFile').click()">
+                        <i class="fas fa-cloud-upload-alt" style="font-size:2rem;color:#a78bfa;margin-bottom:8px;display:block;"></i>
+                        <div id="uploadLabel" style="font-size:.88rem;color:#64748b;">اضغط لاختيار الملف أو اسحبه هنا</div>
+                        <div style="font-size:.75rem;color:#94a3b8;margin-top:4px;">PDF, JPG, PNG — بحد أقصى 10 ميجابايت</div>
+                    </div>
+                    <input type="file" id="receiptFile" name="receiptFile" accept=".pdf,.jpg,.jpeg,.png"
+                           style="display:none;" required onchange="onFileSelected(this)" />
+                </div>
+
+                <button type="submit" class="submit-btn @(!isSham ? "binance" : "")">
+                    <i class="fas fa-paper-plane" style="margin-left:8px;"></i>
+                    إرسال طلب الدفع
+                </button>
+            </form>
+        </div>
+    }
+</div>
+
+<script>
+    function copyText(text) {
+        navigator.clipboard.writeText(text).then(() => {
+            alert('تم النسخ: ' + text);
+        }).catch(() => {
+            var el = document.createElement('textarea');
+            el.value = text;
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+        });
+    }
+
+    function onFileSelected(input) {
+        var zone  = document.getElementById('uploadZone');
+        var label = document.getElementById('uploadLabel');
+        if (input.files && input.files[0]) {
+            zone.classList.add('has-file');
+            label.innerHTML = '<i class="fas fa-check-circle" style="color:#10b981;margin-left:4px;"></i>' + input.files[0].name;
+        }
+    }
+
+    // Drag & drop
+    var zone = document.getElementById('uploadZone');
+    if (zone) {
+        zone.addEventListener('dragover', e => { e.preventDefault(); zone.style.borderColor = '#7c3aed'; });
+        zone.addEventListener('dragleave', () => { zone.style.borderColor = ''; });
+        zone.addEventListener('drop', e => {
+            e.preventDefault();
+            zone.style.borderColor = '';
+            var input = document.getElementById('receiptFile');
+            input.files = e.dataTransfer.files;
+            onFileSelected(input);
+        });
+    }
+</script>

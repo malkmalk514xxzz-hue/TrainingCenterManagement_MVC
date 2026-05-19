@@ -1326,15 +1326,28 @@
   .dashboard-wrapper {
     display: flex;
     min-height: 100vh;
+    direction: rtl;
   }
-  
+
+  .dashboard-main {
+    direction: rtl;
+  }
+
   .sidebar {
     width: var(--sidebar-width);
     background-color: var(--background);
-    border-right: 1px solid var(--border);
+    border-left: 1px solid var(--border);
+    border-right: none;
     display: flex;
     flex-direction: column;
     transition: width 0.3s ease;
+    order: 2;
+  }
+
+  .dashboard-main {
+    flex: 1;
+    order: 1;
+    overflow: auto;
   }
   
   .sidebar-header {
@@ -1616,6 +1629,7 @@
   
   .sidebar-collapsed .sidebar-nav a i {
     margin-right: 0;
+    margin-left: 0;
   }
   
   .sidebar-collapsed .user-info {

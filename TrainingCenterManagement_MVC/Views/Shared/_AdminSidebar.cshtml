@@ -110,6 +110,16 @@
                     <i class="fas fa-wallet"></i><span>الذمم المالية</span>
                 </a>
             </li>
+            <li class="@(IsActive("PaymentRequests") ? "active" : "")">
+                <a asp-action="Manage" asp-controller="PaymentRequests">
+                    <i class="fas fa-file-invoice-dollar"></i><span>طلبات الدفع الإلكتروني</span>
+                </a>
+            </li>
+            <li class="@(IsActive("Settings") ? "active" : "")">
+                <a asp-action="Edit" asp-controller="Settings">
+                    <i class="fas fa-sliders-h"></i><span>إعدادات الدفع</span>
+                </a>
+            </li>
             <li class="@(IsActive("ExchangeRates") ? "active" : "")">
                 <a asp-action="Index" asp-controller="ExchangeRates">
                     <i class="fas fa-exchange-alt"></i><span>أسعار الصرف</span>

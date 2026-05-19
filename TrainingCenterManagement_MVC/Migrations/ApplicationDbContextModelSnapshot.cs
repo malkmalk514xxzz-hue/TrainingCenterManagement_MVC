@@ -405,7 +405,7 @@ namespace TrainingCenterManagement_MVC.Migrations
                             CanReadAdminData = false,
                             CanReadOtherUsersData = false,
                             CanReadPersonalData = true,
-                            CreatedAt = new DateTime(2026, 5, 13, 6, 38, 25, 257, DateTimeKind.Utc).AddTicks(2110),
+                            CreatedAt = new DateTime(2026, 5, 19, 8, 9, 8, 340, DateTimeKind.Utc).AddTicks(3895),
                             CreatedBy = "System",
                             DailyQueryLimit = 50,
                             RoleName = "Trainee"
@@ -421,7 +421,7 @@ namespace TrainingCenterManagement_MVC.Migrations
                             CanReadAdminData = false,
                             CanReadOtherUsersData = false,
                             CanReadPersonalData = true,
-                            CreatedAt = new DateTime(2026, 5, 13, 6, 38, 25, 257, DateTimeKind.Utc).AddTicks(2123),
+                            CreatedAt = new DateTime(2026, 5, 19, 8, 9, 8, 340, DateTimeKind.Utc).AddTicks(3953),
                             CreatedBy = "System",
                             DailyQueryLimit = 100,
                             RoleName = "Trainer"
@@ -437,7 +437,7 @@ namespace TrainingCenterManagement_MVC.Migrations
                             CanReadAdminData = true,
                             CanReadOtherUsersData = true,
                             CanReadPersonalData = true,
-                            CreatedAt = new DateTime(2026, 5, 13, 6, 38, 25, 257, DateTimeKind.Utc).AddTicks(2127),
+                            CreatedAt = new DateTime(2026, 5, 19, 8, 9, 8, 340, DateTimeKind.Utc).AddTicks(3957),
                             CreatedBy = "System",
                             DailyQueryLimit = -1,
                             RoleName = "Admin"
@@ -453,7 +453,7 @@ namespace TrainingCenterManagement_MVC.Migrations
                             CanReadAdminData = false,
                             CanReadOtherUsersData = false,
                             CanReadPersonalData = true,
-                            CreatedAt = new DateTime(2026, 5, 13, 6, 38, 25, 257, DateTimeKind.Utc).AddTicks(2130),
+                            CreatedAt = new DateTime(2026, 5, 19, 8, 9, 8, 340, DateTimeKind.Utc).AddTicks(3959),
                             CreatedBy = "System",
                             DailyQueryLimit = 100,
                             RoleName = "Receptionist"
@@ -760,7 +760,6 @@ namespace TrainingCenterManagement_MVC.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Comment")
-                        .IsRequired()
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
 
@@ -800,6 +799,19 @@ namespace TrainingCenterManagement_MVC.Migrations
 
                     b.Property<Guid>("TraineeId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("EnrolledAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsSuspended")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("SuspendedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("SuspensionReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.HasKey("CourseId", "TraineeId");
 
@@ -1441,6 +1453,9 @@ namespace TrainingCenterManagement_MVC.Migrations
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
 
+                    b.Property<int?>("DurationMinutes")
+                        .HasColumnType("int");
+
                     b.Property<bool>("IsCancelled")
                         .HasColumnType("bit");
 
@@ -1592,6 +1607,93 @@ namespace TrainingCenterManagement_MVC.Migrations
                     b.HasIndex("TraineeId");
 
                     b.ToTable("Payments");
+                });
+
+            modelBuilder.Entity("TrainingCenterManagement_MVC.Models.PaymentRequest", b =>
+                {
+                    b.Property<Guid>("RequestId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("AdminNotes")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<Guid>("CourseId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Currency")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Method")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("ProcessedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ProcessedByAdminId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("RcptAmount")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("RcptOperationNumber")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("RcptPaymentDate")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("RcptRecipientAccount")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("RcptRecipientName")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("RcptSenderName")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("ReceiptFilePath")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("RejectionReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<string>("StudentNotes")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<Guid>("TraineeId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("TransactionReference")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.HasKey("RequestId");
+
+                    b.HasIndex("CourseId");
+
+                    b.HasIndex("TraineeId");
+
+                    b.ToTable("PaymentRequests");
                 });
 
             modelBuilder.Entity("TrainingCenterManagement_MVC.Models.Presence", b =>
@@ -2429,6 +2531,25 @@ namespace TrainingCenterManagement_MVC.Migrations
 
                     b.HasOne("TrainingCenterManagement_MVC.Models.Trainee", "Trainee")
                         .WithMany("Payments")
+                        .HasForeignKey("TraineeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Course");
+
+                    b.Navigation("Trainee");
+                });
+
+            modelBuilder.Entity("TrainingCenterManagement_MVC.Models.PaymentRequest", b =>
+                {
+                    b.HasOne("TrainingCenterManagement_MVC.Models.Course", "Course")
+                        .WithMany()
+                        .HasForeignKey("CourseId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("TrainingCenterManagement_MVC.Models.Trainee", "Trainee")
+                        .WithMany()
                         .HasForeignKey("TraineeId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();

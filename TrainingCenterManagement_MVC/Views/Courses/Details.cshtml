@@ -3,7 +3,9 @@
     var ratings   = Model.Ratings?.ToList() ?? new List<TrainingCenterManagement_MVC.Models.CourseRating>();
     var avgStars  = ratings.Any() ? ratings.Average(r => r.Stars) : 0.0;
     var myRating  = ViewBag.MyRating as TrainingCenterManagement_MVC.Models.CourseRating;
-    bool isEnrolled = ViewBag.IsEnrolled == true;
+    bool isEnrolled   = ViewBag.IsEnrolled == true;
+    bool isSuspended  = ViewBag.IsSuspended == true;
+    string? suspensionReason = ViewBag.SuspensionReason as string;
 
     var trainersCount  = Model.CourseTrainers?.Count ?? 0;
     var traineesCount  = Model.CourseTrainees?.Count ?? 0;
@@ -272,14 +274,35 @@
     .cd-review-date { font-size:.72rem; color:var(--t3); margin-right:auto; }
     .cd-review-text { font-size:.83rem; color:var(--t2); line-height:1.6; margin:0; }
 
+    /* ── My Review highlight ── */
+    .cd-my-review {
+        margin: 16px 20px; padding: 14px 16px;
+        background: #eef2ff; border: 1.5px solid #c7d2fe;
+        border-radius: 12px;
+    }
+    .cd-review-mine { background: #f8f7ff; border-right: 3px solid #7c3aed; }
+
     /* ── Rate Form ── */
     .cd-rate-form { padding:20px; border-top:1px solid var(--border); background:linear-gradient(135deg,var(--pr-pale),#fff); }
-    .cd-rate-title { font-size:.9rem; font-weight:700; color:var(--t1); margin-bottom:12px; display:flex; align-items:center; gap:7px; }
-    .cd-stars-selector { display:flex; gap:6px; font-size:2rem; cursor:pointer; direction:ltr; margin-bottom:12px; }
-    .cd-stars-selector span { transition:transform .1s; }
-    .cd-stars-selector span:hover { transform:scale(1.15); }
+    .cd-rate-title { font-size:.9rem; font-weight:700; color:var(--t1); margin-bottom:14px; display:flex; align-items:center; gap:7px; }
     .cd-rate-ta { width:100%; padding:10px 12px; border:1.5px solid var(--border); border-radius:8px; font-size:.84rem; font-family:inherit; resize:vertical; min-height:80px; box-sizing:border-box; transition:border-color .2s; }
     .cd-rate-ta:focus { outline:none; border-color:var(--pr); box-shadow:0 0 0 3px rgba(79,70,229,.1); }
+
+    /* ── Star Picker ── */
+    .star-picker-wrap { display:flex; flex-direction:column; align-items:center; gap:8px; margin-bottom:16px; }
+    .star-picker { display:flex; gap:4px; direction:ltr; }
+    .star-btn {
+        background: none; border: none; cursor: pointer;
+        font-size: 2.6rem; line-height: 1;
+        color: #d1d5db;
+        transition: color .15s, transform .15s, text-shadow .15s;
+        padding: 2px 3px;
+    }
+    .star-btn.filled,
+    .star-btn.hovered { color: #f59e0b; transform: scale(1.15); text-shadow: 0 2px 8px rgba(245,158,11,.5); }
+    .star-btn:focus { outline: 2px solid #f59e0b; border-radius: 4px; }
+    .star-label { font-size:.85rem; color:#64748b; font-weight:600; min-height:1.4em; }
+    .star-label-hint { color:#94a3b8; font-style:italic; }
 
     /* ── Notify Banner ── */
     .cd-notify { margin:16px 0; padding:10px 16px; border-radius:8px; font-size:.84rem; display:flex; align-items:center; gap:8px; }
@@ -308,6 +331,25 @@
 
 <div class="cd-page" dir="rtl" lang="ar">
     @Html.Partial("_LandingHeader")
+
+    @if (TempData["IsSuspendedRedirect"] != null)
+    {
+        <div style="background:#fee2e2;border-bottom:2px solid #fca5a5;padding:14px 24px;display:flex;align-items:center;gap:10px;font-size:.88rem;color:#b91c1c;font-weight:600;">
+            <i class="fas fa-ban" style="font-size:1rem;"></i>
+            <span>حسابك موقوف في هذا الكورس ولا يمكنك الوصول إلى المحتوى.
+                @if (!string.IsNullOrEmpty(TempData["SuspendedMessage"]?.ToString()))
+                {
+                    <span style="font-weight:400;"> — @TempData["SuspendedMessage"]</span>
+                }
+            </span>
+        </div>
+    }
+    @if (TempData["Success"] != null)
+    {
+        <div style="background:#d1fae5;border-bottom:2px solid #6ee7b7;padding:14px 24px;display:flex;align-items:center;gap:10px;font-size:.88rem;color:#065f46;font-weight:600;">
+            <i class="fas fa-check-circle"></i> @TempData["Success"]
+        </div>
+    }
 
     <!-- ── Hero ── -->
     <div class="cd-hero">
@@ -378,12 +420,24 @@
                     }
                     <div class="cd-hero-stat">
                         <i class="fas fa-tag"></i>
-                        <span>@Model.Price.ToString("N0") ر.س</span>
+                        <span>@ViewBag.CoursePrice?.ToString("N0") @ViewBag.CourseCurrencySymbol</span>
                     </div>
                 </div>
 
                 <div class="cd-hero-actions">
-                    @if (User.IsInRole("Trainee") && isEnrolled)
+                    @if (User.IsInRole("Trainee") && isEnrolled && isSuspended)
+                    {
+                        <span class="cd-ha" style="background:#fee2e2;color:#b91c1c;border:none;cursor:default;gap:6px;">
+                            <i class="fas fa-ban"></i> حسابك موقوف في هذا الكورس
+                        </span>
+                        @if (!string.IsNullOrEmpty(suspensionReason))
+                        {
+                            <span class="cd-ha cd-ha-outline" style="cursor:default;font-size:.78rem;opacity:.8;">
+                                <i class="fas fa-info-circle"></i> @suspensionReason
+                            </span>
+                        }
+                    }
+                    else if (User.IsInRole("Trainee") && isEnrolled)
                     {
                         <a href="@Url.Action("ViewLectures","Trainees", new { courseId = Model.CourseId })" class="cd-ha cd-ha-primary">
                             <i class="fas fa-play-circle"></i> ابدأ التعلم
@@ -391,6 +445,9 @@
                         <a href="@Url.Action("CourseProgress","Progress", new { courseId = Model.CourseId })" class="cd-ha cd-ha-outline">
                             <i class="fas fa-chart-line"></i> تقدمي
                         </a>
+                        <button type="button" class="cd-ha cd-ha-gold" onclick="openRatingTab()">
+                            <i class="fas fa-star"></i> @(myRating != null ? "عدّل تقييمك" : "قيّم الكورس")
+                        </button>
                     }
                     else if (User.IsInRole("Trainee") && !isEnrolled)
                     {
@@ -539,6 +596,12 @@
                 <i class="fas fa-star"></i> التقييمات
                 @if (ratings.Any()) { <span class="cd-tab-badge">@ratings.Count</span> }
             </button>
+            @if (User.IsInRole("Trainee") && isEnrolled)
+            {
+                <button class="cd-tab" onclick="switchTab(this,'tab-payments')">
+                    <i class="fas fa-credit-card"></i> مدفوعاتي
+                </button>
+            }
             <button class="cd-tab" onclick="switchTab(this,'tab-tools')">
                 <i class="fas fa-tools"></i> الأدوات
             </button>
@@ -565,7 +628,13 @@
                     </div>
                     <div class="cd-info-item">
                         <div class="cd-info-lbl">السعر</div>
-                        <div class="cd-info-val" style="color:var(--pr);font-size:1rem;">@Model.Price.ToString("N2") ر.س</div>
+                        <div class="cd-info-val" style="color:var(--pr);font-size:1rem;">
+                            @ViewBag.CoursePrice?.ToString("N2") @ViewBag.CourseCurrencySymbol
+                            @if (ViewBag.CourseCurrencyCode?.ToString() != "SYP" && ViewBag.PriceInSYP != null && (decimal)ViewBag.PriceInSYP > 0)
+                            {
+                                <span style="font-size:.78rem;color:var(--t3);display:block;">≈ @((decimal)ViewBag.PriceInSYP).ToString("N0") ل.س</span>
+                            }
+                        </div>
                     </div>
                     <div class="cd-info-item">
                         <div class="cd-info-lbl">تاريخ الإصدار</div>
@@ -713,15 +782,53 @@
                                 {
                                     var col = traineeColors[tnci++ % traineeColors.Length];
                                     var initials = string.Join("", ct.Trainee.User.FullName.Split(' ').Take(2).Select(x => x.FirstOrDefault()));
-                                    <div class="cd-person-card" data-name="@ct.Trainee.User.FullName.ToLower()">
+                                    <div class="cd-person-card" data-name="@ct.Trainee.User.FullName.ToLower()"
+                                         style="@(ct.IsSuspended ? "border:1.5px solid #fca5a5;background:#fff5f5;" : "")">
                                         <div class="cd-avatar" style="background:@col;">@initials</div>
-                                        <div>
+                                        <div style="flex:1;">
                                             <div class="cd-person-name">@ct.Trainee.User.FullName</div>
                                             <div class="cd-person-sub">@ct.Trainee.User.Email</div>
-                                            <span class="cd-person-badge" style="background:var(--success-pale);color:#065f46;">
-                                                <i class="fas fa-check" style="font-size:.65rem;"></i> مسجل
-                                            </span>
+                                            @if (ct.IsSuspended)
+                                            {
+                                                <span class="cd-person-badge" style="background:#fee2e2;color:#b91c1c;">
+                                                    <i class="fas fa-ban" style="font-size:.65rem;"></i> موقوف
+                                                </span>
+                                                @if (!string.IsNullOrEmpty(ct.SuspensionReason))
+                                                {
+                                                    <div style="font-size:.72rem;color:#b91c1c;margin-top:2px;">@ct.SuspensionReason</div>
+                                                }
+                                            }
+                                            else
+                                            {
+                                                <span class="cd-person-badge" style="background:var(--success-pale);color:#065f46;">
+                                                    <i class="fas fa-check" style="font-size:.65rem;"></i> مسجل
+                                                </span>
+                                            }
                                         </div>
+                                        @if (User.IsInRole("Admin"))
+                                        {
+                                            <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end;">
+                                                @if (!ct.IsSuspended)
+                                                {
+                                                    <button type="button" onclick="openSuspendModal('@ct.TraineeId','@ct.Trainee.User.FullName')"
+                                                            style="padding:4px 10px;border:none;border-radius:6px;background:#fee2e2;color:#b91c1c;font-size:.72rem;font-weight:600;cursor:pointer;">
+                                                        <i class="fas fa-ban"></i> إيقاف
+                                                    </button>
+                                                }
+                                                else
+                                                {
+                                                    <form method="post" action="@Url.Action("UnsuspendTrainee","Courses")" style="margin:0;">
+                                                        @Html.AntiForgeryToken()
+                                                        <input type="hidden" name="courseId" value="@Model.CourseId" />
+                                                        <input type="hidden" name="traineeId" value="@ct.TraineeId" />
+                                                        <button type="submit"
+                                                                style="padding:4px 10px;border:none;border-radius:6px;background:#d1fae5;color:#065f46;font-size:.72rem;font-weight:600;cursor:pointer;">
+                                                            <i class="fas fa-check-circle"></i> رفع الإيقاف
+                                                        </button>
+                                                    </form>
+                                                }
+                                            </div>
+                                        }
                                     </div>
                                 }
                             </div>
@@ -742,8 +849,50 @@
         <div id="tab-ratings" class="cd-panel">
             <div class="cd-card">
                 <div class="cd-ch">
-                    <div class="cd-ch-left"><i class="fas fa-star" style="color:var(--gold);"></i><h3>تقييمات الطلاب</h3></div>
+                    <div class="cd-ch-left">
+                        <i class="fas fa-star" style="color:var(--gold);"></i>
+                        <h3>تقييمات الطلاب</h3>
+                        @if (ratings.Any())
+                        {
+                            <span style="background:#fef9c3;color:#854d0e;border:1px solid #fde68a;border-radius:20px;
+                                         padding:2px 10px;font-size:.75rem;font-weight:700;">
+                                @avgStars.ToString("F1") ★ · @ratings.Count تقييم
+                            </span>
+                        }
+                    </div>
+                    @if (ratings.Any())
+                    {
+                        <div class="cd-ch-right" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                            <select id="ratingSortSelect" onchange="sortReviews(this.value)"
+                                    style="border:1.5px solid var(--border);border-radius:8px;padding:5px 10px;font-size:.82rem;color:var(--t2);background:#fff;">
+                                <option value="newest">الأحدث أولاً</option>
+                                <option value="highest">الأعلى تقييماً</option>
+                                <option value="lowest">الأدنى تقييماً</option>
+                                <option value="commented">بتعليق فقط</option>
+                            </select>
+                        </div>
+                    }
                 </div>
+
+                @{
+                    var ratingSuccess = TempData["RatingSuccess"] as string;
+                    var ratingError   = TempData["RatingError"]   as string;
+                    var autoOpenRatings = ratingSuccess != null || ratingError != null;
+                }
+                @if (!string.IsNullOrEmpty(ratingSuccess))
+                {
+                    <div style="margin:12px 20px;padding:12px 16px;background:#f0fdf4;border:1px solid #86efac;border-radius:10px;
+                                color:#166534;font-size:.88rem;display:flex;align-items:center;gap:8px;">
+                        <i class="fas fa-check-circle"></i> @ratingSuccess
+                    </div>
+                }
+                @if (!string.IsNullOrEmpty(ratingError))
+                {
+                    <div style="margin:12px 20px;padding:12px 16px;background:#fef2f2;border:1px solid #fca5a5;border-radius:10px;
+                                color:#991b1b;font-size:.88rem;display:flex;align-items:center;gap:8px;">
+                        <i class="fas fa-exclamation-circle"></i> @ratingError
+                    </div>
+                }
 
                 @if (ratings.Any())
                 {
@@ -757,79 +906,173 @@
                                 }
                             </div>
                             <div class="cd-rating-count">@ratings.Count تقييم</div>
+                            @{
+                                var withComments = ratings.Count(r => !string.IsNullOrEmpty(r.Comment));
+                            }
+                            @if (withComments > 0)
+                            {
+                                <div style="font-size:.72rem;color:#94a3b8;margin-top:4px;">
+                                    @withComments مع تعليق
+                                </div>
+                            }
                         </div>
                         <div class="cd-rating-bars">
                             @for (int s = 5; s >= 1; s--)
                             {
                                 var cnt = ratings.Count(r => r.Stars == s);
                                 var pct = ratings.Any() ? (cnt * 100.0 / ratings.Count) : 0;
-                                <div class="cd-rbar">
-                                    <span style="width:14px;text-align:left;">@s</span>
+                                <div class="cd-rbar" style="cursor:pointer;" onclick="filterByStar(@s)" title="عرض تقييمات @s نجوم فقط">
+                                    <span style="width:14px;text-align:left;font-weight:700;color:var(--t1);">@s</span>
                                     <span style="color:var(--gold);font-size:.75rem;">★</span>
                                     <div class="cd-rbar-track">
                                         <div class="cd-rbar-fill" style="width:@pct.ToString("F0")%;"></div>
                                     </div>
-                                    <span style="width:24px;text-align:center;">@cnt</span>
+                                    <span style="width:28px;text-align:center;font-size:.8rem;color:var(--t3);">@cnt</span>
                                 </div>
                             }
                         </div>
                     </div>
 
-                    @foreach (var rating in ratings.OrderByDescending(r => r.CreatedAt).Take(10))
+                    <!-- My rating highlighted if exists -->
+                    @if (myRating != null)
                     {
-                        var rInitials = string.Join("", (rating.Trainee?.User?.FullName ?? "م").Split(' ').Take(2).Select(x => x.FirstOrDefault()));
-                        string[] rColors = { "#4f46e5","#7c3aed","#0891b2","#059669","#d97706" };
-                        var rCol = rColors[Math.Abs((rating.Trainee?.TraineeId ?? Guid.Empty).GetHashCode()) % rColors.Length];
-                        <div class="cd-review-item">
+                        var myInitials = string.Join("", ((myRating.Trainee?.User?.FullName ?? User.Identity?.Name ?? "أنا")).Split(' ').Take(2).Select(x => x.FirstOrDefault()));
+                        <div class="cd-my-review" id="myReviewCard">
+                            <div style="font-size:.75rem;font-weight:800;color:#4f46e5;margin-bottom:8px;
+                                        display:flex;align-items:center;gap:6px;">
+                                <i class="fas fa-user-circle"></i> تقييمك الحالي
+                            </div>
                             <div class="cd-review-head">
-                                <div class="cd-review-avatar" style="background:@rCol;">@rInitials</div>
-                                <div>
-                                    <div class="cd-review-name">@(rating.Trainee?.User?.FullName ?? "متدرب")</div>
-                                    <div class="cd-stars-row" style="font-size:.85rem;">
+                                <div class="cd-review-avatar" style="background:#4f46e5;">@myInitials</div>
+                                <div style="flex:1;">
+                                    <div class="cd-review-name">أنت</div>
+                                    <div class="cd-stars-row" style="font-size:.9rem;">
                                         @for (int s = 1; s <= 5; s++)
                                         {
-                                            <span class="@(s <= rating.Stars ? "cd-star-full" : "cd-star-empty")">★</span>
+                                            <span class="@(s <= myRating.Stars ? "cd-star-full" : "cd-star-empty")">★</span>
                                         }
+                                        <span style="font-size:.78rem;color:#64748b;margin-right:6px;">(@myRating.Stars/5)</span>
                                     </div>
                                 </div>
-                                <span class="cd-review-date">@rating.CreatedAt.ToString("dd/MM/yyyy")</span>
+                                <span class="cd-review-date">@myRating.CreatedAt.ToString("dd/MM/yyyy")</span>
                             </div>
-                            @if (!string.IsNullOrEmpty(rating.Comment))
+                            @if (!string.IsNullOrEmpty(myRating.Comment))
                             {
-                                <p class="cd-review-text">@rating.Comment</p>
+                                <p class="cd-review-text" style="margin-top:8px;">@myRating.Comment</p>
+                            }
+                            else
+                            {
+                                <p style="font-size:.8rem;color:#94a3b8;margin-top:6px;font-style:italic;">لم تكتب تعليقاً</p>
                             }
                         </div>
                     }
+
+                    <!-- All reviews list -->
+                    <div id="reviewsList">
+                        @foreach (var rating in ratings.OrderByDescending(r => r.CreatedAt))
+                        {
+                            var rInitials = string.Join("", (rating.Trainee?.User?.FullName ?? "م").Split(' ').Take(2).Select(x => x.FirstOrDefault()));
+                            string[] rColors = { "#4f46e5","#7c3aed","#0891b2","#059669","#d97706" };
+                            var rCol = rColors[Math.Abs((rating.Trainee?.TraineeId ?? Guid.Empty).GetHashCode()) % rColors.Length];
+                            var isMyRating = myRating != null && rating.RatingId == myRating.RatingId;
+                            <div class="cd-review-item @(isMyRating ? "cd-review-mine" : "")"
+                                 data-stars="@rating.Stars"
+                                 data-has-comment="@(!string.IsNullOrEmpty(rating.Comment) ? "1" : "0")"
+                                 data-date="@rating.CreatedAt.Ticks">
+                                <div class="cd-review-head">
+                                    <div class="cd-review-avatar" style="background:@rCol;">@rInitials</div>
+                                    <div style="flex:1;">
+                                        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                                            <div class="cd-review-name">@(rating.Trainee?.User?.FullName ?? "متدرب")</div>
+                                            @if (isMyRating)
+                                            {
+                                                <span style="background:#eef2ff;color:#4f46e5;border-radius:20px;padding:1px 8px;font-size:.7rem;font-weight:700;">أنت</span>
+                                            }
+                                            <span style="background:@(rating.Stars >= 4 ? "#f0fdf4" : rating.Stars == 3 ? "#fefce8" : "#fef2f2");
+                                                         color:@(rating.Stars >= 4 ? "#166534" : rating.Stars == 3 ? "#854d0e" : "#991b1b");
+                                                         border-radius:20px;padding:1px 8px;font-size:.7rem;font-weight:700;">
+                                                متدرب موثّق ✓
+                                            </span>
+                                        </div>
+                                        <div class="cd-stars-row" style="font-size:.85rem;margin-top:2px;">
+                                            @for (int s = 1; s <= 5; s++)
+                                            {
+                                                <span class="@(s <= rating.Stars ? "cd-star-full" : "cd-star-empty")">★</span>
+                                            }
+                                            @{
+                                                string[] starWords = {"","ضعيف","مقبول","جيد","جيد جداً","ممتاز"};
+                                            }
+                                            <span style="font-size:.75rem;color:#64748b;margin-right:4px;">@starWords[rating.Stars]</span>
+                                        </div>
+                                    </div>
+                                    <div style="text-align:left;flex-shrink:0;">
+                                        <div class="cd-review-date">@rating.CreatedAt.ToString("dd/MM/yyyy")</div>
+                                        @if (rating.UpdatedAt.HasValue)
+                                        {
+                                            <div style="font-size:.68rem;color:#94a3b8;">معدَّل</div>
+                                        }
+                                    </div>
+                                </div>
+                                @if (!string.IsNullOrEmpty(rating.Comment))
+                                {
+                                    <p class="cd-review-text">"@rating.Comment"</p>
+                                }
+                            </div>
+                        }
+                    </div>
                 }
                 else
                 {
                     <div class="cd-empty">
                         <i class="fas fa-star"></i>
-                        <p>لا توجد تقييمات لهذا الكورس بعد</p>
+                        <p>لا توجد تقييمات لهذا الكورس بعد. كن أول من يقيّم!</p>
                     </div>
                 }
 
                 @if (User.IsInRole("Trainee") && isEnrolled)
                 {
-                    <div class="cd-rate-form">
+                    <div class="cd-rate-form" id="rateFormSection">
                         <div class="cd-rate-title">
                             <i class="fas fa-pen-to-square" style="color:var(--pr);"></i>
                             @(myRating != null ? "عدّل تقييمك" : "أضف تقييمك")
                         </div>
-                        <form asp-controller="CourseRatings" asp-action="Rate" method="post">
+                        <form asp-controller="CourseRatings" asp-action="Rate" method="post" onsubmit="return validateRating()">
                             @Html.AntiForgeryToken()
                             <input type="hidden" name="courseId" value="@Model.CourseId" />
-                            <div class="cd-stars-selector" id="starSelector">
-                                @for (int s = 1; s <= 5; s++)
-                                {
-                                    <span class="star-opt" data-val="@s"
-                                          style="color:@(myRating != null && s <= myRating.Stars ? "#f59e0b" : "#e2e8f0");">★</span>
-                                }
+
+                            <!-- Star picker -->
+                            <div class="star-picker-wrap">
+                                <div class="star-picker" id="starPicker" role="group" aria-label="اختر تقييمك">
+                                    @for (int s = 1; s <= 5; s++)
+                                    {
+                                        <button type="button" class="star-btn @(myRating != null && s <= myRating.Stars ? "filled" : "")"
+                                                data-val="@s" onclick="selectStar(@s)" onmouseover="hoverStar(@s)" onmouseout="unhoverStar()"
+                                                aria-label="@s نجوم" title="@s من 5">
+                                            ★
+                                        </button>
+                                    }
+                                </div>
+                                <div class="star-label" id="starLabel">
+                                    @if (myRating != null)
+                                    {
+                                        <span>@myRating.Stars من 5 — اضغط لتغيير التقييم</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="star-label-hint">اضغط على نجمة لاختيار تقييمك</span>
+                                    }
+                                </div>
                             </div>
-                            <input type="hidden" name="stars" id="starsInput" value="@(myRating?.Stars ?? 0)" required />
+                            <input type="hidden" name="stars" id="starsInput" value="@(myRating?.Stars ?? 0)" />
+
                             <textarea name="comment" class="cd-rate-ta" rows="3" maxlength="1000"
                                       placeholder="شاركنا رأيك في هذا الكورس (اختياري)...">@myRating?.Comment</textarea>
-                            <div style="display:flex;gap:10px;margin-top:10px;">
+
+                            <div id="starError" style="display:none;color:#dc2626;font-size:.82rem;margin-bottom:8px;">
+                                <i class="fas fa-exclamation-circle"></i> الرجاء اختيار عدد النجوم قبل الإرسال
+                            </div>
+
+                            <div style="display:flex;gap:10px;margin-top:10px;flex-wrap:wrap;">
                                 <button type="submit" class="cd-ab-btn cd-ab-btn-primary" style="gap:6px;">
                                     <i class="fas fa-paper-plane"></i>
                                     @(myRating != null ? "تحديث التقييم" : "إرسال التقييم")
@@ -851,6 +1094,64 @@
                 }
             </div>
         </div>
+
+        <!-- ══ Tab: Payments (Trainee only) ══ -->
+        @if (User.IsInRole("Trainee") && isEnrolled)
+        {
+            <div id="tab-payments" class="cd-panel">
+                <div class="cd-card">
+                    <div class="cd-ch">
+                        <div class="cd-ch-left"><i class="fas fa-credit-card" style="color:var(--pr);"></i><h3>المدفوعات والدفع الإلكتروني</h3></div>
+                    </div>
+                    <div class="cd-cb">
+
+                        @if (isSuspended)
+                        {
+                            <div style="background:#fee2e2;border:1.5px solid #fca5a5;border-radius:10px;padding:16px 18px;margin-bottom:20px;display:flex;align-items:center;gap:10px;color:#b91c1c;font-weight:600;">
+                                <i class="fas fa-ban" style="font-size:1.1rem;"></i>
+                                حسابك موقوف في هذا الكورس. يرجى التواصل مع الإدارة لتسوية المدفوعات.
+                            </div>
+                        }
+
+                        <!-- Payment History Link -->
+                        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:24px;">
+                            <a href="@Url.Action("ViewPayments","Trainees", new { courseId = Model.CourseId })"
+                               style="display:flex;flex-direction:column;align-items:center;gap:10px;padding:20px 16px;border-radius:12px;border:1.5px solid #c7d2fe;background:#eef2ff;text-decoration:none;color:#4f46e5;font-weight:600;font-size:.85rem;text-align:center;">
+                                <div style="width:48px;height:48px;border-radius:10px;background:#4f46e5;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.2rem;">
+                                    <i class="fas fa-history"></i>
+                                </div>
+                                سجل مدفوعاتي
+                            </a>
+                            <a href="@Url.Action("Submit","PaymentRequests", new { courseId = Model.CourseId, method = "ShamCash" })"
+                               style="display:flex;flex-direction:column;align-items:center;gap:10px;padding:20px 16px;border-radius:12px;border:1.5px solid #c4b5fd;background:#f5f3ff;text-decoration:none;color:#7c3aed;font-weight:600;font-size:.85rem;text-align:center;">
+                                <div style="width:48px;height:48px;border-radius:10px;background:#7c3aed;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.2rem;">
+                                    <i class="fas fa-mobile-alt"></i>
+                                </div>
+                                دفع عبر شام كاش
+                            </a>
+                            <a href="@Url.Action("Submit","PaymentRequests", new { courseId = Model.CourseId, method = "Binance" })"
+                               style="display:flex;flex-direction:column;align-items:center;gap:10px;padding:20px 16px;border-radius:12px;border:1.5px solid #fde68a;background:#fffbeb;text-decoration:none;color:#92400e;font-weight:600;font-size:.85rem;text-align:center;">
+                                <div style="width:48px;height:48px;border-radius:10px;background:#f59e0b;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.2rem;">
+                                    <i class="fab fa-bitcoin"></i>
+                                </div>
+                                دفع عبر Binance
+                            </a>
+                        </div>
+
+                        <!-- How it works -->
+                        <div style="background:#f8fafc;border-radius:10px;padding:16px 18px;font-size:.83rem;color:#374151;">
+                            <div style="font-weight:700;color:#0f172a;margin-bottom:10px;"><i class="fas fa-info-circle" style="color:#4f46e5;margin-left:4px;"></i> كيف يعمل الدفع الإلكتروني؟</div>
+                            <div style="display:flex;flex-direction:column;gap:6px;">
+                                <div><span style="background:#4f46e5;color:#fff;border-radius:50%;width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;margin-left:6px;">1</span>اختر طريقة الدفع (شام كاش أو Binance)</div>
+                                <div><span style="background:#4f46e5;color:#fff;border-radius:50%;width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;margin-left:6px;">2</span>اطلع على بيانات الحساب وحوّل المبلغ</div>
+                                <div><span style="background:#4f46e5;color:#fff;border-radius:50%;width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;margin-left:6px;">3</span>ارفع إيصال الدفع (PDF أو صورة)</div>
+                                <div><span style="background:#10b981;color:#fff;border-radius:50%;width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;margin-left:6px;">✓</span>تتم الموافقة ويُضاف المبلغ لحسابك تلقائياً</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
 
         <!-- ══ Tab: Tools ══ -->
         <div id="tab-tools" class="cd-panel">
@@ -894,6 +1195,16 @@
                                class="cd-tool" style="--tool-color:#7c3aed;--tool-bg:#f5f3ff;">
                                 <div class="cd-tool-icon"><i class="fas fa-credit-card"></i></div>
                                 <span>مدفوعاتي</span>
+                            </a>
+                            <a href="@Url.Action("Submit","PaymentRequests", new { courseId = Model.CourseId, method = "ShamCash" })"
+                               class="cd-tool" style="--tool-color:#7c3aed;--tool-bg:#f5f3ff;">
+                                <div class="cd-tool-icon"><i class="fas fa-mobile-alt"></i></div>
+                                <span>دفع شام كاش</span>
+                            </a>
+                            <a href="@Url.Action("Submit","PaymentRequests", new { courseId = Model.CourseId, method = "Binance" })"
+                               class="cd-tool" style="--tool-color:#f59e0b;--tool-bg:#fffbeb;">
+                                <div class="cd-tool-icon"><i class="fab fa-bitcoin"></i></div>
+                                <span>دفع Binance</span>
                             </a>
                             <a href="@Url.Action("CourseProgress","Progress", new { courseId = Model.CourseId })"
                                class="cd-tool" style="--tool-color:#059669;--tool-bg:#ecfdf5;">
@@ -940,20 +1251,111 @@
         document.getElementById(panelId)?.classList.add('active');
     }
 
-    /* ── Star Rating ── */
-    (function () {
-        var stars = document.querySelectorAll('.star-opt');
-        var input = document.getElementById('starsInput');
-        if (!stars.length) return;
-        function paint(n) {
-            stars.forEach(s => s.style.color = +s.dataset.val <= n ? '#f59e0b' : '#e2e8f0');
-        }
-        stars.forEach(s => {
-            s.addEventListener('mouseover', () => paint(+s.dataset.val));
-            s.addEventListener('mouseout',  () => paint(+(input?.value || 0)));
-            s.addEventListener('click',     () => { if(input) input.value = s.dataset.val; paint(+s.dataset.val); });
+    function openRatingTab() {
+        var ratingsBtn = document.querySelector('.cd-tab[onclick*="tab-ratings"]');
+        if (ratingsBtn) ratingsBtn.click();
+        setTimeout(function () {
+            var form = document.querySelector('.cd-rate-form');
+            if (form) form.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 150);
+    }
+
+    // Auto-open ratings tab if redirected after rating action
+    @if (autoOpenRatings)
+    {
+        <text>
+    document.addEventListener('DOMContentLoaded', function() {
+        var btn = document.querySelector('.cd-tab[onclick*="tab-ratings"]');
+        if (btn) btn.click();
+    });
+        </text>
+    }
+
+    /* ── Star Picker ── */
+    var _selectedStar = parseInt(document.getElementById('starsInput')?.value || '0', 10);
+    const starLabels  = ['', 'ضعيف', 'مقبول', 'جيد', 'جيد جداً', 'ممتاز'];
+
+    function paintStars(upTo, cls) {
+        document.querySelectorAll('.star-btn').forEach(btn => {
+            const v = +btn.dataset.val;
+            btn.classList.remove('filled', 'hovered');
+            if (v <= upTo) btn.classList.add(cls);
         });
-    })();
+    }
+
+    function hoverStar(n) {
+        paintStars(n, 'hovered');
+        const lbl = document.getElementById('starLabel');
+        if (lbl) lbl.innerHTML = `<span>${n} من 5 — ${starLabels[n]}</span>`;
+    }
+
+    function unhoverStar() {
+        paintStars(_selectedStar, 'filled');
+        const lbl = document.getElementById('starLabel');
+        if (lbl) {
+            lbl.innerHTML = _selectedStar > 0
+                ? `<span>${_selectedStar} من 5 — ${starLabels[_selectedStar]}</span>`
+                : `<span class="star-label-hint">اضغط على نجمة لاختيار تقييمك</span>`;
+        }
+    }
+
+    function selectStar(n) {
+        _selectedStar = n;
+        const inp = document.getElementById('starsInput');
+        if (inp) inp.value = n;
+        paintStars(n, 'filled');
+        const lbl = document.getElementById('starLabel');
+        if (lbl) lbl.innerHTML = `<span>${n} من 5 — ${starLabels[n]} ✓</span>`;
+        document.getElementById('starError')?.style && (document.getElementById('starError').style.display = 'none');
+    }
+
+    function validateRating() {
+        if (!document.getElementById('starsInput')) return true; // no form on page
+        const v = parseInt(document.getElementById('starsInput').value || '0', 10);
+        if (v < 1) {
+            document.getElementById('starError').style.display = 'block';
+            document.getElementById('starPicker')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            return false;
+        }
+        return true;
+    }
+
+    // Init: paint saved rating on page load
+    (function() { if (_selectedStar > 0) paintStars(_selectedStar, 'filled'); })();
+
+    /* ── Reviews Sort & Filter ── */
+    var _starFilter = 0;
+
+    function sortReviews(mode) {
+        _starFilter = 0;  // reset star filter when sorting
+        const list  = document.getElementById('reviewsList');
+        if (!list) return;
+        const items = Array.from(list.querySelectorAll('.cd-review-item'));
+        items.forEach(i => i.style.display = '');
+
+        items.sort((a, b) => {
+            if (mode === 'newest')   return b.dataset.date   - a.dataset.date;
+            if (mode === 'highest')  return b.dataset.stars  - a.dataset.stars;
+            if (mode === 'lowest')   return a.dataset.stars  - b.dataset.stars;
+            if (mode === 'commented') {
+                if (a.dataset.hasComment === '0') a.style.display = 'none';
+                if (b.dataset.hasComment === '0') b.style.display = 'none';
+            }
+            return 0;
+        });
+        items.forEach(i => list.appendChild(i));
+    }
+
+    function filterByStar(star) {
+        _starFilter = _starFilter === star ? 0 : star;
+        const list = document.getElementById('reviewsList');
+        if (!list) return;
+        list.querySelectorAll('.cd-review-item').forEach(item => {
+            item.style.display = (_starFilter === 0 || +item.dataset.stars === _starFilter) ? '' : 'none';
+        });
+        const sel = document.getElementById('ratingSortSelect');
+        if (sel) sel.value = 'newest';
+    }
 
     /* ── Trainee Search ── */
     function filterTrainees(q) {
@@ -980,4 +1382,51 @@
         if (wrap) wrap.innerHTML = '';
     }
     document.addEventListener('keydown', e => { if (e.key === 'Escape') hidePromo(); });
+
+    /* ── Suspend Modal ── */
+    var _suspendTraineeId = '';
+    function openSuspendModal(traineeId, name) {
+        _suspendTraineeId = traineeId;
+        document.getElementById('suspend-modal-name').textContent = name;
+        document.getElementById('suspend-reason').value = '';
+        var m = document.getElementById('suspend-modal');
+        if (m) { m.style.display = 'flex'; document.body.style.overflow = 'hidden'; }
+    }
+    function closeSuspendModal() {
+        var m = document.getElementById('suspend-modal');
+        if (m) { m.style.display = 'none'; document.body.style.overflow = ''; }
+    }
+    function submitSuspend() {
+        var reason = document.getElementById('suspend-reason').value.trim();
+        var form = document.getElementById('suspend-form');
+        document.getElementById('suspend-traineeId').value = _suspendTraineeId;
+        document.getElementById('suspend-reason-hidden').value = reason;
+        form.submit();
+    }
 </script>
+
+<!-- ── Suspend Modal ── -->
+@if (User.IsInRole("Admin"))
+{
+    <div id="suspend-modal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.6);align-items:center;justify-content:center;" onclick="if(event.target===this)closeSuspendModal()">
+        <div style="background:#fff;border-radius:14px;padding:28px;width:min(440px,90vw);box-shadow:0 20px 60px rgba(0,0,0,.3);">
+            <h3 style="margin:0 0 6px;font-size:1rem;color:#0f172a;">إيقاف المتدرب</h3>
+            <p style="margin:0 0 16px;font-size:.84rem;color:#64748b;">سيتم إيقاف <strong id="suspend-modal-name"></strong> عن الوصول لمحتوى الكورس.</p>
+            <label style="font-size:.82rem;font-weight:600;color:#374151;display:block;margin-bottom:6px;">سبب الإيقاف (اختياري)</label>
+            <textarea id="suspend-reason" rows="3" placeholder="مثال: لم يتم سداد القسط المستحق..."
+                      style="width:100%;padding:9px 12px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:.84rem;font-family:inherit;resize:vertical;box-sizing:border-box;"></textarea>
+            <form id="suspend-form" method="post" action="@Url.Action("SuspendTrainee","Courses")" style="display:none;">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="courseId" value="@Model.CourseId" />
+                <input type="hidden" name="traineeId" id="suspend-traineeId" />
+                <input type="hidden" name="reason" id="suspend-reason-hidden" />
+            </form>
+            <div style="display:flex;gap:10px;margin-top:18px;justify-content:flex-end;">
+                <button type="button" onclick="closeSuspendModal()"
+                        style="padding:8px 18px;border:1.5px solid #e2e8f0;border-radius:8px;background:#fff;color:#374151;font-size:.84rem;cursor:pointer;">إلغاء</button>
+                <button type="button" onclick="submitSuspend()"
+                        style="padding:8px 18px;border:none;border-radius:8px;background:#ef4444;color:#fff;font-size:.84rem;font-weight:600;cursor:pointer;"><i class="fas fa-ban"></i> تأكيد الإيقاف</button>
+            </div>
+        </div>
+    </div>
+}

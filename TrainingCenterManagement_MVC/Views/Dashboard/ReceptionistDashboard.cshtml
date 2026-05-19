@@ -1,6 +1,7 @@
 @model TrainingCenterManagement_MVC.ViewModels.ReceptionistDashboardViewModel
 @{
-    ViewData["Title"] = "لوحة موظف الاستقبال";
+    ViewData["Title"]  = "لوحة موظف الاستقبال";
+    ViewData["Robots"] = "noindex, nofollow";
     var avatarChar = Model.ReceptionistName?.Length > 0 ? Model.ReceptionistName[0].ToString() : "R";
 }
 

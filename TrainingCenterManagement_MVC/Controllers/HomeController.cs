@@ -17,6 +17,9 @@ namespace TrainingCenterManagement_MVC.Controllers
 
         public async Task<IActionResult> Index()
         {
+            Response.Headers["Cache-Control"] = "no-store, no-cache, must-revalidate";
+            Response.Headers["Pragma"] = "no-cache";
+
             var allCourses = await _context.Courses
                 .Where(c => !c.IsDeleted)
                 .Include(c => c.CourseTrainees)

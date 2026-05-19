@@ -110,7 +110,7 @@
         var cp = c.CoursePrice > 0 ? (double)(c.TotalPaidSAR / c.CoursePrice * 100) : 100;
         var cpC = Math.Min(cp, 100);
         var cpColor = cpC >= 100 ? "#10b981" : cpC >= 50 ? "#f59e0b" : "#ef4444";
-        <div class="sa-course-card">
+        <div class="sa-course-card" style="@(c.IsSuspended ? "border:1.5px solid #fca5a5;background:#fff5f5;" : "")">
             <h4><i class="fas fa-graduation-cap"></i>@c.CourseName</h4>
             <div class="sa-course-row">
                 <span class="k">سعر الدورة</span>
@@ -126,15 +126,47 @@
                     @(c.RemainingDebt > 0 ? $"{c.RemainingDebt:N0} {sym}" : "مسدّد بالكامل")
                 </span>
             </div>
-            <div style="margin-top:10px">
+            <div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;">
                 @if (c.IsFullyPaid)
                 { <span class="paid-badge"><i class="fas fa-check me-1"></i>مسدّد بالكامل</span> }
                 else
                 { <span class="unpaid-badge"><i class="fas fa-clock me-1"></i>لم يكتمل</span> }
+                @if (c.IsSuspended)
+                { <span style="background:#fee2e2;color:#b91c1c;border-radius:20px;padding:3px 10px;font-size:.73rem;font-weight:700;"><i class="fas fa-ban"></i> موقوف</span> }
             </div>
-            <div class="sa-course-progress">
+            @if (!string.IsNullOrEmpty(c.SuspensionReason))
+            {
+                <div style="font-size:.72rem;color:#b91c1c;margin-top:4px;">@c.SuspensionReason</div>
+            }
+            <div class="sa-course-progress" style="margin-top:8px;">
                 <div class="sa-course-progress-fill" style="width:@cpC.ToString("F0")%;background:@cpColor"></div>
             </div>
+            @if (User.IsInRole("Admin"))
+            {
+                <div style="margin-top:10px;">
+                    @if (!c.IsSuspended)
+                    {
+                        <button type="button"
+                                onclick="openSuspendModal('@c.CourseId','@Model.TraineeId','@c.CourseName')"
+                                style="width:100%;padding:5px;border:none;border-radius:7px;background:#fee2e2;color:#b91c1c;font-size:.75rem;font-weight:600;cursor:pointer;">
+                            <i class="fas fa-ban"></i> إيقاف الطالب عن هذا الكورس
+                        </button>
+                    }
+                    else
+                    {
+                        <form method="post" asp-controller="Courses" asp-action="UnsuspendTrainee" style="margin:0;">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="courseId"  value="@c.CourseId" />
+                            <input type="hidden" name="traineeId" value="@Model.TraineeId" />
+                            <input type="hidden" name="returnUrl" value="@Url.Action("StudentAccount","PaymentManagement", new { id = Model.TraineeId })" />
+                            <button type="submit"
+                                    style="width:100%;padding:5px;border:none;border-radius:7px;background:#d1fae5;color:#065f46;font-size:.75rem;font-weight:600;cursor:pointer;">
+                                <i class="fas fa-check-circle"></i> رفع الإيقاف
+                            </button>
+                        </form>
+                    }
+                </div>
+            }
         </div>
     }
     @if (!Model.Courses.Any())
@@ -195,7 +227,53 @@
             document.getElementById('overallBar').style.width = '@paidPctC.ToString("F0")%';
         }, 100);
     });
+
+    var _suspCourseId = '', _suspTraineeId = '';
+    function openSuspendModal(courseId, traineeId, courseName) {
+        _suspCourseId   = courseId;
+        _suspTraineeId  = traineeId;
+        document.getElementById('susp-course-name').textContent = courseName;
+        document.getElementById('susp-reason').value = '';
+        var m = document.getElementById('susp-modal');
+        if (m) { m.style.display = 'flex'; document.body.style.overflow = 'hidden'; }
+    }
+    function closeSuspendModal() {
+        var m = document.getElementById('susp-modal');
+        if (m) { m.style.display = 'none'; document.body.style.overflow = ''; }
+    }
+    function submitSuspend() {
+        document.getElementById('susp-f-courseId').value  = _suspCourseId;
+        document.getElementById('susp-f-traineeId').value = _suspTraineeId;
+        document.getElementById('susp-f-reason').value    = document.getElementById('susp-reason').value.trim();
+        document.getElementById('susp-form').submit();
+    }
 </script>
+
+@if (User.IsInRole("Admin"))
+{
+    <div id="susp-modal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.55);align-items:center;justify-content:center;" onclick="if(event.target===this)closeSuspendModal()">
+        <div style="background:#fff;border-radius:14px;padding:28px;width:min(420px,90vw);box-shadow:0 20px 60px rgba(0,0,0,.25);direction:rtl;">
+            <h3 style="margin:0 0 6px;font-size:1rem;color:#0f172a;">إيقاف الطالب عن الكورس</h3>
+            <p style="margin:0 0 16px;font-size:.84rem;color:#64748b;">سيتم إيقاف وصول الطالب إلى محتوى كورس <strong id="susp-course-name"></strong>.</p>
+            <label style="font-size:.82rem;font-weight:600;color:#374151;display:block;margin-bottom:6px;">سبب الإيقاف (اختياري)</label>
+            <textarea id="susp-reason" rows="3" placeholder="مثال: لم يتم سداد القسط المستحق..."
+                      style="width:100%;padding:9px 12px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:.84rem;font-family:inherit;resize:vertical;box-sizing:border-box;"></textarea>
+            <form id="susp-form" method="post" asp-controller="Courses" asp-action="SuspendTrainee" style="display:none;">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="courseId"  id="susp-f-courseId" />
+                <input type="hidden" name="traineeId" id="susp-f-traineeId" />
+                <input type="hidden" name="reason"    id="susp-f-reason" />
+                <input type="hidden" name="returnUrl" value="@Url.Action("StudentAccount","PaymentManagement", new { id = Model.TraineeId })" />
+            </form>
+            <div style="display:flex;gap:10px;margin-top:18px;justify-content:flex-end;">
+                <button type="button" onclick="closeSuspendModal()"
+                        style="padding:8px 18px;border:1.5px solid #e2e8f0;border-radius:8px;background:#fff;color:#374151;font-size:.84rem;cursor:pointer;">إلغاء</button>
+                <button type="button" onclick="submitSuspend()"
+                        style="padding:8px 18px;border:none;border-radius:8px;background:#ef4444;color:#fff;font-size:.84rem;font-weight:600;cursor:pointer;"><i class="fas fa-ban"></i> تأكيد الإيقاف</button>
+            </div>
+        </div>
+    </div>
+}
 
 </main>
 </div>

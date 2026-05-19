@@ -97,10 +97,11 @@ namespace TrainingCenterManagement_MVC.Controllers
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (!User.IsInRole("Admin") && session.CreatedByUserId != userId) return Forbid();
 
-            session.Title       = model.Title;
-            session.Description = model.Description;
-            session.CourseId    = model.CourseId;
-            session.ScheduledAt = DateTime.SpecifyKind(model.ScheduledAt, DateTimeKind.Local).ToUniversalTime();
+            session.Title           = model.Title;
+            session.Description     = model.Description;
+            session.CourseId        = model.CourseId;
+            session.DurationMinutes = model.DurationMinutes;
+            session.ScheduledAt     = DateTime.SpecifyKind(model.ScheduledAt, DateTimeKind.Local).ToUniversalTime();
 
             await _context.SaveChangesAsync();
 
@@ -137,6 +138,7 @@ namespace TrainingCenterManagement_MVC.Controllers
             var user = await _context.Users.FindAsync(userId);
             ViewBag.DisplayName = user?.FullName ?? user?.UserName ?? "مستخدم";
             ViewBag.IsModerator = User.IsInRole("Admin") || User.IsInRole("Trainer");
+            ViewBag.IsHost      = session.CreatedByUserId == userId;
 
             return View(session);
         }

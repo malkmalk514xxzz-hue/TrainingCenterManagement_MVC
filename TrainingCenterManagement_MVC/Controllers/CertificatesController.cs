@@ -275,23 +275,29 @@ namespace TrainingCenterManagement_MVC.Controllers
         }
 
         [HttpGet]
-       // [Authorize(Roles = "Admin, Trainer, Trainee")]
-        public async Task<IActionResult> CertificatePdf(Guid certificateId)
+        public async Task<IActionResult> CertificatePdf(Guid? id, Guid? certificateId)
         {
+            var targetId = id ?? certificateId ?? Guid.Empty;
             var certificate = await _context.Certificates
                 .Include(c => c.Course)
                 .Include(c => c.Trainee).ThenInclude(t => t.User)
                 .Include(c => c.Trainer).ThenInclude(t => t.User)
-                .FirstOrDefaultAsync(c => c.CertificateId == certificateId);
+                .FirstOrDefaultAsync(c => c.CertificateId == targetId);
 
             if (certificate == null)
                 return NotFound();
 
+            var safeName = string.Concat(
+                $"{certificate.Trainee.User.FullName}_{certificate.Course.CourseName}"
+                .Split(System.IO.Path.GetInvalidFileNameChars()));
+
             return new ViewAsPdf("CertificatePdf", certificate)
             {
-                FileName = $"Certificate_{certificate.Course.CourseName}_{certificate.Trainee.User.FullName}.pdf",
+                FileName    = $"Certificate_{safeName}.pdf",
                 PageOrientation = Rotativa.AspNetCore.Options.Orientation.Landscape,
-                PageSize = Rotativa.AspNetCore.Options.Size.A4
+                PageSize    = Rotativa.AspNetCore.Options.Size.A4,
+                PageMargins = new Rotativa.AspNetCore.Options.Margins(0, 0, 0, 0),
+                CustomSwitches = "--disable-smart-shrinking --print-media-type"
             };
 
         }

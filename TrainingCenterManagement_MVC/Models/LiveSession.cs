@@ -27,6 +27,9 @@ namespace TrainingCenterManagement_MVC.Models
 
         public bool IsCancelled { get; set; } = false;
 
+        // Session duration in minutes (null = unlimited)
+        public int? DurationMinutes { get; set; }
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 }
