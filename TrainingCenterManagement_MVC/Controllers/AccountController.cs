@@ -1,15 +1,11 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using System.Text;
 using TrainingCenterManagement_MVC.Data;
 using TrainingCenterManagement_MVC.Helpers;
 using TrainingCenterManagement_MVC.Models;
 using TrainingCenterManagement_MVC.ViewModels;
-using Microsoft.AspNetCore.Identity;
 
 namespace TrainingCenterManagement_MVC.Controllers
 {
@@ -34,13 +30,13 @@ namespace TrainingCenterManagement_MVC.Controllers
 
         // ── Login ─────────────────────────────────────────────────────────────
 
+        [HttpGet]
         public IActionResult Login(string returnUrl = null)
         {
             if (User.Identity.IsAuthenticated)
             {
                 if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
                     return Redirect(returnUrl);
-
                 return RedirectToAction("Index", "Home");
             }
             ViewData["ReturnUrl"] = returnUrl;
@@ -48,6 +44,7 @@ namespace TrainingCenterManagement_MVC.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(LoginViewModel model, string returnUrl = null)
         {
             if (ModelState.IsValid)
@@ -76,7 +73,7 @@ namespace TrainingCenterManagement_MVC.Controllers
                 }
             }
 
-            ModelState.AddModelError(string.Empty, "Failed to log in. Check your email and password.");
+            ModelState.AddModelError(string.Empty, "فشل تسجيل الدخول. تحقق من البريد الإلكتروني وكلمة المرور.");
             ViewData["ReturnUrl"] = returnUrl;
             return View(model);
         }
@@ -91,7 +88,7 @@ namespace TrainingCenterManagement_MVC.Controllers
             return RedirectToAction("Index", "Home");
         }
 
-        // ── Register ──────────────────────────────────────────────────────────
+        // ── Register (Admin / Receptionist only) ──────────────────────────────
 
         [Authorize(Roles = "Receptionist,Admin")]
         [HttpGet]
@@ -108,6 +105,7 @@ namespace TrainingCenterManagement_MVC.Controllers
 
         [Authorize(Roles = "Receptionist,Admin")]
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Register(RegisterNewUserViewModel model)
         {
             if (ModelState.IsValid)
@@ -130,38 +128,33 @@ namespace TrainingCenterManagement_MVC.Controllers
                     var result = await _userHelper.AddUserAsync(user, model.Password);
                     if (result != IdentityResult.Success)
                     {
-                        ModelState.AddModelError(string.Empty, "The user could not be created.");
+                        ModelState.AddModelError(string.Empty, "تعذّر إنشاء المستخدم.");
                         return View(model);
                     }
 
-                    // Assign role and create corresponding entity
                     string role = model.Role == RoleType.Trainee ? "Trainee" : "Trainer";
                     await _userHelper.AddUserToRoleAsync(user, role);
 
                     if (model.Role == RoleType.Trainee)
-                    {
                         await _context.Trainees.AddAsync(new Trainee { User = user });
-                    }
                     else if (model.Role == RoleType.Trainer)
-                    {
                         await _context.Trainers.AddAsync(new Trainer { User = user });
-                    }
 
                     await _context.SaveChangesAsync();
 
-                    ViewBag.Message = "User created successfully.";
-                    return RedirectToAction("Login");
+                    TempData["SuccessMessage"] = "تم إنشاء المستخدم بنجاح.";
+                    return RedirectToAction("GetUsers", "Admin");
                 }
                 else
                 {
-                    ModelState.AddModelError(string.Empty, "This email is already registered.");
+                    ModelState.AddModelError(string.Empty, "هذا البريد الإلكتروني مسجل مسبقاً.");
                 }
             }
 
             return View(model);
         }
 
-        // ── Public Sign Up (Trainee only) ────────────────────────────────────
+        // ── Public Sign Up (Trainee only) ─────────────────────────────────────
 
         [HttpGet]
         [AllowAnonymous]
@@ -169,7 +162,6 @@ namespace TrainingCenterManagement_MVC.Controllers
         {
             if (User.Identity.IsAuthenticated)
                 return RedirectToAction("Index", "Home");
-
             return View();
         }
 
@@ -190,12 +182,12 @@ namespace TrainingCenterManagement_MVC.Controllers
 
             var user = new ApplicationUser
             {
-                FullName          = model.FullName,
-                Email             = model.Email,
-                UserName          = model.Email,
-                BirthDate         = model.BirthDate,
-                PhoneNumber       = model.PhoneNumber,
-                Gender            = model.Gender,
+                FullName = model.FullName,
+                Email = model.Email,
+                UserName = model.Email,
+                BirthDate = model.BirthDate,
+                PhoneNumber = model.PhoneNumber,
+                Gender = model.Gender,
                 ProfilePictureUrl = string.Empty,
             };
 
@@ -211,21 +203,22 @@ namespace TrainingCenterManagement_MVC.Controllers
             await _context.Trainees.AddAsync(new Trainee { User = user });
             await _context.SaveChangesAsync();
 
-            // ── Notify all admins about new registration ────────────────
+            // Notify all admins
             var adminUsers = await _userManager.GetUsersInRoleAsync("Admin");
             if (adminUsers.Any())
             {
-                var adminNotifications = adminUsers.Select(a => new UserNotification
+                var notifications = adminUsers.Select(a => new UserNotification
                 {
                     NotificationId = Guid.NewGuid(),
-                    UserId    = a.Id,
-                    Title     = "طالب جديد انضم للمنصة",
-                    Message   = $"سجّل {user.FullName} ({user.Email}) حساباً جديداً كمتدرب عبر صفحة التسجيل العام.",
-                    Type      = NotificationType.General,
-                    IsRead    = false,
+                    UserId = a.Id,
+                    Title = "طالب جديد انضم للمنصة",
+                    Message = $"سجّل {user.FullName} ({user.Email}) حساباً جديداً كمتدرب.",
+                    Type = NotificationType.General,
+                    IsRead = false,
                     CreatedAt = DateTime.UtcNow,
                 }).ToList();
-                _context.Notifications.AddRange(adminNotifications);
+
+                _context.Notifications.AddRange(notifications);
                 await _context.SaveChangesAsync();
             }
 
@@ -233,95 +226,137 @@ namespace TrainingCenterManagement_MVC.Controllers
             return RedirectToAction("Login");
         }
 
-        // ── Change User Details ───────────────────────────────────────────────
+        // ── Forgot Password ───────────────────────────────────────────────────
 
-        [Authorize]
-        public async Task<IActionResult> ChangeUser()
-        {
-            var user = await _userHelper.GetUserByEmailAsync(User.Identity.Name);
-
-            if (user == null)
-                return RedirectToAction("NotAuthorized");
-
-            var model = new ChangeUserViewModel
-            {
-                FullName = user.FullName,
-                PhoneNumber = user.PhoneNumber
-            };
-
-            return View(model);
-        }
-
-        [Authorize]
-        [HttpPost]
-        public async Task<IActionResult> ChangeUser(ChangeUserViewModel model)
-        {
-            if (ModelState.IsValid)
-            {
-                var user = await _userHelper.GetUserByEmailAsync(User.Identity.Name);
-
-                if (user != null)
-                {
-                    user.FullName = model.FullName;
-                    user.PhoneNumber = model.PhoneNumber;
-
-                    // FIX: Removed duplicate UpdateUserAsync call
-                    var result = await _userHelper.UpdateUserAsync(user);
-
-                    if (result.Succeeded)
-                        return RedirectToAction("Index", "Home");
-
-                    ModelState.AddModelError(string.Empty, "Failed to update user details.");
-                }
-                else
-                {
-                    ModelState.AddModelError(string.Empty, "User not found.");
-                }
-            }
-
-            return View(model);
-        }
-
-        // ── Reset Password ────────────────────────────────────────────────────
-
-        [Authorize(Roles = "Admin,Trainer,Trainee,Receptionist")]
-        public IActionResult ResetPassword(string token)
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult ForgotPassword()
         {
             return View();
         }
 
-        [Authorize(Roles = "Admin,Trainer,Trainee,Receptionist")]
         [HttpPost]
+        [AllowAnonymous]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ForgotPassword(ForgotPasswordViewModel model)
+        {
+            if (!ModelState.IsValid)
+                return View(model);
+
+            var user = await _userHelper.GetUserByEmailAsync(model.Email);
+
+            // Always show the same message to prevent user enumeration
+            TempData["SignUpSuccess"] = "إذا كان البريد الإلكتروني مسجلاً، ستصلك تعليمات إعادة تعيين كلمة المرور.";
+
+            if (user != null)
+            {
+                var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+                var callbackUrl = Url.Action(
+                    "ResetPassword", "Account",
+                    new { token, email = user.Email },
+                    protocol: Request.Scheme);
+
+                // TODO: Send email with callbackUrl via your email service
+                // await _emailService.SendPasswordResetAsync(user.Email, callbackUrl);
+            }
+
+            return RedirectToAction("Login");
+        }
+
+        // ── Reset Password ────────────────────────────────────────────────────
+
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult ResetPassword(string token = null, string email = null)
+        {
+            if (token == null)
+                return BadRequest("رمز إعادة التعيين مفقود.");
+
+            var model = new ResetPasswordViewModel { Email = email };
+            return View(model);
+        }
+
+        [HttpPost]
+        [AllowAnonymous]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> ResetPassword(ResetPasswordViewModel model)
         {
+            if (!ModelState.IsValid)
+                return View(model);
+
             var user = await _userHelper.GetUserByEmailAsync(model.Email);
             if (user != null)
             {
                 var result = await _userHelper.ResetPasswordWithoutTokenAsync(user, model.Password);
                 if (result.Succeeded)
                 {
-                    ViewBag.Message = "Password reset successfully.";
-                    return View();
+                    TempData["SignUpSuccess"] = "تم إعادة تعيين كلمة المرور بنجاح.";
+                    return RedirectToAction("Login");
                 }
 
-                ViewBag.Message = "Error resetting the password.";
+                foreach (var error in result.Errors)
+                    ModelState.AddModelError(string.Empty, error.Description);
+
                 return View(model);
             }
 
-            ViewBag.Message = "User not found.";
+            ModelState.AddModelError(string.Empty, "المستخدم غير موجود.");
+            return View(model);
+        }
+
+        // ── Change User Details ───────────────────────────────────────────────
+
+        [Authorize]
+        [HttpGet]
+        public async Task<IActionResult> ChangeUser()
+        {
+            var user = await _userHelper.GetUserByEmailAsync(User.Identity.Name);
+            if (user == null) return RedirectToAction("NotAuthorized");
+
+            var model = new ChangeUserViewModel
+            {
+                FullName = user.FullName,
+                PhoneNumber = user.PhoneNumber
+            };
+            return View(model);
+        }
+
+        [Authorize]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ChangeUser(ChangeUserViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                var user = await _userHelper.GetUserByEmailAsync(User.Identity.Name);
+                if (user != null)
+                {
+                    user.FullName = model.FullName;
+                    user.PhoneNumber = model.PhoneNumber;
+
+                    var result = await _userHelper.UpdateUserAsync(user);
+                    if (result.Succeeded)
+                        return RedirectToAction("Index", "Home");
+
+                    ModelState.AddModelError(string.Empty, "فشل تحديث بيانات المستخدم.");
+                }
+                else
+                {
+                    ModelState.AddModelError(string.Empty, "المستخدم غير موجود.");
+                }
+            }
             return View(model);
         }
 
         // ── Change Password ───────────────────────────────────────────────────
 
         [Authorize]
-        public IActionResult ChangePassword()
-        {
-            return View();
-        }
+        [HttpGet]
+        public IActionResult ChangePassword() => View();
 
-        [Authorize(Roles = "Receptionist,Admin")]
+        [Authorize]
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> ChangePassword(ChangePasswordViewModel model)
         {
             if (ModelState.IsValid)
@@ -333,18 +368,18 @@ namespace TrainingCenterManagement_MVC.Controllers
                     if (result.Succeeded)
                         return RedirectToAction("ChangeUser");
 
-                    ModelState.AddModelError(string.Empty, result.Errors.FirstOrDefault()?.Description ?? "Error changing password.");
+                    ModelState.AddModelError(string.Empty,
+                        result.Errors.FirstOrDefault()?.Description ?? "حدث خطأ أثناء تغيير كلمة المرور.");
                 }
                 else
                 {
-                    ModelState.AddModelError(string.Empty, "User not found.");
+                    ModelState.AddModelError(string.Empty, "المستخدم غير موجود.");
                 }
             }
-
             return View(model);
         }
 
-        // ── Access Control Pages ──────────────────────────────────────────────
+        // ── Access Control ────────────────────────────────────────────────────
 
         public IActionResult NotAuthorized() => View();
 
@@ -352,11 +387,11 @@ namespace TrainingCenterManagement_MVC.Controllers
 
         // ── Private Helpers ───────────────────────────────────────────────────
 
-        private string GenerateRandomPassword(int length = 8)
+        private static string GenerateRandomPassword(int length = 8)
         {
-            const string validChars = "ABCDEFGHJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()?_-";
+            const string chars = "ABCDEFGHJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()?_-";
             var random = new Random();
-            return new string(Enumerable.Repeat(validChars, length)
+            return new string(Enumerable.Repeat(chars, length)
                 .Select(s => s[random.Next(s.Length)]).ToArray());
         }
     }

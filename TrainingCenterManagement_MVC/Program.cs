@@ -150,8 +150,8 @@ app.Use(async (context, next) =>
     }
     else
     {
-        Thread.CurrentThread.CurrentCulture = new CultureInfo("en");
-        Thread.CurrentThread.CurrentUICulture = new CultureInfo("en");
+        Thread.CurrentThread.CurrentCulture = new CultureInfo("ar-SA");
+        Thread.CurrentThread.CurrentUICulture = new CultureInfo("ar-SA");
     }
     await next();
 });
