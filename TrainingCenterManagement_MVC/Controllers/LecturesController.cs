@@ -559,5 +559,104 @@ namespace TrainingCenterManagement_MVC.Controllers
             TempData["SuccessMessage"] = "Attendance has been saved successfully.";
             return RedirectToAction(nameof(ViewLecture), new { id = lectureId });
         }
+
+        // ── CourseLectures (Admin) — Pagination + Ajax + Search + Sort ────────
+
+        [Authorize(Roles = "Admin,Trainer")]
+        [HttpGet]
+        [Route("Lectures/CourseLectures/{courseId:guid}")]
+        public async Task<IActionResult> CourseLectures(
+            Guid courseId,
+            int page = 1,
+            string search = "",
+            string sortBy = "date",   // "date" | "title"
+            string sortDir = "desc",   // "asc"  | "desc"
+            int pageSize = 8)
+        {
+            // Clamp pageSize to reasonable range
+            pageSize = Math.Clamp(pageSize, 5, 50);
+
+            // ── Load course info for the header ───────────────────────────────
+            var course = await _context.Courses.FindAsync(courseId);
+            if (course == null) return NotFound();
+
+            // ── Build base query ──────────────────────────────────────────────
+            var query = _context.Lectures
+                .Where(l => l.CourseId == courseId && !l.IsDeleted)
+                .Include(l => l.Videos)
+                .Include(l => l.Resources)
+                .AsQueryable();
+
+            // ── Search ────────────────────────────────────────────────────────
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var term = search.Trim().ToLower();
+                query = query.Where(l =>
+                    l.Title.ToLower().Contains(term) ||
+                    (l.Description != null && l.Description.ToLower().Contains(term)));
+            }
+
+            // ── Count before paging ───────────────────────────────────────────
+            var totalCount = await query.CountAsync();
+            var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+
+            // ── Sort ──────────────────────────────────────────────────────────
+            query = (sortBy, sortDir) switch
+            {
+                ("title", "asc") => query.OrderBy(l => l.Title),
+                ("title", "desc") => query.OrderByDescending(l => l.Title),
+                ("date", "asc") => query.OrderBy(l => l.LectureDate),
+                _ => query.OrderByDescending(l => l.LectureDate)  // default
+            };
+
+            // ── Page ──────────────────────────────────────────────────────────
+            page = Math.Max(1, Math.Min(page, Math.Max(1, totalPages)));
+
+            var lectures = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            // ── Pass data to view ─────────────────────────────────────────────
+            ViewBag.CourseId = courseId;
+            ViewBag.CourseName = course.CourseName;
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.TotalCount = totalCount;
+            ViewBag.Search = search;
+            ViewBag.SortBy = sortBy;
+            ViewBag.SortDir = sortDir;
+            ViewBag.PageSize = pageSize;
+
+            // ── Ajax: return only the partial ─────────────────────────────────
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                return PartialView("_LecturesTablePartial", lectures);
+
+            return View(lectures);
+        }
+
+        // ── Soft-delete a lecture via Ajax (Admin) ────────────────────────────
+
+        [Authorize(Roles = "Admin,Trainer")]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SoftDelete(Guid id, Guid courseId)
+        {
+            var lecture = await _context.Lectures.FindAsync(id);
+            if (lecture == null) return NotFound();
+
+            lecture.IsDeleted = true;
+            _context.Lectures.Update(lecture);
+            await _context.SaveChangesAsync();
+
+            // Return fresh partial for Ajax callers
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            {
+                return await CourseLectures(courseId);
+            }
+
+            return RedirectToAction(nameof(CourseLectures), new { courseId });
+        }
+
     }
 }

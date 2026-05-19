@@ -1,0 +1,314 @@
+﻿@model IEnumerable<TrainingCenterManagement_MVC.Models.Lecture>
+
+@{
+    int currentPage = ViewBag.CurrentPage ?? 1;
+    int totalPages = ViewBag.TotalPages ?? 1;
+    int totalCount = ViewBag.TotalCount ?? 0;
+    string sortBy = ViewBag.SortBy ?? "date";
+    string sortDir = ViewBag.SortDir ?? "desc";
+    Guid courseId = ViewBag.CourseId;
+    int pageSize = ViewBag.PageSize ?? 8;
+}
+
+@if (!Model.Any())
+{
+    <div class="empty-state">
+        <div class="empty-icon">
+            <i class="fas fa-book-open"></i>
+        </div>
+        <h5>No lectures found</h5>
+        <p class="text-muted">Try a different search term or add a new lecture.</p>
+    </div>
+}
+else
+{
+    <!-- Results summary -->
+    <div class="results-summary">
+        <span class="text-muted small">
+            Showing
+            <strong>@(((currentPage - 1) * pageSize) + 1)–@(Math.Min(currentPage * pageSize, totalCount))</strong>
+            of <strong>@totalCount</strong> lectures
+        </span>
+    </div>
+
+    <div class="table-responsive">
+        <table class="lectures-table">
+            <thead>
+                <tr>
+                    <th class="col-num">#</th>
+
+                    <!-- Sortable: Title -->
+                    <th class="col-title sortable-col"
+                        data-sort="title"
+                        data-dir="@(sortBy == "title" && sortDir == "asc" ? "desc" : "asc")">
+                        <span>Title</span>
+                        @if (sortBy == "title")
+                        {
+                            <i class="fas fa-sort-@(sortDir == "asc" ? "up" : "down") sort-icon active"></i>
+                        }
+                        else
+                        {
+                            <i class="fas fa-sort sort-icon"></i>
+                        }
+                    </th>
+
+                    <th class="col-desc">Description</th>
+
+                    <!-- Sortable: Date -->
+                    <th class="col-date sortable-col"
+                        data-sort="date"
+                        data-dir="@(sortBy == "date" && sortDir == "asc" ? "desc" : "asc")">
+                        <span>Date</span>
+                        @if (sortBy == "date")
+                        {
+                            <i class="fas fa-sort-@(sortDir == "asc" ? "up" : "down") sort-icon active"></i>
+                        }
+                        else
+                        {
+                            <i class="fas fa-sort sort-icon"></i>
+                        }
+                    </th>
+
+                    <th class="col-badge">Videos</th>
+                    <th class="col-badge">Resources</th>
+                    <th class="col-status">Status</th>
+                    <th class="col-actions">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @{
+                    int rowNum = ((currentPage - 1) * pageSize) + 1;
+                }
+                @foreach (var lecture in Model)
+                {
+                    bool isPast = lecture.LectureDate < DateTime.UtcNow;
+                    bool isToday = lecture.LectureDate.Date == DateTime.UtcNow.Date;
+                    int videoCount = lecture.Videos?.Count ?? 0;
+                    int resourceCount = lecture.Resources?.Count ?? 0;
+
+                    <tr class="lecture-row">
+
+                        <!-- # -->
+                        <td class="col-num text-muted small">@rowNum</td>
+
+                        <!-- Title -->
+                        <td class="col-title">
+                            <div class="lecture-title-cell">
+                                <div class="lecture-thumb">
+                                    <i class="fas fa-play-circle"></i>
+                                </div>
+                                <div>
+                                    <span class="lecture-name">@lecture.Title</span>
+                                </div>
+                            </div>
+                        </td>
+
+                        <!-- Description -->
+                        <td class="col-desc">
+                            <span class="desc-text" title="@lecture.Description">
+                                @(lecture.Description?.Length > 60
+                                    ? lecture.Description.Substring(0, 60) + "…"
+                                    : (lecture.Description ?? "—"))
+                            </span>
+                        </td>
+
+                        <!-- Date -->
+                        <td class="col-date">
+                            <div class="date-cell">
+                                <i class="far fa-calendar-alt text-muted me-1"></i>
+                                <span>@lecture.LectureDate.ToString("MMM dd, yyyy")</span>
+                            </div>
+                        </td>
+
+                        <!-- Videos badge -->
+                        <td class="col-badge">
+                            @if (videoCount > 0)
+                            {
+                                <span class="badge-pill badge-blue">
+                                    <i class="fas fa-video me-1"></i>@videoCount
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge-pill badge-gray">0</span>
+                            }
+                        </td>
+
+                        <!-- Resources badge -->
+                        <td class="col-badge">
+                            @if (resourceCount > 0)
+                            {
+                                <span class="badge-pill badge-green">
+                                    <i class="fas fa-paperclip me-1"></i>@resourceCount
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge-pill badge-gray">0</span>
+                            }
+                        </td>
+
+                        <!-- Status -->
+                        <td class="col-status">
+                            @if (isToday)
+                            {
+                                <span class="status-chip status-today">
+                                    <span class="status-dot"></span> Today
+                                </span>
+                            }
+                            else if (isPast)
+                            {
+                                <span class="status-chip status-past">
+                                    <span class="status-dot"></span> Past
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="status-chip status-upcoming">
+                                    <span class="status-dot"></span> Upcoming
+                                </span>
+                            }
+                        </td>
+
+                        <!-- Actions -->
+                        <td class="col-actions">
+                            <div class="actions-group">
+                                <a asp-action="ViewLecture"
+                                       asp-route-id="@lecture.LectureId"
+                                       class="action-btn btn-view"
+                                       title="View">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a asp-action="Edit"
+                                       asp-route-id="@lecture.LectureId"
+                                       class="action-btn btn-edit"
+                                       title="Edit">
+                                    <i class="fas fa-pen"></i>
+                                </a>
+                                <a asp-action="MarkAttendance"
+                                       asp-route-id="@lecture.LectureId"
+                                       class="action-btn btn-attend"
+                                       title="Attendance">
+                                    <i class="fas fa-user-check"></i>
+                                </a>
+                                <button type="button"
+                                        class="action-btn btn-delete"
+                                        title="Delete"
+                                        onclick="confirmDelete('@lecture.LectureId', '@courseId', '@lecture.Title')">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+
+                    rowNum++;
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    @if (totalPages > 1)
+    {
+        <div class="pagination-wrapper">
+            <div class="pagination-info text-muted small">
+                Page @currentPage of @totalPages
+            </div>
+            <ul class="custom-pagination">
+                <!-- Prev -->
+                <li class="@(currentPage <= 1 ? "disabled" : "")">
+                    <a href="#" class="pagination-link" data-page="@(currentPage - 1)" title="Previous">
+                        <i class="fas fa-chevron-left"></i>
+                    </a>
+                </li>
+
+                @{
+                    int startPage = Math.Max(1, currentPage - 2);
+                    int endPage = Math.Min(totalPages, currentPage + 2);
+
+                    if (startPage > 1)
+                    {
+                        <li><a href="#" class="pagination-link" data-page="1">1</a></li>
+                        if (startPage > 2)
+                        {
+                            <li class="ellipsis"><span>…</span></li>
+                        }
+                    }
+
+                    for (int i = startPage; i <= endPage; i++)
+                    {
+                        <li class="@(i == currentPage ? "active" : "")">
+                            <a href="#" class="pagination-link" data-page="@i">@i</a>
+                        </li>
+                    }
+
+                    if (endPage < totalPages)
+                    {
+                        if (endPage < totalPages - 1)
+                        {
+                            <li class="ellipsis"><span>…</span></li>
+                        }
+                        <li><a href="#" class="pagination-link" data-page="@totalPages">@totalPages</a></li>
+                    }
+                }
+
+                <!-- Next -->
+                <li class="@(currentPage >= totalPages ? "disabled" : "")">
+                    <a href="#" class="pagination-link" data-page="@(currentPage + 1)" title="Next">
+                        <i class="fas fa-chevron-right"></i>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    }
+}
+
+<!-- Delete confirmation modal (lightweight inline) -->
+<div id="deleteModal" class="delete-modal-overlay" style="display:none;">
+    <div class="delete-modal-box">
+        <div class="delete-modal-icon">
+            <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <h5 id="deleteModalTitle">Delete Lecture?</h5>
+        <p class="text-muted small" id="deleteModalDesc">This action cannot be undone.</p>
+        <div class="delete-modal-actions">
+            <button class="btn-modal-cancel" onclick="closeDeleteModal()">Cancel</button>
+            <form id="deleteForm" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" id="deleteId" />
+                <input type="hidden" name="courseId" id="deleteCourseId" />
+                <button type="submit" class="btn-modal-confirm">Delete</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ── Sort columns ─────────────────────────────────────────────────────────
+    document.querySelectorAll('.sortable-col').forEach(th => {
+        th.style.cursor = 'pointer';
+        th.addEventListener('click', () => {
+            const sort = th.dataset.sort;
+            const dir  = th.dataset.dir;
+            loadLectures(1, sort, dir);
+        });
+    });
+
+    // ── Delete helpers ────────────────────────────────────────────────────────
+    function confirmDelete(id, courseId, title) {
+        document.getElementById('deleteId').value       = id;
+        document.getElementById('deleteCourseId').value = courseId;
+        document.getElementById('deleteModalTitle').textContent = `Delete "${title}"?`;
+        document.getElementById('deleteForm').action = '/Lectures/SoftDelete';
+        document.getElementById('deleteModal').style.display = 'flex';
+    }
+
+    function closeDeleteModal() {
+        document.getElementById('deleteModal').style.display = 'none';
+    }
+
+    // Close on overlay click
+    document.getElementById('deleteModal')?.addEventListener('click', function (e) {
+        if (e.target === this) closeDeleteModal();
+    });
+</script>

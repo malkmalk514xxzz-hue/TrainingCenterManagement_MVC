@@ -557,7 +557,7 @@
                 <a href="@Url.Action("AssignTrainees","Courses", new { id = Model.CourseId })" class="cd-ab-btn cd-ab-btn-outline">
                     <i class="fas fa-user-graduate"></i> إضافة متدرب
                 </a>
-                <a href="@Url.Action("Index","Lectures")" class="cd-ab-btn cd-ab-btn-outline">
+                <a href="@Url.Action("CourseLectures","Lectures", new { courseId = Model.CourseId })" class="cd-ab-btn cd-ab-btn-outline">
                     <i class="fas fa-book"></i> إدارة المحاضرات
                 </a>
                 <a href="@Url.Action("Index","Courses")" class="cd-ab-btn cd-ab-btn-outline" style="margin-right:auto;">
@@ -1214,7 +1214,7 @@
                         }
                         @if (User.IsInRole("Admin"))
                         {
-                            <a href="@Url.Action("Index","Lectures")"
+                            <a href="@Url.Action("CourseLectures","Lectures",new{courseId=Model.CourseId})"
                                class="cd-tool" style="--tool-color:#4f46e5;--tool-bg:#eef2ff;">
                                 <div class="cd-tool-icon"><i class="fas fa-plus-circle"></i></div>
                                 <span>إدارة المحاضرات</span>

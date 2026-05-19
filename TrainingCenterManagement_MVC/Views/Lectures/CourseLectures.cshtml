@@ -1,0 +1,612 @@
+﻿@model IEnumerable<TrainingCenterManagement_MVC.Models.Lecture>
+
+@{
+    ViewData["Title"] = "Course Lectures";
+    string courseName = ViewBag.CourseName ?? "Course";
+    Guid   courseId   = ViewBag.CourseId;
+    string search     = ViewBag.Search   ?? "";
+    string sortBy     = ViewBag.SortBy   ?? "date";
+    string sortDir    = ViewBag.SortDir  ?? "desc";
+    int    pageSize   = ViewBag.PageSize ?? 8;
+}
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+<style>
+    /* ── Design tokens (match project style) ─────────────────────────────── */
+    :root {
+        --primary:        #007bff;
+        --primary-dark:   #0056b3;
+        --secondary:      #6c757d;
+        --success:        #28a745;
+        --warning:        #ffc107;
+        --danger:         #dc3545;
+        --surface:        #ffffff;
+        --background:     #f4f7f9;
+        --border:         #e0e0e0;
+        --text:           #333333;
+        --text-muted:     #777777;
+        --shadow-sm:      0 2px 4px rgba(0,0,0,.06);
+        --shadow-md:      0 4px 16px rgba(0,0,0,.10);
+        --radius:         12px;
+        --radius-sm:      8px;
+    }
+
+    /* ── Page ────────────────────────────────────────────────────────────── */
+    .cl-page {
+        padding: 28px 32px;
+        background: var(--background);
+        min-height: 100vh;
+    }
+
+    /* ── Breadcrumb ──────────────────────────────────────────────────────── */
+    .cl-breadcrumb {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: .85rem;
+        color: var(--text-muted);
+        margin-bottom: 20px;
+    }
+    .cl-breadcrumb a { color: var(--primary); text-decoration: none; }
+    .cl-breadcrumb a:hover { text-decoration: underline; }
+
+    /* ── Page header ─────────────────────────────────────────────────────── */
+    .cl-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 16px;
+        margin-bottom: 28px;
+    }
+    .cl-header-left h1 {
+        font-size: 1.6rem;
+        font-weight: 700;
+        color: var(--text);
+        margin: 0 0 4px;
+    }
+    .cl-header-left p {
+        font-size: .9rem;
+        color: var(--text-muted);
+        margin: 0;
+    }
+    .cl-header-right {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    /* ── Card ────────────────────────────────────────────────────────────── */
+    .cl-card {
+        background: var(--surface);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-sm);
+        overflow: hidden;
+    }
+
+    /* ── Toolbar ─────────────────────────────────────────────────────────── */
+    .cl-toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 12px;
+        padding: 18px 24px;
+        border-bottom: 1px solid var(--border);
+    }
+    .cl-toolbar-left { display: flex; align-items: center; gap: 12px; }
+    .cl-toolbar-right { display: flex; align-items: center; gap: 10px; }
+
+    /* Search box */
+    .search-wrapper {
+        position: relative;
+        width: 260px;
+    }
+    .search-wrapper .search-icon {
+        position: absolute;
+        left: 12px; top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-muted);
+        font-size: .9rem;
+        pointer-events: none;
+    }
+    .search-wrapper input {
+        width: 100%;
+        padding: 8px 12px 8px 36px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        font-size: .9rem;
+        color: var(--text);
+        background: var(--background);
+        transition: border-color .2s, box-shadow .2s;
+        outline: none;
+    }
+    .search-wrapper input:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(0,123,255,.15);
+        background: #fff;
+    }
+    .search-clear {
+        position: absolute;
+        right: 10px; top: 50%;
+        transform: translateY(-50%);
+        background: none; border: none;
+        color: var(--text-muted);
+        cursor: pointer;
+        font-size: .8rem;
+        display: none;
+        padding: 2px;
+    }
+
+    /* Page size select */
+    .page-size-select {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: .85rem;
+        color: var(--text-muted);
+    }
+    .page-size-select select {
+        padding: 7px 10px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        font-size: .85rem;
+        color: var(--text);
+        background: var(--background);
+        cursor: pointer;
+        outline: none;
+    }
+
+    /* ── Buttons ─────────────────────────────────────────────────────────── */
+    .btn-primary-cl {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 9px 18px;
+        background: var(--primary);
+        color: #fff;
+        border: none;
+        border-radius: var(--radius-sm);
+        font-size: .9rem;
+        font-weight: 500;
+        cursor: pointer;
+        text-decoration: none;
+        transition: background .2s, transform .1s;
+    }
+    .btn-primary-cl:hover { background: var(--primary-dark); color: #fff; transform: translateY(-1px); }
+
+    .btn-outline-cl {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 8px 16px;
+        background: transparent;
+        color: var(--primary);
+        border: 1px solid var(--primary);
+        border-radius: var(--radius-sm);
+        font-size: .85rem;
+        font-weight: 500;
+        cursor: pointer;
+        text-decoration: none;
+        transition: background .2s, color .2s;
+    }
+    .btn-outline-cl:hover { background: var(--primary); color: #fff; }
+
+    /* ── Table container ─────────────────────────────────────────────────── */
+    #lecturesContainer { padding: 0 24px 24px; }
+
+    /* ── Loading spinner ─────────────────────────────────────────────────── */
+    .cl-loader {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 60px 0;
+        gap: 14px;
+        color: var(--text-muted);
+    }
+    .cl-spinner {
+        width: 36px; height: 36px;
+        border: 3px solid var(--border);
+        border-top-color: var(--primary);
+        border-radius: 50%;
+        animation: cl-spin .7s linear infinite;
+    }
+    @@keyframes cl-spin { to { transform: rotate(360deg); } }
+
+    /* ── Table ───────────────────────────────────────────────────────────── */
+    .lectures-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        font-size: .9rem;
+    }
+    .lectures-table thead th {
+        padding: 12px 14px;
+        font-weight: 600;
+        font-size: .8rem;
+        text-transform: uppercase;
+        letter-spacing: .04em;
+        color: var(--text-muted);
+        border-bottom: 2px solid var(--border);
+        white-space: nowrap;
+        user-select: none;
+    }
+    .lectures-table thead th.sortable-col:hover { color: var(--primary); }
+    .lectures-table thead th.sortable-col .sort-icon { margin-left: 5px; font-size: .75rem; opacity: .4; }
+    .lectures-table thead th.sortable-col .sort-icon.active { opacity: 1; color: var(--primary); }
+
+    .lectures-table tbody .lecture-row {
+        transition: background .15s;
+    }
+    .lectures-table tbody .lecture-row:hover { background: #f8fbff; }
+    .lectures-table tbody td {
+        padding: 14px 14px;
+        border-bottom: 1px solid var(--border);
+        vertical-align: middle;
+        color: var(--text);
+    }
+    .lectures-table tbody tr:last-child td { border-bottom: none; }
+
+    /* Column widths */
+    .col-num     { width: 48px; }
+    .col-title   { min-width: 200px; }
+    .col-desc    { min-width: 180px; }
+    .col-date    { width: 140px; white-space: nowrap; }
+    .col-badge   { width: 90px; text-align: center; }
+    .col-status  { width: 110px; }
+    .col-actions { width: 150px; }
+
+    /* Title cell */
+    .lecture-title-cell {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    .lecture-thumb {
+        width: 38px; height: 38px;
+        background: linear-gradient(135deg, #e8f1ff, #cde0ff);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--primary);
+        font-size: 1rem;
+        flex-shrink: 0;
+    }
+    .lecture-name {
+        font-weight: 500;
+        color: var(--text);
+    }
+
+    /* Description */
+    .desc-text {
+        color: var(--text-muted);
+        font-size: .85rem;
+        cursor: help;
+    }
+
+    /* Date cell */
+    .date-cell { display: flex; align-items: center; color: var(--text-muted); font-size: .88rem; }
+
+    /* Badges */
+    .badge-pill {
+        display: inline-flex;
+        align-items: center;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: .78rem;
+        font-weight: 600;
+    }
+    .badge-blue  { background: #e8f1ff; color: var(--primary); }
+    .badge-green { background: #e6f7ee; color: var(--success); }
+    .badge-gray  { background: #f0f0f0; color: var(--text-muted); }
+
+    /* Status chips */
+    .status-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: .78rem;
+        font-weight: 500;
+    }
+    .status-dot { width: 7px; height: 7px; border-radius: 50%; }
+    .status-today    { background: #fff3cd; color: #856404; }
+    .status-today    .status-dot { background: #ffc107; }
+    .status-past     { background: #f0f0f0; color: var(--text-muted); }
+    .status-past     .status-dot { background: var(--text-muted); }
+    .status-upcoming { background: #e6f7ee; color: #1a7a40; }
+    .status-upcoming .status-dot { background: var(--success); }
+
+    /* Action buttons */
+    .actions-group { display: flex; gap: 6px; }
+    .action-btn {
+        width: 32px; height: 32px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 7px;
+        border: none;
+        cursor: pointer;
+        font-size: .85rem;
+        text-decoration: none;
+        transition: background .15s, transform .1s;
+    }
+    .action-btn:hover { transform: translateY(-1px); }
+    .btn-view   { background: #e8f1ff; color: var(--primary); }
+    .btn-view:hover { background: var(--primary); color: #fff; }
+    .btn-edit   { background: #fff3cd; color: #856404; }
+    .btn-edit:hover { background: var(--warning); color: #333; }
+    .btn-attend { background: #e6f7ee; color: var(--success); }
+    .btn-attend:hover { background: var(--success); color: #fff; }
+    .btn-delete { background: #fde8ea; color: var(--danger); }
+    .btn-delete:hover { background: var(--danger); color: #fff; }
+
+    /* Empty state */
+    .empty-state {
+        text-align: center;
+        padding: 70px 20px;
+        color: var(--text-muted);
+    }
+    .empty-icon {
+        width: 70px; height: 70px;
+        background: var(--background);
+        border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.8rem;
+        color: var(--text-muted);
+        margin: 0 auto 16px;
+    }
+    .empty-state h5 { font-size: 1.1rem; color: var(--text); margin-bottom: 6px; }
+
+    /* Results summary */
+    .results-summary { padding: 16px 0 10px; font-size: .85rem; }
+
+    /* ── Pagination (inside partial) ────────────────────────────────────── */
+    .pagination-wrapper {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 12px;
+        padding-top: 18px;
+    }
+    .custom-pagination {
+        list-style: none;
+        display: flex;
+        gap: 4px;
+        margin: 0; padding: 0;
+    }
+    .custom-pagination li a,
+    .custom-pagination li span {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px; height: 36px;
+        border-radius: 8px;
+        font-size: .88rem;
+        border: 1px solid var(--border);
+        color: var(--text);
+        text-decoration: none;
+        background: var(--surface);
+        transition: background .15s, color .15s, border-color .15s;
+    }
+    .custom-pagination li a:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
+    .custom-pagination li.active a { background: var(--primary); color: #fff; border-color: var(--primary); font-weight: 600; }
+    .custom-pagination li.disabled a { opacity: .4; pointer-events: none; }
+    .custom-pagination li.ellipsis span { border: none; background: none; cursor: default; }
+
+    /* ── Delete modal ────────────────────────────────────────────────────── */
+    .delete-modal-overlay {
+        position: fixed; inset: 0;
+        background: rgba(0,0,0,.45);
+        display: flex; align-items: center; justify-content: center;
+        z-index: 9999;
+        animation: fade-in .15s ease;
+    }
+    @@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+    .delete-modal-box {
+        background: #fff;
+        border-radius: 16px;
+        padding: 36px 32px;
+        max-width: 400px; width: 90%;
+        text-align: center;
+        box-shadow: 0 20px 60px rgba(0,0,0,.2);
+    }
+    .delete-modal-icon {
+        width: 56px; height: 56px;
+        background: #fde8ea;
+        border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.4rem;
+        color: var(--danger);
+        margin: 0 auto 16px;
+    }
+    .delete-modal-box h5 { font-size: 1.1rem; margin-bottom: 8px; }
+    .delete-modal-actions { display: flex; gap: 10px; justify-content: center; margin-top: 22px; }
+    .btn-modal-cancel {
+        padding: 9px 22px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        background: #fff;
+        font-size: .9rem;
+        cursor: pointer;
+        transition: background .15s;
+    }
+    .btn-modal-cancel:hover { background: var(--background); }
+    .btn-modal-confirm {
+        padding: 9px 22px;
+        border: none;
+        border-radius: var(--radius-sm);
+        background: var(--danger);
+        color: #fff;
+        font-size: .9rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background .15s;
+    }
+    .btn-modal-confirm:hover { background: #b02a37; }
+</style>
+
+<div class="cl-page">
+
+    <!-- Breadcrumb -->
+    <nav class="cl-breadcrumb" aria-label="breadcrumb">
+        <a href="/Dashboard/AdminDashboard"><i class="fas fa-home"></i></a>
+        <i class="fas fa-chevron-right" style="font-size:.7rem"></i>
+        <a href="/Courses">Courses</a>
+        <i class="fas fa-chevron-right" style="font-size:.7rem"></i>
+        <span>@courseName — Lectures</span>
+    </nav>
+
+    <!-- Page Header -->
+    <div class="cl-header">
+        <div class="cl-header-left">
+            <h1><i class="fas fa-chalkboard-teacher me-2" style="color:var(--primary)"></i>@courseName</h1>
+            <p>Manage all lectures for this course</p>
+        </div>
+        <div class="cl-header-right">
+            <a href="/Courses/Details/@courseId" class="btn-outline-cl">
+                <i class="fas fa-arrow-left"></i> Back to Course
+            </a>
+            <a asp-action="Create" asp-route-courseId="@courseId" class="btn-primary-cl">
+                <i class="fas fa-plus"></i> Add Lecture
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Card -->
+    <div class="cl-card">
+
+        <!-- Toolbar -->
+        <div class="cl-toolbar">
+            <div class="cl-toolbar-left">
+                <!-- Search -->
+                <div class="search-wrapper">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text"
+                           id="searchBox"
+                           placeholder="Search lectures…"
+                           value="@search"
+                           autocomplete="off" />
+                    <button class="search-clear" id="clearSearch" title="Clear">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="cl-toolbar-right">
+                <!-- Page size -->
+                <div class="page-size-select">
+                    <span>Show</span>
+                    <select id="pageSizeSelect">
+                        @foreach (var s in new[] { 5, 8, 15, 25 })
+                        {
+                            if (pageSize == s)
+                            {
+                                <option value="@s" selected="selected">@s</option>
+                            }
+                            else
+                            {
+                                <option value="@s">@s</option>
+                            }
+                        }
+                    </select>
+                    <span>per page</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lectures list (Ajax target) -->
+        <div id="lecturesContainer">
+            @await Html.PartialAsync("_LecturesTablePartial", Model)
+        </div>
+
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+<script>
+    // ── State ─────────────────────────────────────────────────────────────────
+    let currentSort    = '@sortBy';
+    let currentSortDir = '@sortDir';
+    let searchTimer    = null;
+
+    // ── Core load function ────────────────────────────────────────────────────
+    function loadLectures(page = 1, sortBy = currentSort, sortDir = currentSortDir) {
+        currentSort    = sortBy;
+        currentSortDir = sortDir;
+
+        const search   = $('#searchBox').val().trim();
+        const pageSize = $('#pageSizeSelect').val();
+
+        $('#lecturesContainer').html(`
+            <div class="cl-loader">
+                <div class="cl-spinner"></div>
+                <span>Loading lectures…</span>
+            </div>
+        `);
+
+        $.ajax({
+            url: '/Lectures/CourseLectures/@courseId',
+            type: 'GET',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            data: {
+                courseId: '@courseId',
+                page:     page,
+                search:   search,
+                sortBy:   sortBy,
+                sortDir:  sortDir,
+                pageSize: pageSize
+            },
+            success: function (html) {
+                $('#lecturesContainer').html(html);
+                updateClearBtn();
+            },
+            error: function () {
+                $('#lecturesContainer').html(`
+                    <div class="empty-state">
+                        <div class="empty-icon"><i class="fas fa-exclamation-circle"></i></div>
+                        <h5>Failed to load lectures</h5>
+                        <p class="text-muted">Please try again.</p>
+                    </div>
+                `);
+            }
+        });
+    }
+
+    // ── Pagination clicks (delegated, works after Ajax) ───────────────────────
+    $(document).on('click', '.pagination-link', function (e) {
+        e.preventDefault();
+        const page = parseInt($(this).data('page'));
+        if (!isNaN(page) && page >= 1) loadLectures(page);
+    });
+
+    // ── Search with debounce (300ms) ──────────────────────────────────────────
+    $('#searchBox').on('input', function () {
+        clearTimeout(searchTimer);
+        updateClearBtn();
+        searchTimer = setTimeout(() => loadLectures(1), 300);
+    });
+
+    $('#clearSearch').on('click', function () {
+        $('#searchBox').val('').trigger('input');
+    });
+
+    function updateClearBtn() {
+        const hasVal = $('#searchBox').val().length > 0;
+        $('#clearSearch').css('display', hasVal ? 'block' : 'none');
+    }
+
+    // ── Page size change ──────────────────────────────────────────────────────
+    $('#pageSizeSelect').on('change', function () {
+        loadLectures(1);
+    });
+
+    // ── Initial clear-btn state ───────────────────────────────────────────────
+    updateClearBtn();
+</script>
