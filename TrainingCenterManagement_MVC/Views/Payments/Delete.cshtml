@@ -1,55 +1,328 @@
 ﻿@model TrainingCenterManagement_MVC.Models.Payment
 
 @{
-    ViewData["Title"] = "Delete Payment";
+    ViewData["Title"] = "حذف الدفعة";
+    var traineeChar = Model.Trainee?.User?.FullName?.Length > 0
+        ? Model.Trainee.User.FullName[0].ToString() : "م";
+    var isPaid    = !Model.IsDeleted;
+    var statusLbl = isPaid ? "مدفوعة" : "ملغاة";
+    var statusCls = isPaid ? "py-status-paid" : "py-status-cancelled";
 }
 
-<h1>Delete Payment</h1>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 
-<h3>Are you sure you want to delete this payment?</h3>
-<div>
-    <h4>Payment Details</h4>
-    <hr />
-    <dl class="row">
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.TotalAmount)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.TotalAmount)
-        </dd>
+<style>
+    :root {
+        --primary:       #1d4ed8;
+        --primary-light: #3b82f6;
+        --primary-pale:  #eff6ff;
+        --danger:        #dc2626;
+        --danger-pale:   #fff1f2;
+        --danger-border: #fca5a5;
+        --success:       #10b981;
+        --body-bg:       #f1f5f9;
+        --card-bg:       #ffffff;
+        --text-1:        #0f172a;
+        --text-2:        #475569;
+        --text-3:        #94a3b8;
+        --border:        #e2e8f0;
+        --shadow-sm:     0 1px 3px rgba(0,0,0,.08);
+        --shadow-md:     0 4px 16px rgba(0,0,0,.10);
+        --shadow-lg:     0 8px 32px rgba(0,0,0,.14);
+        --radius:        16px;
+        --radius-sm:     10px;
+        --tr:            .2s ease;
+    }
 
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.CreatedDate)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.CreatedDate)
-        </dd>
+    * { box-sizing: border-box; }
 
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.IsDeleted)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.IsDeleted)
-        </dd>
+    .py-page {
+        background: var(--body-bg);
+        min-height: 100vh;
+        padding: 36px 32px;
+        direction: rtl;
+        font-family: 'Segoe UI', 'Cairo', sans-serif;
+        display: flex; flex-direction: column; align-items: center;
+    }
 
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.Trainee)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.Trainee.User.FullName)
-        </dd>
+    /* ── Breadcrumb ── */
+    .py-breadcrumb {
+        display: flex; align-items: center; gap: 7px;
+        font-size: .82rem; color: var(--text-3);
+        margin-bottom: 30px; align-self: flex-start;
+    }
+    .py-breadcrumb a { color: var(--primary); text-decoration: none; }
+    .py-breadcrumb a:hover { text-decoration: underline; }
+    .py-breadcrumb i { font-size: .65rem; }
 
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.Course)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.Course.CourseName)
-        </dd>
-    </dl>
+    /* ── Warning Banner ── */
+    .py-warn-banner {
+        background: linear-gradient(135deg, #7f1d1d 0%, #991b1b 50%, #b91c1c 100%);
+        border-radius: var(--radius);
+        padding: 28px 32px;
+        margin-bottom: 22px;
+        display: flex; align-items: center; gap: 18px; flex-wrap: wrap;
+        position: relative; overflow: hidden;
+        box-shadow: 0 8px 28px rgba(185,28,28,.25);
+        width: 100%; max-width: 680px;
+    }
+    .py-warn-banner::before {
+        content: '';
+        position: absolute; top: -60px; left: -40px;
+        width: 200px; height: 200px;
+        background: rgba(255,255,255,.05); border-radius: 50%;
+    }
+    .py-warn-icon {
+        width: 62px; height: 62px; border-radius: 50%;
+        background: rgba(255,255,255,.15);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.7rem; color: #fff; flex-shrink: 0;
+        position: relative; z-index: 1;
+        animation: py-pulse 2s ease-in-out infinite;
+    }
+    @@keyframes py-pulse {
+        0%, 100% { box-shadow: 0 0 0 0 rgba(255,255,255,.3); }
+        50%       { box-shadow: 0 0 0 10px rgba(255,255,255,.0); }
+    }
+    .py-warn-text { flex: 1; color: #fff; position: relative; z-index: 1; }
+    .py-warn-text h2 { font-size: 1.35rem; font-weight: 800; margin: 0 0 5px; }
+    .py-warn-text p  { font-size: .9rem; opacity: .88; margin: 0; line-height: 1.5; }
 
-    <form asp-action="Delete" method="post">
-        <input type="hidden" asp-for="PaymentId" />
-        <button type="submit" class="btn btn-danger">Delete</button>
-        <a asp-action="Index" class="btn btn-secondary ms-2">Back to List</a>
-    </form>
+    /* ── Info Card ── */
+    .py-info-card {
+        background: var(--card-bg);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-md);
+        border: 1px solid var(--border);
+        overflow: hidden;
+        width: 100%; max-width: 680px;
+        margin-bottom: 18px;
+    }
+    .py-info-card-head {
+        background: linear-gradient(to left, #fafbff, var(--card-bg));
+        border-bottom: 1px solid var(--border);
+        padding: 18px 24px;
+        display: flex; align-items: center; gap: 14px;
+    }
+    .py-amount-circle {
+        width: 56px; height: 56px; border-radius: 50%;
+        background: linear-gradient(135deg, var(--primary), var(--primary-light));
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.3rem; color: #fff; flex-shrink: 0;
+        border: 3px solid var(--primary-pale);
+    }
+    .py-info-card-amount {
+        font-size: 1.2rem; font-weight: 800; color: var(--text-1); margin-bottom: 3px;
+    }
+    .py-info-card-sub {
+        font-size: .8rem; color: var(--text-3);
+        display: flex; align-items: center; gap: 5px;
+    }
+
+    .py-detail-row {
+        display: flex; align-items: center; gap: 14px;
+        padding: 14px 24px; border-bottom: 1px solid var(--border);
+    }
+    .py-detail-row:last-child { border-bottom: none; }
+    .py-detail-icon {
+        width: 36px; height: 36px; border-radius: 9px;
+        background: var(--primary-pale); color: var(--primary);
+        display: flex; align-items: center; justify-content: center;
+        font-size: .85rem; flex-shrink: 0;
+    }
+    .py-detail-label {
+        font-size: .75rem; font-weight: 600; color: var(--text-3);
+        text-transform: uppercase; letter-spacing: .04em; margin-bottom: 2px;
+    }
+    .py-detail-value { font-size: .95rem; font-weight: 600; color: var(--text-1); }
+
+    /* Trainee cell */
+    .py-trainee-cell { display: flex; align-items: center; gap: 10px; }
+    .py-trainee-avatar {
+        width: 34px; height: 34px; border-radius: 50%;
+        background: linear-gradient(135deg, var(--primary), var(--primary-light));
+        color: #fff; font-size: .88rem; font-weight: 800;
+        display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+
+    /* Status chips */
+    .py-status-paid {
+        display: inline-flex; align-items: center; gap: 6px;
+        background: #d1fae5; color: #065f46;
+        border-radius: 20px; padding: 4px 12px;
+        font-size: .82rem; font-weight: 700;
+    }
+    .py-status-cancelled {
+        display: inline-flex; align-items: center; gap: 6px;
+        background: #fee2e2; color: #991b1b;
+        border-radius: 20px; padding: 4px 12px;
+        font-size: .82rem; font-weight: 700;
+    }
+    .py-status-dot { width: 7px; height: 7px; border-radius: 50%; }
+    .py-status-paid      .py-status-dot { background: #10b981; }
+    .py-status-cancelled .py-status-dot { background: #ef4444; }
+
+    /* ── Consequence ── */
+    .py-consequence {
+        background: var(--danger-pale);
+        border: 1px solid var(--danger-border);
+        border-radius: var(--radius-sm);
+        padding: 14px 18px;
+        font-size: .875rem; color: #991b1b;
+        width: 100%; max-width: 680px;
+        margin-bottom: 20px;
+    }
+    .py-consequence-title {
+        font-weight: 700; margin-bottom: 8px;
+        display: flex; align-items: center; gap: 7px;
+    }
+    .py-consequence ul { margin: 0; padding-right: 18px; }
+    .py-consequence li { margin-bottom: 4px; line-height: 1.5; }
+
+    /* ── Action buttons ── */
+    .py-action-row {
+        display: flex; align-items: center; gap: 12px;
+        flex-wrap: wrap; justify-content: flex-end;
+        width: 100%; max-width: 680px;
+    }
+    .py-btn-confirm {
+        display: inline-flex; align-items: center; gap: 8px;
+        padding: 11px 26px; border-radius: var(--radius-sm);
+        background: var(--danger); color: #fff;
+        border: none; font-size: .92rem; font-weight: 700;
+        font-family: inherit; cursor: pointer;
+        transition: var(--tr), transform .1s;
+        box-shadow: 0 4px 14px rgba(220,38,38,.28);
+    }
+    .py-btn-confirm:hover {
+        background: #b91c1c; transform: translateY(-1px);
+        box-shadow: 0 6px 20px rgba(220,38,38,.35);
+    }
+    .py-btn-cancel {
+        display: inline-flex; align-items: center; gap: 7px;
+        padding: 10px 22px; border-radius: var(--radius-sm);
+        border: 1.5px solid var(--border);
+        background: var(--card-bg); color: var(--text-2);
+        font-size: .875rem; font-weight: 600;
+        text-decoration: none; transition: var(--tr);
+    }
+    .py-btn-cancel:hover { border-color: var(--primary); color: var(--primary); }
+</style>
+
+<div class="py-page">
+
+    <!-- Breadcrumb -->
+    <nav class="py-breadcrumb">
+        <a href="/Dashboard/AdminDashboard"><i class="fas fa-home"></i> الرئيسية</a>
+        <i class="fas fa-chevron-left"></i>
+        <a href="/Payments">المدفوعات</a>
+        <i class="fas fa-chevron-left"></i>
+        <span style="color:#dc2626;">حذف الدفعة</span>
+    </nav>
+
+    <!-- Warning Banner -->
+    <div class="py-warn-banner">
+        <div class="py-warn-icon">
+            <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <div class="py-warn-text">
+            <h2>تأكيد حذف الدفعة</h2>
+            <p>هذا الإجراء نهائي ولا يمكن التراجع عنه. يرجى مراجعة البيانات قبل المتابعة.</p>
+        </div>
+    </div>
+
+    <!-- Info Card -->
+    <div class="py-info-card">
+        <div class="py-info-card-head">
+            <div class="py-amount-circle">
+                <i class="fas fa-money-bill-wave"></i>
+            </div>
+            <div>
+                <div class="py-info-card-amount">@Model.TotalAmount.ToString("N0") ل.س</div>
+                <div class="py-info-card-sub">
+                    <i class="fas fa-calendar-alt"></i>
+                    @Model.CreatedDate.ToString("yyyy-MM-dd")
+                </div>
+            </div>
+        </div>
+
+        <div class="py-detail-row">
+            <div class="py-detail-icon"><i class="fas fa-coins"></i></div>
+            <div>
+                <div class="py-detail-label">المبلغ الإجمالي</div>
+                <div class="py-detail-value" style="color:var(--success);">
+                    @Html.DisplayFor(m => m.TotalAmount) ل.س
+                </div>
+            </div>
+        </div>
+
+        <div class="py-detail-row">
+            <div class="py-detail-icon"><i class="fas fa-calendar-alt"></i></div>
+            <div>
+                <div class="py-detail-label">تاريخ الإنشاء</div>
+                <div class="py-detail-value">@Model.CreatedDate.ToString("yyyy-MM-dd")</div>
+            </div>
+        </div>
+
+        <div class="py-detail-row">
+            <div class="py-detail-icon"><i class="fas fa-info-circle"></i></div>
+            <div>
+                <div class="py-detail-label">الحالة</div>
+                <div class="py-detail-value">
+                    <span class="@statusCls">
+                        <span class="py-status-dot"></span>
+                        @statusLbl
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <div class="py-detail-row">
+            <div class="py-detail-icon"><i class="fas fa-user-graduate"></i></div>
+            <div>
+                <div class="py-detail-label">المتدرب</div>
+                <div class="py-detail-value">
+                    <div class="py-trainee-cell">
+                        <div class="py-trainee-avatar">@traineeChar</div>
+                        @Html.DisplayFor(m => m.Trainee.User.FullName)
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="py-detail-row">
+            <div class="py-detail-icon"><i class="fas fa-book-open"></i></div>
+            <div>
+                <div class="py-detail-label">الدورة</div>
+                <div class="py-detail-value">@Html.DisplayFor(m => m.Course.CourseName)</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Consequences -->
+    <div class="py-consequence">
+        <div class="py-consequence-title">
+            <i class="fas fa-exclamation-circle"></i>
+            ماذا سيحدث عند الحذف؟
+        </div>
+        <ul>
+            <li>سيتم حذف سجل الدفعة بشكل نهائي من النظام</li>
+            <li>لن تظهر هذه الدفعة في تقارير الإيرادات</li>
+            <li>لا يمكن استعادة هذه البيانات بعد الحذف</li>
+        </ul>
+    </div>
+
+    <!-- Actions -->
+    <div class="py-action-row">
+        <a asp-action="Index" class="py-btn-cancel">
+            <i class="fas fa-arrow-right"></i> إلغاء، العودة للقائمة
+        </a>
+        <form asp-action="Delete" method="post" style="margin:0;">
+            <input type="hidden" asp-for="PaymentId" />
+            <button type="submit" class="py-btn-confirm">
+                <i class="fas fa-trash-alt"></i> نعم، احذف الدفعة
+            </button>
+        </form>
+    </div>
+
 </div>
