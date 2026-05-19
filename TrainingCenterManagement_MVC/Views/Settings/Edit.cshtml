@@ -121,6 +121,20 @@
                 <i class="fas fa-exclamation-triangle" style="margin-left:4px;"></i>
                 <span id="shamQrErrorText"></span>
             </div>
+            <div id="shamQrDebug" style="display:none;margin-top:10px;padding:12px 14px;border-radius:8px;background:#f8fafc;border:1px dashed #cbd5e1;">
+                <div style="font-size:.78rem;font-weight:700;color:#334155;margin-bottom:8px;">تشخيص قراءة الاسم</div>
+                <div style="display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap;">
+                    <div>
+                        <div style="font-size:.72rem;color:#64748b;margin-bottom:6px;">قصاصة سطر الاسم</div>
+                        <img id="shamQrDebugPreview" alt="Name OCR Preview"
+                             style="display:none;max-width:260px;max-height:90px;border:1px solid #cbd5e1;border-radius:6px;background:#fff;padding:4px;" />
+                    </div>
+                    <div style="min-width:220px;flex:1;">
+                        <div style="font-size:.72rem;color:#64748b;margin-bottom:6px;">النص الخام من OCR</div>
+                        <pre id="shamQrDebugText" style="margin:0;white-space:pre-wrap;word-break:break-word;font-size:.76rem;color:#0f172a;background:#fff;border:1px solid #e2e8f0;border-radius:6px;padding:8px 10px;min-height:54px;"></pre>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -128,7 +142,7 @@
 @@keyframes spin { to { transform: rotate(360deg); } }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
-
+<script src="~/js/shamcash-image-processor.js" asp-append-version="true"></script>
 <script src="~/js/shamcash-analyzer.js" asp-append-version="true"></script>
 
     <!-- ── Binance ── -->
