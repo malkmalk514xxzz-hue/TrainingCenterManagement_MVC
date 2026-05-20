@@ -1,47 +1,337 @@
 ﻿@model TrainingCenterManagement_MVC.Models.Receptionist
 
 @{
-    ViewData["Title"] = "Receptionist Details";
+    ViewData["Title"] = "تفاصيل موظف الاستقبال";
+    var avatarChar = Model.User?.FullName?.Length > 0 ? Model.User.FullName[0].ToString() : "م";
 }
 
-<div class="container mt-5">
-    <div class="card shadow-sm">
-        <div class="card-header bg-primary text-white text-center">
-            <h3>Receptionist Details</h3>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+<style>
+    :root {
+        --primary:       #1d4ed8;
+        --primary-light: #3b82f6;
+        --primary-pale:  #eff6ff;
+        --primary-dark:  #1e3a8a;
+        --success:       #10b981;
+        --warning:       #f59e0b;
+        --danger:        #ef4444;
+        --body-bg:       #f1f5f9;
+        --card-bg:       #ffffff;
+        --text-1:        #0f172a;
+        --text-2:        #475569;
+        --text-3:        #94a3b8;
+        --border:        #e2e8f0;
+        --shadow-sm:     0 1px 3px rgba(0,0,0,.08);
+        --shadow-md:     0 4px 16px rgba(0,0,0,.10);
+        --shadow-lg:     0 8px 32px rgba(0,0,0,.14);
+        --radius:        16px;
+        --radius-sm:     10px;
+        --tr:            .2s ease;
+    }
+
+    * { box-sizing: border-box; }
+
+    .rc-page {
+        background: var(--body-bg);
+        min-height: 100vh;
+        padding: 36px 32px;
+        direction: rtl;
+        font-family: 'Segoe UI', 'Cairo', sans-serif;
+    }
+
+    /* ── Breadcrumb ── */
+    .rc-breadcrumb {
+        display: flex; align-items: center; gap: 7px;
+        font-size: .82rem; color: var(--text-3); margin-bottom: 22px;
+    }
+    .rc-breadcrumb a { color: var(--primary); text-decoration: none; }
+    .rc-breadcrumb a:hover { text-decoration: underline; }
+    .rc-breadcrumb i { font-size: .65rem; }
+
+    /* ── Page header ── */
+    .rc-page-header {
+        display: flex; align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap; gap: 12px; margin-bottom: 28px;
+    }
+    .rc-page-header-left { display: flex; align-items: center; gap: 16px; }
+    .rc-page-icon {
+        width: 52px; height: 52px; border-radius: 14px;
+        background: linear-gradient(135deg, var(--primary), var(--primary-light));
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.3rem; color: #fff;
+        box-shadow: 0 4px 14px rgba(29,78,216,.30);
+    }
+    .rc-page-header h1 { font-size: 1.5rem; font-weight: 800; color: var(--text-1); margin: 0 0 3px; }
+    .rc-page-header p  { font-size: .85rem; color: var(--text-2); margin: 0; }
+    .rc-back-btn {
+        display: inline-flex; align-items: center; gap: 7px;
+        padding: 9px 20px; border-radius: var(--radius-sm);
+        border: 1.5px solid var(--border);
+        background: var(--card-bg); color: var(--text-2);
+        font-size: .875rem; font-weight: 600;
+        text-decoration: none; transition: var(--tr);
+    }
+    .rc-back-btn:hover { border-color: var(--primary); color: var(--primary); }
+
+    /* ── Hero Banner ── */
+    .rc-hero {
+        background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #1d4ed8 100%);
+        border-radius: var(--radius); padding: 30px 36px;
+        margin-bottom: 24px;
+        display: flex; align-items: center; gap: 24px; flex-wrap: wrap;
+        position: relative; overflow: hidden; box-shadow: var(--shadow-lg);
+    }
+    .rc-hero::before {
+        content: ''; position: absolute; top: -70px; left: -50px;
+        width: 250px; height: 250px;
+        background: rgba(255,255,255,.05); border-radius: 50%;
+    }
+    .rc-hero-avatar-wrap { position: relative; z-index: 1; flex-shrink: 0; }
+    .rc-hero-avatar-fallback {
+        width: 90px; height: 90px; border-radius: 50%;
+        border: 4px solid rgba(255,255,255,.55);
+        background: rgba(255,255,255,.18);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 2.2rem; font-weight: 800; color: #fff;
+    }
+    .rc-hero-status {
+        position: absolute; bottom: 4px; left: 4px;
+        width: 18px; height: 18px; border-radius: 50%;
+        background: #10b981; border: 3px solid #1d4ed8;
+    }
+    .rc-hero-info { flex: 1; color: #fff; position: relative; z-index: 1; }
+    .rc-hero-info h2 { font-size: 1.75rem; font-weight: 800; margin: 0 0 5px; }
+    .rc-hero-info .rc-role {
+        font-size: .9rem; opacity: .85; margin: 0 0 14px;
+        display: flex; align-items: center; gap: 6px;
+    }
+    .rc-hero-badges { display: flex; gap: 10px; flex-wrap: wrap; }
+    .rc-hero-badge {
+        display: inline-flex; align-items: center; gap: 6px;
+        background: rgba(255,255,255,.15); backdrop-filter: blur(6px);
+        border-radius: 30px; padding: 5px 14px;
+        font-size: .8rem; color: #fff; font-weight: 500;
+    }
+    .rc-hero-actions { display: flex; gap: 10px; flex-wrap: wrap; position: relative; z-index: 1; }
+    .rc-hero-btn {
+        display: inline-flex; align-items: center; gap: 7px;
+        padding: 10px 20px; border-radius: var(--radius-sm);
+        font-size: .875rem; font-weight: 600;
+        text-decoration: none; border: none; cursor: pointer;
+        transition: var(--tr); white-space: nowrap;
+    }
+    .rc-hero-btn-white { background: #fff; color: var(--primary); }
+    .rc-hero-btn-white:hover { background: #eff6ff; color: var(--primary-dark); }
+    .rc-hero-btn-glass {
+        background: rgba(255,255,255,.15); color: #fff;
+        border: 1.5px solid rgba(255,255,255,.35); backdrop-filter: blur(4px);
+    }
+    .rc-hero-btn-glass:hover { background: rgba(255,255,255,.25); color: #fff; }
+
+    /* ── Info Card ── */
+    .rc-card {
+        background: var(--card-bg); border-radius: var(--radius);
+        padding: 26px; box-shadow: var(--shadow-sm);
+        border: 1px solid var(--border); transition: var(--tr);
+        margin-bottom: 20px;
+    }
+    .rc-card:hover { box-shadow: var(--shadow-md); }
+    .rc-card-title {
+        font-size: .95rem; font-weight: 700; color: var(--text-1);
+        margin: 0 0 20px; display: flex; align-items: center; gap: 9px;
+        padding-bottom: 14px; border-bottom: 1px solid var(--border);
+    }
+    .rc-card-title i {
+        width: 34px; height: 34px; border-radius: 9px;
+        background: var(--primary-pale); color: var(--primary);
+        display: flex; align-items: center; justify-content: center;
+        font-size: .95rem; flex-shrink: 0;
+    }
+
+    /* ── Info rows ── */
+    .rc-info-row {
+        display: flex; align-items: flex-start; gap: 14px;
+        padding: 13px 0; border-bottom: 1px solid var(--border);
+    }
+    .rc-info-row:last-child { border-bottom: none; padding-bottom: 0; }
+    .rc-info-icon {
+        width: 36px; height: 36px; border-radius: 9px;
+        background: var(--primary-pale); color: var(--primary);
+        display: flex; align-items: center; justify-content: center;
+        font-size: .85rem; flex-shrink: 0; margin-top: 1px;
+    }
+    .rc-info-label {
+        font-size: .75rem; font-weight: 600; color: var(--text-3);
+        text-transform: uppercase; letter-spacing: .04em; margin-bottom: 3px;
+    }
+    .rc-info-value { font-size: .95rem; font-weight: 600; color: var(--text-1); }
+    .rc-info-link {
+        font-size: .88rem; color: var(--primary); text-decoration: none;
+        font-weight: 600; display: inline-flex; align-items: center; gap: 5px;
+    }
+    .rc-info-link:hover { text-decoration: underline; }
+
+    /* ── Quick Actions ── */
+    .rc-actions-grid {
+        display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px;
+    }
+    @@media (max-width: 700px) { .rc-actions-grid { grid-template-columns: 1fr; } }
+    .rc-action-btn {
+        display: flex; flex-direction: column;
+        align-items: center; gap: 10px;
+        padding: 20px 14px; border-radius: var(--radius-sm);
+        border: 1.5px solid var(--border);
+        background: var(--card-bg);
+        text-decoration: none; color: var(--text-1);
+        font-size: .85rem; font-weight: 600;
+        transition: var(--tr); text-align: center; cursor: pointer;
+    }
+    .rc-action-btn:hover {
+        border-color: var(--primary); color: var(--primary);
+        transform: translateY(-2px); box-shadow: var(--shadow-sm);
+    }
+    .rc-action-icon {
+        width: 46px; height: 46px; border-radius: 12px;
+        display: flex; align-items: center; justify-content: center; font-size: 1.2rem;
+    }
+</style>
+
+<div class="rc-page">
+
+    <!-- Breadcrumb -->
+    <nav class="rc-breadcrumb">
+        <a href="/Dashboard/AdminDashboard"><i class="fas fa-home"></i> الرئيسية</a>
+        <i class="fas fa-chevron-left"></i>
+        <a href="/Receptionists">موظفو الاستقبال</a>
+        <i class="fas fa-chevron-left"></i>
+        <span>تفاصيل الموظف</span>
+    </nav>
+
+    <!-- Page Header -->
+    <div class="rc-page-header">
+        <div class="rc-page-header-left">
+            <div class="rc-page-icon"><i class="fas fa-headset"></i></div>
+            <div>
+                <h1>تفاصيل موظف الاستقبال</h1>
+                <p>عرض كامل بيانات الموظف وإجراءاته</p>
+            </div>
         </div>
-        <div class="card-body">
-            <dl class="row">
-                <dt class="col-sm-3">User Name</dt>
-                <dd class="col-sm-9">@Model.User?.FullName</dd>
+        <a asp-action="Index" class="rc-back-btn">
+            <i class="fas fa-arrow-right"></i> العودة للقائمة
+        </a>
+    </div>
 
-                <dt class="col-sm-3">Email</dt>
-                <dd class="col-sm-9">@Model.User?.Email</dd>
+    <!-- Hero Banner -->
+    <div class="rc-hero">
+        <div class="rc-hero-avatar-wrap">
+            <div class="rc-hero-avatar-fallback">@avatarChar</div>
+            <div class="rc-hero-status"></div>
+        </div>
 
-                <dt class="col-sm-3">Phone</dt>
-                <dd class="col-sm-9">@Model.User?.PhoneNumber</dd>
-            </dl>
+        <div class="rc-hero-info">
+            <h2>@Model.User?.FullName</h2>
+            <p class="rc-role"><i class="fas fa-headset"></i> موظف استقبال</p>
+            <div class="rc-hero-badges">
+                @if (!string.IsNullOrEmpty(Model.User?.Email))
+                {
+                    <span class="rc-hero-badge"><i class="fas fa-envelope"></i> @Model.User.Email</span>
+                }
+                @if (!string.IsNullOrEmpty(Model.User?.PhoneNumber))
+                {
+                    <span class="rc-hero-badge"><i class="fas fa-phone"></i> @Model.User.PhoneNumber</span>
+                }
+                <span class="rc-hero-badge" style="background:rgba(16,185,129,.3);">
+                    <i class="fas fa-circle" style="font-size:.45rem;"></i> نشط
+                </span>
+            </div>
+        </div>
+
+        <div class="rc-hero-actions">
+            <a asp-action="AttendanceReports" class="rc-hero-btn rc-hero-btn-white">
+                <i class="fas fa-chart-bar"></i> تقارير الحضور
+            </a>
+            <a asp-action="PaymentReports" class="rc-hero-btn rc-hero-btn-glass">
+                <i class="fas fa-money-bill-wave"></i> المدفوعات
+            </a>
         </div>
     </div>
 
-    <div class="row mt-4">
-        <div class="col-md-4">
-            <a asp-action="AttendanceReports" class="btn btn-outline-primary w-100 mb-2">
-                📊 Attendance Reports
-            </a>
+    <!-- Personal Info Card -->
+    <div class="rc-card">
+        <div class="rc-card-title">
+            <i class="fas fa-id-card"></i>
+            المعلومات الشخصية
         </div>
-        <div class="col-md-4">
-            <a asp-action="PaymentReports" class="btn btn-outline-success w-100 mb-2">
-                💵 Payment Follow-up
-            </a>
+
+        <div class="rc-info-row">
+            <div class="rc-info-icon"><i class="fas fa-user"></i></div>
+            <div>
+                <div class="rc-info-label">الاسم الكامل</div>
+                <div class="rc-info-value">@(Model.User?.FullName ?? "—")</div>
+            </div>
         </div>
-        <div class="col-md-4">
-            <a asp-action="ContactTrainees" class="btn btn-outline-info w-100 mb-2">
-                📞 Contact Trainees
+
+        <div class="rc-info-row">
+            <div class="rc-info-icon"><i class="fas fa-envelope"></i></div>
+            <div>
+                <div class="rc-info-label">البريد الإلكتروني</div>
+                <div class="rc-info-value">
+                    @if (!string.IsNullOrEmpty(Model.User?.Email))
+                    {
+                        <a href="mailto:@Model.User.Email" class="rc-info-link">
+                            <i class="fas fa-envelope" style="font-size:.75rem;"></i>
+                            @Model.User.Email
+                        </a>
+                    }
+                    else { <span style="color:var(--text-3);">—</span> }
+                </div>
+            </div>
+        </div>
+
+        <div class="rc-info-row">
+            <div class="rc-info-icon"><i class="fas fa-phone"></i></div>
+            <div>
+                <div class="rc-info-label">رقم الهاتف</div>
+                <div class="rc-info-value">
+                    @(string.IsNullOrEmpty(Model.User?.PhoneNumber) ? "—" : Model.User.PhoneNumber)
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="rc-card">
+        <div class="rc-card-title">
+            <i class="fas fa-bolt"></i>
+            الإجراءات السريعة
+        </div>
+        <div class="rc-actions-grid">
+            <a asp-action="AttendanceReports" class="rc-action-btn">
+                <div class="rc-action-icon" style="background:#eff6ff;color:#1d4ed8;">
+                    <i class="fas fa-chart-bar"></i>
+                </div>
+                تقارير الحضور
+            </a>
+            <a asp-action="PaymentReports" class="rc-action-btn">
+                <div class="rc-action-icon" style="background:#d1fae5;color:#059669;">
+                    <i class="fas fa-money-bill-wave"></i>
+                </div>
+                متابعة المدفوعات
+            </a>
+            <a asp-action="ContactTrainees" class="rc-action-btn">
+                <div class="rc-action-icon" style="background:#e0f2fe;color:#0284c7;">
+                    <i class="fas fa-phone-alt"></i>
+                </div>
+                التواصل مع المتدربين
             </a>
         </div>
     </div>
 
-    <div class="mt-4 text-center">
-        <a asp-action="Index" class="btn btn-secondary">← Back to List</a>
-    </div>
+    <!-- Back -->
+    <a asp-action="Index" class="rc-back-btn">
+        <i class="fas fa-arrow-right"></i> العودة للقائمة
+    </a>
+
 </div>

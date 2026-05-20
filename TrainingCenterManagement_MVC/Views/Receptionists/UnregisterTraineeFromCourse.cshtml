@@ -1,0 +1,153 @@
+﻿@{
+    ViewData["Title"] = "إلغاء تسجيل طالب من دورة";
+}
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+<style>
+    :root {
+        --primary:#1d4ed8;--primary-light:#3b82f6;--primary-pale:#eff6ff;--primary-dark:#1e3a8a;
+        --danger:#dc2626;--danger-pale:#fff1f2;--danger-border:#fca5a5;
+        --body-bg:#f1f5f9;--card-bg:#fff;--text-1:#0f172a;--text-2:#475569;--text-3:#94a3b8;
+        --border:#e2e8f0;--shadow-sm:0 1px 3px rgba(0,0,0,.08);--shadow-md:0 4px 16px rgba(0,0,0,.10);
+        --radius:16px;--radius-sm:10px;--tr:.2s ease;
+    }
+    * { box-sizing:border-box; }
+    .ur-page { background:var(--body-bg); min-height:100vh; padding:36px 32px; direction:rtl; font-family:'Segoe UI','Cairo',sans-serif; }
+    .ur-breadcrumb { display:flex; align-items:center; gap:7px; font-size:.82rem; color:var(--text-3); margin-bottom:22px; }
+    .ur-breadcrumb a { color:var(--primary); text-decoration:none; }
+    .ur-breadcrumb a:hover { text-decoration:underline; }
+    .ur-header { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-bottom:28px; }
+    .ur-header-left { display:flex; align-items:center; gap:16px; }
+    .ur-icon { width:52px; height:52px; border-radius:14px; background:linear-gradient(135deg,var(--danger),#ef4444); display:flex; align-items:center; justify-content:center; font-size:1.3rem; color:#fff; box-shadow:0 4px 14px rgba(220,38,38,.30); }
+    .ur-header h1 { font-size:1.5rem; font-weight:800; color:var(--text-1); margin:0 0 3px; }
+    .ur-header p { font-size:.85rem; color:var(--text-2); margin:0; }
+    .ur-back-btn { display:inline-flex; align-items:center; gap:7px; padding:9px 20px; border-radius:var(--radius-sm); border:1.5px solid var(--border); background:var(--card-bg); color:var(--text-2); font-size:.875rem; font-weight:600; text-decoration:none; transition:var(--tr); }
+    .ur-back-btn:hover { border-color:var(--primary); color:var(--primary); }
+    .ur-layout { display:grid; grid-template-columns:260px 1fr; gap:22px; align-items:start; }
+    @@media(max-width:860px){ .ur-layout{ grid-template-columns:1fr; } }
+    .ur-card { background:var(--card-bg); border-radius:var(--radius); box-shadow:var(--shadow-sm); border:1px solid var(--border); overflow:hidden; transition:var(--tr); }
+    .ur-card:hover { box-shadow:var(--shadow-md); }
+    .ur-card-head { padding:18px 24px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:10px; background:linear-gradient(to left,#fafbff,var(--card-bg)); }
+    .ur-card-head-icon { width:36px; height:36px; border-radius:9px; background:#fee2e2; color:var(--danger); display:flex; align-items:center; justify-content:center; font-size:.95rem; flex-shrink:0; }
+    .ur-card-head h3 { font-size:.97rem; font-weight:700; color:var(--text-1); margin:0; }
+    .ur-card-head p { font-size:.78rem; color:var(--text-3); margin:2px 0 0; }
+    .ur-card-body { padding:24px; }
+    .ur-aside { display:flex; flex-direction:column; align-items:center; padding:30px 20px; text-align:center; background:linear-gradient(160deg,#fff1f2 0%,#fff 60%); }
+    .ur-aside-avatar { width:86px; height:86px; border-radius:50%; background:linear-gradient(135deg,var(--danger),#ef4444); display:flex; align-items:center; justify-content:center; font-size:1.9rem; color:#fff; border:4px solid #fff; box-shadow:0 6px 18px rgba(220,38,38,.22); margin-bottom:14px; }
+    .ur-aside-label { font-size:1rem; font-weight:700; color:var(--text-1); margin-bottom:4px; }
+    .ur-aside-sub { font-size:.8rem; color:var(--text-3); display:flex; align-items:center; gap:5px; margin-bottom:20px; }
+    .ur-steps { width:100%; }
+    .ur-step { display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid var(--border); font-size:.82rem; color:var(--danger); font-weight:600; }
+    .ur-step:last-child { border-bottom:none; }
+    .ur-step-dot { width:26px; height:26px; border-radius:50%; background:var(--danger); color:#fff; display:flex; align-items:center; justify-content:center; font-size:.7rem; font-weight:700; flex-shrink:0; }
+    .ur-warn { margin-top:20px; width:100%; background:var(--danger-pale); border:1px solid var(--danger-border); border-radius:var(--radius-sm); padding:12px 14px; font-size:.78rem; color:#991b1b; text-align:right; display:flex; align-items:flex-start; gap:8px; }
+    .ur-warn i { color:var(--danger); flex-shrink:0; margin-top:1px; }
+    .ur-group { margin-bottom:20px; }
+    .ur-label { display:flex; align-items:center; gap:7px; font-size:.85rem; font-weight:600; color:var(--text-1); margin-bottom:8px; }
+    .ur-label i { width:26px; height:26px; border-radius:7px; background:#fee2e2; color:var(--danger); display:flex; align-items:center; justify-content:center; font-size:.75rem; flex-shrink:0; }
+    .ur-select { width:100%; padding:11px 14px; border:1.5px solid var(--border); border-radius:var(--radius-sm); font-size:.9rem; font-family:inherit; color:var(--text-1); background:#fafcff; transition:border-color var(--tr),box-shadow var(--tr); outline:none; }
+    .ur-select:focus { border-color:var(--danger); box-shadow:0 0 0 3px rgba(220,38,38,.10); background:#fff; }
+    .ur-alert-success { background:#d1fae5; border:1px solid #6ee7b7; color:#065f46; border-radius:var(--radius-sm); padding:12px 16px; margin-bottom:18px; font-size:.87rem; display:flex; align-items:center; gap:8px; }
+    .ur-alert-danger  { background:#fee2e2; border:1px solid #fca5a5; color:#991b1b; border-radius:var(--radius-sm); padding:12px 16px; margin-bottom:18px; font-size:.87rem; display:flex; align-items:center; gap:8px; }
+    .ur-submit-row { display:flex; align-items:center; justify-content:flex-end; gap:12px; padding-top:6px; flex-wrap:wrap; }
+    .ur-btn-confirm { display:inline-flex; align-items:center; gap:8px; padding:11px 28px; border-radius:var(--radius-sm); background:linear-gradient(135deg,var(--danger),#ef4444); color:#fff; border:none; font-size:.92rem; font-weight:700; font-family:inherit; cursor:pointer; transition:var(--tr),transform .1s; box-shadow:0 4px 14px rgba(220,38,38,.28); }
+    .ur-btn-confirm:hover { background:linear-gradient(135deg,#b91c1c,var(--danger)); transform:translateY(-1px); }
+    .ur-btn-cancel { display:inline-flex; align-items:center; gap:7px; padding:10px 22px; border-radius:var(--radius-sm); border:1.5px solid var(--border); background:var(--card-bg); color:var(--text-2); font-size:.875rem; font-weight:600; text-decoration:none; transition:var(--tr); }
+    .ur-btn-cancel:hover { border-color:var(--primary); color:var(--primary); }
+</style>
+
+<div class="ur-page">
+
+    <nav class="ur-breadcrumb">
+        <a href="/Dashboard/ReceptionistDashboard"><i class="fas fa-home"></i> الرئيسية</a>
+        <i class="fas fa-chevron-left"></i>
+        <span>إلغاء تسجيل طالب</span>
+    </nav>
+
+    <div class="ur-header">
+        <div class="ur-header-left">
+            <div class="ur-icon"><i class="fas fa-user-times"></i></div>
+            <div>
+                <h1>إلغاء تسجيل طالب من دورة</h1>
+                <p>اختر الطالب والدورة لإلغاء تسجيله</p>
+            </div>
+        </div>
+        <a href="/Dashboard/ReceptionistDashboard" class="ur-back-btn">
+            <i class="fas fa-arrow-right"></i> العودة للوحة التحكم
+        </a>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="ur-alert-success"><i class="fas fa-check-circle"></i> @TempData["SuccessMessage"]</div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="ur-alert-danger"><i class="fas fa-exclamation-circle"></i> @TempData["ErrorMessage"]</div>
+    }
+
+    <div class="ur-layout">
+
+        <!-- Aside -->
+        <div class="ur-card">
+            <div class="ur-aside">
+                <div class="ur-aside-avatar"><i class="fas fa-user-times"></i></div>
+                <div class="ur-aside-label">إلغاء التسجيل</div>
+                <div class="ur-aside-sub"><i class="fas fa-unlink" style="color:var(--danger);"></i> فصل طالب عن دورة</div>
+                <div class="ur-steps">
+                    <div class="ur-step"><div class="ur-step-dot">1</div> اختيار الدورة</div>
+                    <div class="ur-step"><div class="ur-step-dot">2</div> اختيار الطالب</div>
+                    <div class="ur-step"><div class="ur-step-dot">3</div> تأكيد الإلغاء</div>
+                </div>
+                <div class="ur-warn">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span>سيتم إلغاء تسجيل الطالب من الدورة المختارة. تأكد من صحة البيانات قبل التأكيد.</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Form -->
+        <div class="ur-card">
+            <div class="ur-card-head">
+                <div class="ur-card-head-icon"><i class="fas fa-user-times"></i></div>
+                <div>
+                    <h3>بيانات إلغاء التسجيل</h3>
+                    <p>جميع الحقول مطلوبة</p>
+                </div>
+            </div>
+            <div class="ur-card-body">
+                <form asp-action="UnregisterTraineeFromCourse" asp-controller="Receptionists" method="post">
+                    @Html.AntiForgeryToken()
+
+                    <div class="ur-group">
+                        <label class="ur-label">
+                            <i class="fas fa-book-open"></i> الدورة
+                        </label>
+                        <select name="courseId" class="ur-select" asp-items="ViewBag.CourseId">
+                            <option value="">— اختر الدورة —</option>
+                        </select>
+                    </div>
+
+                    <div class="ur-group">
+                        <label class="ur-label">
+                            <i class="fas fa-user-graduate"></i> الطالب
+                        </label>
+                        <select name="traineeId" class="ur-select" asp-items="ViewBag.TraineeId">
+                            <option value="">— اختر الطالب —</option>
+                        </select>
+                    </div>
+
+                    <div class="ur-submit-row">
+                        <a href="/Dashboard/ReceptionistDashboard" class="ur-btn-cancel">
+                            <i class="fas fa-times"></i> إلغاء
+                        </a>
+                        <button type="submit" class="ur-btn-confirm">
+                            <i class="fas fa-user-times"></i> تأكيد إلغاء التسجيل
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

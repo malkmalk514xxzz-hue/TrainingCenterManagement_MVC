@@ -82,7 +82,7 @@
     }
 
     <div class="rg-card">
-        <form method="post" class="form-account-bg-form">
+        <form asp-action="Register" asp-controller="Account" method="post" class="form-account-bg-form">
             @Html.AntiForgeryToken()
             <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 

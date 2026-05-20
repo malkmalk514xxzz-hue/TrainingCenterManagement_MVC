@@ -1,0 +1,136 @@
+@model IEnumerable<TrainingCenterManagement_MVC.Models.Payment>
+
+@{
+    int currentPage = ViewBag.CurrentPage ?? 1;
+    int totalPages = ViewBag.TotalPages ?? 1;
+    int totalCount = ViewBag.TotalCount ?? 0;
+    decimal totalAmt = ViewBag.TotalAmount ?? 0m;
+    int pageSize = ViewBag.PageSize ?? 10;
+    string sortBy = ViewBag.SortBy ?? "date";
+    string sortDir = ViewBag.SortDir ?? "desc";
+}
+
+@if (!Model.Any())
+{
+    <div class="rp-empty">
+        <i class="fas fa-inbox"></i>
+        <p>لا توجد دفعات مطابقة للبحث</p>
+    </div>
+}
+else
+{
+    <div class="rp-results">
+        عرض <strong>@(((currentPage - 1) * pageSize) + 1)–@(Math.Min(currentPage * pageSize, totalCount))</strong>
+        من <strong>@totalCount</strong> دفعة
+    </div>
+
+    <div style="overflow-x:auto;">
+        <table class="rp-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th class="sortable rp-sort-col" data-sort="name"
+                        style="cursor:pointer;">
+                        الطالب
+                        <i class="fas fa-sort@(sortBy == "name" ? (sortDir == "asc" ? "-up" : "-down") : "") sort-icon @(sortBy == "name" ? "active" : "")"></i>
+                    </th>
+                    <th>الدورة</th>
+                    <th class="sortable rp-sort-col" data-sort="amount" style="cursor:pointer;">
+                        المبلغ
+                        <i class="fas fa-sort@(sortBy == "amount" ? (sortDir == "asc" ? "-up" : "-down") : "") sort-icon @(sortBy == "amount" ? "active" : "")"></i>
+                    </th>
+                    <th class="sortable rp-sort-col" data-sort="date" style="cursor:pointer;">
+                        التاريخ
+                        <i class="fas fa-sort@(sortBy == "date" ? (sortDir == "asc" ? "-up" : "-down") : "") sort-icon @(sortBy == "date" ? "active" : "")"></i>
+                    </th>
+                    <th>الحالة</th>
+                    <th>إجراءات</th>
+                </tr>
+            </thead>
+            <tbody>
+                @{
+                    int row = ((currentPage - 1) * pageSize) + 1;
+                }
+                @foreach (var p in Model)
+                {
+                    var initials = p.Trainee?.User?.FullName?.Length > 0 ? p.Trainee.User.FullName[0].ToString() : "؟";
+                    <tr>
+                        <td style="color:var(--text-3);font-size:.82rem;">@row</td>
+                        <td>
+                            <div class="rp-trainee-cell">
+                                <span class="rp-avatar">@initials</span>
+                                @(p.Trainee?.User?.FullName ?? "—")
+                            </div>
+                        </td>
+                        <td style="color:var(--text-2);">@(p.Course?.CourseName ?? "—")</td>
+                        <td><span class="rp-amount">@p.TotalAmount.ToString("N0") ل.س</span></td>
+                        <td><span class="rp-date">@p.CreatedDate.ToString("yyyy-MM-dd")</span></td>
+                        <td>
+                            @if (!p.IsDeleted)
+                            {
+                                <span class="rp-status-active"><i class="fas fa-check-circle" style="margin-left:3px;font-size:.7rem;"></i>مدفوعة</span>
+                            }
+                            else
+                            {
+                                <span class="rp-status-deleted"><i class="fas fa-times-circle" style="margin-left:3px;font-size:.7rem;"></i>ملغاة</span>
+                            }
+                        </td>
+                        <td>
+                            <a asp-action="Details" asp-controller="Payments" asp-route-id="@p.PaymentId"
+                                   style="display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:8px;background:var(--primary-pale);color:var(--primary);font-size:.78rem;font-weight:600;text-decoration:none;transition:.2s;">
+                                <i class="fas fa-eye"></i> عرض
+                            </a>
+                        </td>
+                    </tr>
+                    row++;
+                }
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="3" style="text-align:right;">الإجمالي</td>
+                    <td><span class="rp-amount">@totalAmt.ToString("N0") ل.س</span></td>
+                    <td colspan="3"></td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    @if (totalPages > 1)
+    {
+        <div class="rp-pag-wrap">
+            <div class="rp-pag-info">صفحة @currentPage من @totalPages</div>
+            <ul class="rp-pag">
+                <li class="@(currentPage <= 1 ? "disabled" : "")">
+                    <a href="#" class="rp-pag-link" data-page="@(currentPage - 1)"><i class="fas fa-chevron-right"></i></a>
+                </li>
+                @{
+                    int s = Math.Max(1, currentPage - 2), e = Math.Min(totalPages, currentPage + 2);
+                    if (s > 1)
+                    {
+                        <li><a href="#" class="rp-pag-link" data-page="1">1</a></li>
+                    }
+                    if (s > 2)
+                    {
+                        <li class="ellipsis"><span>…</span></li>
+                    }
+                    for (int i = s; i <= e; i++)
+                    {
+                        <li class="@(i == currentPage ? "active" : "")"><a href="#" class="rp-pag-link" data-page="@i">@i</a></li>
+                    }
+                    if (e < totalPages - 1)
+                    {
+                        <li class="ellipsis"><span>…</span></li>
+                    }
+                    if (e < totalPages)
+                    {
+                        <li><a href="#" class="rp-pag-link" data-page="@totalPages">@totalPages</a></li>
+                    }
+                }
+                <li class="@(currentPage >= totalPages ? "disabled" : "")">
+                    <a href="#" class="rp-pag-link" data-page="@(currentPage + 1)"><i class="fas fa-chevron-left"></i></a>
+                </li>
+            </ul>
+        </div>
+    }
+}

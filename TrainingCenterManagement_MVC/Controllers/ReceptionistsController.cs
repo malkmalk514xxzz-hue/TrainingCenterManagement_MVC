@@ -13,7 +13,6 @@ using TrainingCenterManagement_MVC.Data;
 using TrainingCenterManagement_MVC.Models;
 using TrainingCenterManagement_MVC.ViewModels;
 
-
 namespace TrainingCenterManagement_MVC.Controllers
 {
     public class ReceptionistsController : Controller
@@ -25,6 +24,8 @@ namespace TrainingCenterManagement_MVC.Controllers
             _context = context;
         }
 
+        // ── Index ─────────────────────────────────────────────────────────────
+
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Index()
         {
@@ -34,23 +35,22 @@ namespace TrainingCenterManagement_MVC.Controllers
             return View(receptionists);
         }
 
+        // ── Details ───────────────────────────────────────────────────────────
+
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Details(Guid? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            if (id == null) return NotFound();
 
             var receptionist = await _context.Receptionists
                 .Include(r => r.User)
                 .FirstOrDefaultAsync(m => m.ReceptionistId == id);
-            if (receptionist == null)
-            {
-                return NotFound();
-            }
+
+            if (receptionist == null) return NotFound();
             return View(receptionist);
         }
+
+        // ── Create ────────────────────────────────────────────────────────────
 
         [Authorize(Roles = "Admin")]
         public IActionResult Create()
@@ -86,21 +86,18 @@ namespace TrainingCenterManagement_MVC.Controllers
             return View(model);
         }
 
+        // ── Delete ────────────────────────────────────────────────────────────
+
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(Guid? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            if (id == null) return NotFound();
 
             var receptionist = await _context.Receptionists
                 .Include(r => r.User)
                 .FirstOrDefaultAsync(m => m.ReceptionistId == id);
-            if (receptionist == null)
-            {
-                return NotFound();
-            }
+
+            if (receptionist == null) return NotFound();
             return View(receptionist);
         }
 
@@ -111,23 +108,23 @@ namespace TrainingCenterManagement_MVC.Controllers
         {
             var receptionist = await _context.Receptionists.FindAsync(id);
             if (receptionist != null)
-            {
                 _context.Receptionists.Remove(receptionist);
-            }
+
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
         private bool ReceptionistExists(Guid id)
-        {
-            return _context.Receptionists.Any(e => e.ReceptionistId == id);
-        }
+            => _context.Receptionists.Any(e => e.ReceptionistId == id);
+
+        // ── Register Trainee To Course ────────────────────────────────────────
 
         [Authorize(Roles = "Receptionist,Admin")]
         public async Task<IActionResult> RegisterTraineeToCourse()
         {
             ViewData["CourseId"] = new SelectList(_context.Courses, "CourseId", "CourseName");
-            ViewData["TraineeId"] = new SelectList(_context.Trainees.Include(t => t.User), "TraineeId", "User.FullName");
+            ViewData["TraineeId"] = new SelectList(
+                _context.Trainees.Include(t => t.User), "TraineeId", "User.FullName");
             return View();
         }
 
@@ -136,15 +133,17 @@ namespace TrainingCenterManagement_MVC.Controllers
         [Authorize(Roles = "Receptionist,Admin")]
         public async Task<IActionResult> RegisterTraineeToCourse(Guid courseId, Guid traineeId)
         {
-            if (!_context.Courses.Any(c => c.CourseId == courseId) || !_context.Trainees.Any(t => t.TraineeId == traineeId))
+            if (!_context.Courses.Any(c => c.CourseId == courseId) ||
+                !_context.Trainees.Any(t => t.TraineeId == traineeId))
             {
                 TempData["ErrorMessage"] = "الدورة أو الطالب غير موجود.";
                 return RedirectToAction(nameof(RegisterTraineeToCourse));
             }
 
-            var existingRegistration = await _context.CourseTrainees
+            var alreadyRegistered = await _context.CourseTrainees
                 .AnyAsync(ct => ct.CourseId == courseId && ct.TraineeId == traineeId);
-            if (existingRegistration)
+
+            if (alreadyRegistered)
             {
                 TempData["ErrorMessage"] = "الطالب مسجل بالفعل في هذه الدورة.";
                 return RedirectToAction(nameof(RegisterTraineeToCourse));
@@ -161,11 +160,14 @@ namespace TrainingCenterManagement_MVC.Controllers
             return RedirectToAction("ReceptionistDashboard", "Dashboard");
         }
 
+        // ── Unregister Trainee From Course ────────────────────────────────────
+
         [Authorize(Roles = "Receptionist,Admin")]
         public IActionResult UnregisterTraineeFromCourse()
         {
             ViewData["CourseId"] = new SelectList(_context.Courses, "CourseId", "CourseName");
-            ViewData["TraineeId"] = new SelectList(_context.Trainees.Include(t => t.User), "TraineeId", "User.FullName");
+            ViewData["TraineeId"] = new SelectList(
+                _context.Trainees.Include(t => t.User), "TraineeId", "User.FullName");
             return View();
         }
 
@@ -176,6 +178,7 @@ namespace TrainingCenterManagement_MVC.Controllers
         {
             var registration = await _context.CourseTrainees
                 .FirstOrDefaultAsync(ct => ct.CourseId == courseId && ct.TraineeId == traineeId);
+
             if (registration == null)
             {
                 TempData["ErrorMessage"] = "الطالب غير مسجل في هذه الدورة.";
@@ -188,6 +191,8 @@ namespace TrainingCenterManagement_MVC.Controllers
             TempData["SuccessMessage"] = "تم إلغاء تسجيل الطالب من الدورة بنجاح.";
             return RedirectToAction("ReceptionistDashboard", "Dashboard");
         }
+
+        // ── Refund Payment ────────────────────────────────────────────────────
 
         [Authorize(Roles = "Receptionist,Admin")]
         public async Task<IActionResult> RefundPayment(Guid paymentId)
@@ -206,6 +211,8 @@ namespace TrainingCenterManagement_MVC.Controllers
             return RedirectToAction("ReceptionistDashboard", "Dashboard");
         }
 
+        // ── Course Details ────────────────────────────────────────────────────
+
         [Authorize(Roles = "Receptionist,Admin")]
         public async Task<IActionResult> CourseDetails(Guid courseId)
         {
@@ -213,32 +220,12 @@ namespace TrainingCenterManagement_MVC.Controllers
                 .Include(c => c.CourseTrainees).ThenInclude(ct => ct.Trainee).ThenInclude(t => t.User)
                 .Include(c => c.CourseTrainers).ThenInclude(ct => ct.Trainer).ThenInclude(t => t.User)
                 .FirstOrDefaultAsync(c => c.CourseId == courseId);
-            if (course == null)
-            {
-                return NotFound();
-            }
+
+            if (course == null) return NotFound();
             return View(course);
         }
 
-        [Authorize(Roles = "Receptionist,Admin")]
-        public async Task<IActionResult> AttendanceReports()
-        {
-            var reports = await _context.Presences
-                .Include(p => p.Trainee).ThenInclude(t => t.User)
-                .Include(p => p.Lecture).ThenInclude(l => l.Course)
-                .ToListAsync();
-            return View(reports);
-        }
-
-        [Authorize(Roles = "Receptionist,Admin")]
-        public async Task<IActionResult> PaymentReports()
-        {
-            var payments = await _context.Payments
-                .Include(p => p.Course)
-                .Include(p => p.Trainee).ThenInclude(t => t.User)
-                .ToListAsync();
-            return View(payments);
-        }
+        // ── Contact Trainees ──────────────────────────────────────────────────
 
         [Authorize(Roles = "Receptionist,Admin")]
         public async Task<IActionResult> ContactTrainees()
@@ -246,6 +233,28 @@ namespace TrainingCenterManagement_MVC.Controllers
             var trainees = await _context.Trainees.Include(t => t.User).ToListAsync();
             return View(trainees);
         }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Receptionist,Admin")]
+        public async Task<IActionResult> SendMessageToTrainee(string email, string message)
+        {
+            TempData["SuccessMessage"] = $"تم إرسال الرسالة إلى {email}";
+            var receiver = await _context.Users.FirstOrDefaultAsync(u => u.UserName == email);
+            var sender = await _context.Receptionists.FirstOrDefaultAsync();
+
+            _context.Messages.Add(new TrainingCenterManagement_MVC.Models.Message
+            {
+                Content = message,
+                ReceiverId = receiver.Id,
+                SenderId = sender.UserId,
+                Timestamp = DateTime.Now,
+            });
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(ContactTrainees));
+        }
+
+        // ── PDF Exports ───────────────────────────────────────────────────────
 
         [Authorize(Roles = "Receptionist")]
         public IActionResult AttendanceReportPdf()
@@ -273,25 +282,139 @@ namespace TrainingCenterManagement_MVC.Controllers
             };
         }
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
+        // ── PaymentReports — Pagination + Ajax + Search + Sort ────────────────
+        // MODIFIED: Added pagination, Ajax support, search, and sorting.
+        // The view now returns a partial when called via Ajax (X-Requested-With header).
+
         [Authorize(Roles = "Receptionist,Admin")]
-        public async Task<IActionResult> SendMessageToTrainee(string email, string message)
+        public async Task<IActionResult> PaymentReports(
+            int page = 1,
+            int pageSize = 10,
+            string search = "",
+            string sortBy = "date",
+            string sortDir = "desc")
         {
-            TempData["SuccessMessage"] = $"تم إرسال الرسالة إلى {email}";
-            var Receiver = await _context.Users.FirstOrDefaultAsync(u => u.UserName == email);
-            var sender = await _context.Receptionists.FirstOrDefaultAsync();
-            _context.Messages.Add(new TrainingCenterManagement_MVC.Models.Message()
+            pageSize = Math.Clamp(pageSize, 5, 50);
+
+            var query = _context.Payments
+                .Include(p => p.Course)
+                .Include(p => p.Trainee).ThenInclude(t => t.User)
+                .AsQueryable();
+
+            // Search by trainee name or course name
+            if (!string.IsNullOrWhiteSpace(search))
             {
-                Content = message,
-                ReceiverId = Receiver.Id,
-                SenderId = sender.UserId,
-                Timestamp = DateTime.Now,
+                var term = search.Trim().ToLower();
+                query = query.Where(p =>
+                    (p.Trainee.User.FullName != null && p.Trainee.User.FullName.ToLower().Contains(term)) ||
+                    (p.Course.CourseName != null && p.Course.CourseName.ToLower().Contains(term)));
+            }
 
+            var totalCount = await query.CountAsync();
+            var totalAmount = await query.SumAsync(p => (decimal?)p.TotalAmount) ?? 0m;
+            var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+            page = Math.Max(1, Math.Min(page, Math.Max(1, totalPages)));
 
-            });
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(ContactTrainees));
+            // Sort
+            query = (sortBy, sortDir) switch
+            {
+                ("name", "asc") => query.OrderBy(p => p.Trainee.User.FullName),
+                ("name", "desc") => query.OrderByDescending(p => p.Trainee.User.FullName),
+                ("amount", "asc") => query.OrderBy(p => p.TotalAmount),
+                ("amount", "desc") => query.OrderByDescending(p => p.TotalAmount),
+                ("date", "asc") => query.OrderBy(p => p.CreatedDate),
+                _ => query.OrderByDescending(p => p.CreatedDate)
+            };
+
+            var payments = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.TotalCount = totalCount;
+            ViewBag.TotalAmount = totalAmount;
+            ViewBag.Search = search;
+            ViewBag.SortBy = sortBy;
+            ViewBag.SortDir = sortDir;
+            ViewBag.PageSize = pageSize;
+
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                return PartialView("_PaymentReportsTablePartial", payments);
+
+            return View(payments);
+        }
+
+        // ── AttendanceReports — Pagination + Ajax + Search + Sort + Filter ─────
+        // MODIFIED: Added pagination, Ajax support, search, sorting, and status filter.
+
+        [Authorize(Roles = "Receptionist,Admin")]
+        public async Task<IActionResult> AttendanceReports(
+            int page = 1,
+            int pageSize = 10,
+            string search = "",
+            string sortBy = "date",
+            string sortDir = "desc",
+            string status = "all")
+        {
+            pageSize = Math.Clamp(pageSize, 5, 50);
+
+            var query = _context.Presences
+                .Include(p => p.Trainee).ThenInclude(t => t.User)
+                .Include(p => p.Lecture).ThenInclude(l => l.Course)
+                .AsQueryable();
+
+            // Filter by attendance status
+            if (status == "present") query = query.Where(p => p.IsPresent);
+            if (status == "absent") query = query.Where(p => !p.IsPresent);
+
+            // Search
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var term = search.Trim().ToLower();
+                query = query.Where(p =>
+                    (p.Trainee.User.FullName != null && p.Trainee.User.FullName.ToLower().Contains(term)) ||
+                    (p.Lecture.Title != null && p.Lecture.Title.ToLower().Contains(term)) ||
+                    (p.Lecture.Course.CourseName != null && p.Lecture.Course.CourseName.ToLower().Contains(term)));
+            }
+
+            var totalCount = await query.CountAsync();
+            var totalPresent = await query.CountAsync(p => p.IsPresent);
+            var totalAbsent = totalCount - totalPresent;
+            var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+            page = Math.Max(1, Math.Min(page, Math.Max(1, totalPages)));
+
+            // Sort
+            query = (sortBy, sortDir) switch
+            {
+                ("name", "asc") => query.OrderBy(p => p.Trainee.User.FullName),
+                ("name", "desc") => query.OrderByDescending(p => p.Trainee.User.FullName),
+                ("lecture", "asc") => query.OrderBy(p => p.Lecture.Title),
+                ("lecture", "desc") => query.OrderByDescending(p => p.Lecture.Title),
+                _ => query.OrderByDescending(p => p.Lecture.LectureDate)
+            };
+
+            var presences = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.TotalCount = totalCount;
+            ViewBag.TotalPresent = totalPresent;
+            ViewBag.TotalAbsent = totalAbsent;
+            ViewBag.Search = search;
+            ViewBag.SortBy = sortBy;
+            ViewBag.SortDir = sortDir;
+            ViewBag.PageSize = pageSize;
+            ViewBag.Status = status;
+
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                return PartialView("_AttendanceReportsTablePartial", presences);
+
+            return View(presences);
         }
     }
 }

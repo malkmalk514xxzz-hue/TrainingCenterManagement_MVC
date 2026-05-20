@@ -1,0 +1,119 @@
+@model IEnumerable<TrainingCenterManagement_MVC.Models.Presence>
+
+@{
+    int currentPage = ViewBag.CurrentPage ?? 1;
+    int totalPages = ViewBag.TotalPages ?? 1;
+    int totalCount = ViewBag.TotalCount ?? 0;
+    int pageSize = ViewBag.PageSize ?? 10;
+    string sortBy = ViewBag.SortBy ?? "date";
+    string sortDir = ViewBag.SortDir ?? "desc";
+}
+
+@if (!Model.Any())
+{
+    <div class="ar-empty">
+        <i class="fas fa-clipboard"></i>
+        <p>لا توجد سجلات مطابقة</p>
+    </div>
+}
+else
+{
+    <div class="ar-results">
+        عرض <strong>@(((currentPage - 1) * pageSize) + 1)–@(Math.Min(currentPage * pageSize, totalCount))</strong>
+        من <strong>@totalCount</strong> سجل
+    </div>
+
+    <div style="overflow-x:auto;">
+        <table class="ar-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th class="sortable ar-sort-col" data-sort="lecture" style="cursor:pointer;">
+                        المحاضرة
+                        <i class="fas fa-sort@(sortBy == "lecture" ? (sortDir == "asc" ? "-up" : "-down") : "") sort-icon @(sortBy == "lecture" ? "active" : "")"></i>
+                    </th>
+                    <th>الدورة</th>
+                    <th class="sortable ar-sort-col" data-sort="name" style="cursor:pointer;">
+                        المتدرب
+                        <i class="fas fa-sort@(sortBy == "name" ? (sortDir == "asc" ? "-up" : "-down") : "") sort-icon @(sortBy == "name" ? "active" : "")"></i>
+                    </th>
+                    <th style="text-align:center;">الحالة</th>
+                </tr>
+            </thead>
+            <tbody>
+                @{
+                    int row = ((currentPage - 1) * pageSize) + 1;
+                }
+                @foreach (var item in Model)
+                {
+                    var initials = item.Trainee?.User?.FullName?.Length > 0 ? item.Trainee.User.FullName[0].ToString() : "؟";
+                    <tr>
+                        <td style="color:var(--text-3);font-size:.82rem;">@row</td>
+                        <td style="font-weight:500;">@(item.Lecture?.Title ?? "—")</td>
+                        <td style="color:var(--text-2);">@(item.Lecture?.Course?.CourseName ?? "—")</td>
+                        <td>
+                            <div class="ar-trainee-cell">
+                                <span class="ar-avatar">@initials</span>
+                                @(item.Trainee?.User?.FullName ?? "—")
+                            </div>
+                        </td>
+                        <td style="text-align:center;">
+                            @if (item.IsPresent)
+                            {
+                                <span class="ar-badge-present">
+                                    <i class="fas fa-check-circle"></i> حاضر
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="ar-badge-absent">
+                                    <i class="fas fa-times-circle"></i> غائب
+                                </span>
+                            }
+                        </td>
+                    </tr>
+                    row++;
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    @if (totalPages > 1)
+    {
+        <div class="ar-pag-wrap">
+            <div class="ar-pag-info">صفحة @currentPage من @totalPages</div>
+            <ul class="ar-pag">
+                <li class="@(currentPage <= 1 ? "disabled" : "")">
+                    <a href="#" class="ar-pag-link" data-page="@(currentPage - 1)"><i class="fas fa-chevron-right"></i></a>
+                </li>
+                @{
+                    int s = Math.Max(1, currentPage - 2), e = Math.Min(totalPages, currentPage + 2);
+                    if (s > 1)
+                    {
+                        <li><a href="#" class="ar-pag-link" data-page="1">1</a></li>
+                    }
+                    if (s > 2)
+                    {
+                        <li class="ellipsis"><span>…</span></li>
+                    }
+                    for (int i = s; i <= e; i++)
+                    {
+                        <li class="@(i == currentPage ? "active" : "")"><a href="#" class="ar-pag-link" data-page="@i">@i</a></li>
+                    }
+                    if (e < totalPages - 1)
+                    {
+                        <li class="ellipsis"><span>…</span></li>
+                    }
+                    if (e < totalPages)
+                    {
+                        <li><a href="#" class="ar-pag-link" data-page="@totalPages">@totalPages</a></li>
+                    }
+                }
+                <li class="@(currentPage >= totalPages ? "disabled" : "")">
+                    <a href="#" class="ar-pag-link" data-page="@(currentPage + 1)"><i class="fas fa-chevron-left"></i></a>
+                </li>
+            </ul>
+        </div>
+    }
+}

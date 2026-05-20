@@ -1,0 +1,161 @@
+﻿@{
+    ViewData["Title"] = "تسجيل طالب في دورة";
+}
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+<style>
+    :root {
+        --primary: #1d4ed8; --primary-light: #3b82f6; --primary-pale: #eff6ff;
+        --primary-dark: #1e3a8a; --success: #10b981; --danger: #ef4444;
+        --body-bg: #f1f5f9; --card-bg: #fff; --text-1: #0f172a;
+        --text-2: #475569; --text-3: #94a3b8; --border: #e2e8f0;
+        --shadow-sm: 0 1px 3px rgba(0,0,0,.08); --shadow-md: 0 4px 16px rgba(0,0,0,.10);
+        --radius: 16px; --radius-sm: 10px; --tr: .2s ease;
+    }
+    * { box-sizing: border-box; }
+    .rg-page { background: var(--body-bg); min-height: 100vh; padding: 36px 32px; direction: rtl; font-family: 'Segoe UI','Cairo',sans-serif; }
+    .rg-breadcrumb { display:flex; align-items:center; gap:7px; font-size:.82rem; color:var(--text-3); margin-bottom:22px; }
+    .rg-breadcrumb a { color:var(--primary); text-decoration:none; }
+    .rg-breadcrumb a:hover { text-decoration:underline; }
+    .rg-breadcrumb i { font-size:.65rem; }
+    .rg-header { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-bottom:28px; }
+    .rg-header-left { display:flex; align-items:center; gap:16px; }
+    .rg-icon { width:52px; height:52px; border-radius:14px; background:linear-gradient(135deg,var(--primary),var(--primary-light)); display:flex; align-items:center; justify-content:center; font-size:1.3rem; color:#fff; box-shadow:0 4px 14px rgba(29,78,216,.30); }
+    .rg-header h1 { font-size:1.5rem; font-weight:800; color:var(--text-1); margin:0 0 3px; }
+    .rg-header p { font-size:.85rem; color:var(--text-2); margin:0; }
+    .rg-back-btn { display:inline-flex; align-items:center; gap:7px; padding:9px 20px; border-radius:var(--radius-sm); border:1.5px solid var(--border); background:var(--card-bg); color:var(--text-2); font-size:.875rem; font-weight:600; text-decoration:none; transition:var(--tr); }
+    .rg-back-btn:hover { border-color:var(--primary); color:var(--primary); }
+    .rg-layout { display:grid; grid-template-columns:260px 1fr; gap:22px; align-items:start; }
+    @@media(max-width:860px){ .rg-layout{ grid-template-columns:1fr; } }
+    .rg-card { background:var(--card-bg); border-radius:var(--radius); box-shadow:var(--shadow-sm); border:1px solid var(--border); overflow:hidden; transition:var(--tr); }
+    .rg-card:hover { box-shadow:var(--shadow-md); }
+    .rg-card-head { padding:18px 24px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:10px; background:linear-gradient(to left,#fafbff,var(--card-bg)); }
+    .rg-card-head-icon { width:36px; height:36px; border-radius:9px; background:var(--primary-pale); color:var(--primary); display:flex; align-items:center; justify-content:center; font-size:.95rem; flex-shrink:0; }
+    .rg-card-head h3 { font-size:.97rem; font-weight:700; color:var(--text-1); margin:0; }
+    .rg-card-head p { font-size:.78rem; color:var(--text-3); margin:2px 0 0; }
+    .rg-card-body { padding:24px; }
+    .rg-aside { display:flex; flex-direction:column; align-items:center; padding:30px 20px; text-align:center; background:linear-gradient(160deg,var(--primary-pale) 0%,#fff 60%); }
+    .rg-aside-avatar { width:86px; height:86px; border-radius:50%; background:linear-gradient(135deg,var(--primary),var(--primary-light)); display:flex; align-items:center; justify-content:center; font-size:1.9rem; color:#fff; border:4px solid #fff; box-shadow:0 6px 18px rgba(29,78,216,.22); margin-bottom:14px; }
+    .rg-aside-label { font-size:1rem; font-weight:700; color:var(--text-1); margin-bottom:4px; }
+    .rg-aside-sub { font-size:.8rem; color:var(--text-3); display:flex; align-items:center; gap:5px; margin-bottom:20px; }
+    .rg-steps { width:100%; }
+    .rg-step { display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid var(--border); font-size:.82rem; color:var(--primary); font-weight:600; }
+    .rg-step:last-child { border-bottom:none; }
+    .rg-step-dot { width:26px; height:26px; border-radius:50%; background:var(--primary); color:#fff; display:flex; align-items:center; justify-content:center; font-size:.7rem; font-weight:700; flex-shrink:0; }
+    .rg-tip { margin-top:20px; width:100%; background:#fffbeb; border:1px solid #fde68a; border-radius:var(--radius-sm); padding:12px 14px; font-size:.78rem; color:#78350f; text-align:right; display:flex; align-items:flex-start; gap:8px; }
+    .rg-tip i { color:#d97706; flex-shrink:0; margin-top:1px; }
+    .rg-group { margin-bottom:20px; }
+    .rg-label { display:flex; align-items:center; gap:7px; font-size:.85rem; font-weight:600; color:var(--text-1); margin-bottom:8px; }
+    .rg-label i { width:26px; height:26px; border-radius:7px; background:var(--primary-pale); color:var(--primary); display:flex; align-items:center; justify-content:center; font-size:.75rem; flex-shrink:0; }
+    .rg-select { width:100%; padding:11px 14px; border:1.5px solid var(--border); border-radius:var(--radius-sm); font-size:.9rem; font-family:inherit; color:var(--text-1); background:#fafcff; transition:border-color var(--tr),box-shadow var(--tr); outline:none; }
+    .rg-select:focus { border-color:var(--primary); box-shadow:0 0 0 3px rgba(29,78,216,.10); background:#fff; }
+    .rg-val-box { background:#fff0f0; border:1px solid #fca5a5; border-radius:var(--radius-sm); padding:14px 18px; margin-bottom:20px; font-size:.87rem; color:#b91c1c; display:none; align-items:flex-start; gap:10px; }
+    .rg-val-box:not(:empty) { display:flex; }
+    .rg-alert-success { background:#d1fae5; border:1px solid #6ee7b7; color:#065f46; border-radius:var(--radius-sm); padding:12px 16px; margin-bottom:18px; font-size:.87rem; display:flex; align-items:center; gap:8px; }
+    .rg-alert-danger  { background:#fee2e2; border:1px solid #fca5a5; color:#991b1b; border-radius:var(--radius-sm); padding:12px 16px; margin-bottom:18px; font-size:.87rem; display:flex; align-items:center; gap:8px; }
+    .rg-submit-row { display:flex; align-items:center; justify-content:flex-end; gap:12px; padding-top:6px; flex-wrap:wrap; }
+    .rg-btn-save { display:inline-flex; align-items:center; gap:8px; padding:11px 28px; border-radius:var(--radius-sm); background:linear-gradient(135deg,var(--primary),var(--primary-light)); color:#fff; border:none; font-size:.92rem; font-weight:700; font-family:inherit; cursor:pointer; transition:var(--tr),transform .1s; box-shadow:0 4px 14px rgba(29,78,216,.28); }
+    .rg-btn-save:hover { background:linear-gradient(135deg,var(--primary-dark),var(--primary)); transform:translateY(-1px); }
+    .rg-btn-cancel { display:inline-flex; align-items:center; gap:7px; padding:10px 22px; border-radius:var(--radius-sm); border:1.5px solid var(--border); background:var(--card-bg); color:var(--text-2); font-size:.875rem; font-weight:600; text-decoration:none; transition:var(--tr); }
+    .rg-btn-cancel:hover { border-color:var(--primary); color:var(--primary); }
+</style>
+
+<div class="rg-page">
+
+    <nav class="rg-breadcrumb">
+        <a href="/Dashboard/ReceptionistDashboard"><i class="fas fa-home"></i> الرئيسية</a>
+        <i class="fas fa-chevron-left"></i>
+        <span>تسجيل طالب في دورة</span>
+    </nav>
+
+    <div class="rg-header">
+        <div class="rg-header-left">
+            <div class="rg-icon"><i class="fas fa-user-check"></i></div>
+            <div>
+                <h1>تسجيل طالب في دورة</h1>
+                <p>اختر الطالب والدورة لإتمام التسجيل</p>
+            </div>
+        </div>
+        <a href="/Dashboard/ReceptionistDashboard" class="rg-back-btn">
+            <i class="fas fa-arrow-right"></i> العودة للوحة التحكم
+        </a>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="rg-alert-success">
+            <i class="fas fa-check-circle"></i> @TempData["SuccessMessage"]
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="rg-alert-danger">
+            <i class="fas fa-exclamation-circle"></i> @TempData["ErrorMessage"]
+        </div>
+    }
+
+    <div class="rg-layout">
+
+        <!-- Aside -->
+        <div class="rg-card">
+            <div class="rg-aside">
+                <div class="rg-aside-avatar"><i class="fas fa-user-check"></i></div>
+                <div class="rg-aside-label">تسجيل في دورة</div>
+                <div class="rg-aside-sub"><i class="fas fa-link" style="color:var(--primary);"></i> ربط طالب بدورة</div>
+                <div class="rg-steps">
+                    <div class="rg-step"><div class="rg-step-dot">1</div> اختيار الدورة</div>
+                    <div class="rg-step"><div class="rg-step-dot">2</div> اختيار الطالب</div>
+                    <div class="rg-step"><div class="rg-step-dot">3</div> تأكيد التسجيل</div>
+                </div>
+                <div class="rg-tip">
+                    <i class="fas fa-lightbulb"></i>
+                    <span>تأكد من أن الطالب غير مسجل مسبقاً في نفس الدورة قبل الإضافة.</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Form -->
+        <div class="rg-card">
+            <div class="rg-card-head">
+                <div class="rg-card-head-icon"><i class="fas fa-pen"></i></div>
+                <div>
+                    <h3>بيانات التسجيل</h3>
+                    <p>جميع الحقول مطلوبة</p>
+                </div>
+            </div>
+            <div class="rg-card-body">
+                <form asp-action="RegisterTraineeToCourse" asp-controller="Receptionists" method="post">
+                    @Html.AntiForgeryToken()
+
+                    <div class="rg-group">
+                        <label class="rg-label">
+                            <i class="fas fa-book-open"></i> الدورة
+                        </label>
+                        <select name="courseId" class="rg-select" asp-items="ViewBag.CourseId">
+                            <option value="">— اختر الدورة —</option>
+                        </select>
+                    </div>
+
+                    <div class="rg-group">
+                        <label class="rg-label">
+                            <i class="fas fa-user-graduate"></i> الطالب
+                        </label>
+                        <select name="traineeId" class="rg-select" asp-items="ViewBag.TraineeId">
+                            <option value="">— اختر الطالب —</option>
+                        </select>
+                    </div>
+
+                    <div class="rg-submit-row">
+                        <a href="/Dashboard/ReceptionistDashboard" class="rg-btn-cancel">
+                            <i class="fas fa-times"></i> إلغاء
+                        </a>
+                        <button type="submit" class="rg-btn-save">
+                            <i class="fas fa-user-check"></i> تسجيل الطالب
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
