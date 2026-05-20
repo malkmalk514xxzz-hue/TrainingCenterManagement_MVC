@@ -1,60 +1,409 @@
 ﻿@model IEnumerable<TrainingCenterManagement_MVC.Models.Trainee>
 
 @{
-    ViewData["Title"] = "Contact Trainees";
+    ViewData["Title"] = "التواصل مع المتدربين";
+    int    totalCount = ViewBag.TotalCount ?? 0;
+    string search     = ViewBag.Search    ?? "";
+    int    pageSize   = ViewBag.PageSize  ?? 8;
 }
 
-<div class="container mt-4">
-    <h2 class="text-center text-primary mb-4">📩 Contact Trainees</h2>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 
+<style>
+    :root {
+        --primary:       #1d4ed8;
+        --primary-light: #3b82f6;
+        --primary-pale:  #eff6ff;
+        --primary-dark:  #1e3a8a;
+        --success:       #10b981;
+        --danger:        #ef4444;
+        --body-bg:       #f1f5f9;
+        --card-bg:       #ffffff;
+        --text-1:        #0f172a;
+        --text-2:        #475569;
+        --text-3:        #94a3b8;
+        --border:        #e2e8f0;
+        --shadow-sm:     0 1px 3px rgba(0,0,0,.08);
+        --shadow-md:     0 4px 16px rgba(0,0,0,.10);
+        --radius:        16px;
+        --radius-sm:     10px;
+        --tr:            .2s ease;
+    }
+    * { box-sizing: border-box; }
+
+    .ct-page {
+        background: var(--body-bg);
+        min-height: 100vh;
+        padding: 36px 32px;
+        direction: rtl;
+        font-family: 'Segoe UI', 'Cairo', sans-serif;
+    }
+
+    /* ── Breadcrumb ── */
+    .ct-breadcrumb {
+        display: flex; align-items: center; gap: 7px;
+        font-size: .82rem; color: var(--text-3); margin-bottom: 22px;
+    }
+    .ct-breadcrumb a { color: var(--primary); text-decoration: none; }
+    .ct-breadcrumb a:hover { text-decoration: underline; }
+    .ct-breadcrumb i { font-size: .65rem; }
+
+    /* ── Page header ── */
+    .ct-header {
+        display: flex; align-items: center; justify-content: space-between;
+        flex-wrap: wrap; gap: 12px; margin-bottom: 24px;
+    }
+    .ct-header-left { display: flex; align-items: center; gap: 16px; }
+    .ct-page-icon {
+        width: 52px; height: 52px; border-radius: 14px;
+        background: linear-gradient(135deg, var(--primary), var(--primary-light));
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.3rem; color: #fff;
+        box-shadow: 0 4px 14px rgba(29,78,216,.30);
+    }
+    .ct-header h1 { font-size: 1.5rem; font-weight: 800; color: var(--text-1); margin: 0 0 3px; }
+    .ct-header p  { font-size: .85rem; color: var(--text-2); margin: 0; }
+
+    /* ── KPI ── */
+    .ct-kpi {
+        display: inline-flex; align-items: center; gap: 10px;
+        background: var(--card-bg); border-radius: var(--radius-sm);
+        padding: 12px 18px; box-shadow: var(--shadow-sm);
+        border: 1px solid var(--border);
+    }
+    .ct-kpi-icon {
+        width: 38px; height: 38px; border-radius: 9px;
+        background: var(--primary-pale); color: var(--primary);
+        display: flex; align-items: center; justify-content: center;
+        font-size: .95rem;
+    }
+    .ct-kpi-val { font-size: 1.4rem; font-weight: 800; color: var(--text-1); line-height: 1; }
+    .ct-kpi-lbl { font-size: .78rem; color: var(--text-2); }
+
+    /* ── Alert messages ── */
+    .ct-alert-success {
+        background: #d1fae5; border: 1px solid #6ee7b7; color: #065f46;
+        border-radius: var(--radius-sm); padding: 12px 16px;
+        margin-bottom: 18px; font-size: .87rem;
+        display: flex; align-items: center; gap: 8px;
+    }
+
+    /* ── Card ── */
+    .ct-card {
+        background: var(--card-bg); border-radius: var(--radius);
+        box-shadow: var(--shadow-sm); border: 1px solid var(--border);
+        overflow: hidden;
+    }
+
+    /* ── Toolbar ── */
+    .ct-toolbar {
+        display: flex; align-items: center; justify-content: space-between;
+        flex-wrap: wrap; gap: 12px;
+        padding: 18px 24px; border-bottom: 1px solid var(--border);
+    }
+    .ct-toolbar-left  { display: flex; align-items: center; gap: 10px; }
+    .ct-toolbar-right { display: flex; align-items: center; gap: 10px; }
+
+    /* Search */
+    .ct-search-wrap { position: relative; width: 280px; }
+    .ct-search-wrap .si {
+        position: absolute; right: 12px; top: 50%;
+        transform: translateY(-50%); color: var(--text-3);
+        font-size: .9rem; pointer-events: none;
+    }
+    .ct-search-wrap input {
+        width: 100%; padding: 9px 36px 9px 36px;
+        border: 1.5px solid var(--border); border-radius: var(--radius-sm);
+        font-size: .9rem; font-family: inherit; outline: none;
+        background: #fafcff; transition: border-color var(--tr), box-shadow var(--tr);
+        direction: rtl;
+    }
+    .ct-search-wrap input:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(29,78,216,.10);
+        background: #fff;
+    }
+    .ct-search-clear {
+        position: absolute; left: 10px; top: 50%;
+        transform: translateY(-50%);
+        background: none; border: none; color: var(--text-3);
+        cursor: pointer; font-size: .8rem; display: none; padding: 2px;
+    }
+
+    /* Page size */
+    .ct-psize {
+        display: flex; align-items: center; gap: 6px;
+        font-size: .85rem; color: var(--text-2);
+    }
+    .ct-psize select {
+        padding: 7px 10px; border: 1.5px solid var(--border);
+        border-radius: var(--radius-sm); font-size: .85rem; outline: none;
+    }
+
+    /* Container */
+    #ct-container { padding: 0 24px 24px; }
+
+    /* ── Loader ── */
+    .ct-loader {
+        display: flex; flex-direction: column;
+        align-items: center; justify-content: center;
+        padding: 60px; gap: 14px; color: var(--text-3);
+    }
+    .ct-spinner {
+        width: 36px; height: 36px;
+        border: 3px solid var(--border);
+        border-top-color: var(--primary);
+        border-radius: 50%;
+        animation: ct-spin .7s linear infinite;
+    }
+    @@keyframes ct-spin { to { transform: rotate(360deg); } }
+
+    /* ── Results summary ── */
+    .ct-results { padding: 14px 0 8px; font-size: .85rem; color: var(--text-3); }
+
+    /* ── Trainee Cards Grid ── */
+    .ct-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+        gap: 16px;
+        padding-top: 4px;
+    }
+    @@media (max-width: 600px) { .ct-grid { grid-template-columns: 1fr; } }
+
+    .ct-trainee-card {
+        border: 1.5px solid var(--border);
+        border-radius: var(--radius-sm);
+        background: var(--card-bg);
+        overflow: hidden;
+        transition: var(--tr);
+    }
+    .ct-trainee-card:hover {
+        border-color: var(--primary);
+        box-shadow: var(--shadow-md);
+        transform: translateY(-2px);
+    }
+
+    /* Card header */
+    .ct-tc-head {
+        display: flex; align-items: center; gap: 14px;
+        padding: 16px 18px;
+        border-bottom: 1px solid var(--border);
+        background: linear-gradient(to left, #fafbff, var(--card-bg));
+    }
+    .ct-tc-avatar {
+        width: 46px; height: 46px; border-radius: 50%;
+        background: linear-gradient(135deg, var(--primary), var(--primary-light));
+        color: #fff; font-size: 1.1rem; font-weight: 800;
+        display: flex; align-items: center; justify-content: center;
+        flex-shrink: 0; border: 2px solid var(--primary-pale);
+    }
+    .ct-tc-name { font-size: .97rem; font-weight: 700; color: var(--text-1); }
+    .ct-tc-email {
+        font-size: .78rem; color: var(--primary);
+        text-decoration: none; display: flex; align-items: center; gap: 4px;
+    }
+    .ct-tc-email:hover { text-decoration: underline; }
+    .ct-tc-badge {
+        margin-right: auto;
+        background: var(--primary-pale); color: var(--primary);
+        border-radius: 20px; padding: 3px 10px;
+        font-size: .72rem; font-weight: 600;
+        display: flex; align-items: center; gap: 4px;
+        white-space: nowrap;
+    }
+
+    /* Card body — message form */
+    .ct-tc-body { padding: 14px 18px; }
+    .ct-msg-row {
+        display: flex; gap: 8px; align-items: stretch;
+    }
+    .ct-msg-input {
+        flex: 1; padding: 9px 13px;
+        border: 1.5px solid var(--border); border-radius: var(--radius-sm);
+        font-size: .88rem; font-family: inherit; color: var(--text-1);
+        background: #fafcff; outline: none;
+        transition: border-color var(--tr), box-shadow var(--tr);
+        direction: rtl;
+    }
+    .ct-msg-input:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(29,78,216,.10);
+        background: #fff;
+    }
+    .ct-msg-input::placeholder { color: var(--text-3); }
+    .ct-send-btn {
+        display: inline-flex; align-items: center; gap: 6px;
+        padding: 9px 16px; border-radius: var(--radius-sm);
+        background: var(--primary); color: #fff;
+        border: none; font-size: .85rem; font-weight: 600;
+        font-family: inherit; cursor: pointer;
+        transition: var(--tr), transform .1s;
+        white-space: nowrap;
+    }
+    .ct-send-btn:hover {
+        background: var(--primary-dark); transform: translateY(-1px);
+    }
+    .ct-send-btn:active { transform: translateY(0); }
+
+    /* Sent state */
+    .ct-sent-badge {
+        display: inline-flex; align-items: center; gap: 6px;
+        background: #d1fae5; color: #065f46;
+        border-radius: 20px; padding: 5px 14px;
+        font-size: .82rem; font-weight: 600;
+        margin-top: 8px;
+    }
+
+    /* ── Empty state ── */
+    .ct-empty {
+        text-align: center; padding: 60px 20px; color: var(--text-3);
+    }
+    .ct-empty i { font-size: 2.5rem; display: block; margin-bottom: 12px; }
+
+    /* ── Pagination ── */
+    .ct-pag-wrap {
+        display: flex; align-items: center;
+        justify-content: space-between; flex-wrap: wrap;
+        gap: 12px; padding-top: 20px;
+    }
+    .ct-pag-info { font-size: .82rem; color: var(--text-3); }
+    .ct-pag {
+        list-style: none; display: flex; gap: 4px; margin: 0; padding: 0;
+    }
+    .ct-pag li a, .ct-pag li span {
+        display: inline-flex; align-items: center; justify-content: center;
+        width: 36px; height: 36px; border-radius: 8px; font-size: .88rem;
+        border: 1px solid var(--border); color: var(--text-1);
+        text-decoration: none; background: var(--card-bg);
+        transition: var(--tr);
+    }
+    .ct-pag li a:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
+    .ct-pag li.active a { background: var(--primary); color: #fff; border-color: var(--primary); font-weight: 700; }
+    .ct-pag li.disabled a { opacity: .4; pointer-events: none; }
+    .ct-pag li.ellipsis span { border: none; background: none; }
+</style>
+
+<div class="ct-page">
+
+    <!-- Breadcrumb -->
+    <nav class="ct-breadcrumb">
+        <a href="/Dashboard/ReceptionistDashboard"><i class="fas fa-home"></i> الرئيسية</a>
+        <i class="fas fa-chevron-left"></i>
+        <span>التواصل مع المتدربين</span>
+    </nav>
+
+    <!-- Header -->
+    <div class="ct-header">
+        <div class="ct-header-left">
+            <div class="ct-page-icon"><i class="fas fa-paper-plane"></i></div>
+            <div>
+                <h1>التواصل مع المتدربين</h1>
+                <p>إرسال رسائل مباشرة للمتدربين المسجلين في المنصة</p>
+            </div>
+        </div>
+        <div class="ct-kpi">
+            <div class="ct-kpi-icon"><i class="fas fa-users"></i></div>
+            <div>
+                <div class="ct-kpi-val">@totalCount</div>
+                <div class="ct-kpi-lbl">إجمالي المتدربين</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success message -->
     @if (TempData["SuccessMessage"] != null)
     {
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <div class="ct-alert-success">
+            <i class="fas fa-check-circle"></i>
             @TempData["SuccessMessage"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     }
 
-    <table class="table table-bordered table-hover shadow-sm">
-        <thead class="table-dark text-center">
-            <tr>
-                <th>#</th>
-                <th>Full Name</th>
-                <th>Email</th>
-                <th>Birth Date</th>
-                <th>Send Message</th>
-            </tr>
-        </thead>
-        <tbody>
-            @if (Model.Any())
-            {
-                int index = 1;
-                foreach (var trainee in Model)
-                {
-                    <tr>
-                        <td class="text-center">@index</td>
-                        <td>@trainee.User.FullName</td>
-                        <td><a href="mailto:@trainee.User.Email">@trainee.User.Email</a></td>
-                        <td>@trainee.User.BirthDate.ToShortDateString()</td>
-                        <td>
-                            <form asp-action="SendMessageToTrainee" asp-controller="Receptionists" method="post" class="d-flex flex-column flex-sm-row gap-2">
-                                <input type="hidden" name="email" value="@trainee.User.Email" />
-                                <input type="text" name="message" class="form-control" placeholder="Type message..." required />
-                                <button type="submit" class="btn btn-sm btn-primary">
-                                    <i class="bi bi-send"></i> Send
-                                </button>
-                            </form>
-                        </td>
-                    </tr>
-                    index++;
-                }
-            }
-            else
-            {
-                <tr>
-                    <td colspan="5" class="text-center text-muted">No trainees available.</td>
-                </tr>
-            }
-        </tbody>
-    </table>
+    <!-- Main Card -->
+    <div class="ct-card">
+
+        <!-- Toolbar -->
+        <div class="ct-toolbar">
+            <div class="ct-toolbar-left">
+                <div class="ct-search-wrap">
+                    <i class="fas fa-search si"></i>
+                    <input type="text" id="ctSearch"
+                           placeholder="بحث بالاسم أو البريد أو الهاتف…"
+                           value="@search" autocomplete="off" />
+                    <button class="ct-search-clear" id="ctClear">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="ct-toolbar-right">
+                <div class="ct-psize">
+                    <span>عرض</span>
+                    <select id="ctPageSize">
+                        @foreach (var s in new[] { 4, 8, 16, 24 })
+                        {
+                            if (pageSize == s)
+                            {
+                                <option value="@s" selected="selected">@s</option>
+                            }
+                            else
+                            {
+                                <option value="@s">@s</option>
+                            }
+                        }
+                    </select>
+                    <span>لكل صفحة</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Trainees (Ajax target) -->
+        <div id="ct-container">
+            @await Html.PartialAsync("_ContactTraineesTablePartial", Model)
+        </div>
+
+    </div>
 </div>
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script>
+    let ctTimer = null;
+
+    function loadTrainees(ctPage = 1) {
+        const search   = $('#ctSearch').val().trim();
+        const pageSize = $('#ctPageSize').val();
+
+        $('#ct-container').html('<div class="ct-loader"><div class="ct-spinner"></div><span>جارٍ التحميل…</span></div>');
+
+        $.ajax({
+            url: '/Receptionists/ContactTrainees',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            data: { page: ctPage, pageSize, search },
+            success: html  => $('#ct-container').html(html),
+            error: ()      => $('#ct-container').html('<div class="ct-empty"><i class="fas fa-exclamation-circle"></i><p>حدث خطأ أثناء التحميل</p></div>')
+        });
+    }
+
+    // Pagination clicks (delegated — works after Ajax replace)
+    $(document).on('click', '.ct-pag-link', function (e) {
+        e.preventDefault();
+        const p = parseInt($(this).data('page'));
+        if (!isNaN(p) && p >= 1) loadTrainees(p);
+    });
+
+    // Search with 300ms debounce
+    $('#ctSearch').on('input', function () {
+        clearTimeout(ctTimer);
+        $('#ctClear').css('display', this.value ? 'block' : 'none');
+        ctTimer = setTimeout(() => loadTrainees(1), 300);
+    });
+
+    $('#ctClear').on('click', function () {
+        $('#ctSearch').val('').trigger('input');
+    });
+
+    // Page size change
+    $('#ctPageSize').on('change', () => loadTrainees(1));
+
+    // Init clear button state
+    if ('@search'.length) $('#ctClear').show();
+</script>

@@ -228,31 +228,48 @@ namespace TrainingCenterManagement_MVC.Controllers
         // ── Contact Trainees ──────────────────────────────────────────────────
 
         [Authorize(Roles = "Receptionist,Admin")]
-        public async Task<IActionResult> ContactTrainees()
+        public async Task<IActionResult> ContactTrainees(
+     int page = 1,
+     int pageSize = 8,
+     string search = "")
         {
-            var trainees = await _context.Trainees.Include(t => t.User).ToListAsync();
+            pageSize = Math.Clamp(pageSize, 5, 50);
+
+            var query = _context.Trainees
+                .Include(t => t.User)
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var term = search.Trim().ToLower();
+                query = query.Where(t =>
+                    (t.User.FullName != null && t.User.FullName.ToLower().Contains(term)) ||
+                    (t.User.Email != null && t.User.Email.ToLower().Contains(term)) ||
+                    (t.User.PhoneNumber != null && t.User.PhoneNumber.ToLower().Contains(term)));
+            }
+
+            var totalCount = await query.CountAsync();
+            var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+            page = Math.Max(1, Math.Min(page, Math.Max(1, totalPages)));
+
+            var trainees = await query
+                .OrderBy(t => t.User.FullName)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.TotalCount = totalCount;
+            ViewBag.Search = search;
+            ViewBag.PageSize = pageSize;
+
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                return PartialView("_ContactTraineesTablePartial", trainees);
+
             return View(trainees);
         }
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Receptionist,Admin")]
-        public async Task<IActionResult> SendMessageToTrainee(string email, string message)
-        {
-            TempData["SuccessMessage"] = $"تم إرسال الرسالة إلى {email}";
-            var receiver = await _context.Users.FirstOrDefaultAsync(u => u.UserName == email);
-            var sender = await _context.Receptionists.FirstOrDefaultAsync();
-
-            _context.Messages.Add(new TrainingCenterManagement_MVC.Models.Message
-            {
-                Content = message,
-                ReceiverId = receiver.Id,
-                SenderId = sender.UserId,
-                Timestamp = DateTime.Now,
-            });
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(ContactTrainees));
-        }
 
         // ── PDF Exports ───────────────────────────────────────────────────────
 
