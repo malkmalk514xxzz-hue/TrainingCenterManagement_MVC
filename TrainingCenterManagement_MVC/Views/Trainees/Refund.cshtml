@@ -1,0 +1,127 @@
+@{
+    ViewData["Title"] = "استرداد الأموال";
+    decimal balanceUSD = (decimal)(ViewBag.BalanceUSD ?? 0m);
+    decimal balanceSYP = (decimal)(ViewBag.BalanceSYP ?? 0m);
+}
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+<style>
+    :root {
+        --teal:#0d9488; --teal-l:#14b8a6;
+        --warn:#f59e0b; --danger:#ef4444; --success:#10b981;
+        --body:#f1f5f9; --card:#fff; --t1:#0f172a; --t2:#475569; --t3:#94a3b8;
+        --border:#e2e8f0; --radius:16px; --shadow:0 4px 24px rgba(0,0,0,.09);
+    }
+    .ref-page { background:var(--body); min-height:100vh; direction:rtl; font-family:'Segoe UI',sans-serif; padding:32px 16px 60px; }
+    .ref-inner { max-width:680px; margin:0 auto; }
+    .ref-back { display:inline-flex; align-items:center; gap:6px; color:var(--teal); font-size:.87rem; font-weight:600; text-decoration:none; margin-bottom:24px; }
+    .ref-back:hover { text-decoration:underline; }
+
+    .ref-hero { background:linear-gradient(135deg,#92400e,#b45309,#d97706); border-radius:var(--radius); padding:24px 28px; color:#fff; margin-bottom:24px; display:flex; align-items:center; gap:16px; }
+    .ref-hero-icon { width:48px; height:48px; background:rgba(255,255,255,.2); border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:1.4rem; flex-shrink:0; }
+    .ref-hero h1 { font-size:1.3rem; font-weight:800; margin:0 0 4px; }
+    .ref-hero p  { font-size:.84rem; opacity:.85; margin:0; }
+
+    .ref-card { background:var(--card); border-radius:var(--radius); border:1px solid var(--border); box-shadow:var(--shadow); padding:24px 28px; margin-bottom:20px; }
+    .ref-section-title { font-size:.95rem; font-weight:700; color:var(--t1); margin:0 0 16px; display:flex; align-items:center; gap:8px; }
+    .ref-section-title i { color:var(--warn); }
+
+    .ref-balance-row { display:flex; gap:16px; flex-wrap:wrap; margin-bottom:20px; }
+    .ref-balance-box { flex:1; min-width:140px; background:#f8fafc; border:1.5px solid var(--border); border-radius:12px; padding:14px 18px; text-align:center; }
+    .ref-balance-label { font-size:.74rem; color:var(--t3); margin-bottom:4px; }
+    .ref-balance-val { font-size:1.4rem; font-weight:800; color:var(--t1); }
+
+    .ref-field { margin-bottom:18px; }
+    .ref-field label { display:block; font-size:.85rem; font-weight:600; color:var(--t2); margin-bottom:6px; }
+    .ref-field input[type=number], .ref-field input[type=file] {
+        width:100%; padding:10px 14px; border:1.5px solid var(--border); border-radius:10px;
+        font-size:.9rem; font-family:inherit; box-sizing:border-box; background:#fff;
+    }
+    .ref-field input[type=number]:focus { outline:none; border-color:var(--teal); box-shadow:0 0 0 3px rgba(13,148,136,.1); }
+    .ref-field small { font-size:.76rem; color:var(--t3); }
+
+    .ref-alert-warn { background:#fef3c7; border:1px solid #fcd34d; border-radius:10px; padding:12px 16px; font-size:.84rem; color:#78350f; margin-bottom:20px; display:flex; gap:8px; }
+
+    .ref-submit { width:100%; padding:14px; border-radius:12px; border:none; cursor:pointer; font-size:.95rem; font-weight:800; font-family:inherit; background:linear-gradient(135deg,#d97706,#b45309); color:#fff; display:flex; align-items:center; justify-content:center; gap:8px; transition:.2s; }
+    .ref-submit:hover { opacity:.88; }
+
+    .ref-error { background:#fee2e2; border:1px solid #fca5a5; border-radius:10px; padding:14px 18px; font-size:.88rem; color:#7f1d1d; margin-bottom:20px; }
+</style>
+
+<div class="ref-page">
+    <div class="ref-inner">
+
+        <a asp-controller="Dashboard" asp-action="TraineeDashboard" class="ref-back">
+            <i class="fas fa-arrow-right"></i> العودة للداشبورد
+        </a>
+
+        @if (TempData["RefundError"] != null)
+        {
+            <div class="ref-error"><i class="fas fa-exclamation-circle"></i> @TempData["RefundError"]</div>
+        }
+
+        <div class="ref-hero">
+            <div class="ref-hero-icon"><i class="fas fa-hand-holding-usd"></i></div>
+            <div>
+                <h1>استرداد الأموال</h1>
+                <p>يمكنك استرداد رصيدك الحالي (غير المستخدم في دورات) عبر شام كاش</p>
+            </div>
+        </div>
+
+        <!-- رصيدك الحالي -->
+        <div class="ref-card">
+            <div class="ref-section-title"><i class="fas fa-wallet"></i> رصيدك الحالي القابل للاسترداد</div>
+            <div class="ref-balance-row">
+                <div class="ref-balance-box">
+                    <div class="ref-balance-label">بالدولار (USD)</div>
+                    <div class="ref-balance-val">$@balanceUSD.ToString("N2")</div>
+                </div>
+                <div class="ref-balance-box">
+                    <div class="ref-balance-label">بالليرة السورية (SYP)</div>
+                    <div class="ref-balance-val">@balanceSYP.ToString("N0") ل.س</div>
+                </div>
+            </div>
+
+            <div class="ref-alert-warn">
+                <i class="fas fa-info-circle" style="margin-top:2px;"></i>
+                <span>
+                    لا يوجد تحويل بين العملات. إذا أردت استرداد دولار فقط اكتب المبلغ بخانة الدولار، وإذا أردت استرداد ليرة فقط اكتب بخانة الليرة. يمكن استرداد كليهما في نفس الطلب.
+                </span>
+            </div>
+        </div>
+
+        <!-- نموذج الاسترداد -->
+        <div class="ref-card">
+            <div class="ref-section-title"><i class="fas fa-file-invoice-dollar"></i> تفاصيل طلب الاسترداد</div>
+
+            <form asp-action="SubmitRefund" method="post" enctype="multipart/form-data">
+                @Html.AntiForgeryToken()
+
+                <div class="ref-field">
+                    <label>المبلغ بالدولار (USD) — اتركه 0 إذا لا تريد استرداد دولار</label>
+                    <input type="number" name="amountUSD" min="0" max="@balanceUSD.ToString("F2")"
+                           step="0.01" value="0" />
+                    <small>الحد الأقصى: $@balanceUSD.ToString("N2")</small>
+                </div>
+
+                <div class="ref-field">
+                    <label>المبلغ بالليرة السورية (SYP) — اتركه 0 إذا لا تريد استرداد ليرة</label>
+                    <input type="number" name="amountSYP" min="0" max="@balanceSYP.ToString("F0")"
+                           step="1" value="0" />
+                    <small>الحد الأقصى: @balanceSYP.ToString("N0") ل.س</small>
+                </div>
+
+                <div class="ref-field">
+                    <label>صورة باركود حساب شام كاش الخاص بك <span style="color:var(--danger);">*</span></label>
+                    <input type="file" name="barcodeImage" accept="image/*" required />
+                    <small>ارفع صورة واضحة للباركود حتى يتمكن الفريق من إرسال المبلغ لك</small>
+                </div>
+
+                <button type="submit" class="ref-submit">
+                    <i class="fas fa-paper-plane"></i> تقديم طلب الاسترداد
+                </button>
+            </form>
+        </div>
+
+    </div>
+</div>

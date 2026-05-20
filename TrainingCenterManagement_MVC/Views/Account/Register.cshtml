@@ -179,6 +179,17 @@
                 </div>
             </div>
 
+            <div class="rg-section" id="shamCashSection" style="display:none">
+                <div class="rg-section-lbl"><i class="fas fa-wallet me-1"></i> كود حساب الشام كاش</div>
+                <div class="rg-group">
+                    <label class="rg-lbl"><i class="fas fa-key"></i> كود حساب الشام كاش للمدرب</label>
+                    <input asp-for="ShamCashAccountCode" class="rg-inp"
+                           maxlength="32"
+                           placeholder="1906b1ad48773bc8785b9b2004d3ccc6" dir="ltr" />
+                    <span asp-validation-for="ShamCashAccountCode" class="rg-err"></span>
+                </div>
+            </div>
+
             <!-- كلمة المرور -->
             <div class="rg-section">
                 <div class="rg-section-lbl"><i class="fas fa-lock me-1"></i> كلمة المرور</div>
@@ -256,8 +267,21 @@
         function selectRole(card) {
             document.querySelectorAll('.role-card').forEach(function(c) { c.classList.remove('selected'); });
             card.classList.add('selected');
-            card.querySelector('input[type="radio"]').checked = true;
+            var input = card.querySelector('input[type="radio"]');
+            input.checked = true;
+            var shamCashSection = document.getElementById('shamCashSection');
+            if (shamCashSection) {
+                shamCashSection.style.display = input.value === 'Trainer' ? 'block' : 'none';
+            }
         }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            var selectedRole = document.querySelector('.role-card input[type="radio"]:checked');
+            var shamCashSection = document.getElementById('shamCashSection');
+            if (selectedRole && shamCashSection) {
+                shamCashSection.style.display = selectedRole.value === 'Trainer' ? 'block' : 'none';
+            }
+        });
 
         function togglePw(inputId, iconId) {
             var inp = document.getElementById(inputId);

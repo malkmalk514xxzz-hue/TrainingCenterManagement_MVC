@@ -1,0 +1,162 @@
+@{
+    ViewData["Title"] = "إيداع رصيد - شام كاش";
+    var transferCode = ViewBag.TransferCode as string ?? "";
+}
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+<style>
+    :root {
+        --teal:#0d9488; --teal-l:#14b8a6; --body:#f1f5f9;
+        --card:#fff; --t1:#0f172a; --t2:#475569; --t3:#94a3b8;
+        --border:#e2e8f0; --radius:16px; --shadow:0 4px 24px rgba(0,0,0,.09);
+    }
+    .dep-page { background:var(--body); min-height:100vh; direction:rtl; font-family:'Segoe UI',sans-serif; padding:32px 16px 48px; }
+    .dep-inner { max-width:780px; margin:0 auto; }
+
+    .dep-back { display:inline-flex; align-items:center; gap:6px; color:var(--teal); font-size:.87rem; font-weight:600; text-decoration:none; margin-bottom:24px; }
+    .dep-back:hover { text-decoration:underline; }
+
+    .dep-hero {
+        background:linear-gradient(135deg,#0f172a 0%,#1e3a5f 60%,#0d9488 100%);
+        border-radius:var(--radius); padding:28px 32px; color:#fff; margin-bottom:28px;
+        display:flex; align-items:center; gap:20px; flex-wrap:wrap;
+    }
+    .dep-hero-icon { width:56px; height:56px; background:rgba(255,255,255,.15); border-radius:14px; display:flex; align-items:center; justify-content:center; font-size:1.6rem; flex-shrink:0; }
+    .dep-hero h1 { font-size:1.5rem; font-weight:800; margin:0 0 4px; }
+    .dep-hero p  { font-size:.88rem; opacity:.8; margin:0; }
+
+    .dep-card { background:var(--card); border-radius:var(--radius); border:1px solid var(--border); box-shadow:var(--shadow); padding:28px 32px; margin-bottom:20px; }
+    .dep-card-title { font-size:1rem; font-weight:700; color:var(--t1); margin:0 0 20px; display:flex; align-items:center; gap:8px; }
+    .dep-card-title i { color:var(--teal); }
+
+    /* Transfer code box */
+    .dep-code-box {
+        background:linear-gradient(135deg,#f0fdfa,#e0f2fe);
+        border:2px dashed var(--teal); border-radius:12px;
+        padding:18px 22px; display:flex; align-items:center; justify-content:space-between;
+        flex-wrap:wrap; gap:12px; margin-bottom:20px;
+    }
+    .dep-code-label { font-size:.78rem; color:var(--teal); font-weight:600; margin-bottom:4px; }
+    .dep-code-val { font-size:1.4rem; font-weight:800; letter-spacing:3px; font-family:monospace; color:var(--t1); }
+    .dep-copy-btn {
+        display:inline-flex; align-items:center; gap:6px;
+        background:var(--teal); color:#fff; border:none; border-radius:8px;
+        padding:9px 18px; font-size:.84rem; font-weight:700; cursor:pointer; transition:.2s;
+        font-family:inherit;
+    }
+    .dep-copy-btn:hover { background:var(--teal-l); }
+
+    /* Steps */
+    .dep-steps { display:flex; flex-direction:column; gap:14px; margin-bottom:20px; }
+    .dep-step { display:flex; align-items:flex-start; gap:14px; }
+    .dep-step-num { width:32px; height:32px; border-radius:50%; background:var(--teal); color:#fff; font-weight:800; font-size:.9rem; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+    .dep-step-text { font-size:.88rem; color:var(--t2); line-height:1.6; padding-top:5px; }
+    .dep-step-text strong { color:var(--t1); }
+
+    /* QR image */
+    .dep-qr-wrap { text-align:center; }
+    .dep-qr-wrap img { max-width:280px; width:100%; border-radius:12px; border:3px solid var(--border); box-shadow:var(--shadow); }
+    .dep-qr-caption { font-size:.8rem; color:var(--t3); margin-top:10px; }
+
+    /* How-to image */
+    .dep-howto-wrap { text-align:center; }
+    .dep-howto-wrap img { max-width:100%; border-radius:12px; border:1px solid var(--border); box-shadow:var(--shadow); }
+
+    .dep-alert {
+        background:#fef3c7; border:1px solid #fcd34d; border-radius:10px;
+        padding:14px 18px; font-size:.85rem; color:#78350f; display:flex; gap:10px; align-items:flex-start;
+        margin-bottom:20px;
+    }
+    .dep-alert i { margin-top:2px; }
+</style>
+
+<div class="dep-page">
+    <div class="dep-inner">
+
+        <a asp-controller="Dashboard" asp-action="TraineeDashboard" class="dep-back">
+            <i class="fas fa-arrow-right"></i> العودة للداشبورد
+        </a>
+
+        <!-- Hero -->
+        <div class="dep-hero">
+            <div class="dep-hero-icon"><i class="fas fa-wallet"></i></div>
+            <div>
+                <h1>إيداع رصيد عبر شام كاش</h1>
+                <p>اتبع الخطوات أدناه لإيداع رصيد في محفظتك وتسجيل الدورات</p>
+            </div>
+        </div>
+
+        <!-- Alert -->
+        <div class="dep-alert">
+            <i class="fas fa-info-circle"></i>
+            <span>بعد إجراء التحويل سيتم رصد العملية تلقائياً وإضافة المبلغ لمحفظتك خلال دقائق. تأكد من وضع رمز التحويل الخاص بك كملاحظة على العملية.</span>
+        </div>
+
+        <!-- رمز التحويل -->
+        <div class="dep-card">
+            <div class="dep-card-title"><i class="fas fa-key"></i> رمز التحويل الخاص بك</div>
+            <div class="dep-code-box">
+                <div>
+                    <div class="dep-code-label">ضع هذا الرمز كملاحظة عند إجراء التحويل</div>
+                    <div class="dep-code-val" id="dep-code">@transferCode</div>
+                </div>
+                <button class="dep-copy-btn" onclick="copyCode()">
+                    <i class="fas fa-copy" id="copy-icon"></i>
+                    <span id="copy-text">نسخ الرمز</span>
+                </button>
+            </div>
+
+            <!-- خطوات -->
+            <div class="dep-steps">
+                <div class="dep-step">
+                    <div class="dep-step-num">١</div>
+                    <div class="dep-step-text">افتح تطبيق <strong>شام كاش</strong> على هاتفك</div>
+                </div>
+                <div class="dep-step">
+                    <div class="dep-step-num">٢</div>
+                    <div class="dep-step-text">امسح <strong>باركود الموقع</strong> الظاهر أدناه لإجراء التحويل</div>
+                </div>
+                <div class="dep-step">
+                    <div class="dep-step-num">٣</div>
+                    <div class="dep-step-text">في خانة <strong>الملاحظات</strong>، ضع رمز التحويل الخاص بك: <strong style="letter-spacing:2px;font-family:monospace;color:#0d9488;">@transferCode</strong></div>
+                </div>
+                <div class="dep-step">
+                    <div class="dep-step-num">٤</div>
+                    <div class="dep-step-text">أكمل عملية التحويل وانتظر. سيُضاف الرصيد لمحفظتك تلقائياً.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- باركود الموقع -->
+        <div class="dep-card">
+            <div class="dep-card-title"><i class="fas fa-qrcode"></i> باركود حساب الموقع على شام كاش</div>
+            <div class="dep-qr-wrap">
+                <img src="/images/static/shamCashAccountForWebSite.png" alt="باركود شام كاش" />
+                <div class="dep-qr-caption">امسح هذا الباركود من تطبيق شام كاش للتحويل</div>
+            </div>
+        </div>
+
+        <!-- صورة وين يحط كود التحويل -->
+        <div class="dep-card">
+            <div class="dep-card-title"><i class="fas fa-image"></i> كيفية وضع رمز التحويل في خانة الملاحظات</div>
+            <div class="dep-howto-wrap">
+                <img src="/images/static/howTransfier.png" alt="طريقة وضع رمز التحويل" />
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    function copyCode() {
+        var code = document.getElementById('dep-code').innerText.trim();
+        navigator.clipboard.writeText(code).then(function () {
+            document.getElementById('copy-icon').className = 'fas fa-check';
+            document.getElementById('copy-text').innerText = 'تم النسخ!';
+            setTimeout(function () {
+                document.getElementById('copy-icon').className = 'fas fa-copy';
+                document.getElementById('copy-text').innerText = 'نسخ الرمز';
+            }, 2000);
+        });
+    }
+</script>

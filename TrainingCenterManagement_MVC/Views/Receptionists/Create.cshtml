@@ -315,6 +315,18 @@
                         <span asp-validation-for="Email" class="rc-field-error"></span>
                     </div>
 
+                    <!-- ShamCash Account Code -->
+                    <div class="rc-form-group">
+                        <label asp-for="ShamCashAccountCode" class="rc-label">
+                            <i class="fas fa-wallet"></i>
+                            كود حساب الشام كاش <span class="rc-required">*</span>
+                        </label>
+                        <input asp-for="ShamCashAccountCode" class="rc-input"
+                               maxlength="32"
+                               placeholder="1906b1ad48773bc8785b9b2004d3ccc6" dir="ltr" />
+                        <span asp-validation-for="ShamCashAccountCode" class="rc-field-error"></span>
+                    </div>
+
                     <!-- Actions -->
                     <div class="rc-submit-row">
                         <a asp-action="Index" class="rc-btn-cancel">

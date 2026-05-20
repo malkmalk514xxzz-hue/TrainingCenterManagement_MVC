@@ -517,7 +517,65 @@
             </div>
         </div>
 
-        <!-- ④ Two-column: Courses + Events -->
+        <!-- ④ Wallet Card -->
+        <div class="td-wallet-card" style="background:linear-gradient(135deg,#0f172a 0%,#1e3a5f 60%,#0d9488 100%);border-radius:var(--radius);padding:24px 28px;margin-bottom:24px;color:#fff;box-shadow:var(--shadow-lg);direction:rtl;">
+            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;">
+                <!-- Title -->
+                <div style="display:flex;align-items:center;gap:10px;">
+                    <div style="width:44px;height:44px;background:rgba(255,255,255,.15);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;">
+                        <i class="fas fa-wallet"></i>
+                    </div>
+                    <div>
+                        <div style="font-size:.8rem;opacity:.75;margin-bottom:2px;">محفظتي على الموقع</div>
+                        <div style="font-size:1.1rem;font-weight:700;">رصيدي الحالي</div>
+                    </div>
+                </div>
+
+                <!-- Balances -->
+                <div style="display:flex;gap:24px;flex-wrap:wrap;">
+                    <div style="text-align:center;">
+                        <div style="font-size:.72rem;opacity:.7;margin-bottom:3px;">بالدولار</div>
+                        <div style="font-size:1.6rem;font-weight:800;letter-spacing:.5px;">$@Model.BalanceUSD.ToString("N2")</div>
+                    </div>
+                    <div style="width:1px;background:rgba(255,255,255,.2);"></div>
+                    <div style="text-align:center;">
+                        <div style="font-size:.72rem;opacity:.7;margin-bottom:3px;">بالليرة السورية</div>
+                        <div style="font-size:1.6rem;font-weight:800;letter-spacing:.5px;">@Model.BalanceSYP.ToString("N0") ل.س</div>
+                    </div>
+                    <div style="width:1px;background:rgba(255,255,255,.2);"></div>
+                    <div style="text-align:center;">
+                        <div style="font-size:.72rem;opacity:.7;margin-bottom:3px;">المحصلة (دولار)</div>
+                        <div style="font-size:1.6rem;font-weight:800;color:#6ee7b7;letter-spacing:.5px;">$@Model.TotalEquivalentUSD.ToString("N2")</div>
+                    </div>
+                </div>
+
+                <!-- Transfer code + deposit -->
+                <div style="display:flex;flex-direction:column;gap:10px;align-items:flex-start;">
+                    <div style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);border-radius:10px;padding:8px 14px;">
+                        <div style="font-size:.7rem;opacity:.7;margin-bottom:3px;">رمز التحويل الخاص بك</div>
+                        <div style="display:flex;align-items:center;gap:8px;">
+                            <span id="transfer-code-val" style="font-size:1rem;font-weight:700;letter-spacing:2px;font-family:monospace;">@Model.TransferCode</span>
+                            <button onclick="copyTransferCode()" title="نسخ" style="background:rgba(255,255,255,.2);border:none;border-radius:6px;padding:4px 8px;color:#fff;cursor:pointer;font-size:.75rem;">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <a asp-controller="Trainees" asp-action="Deposit"
+                       style="display:inline-flex;align-items:center;gap:7px;background:#10b981;color:#fff;padding:9px 20px;border-radius:8px;font-size:.85rem;font-weight:700;text-decoration:none;transition:.2s;">
+                        <i class="fas fa-plus-circle"></i> إيداع رصيد
+                    </a>
+                    @if (Model.BalanceUSD > 0 || Model.BalanceSYP > 0)
+                    {
+                        <a asp-controller="Trainees" asp-action="Refund"
+                           style="display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.15);border:1.5px solid rgba(255,255,255,.4);color:#fff;padding:9px 20px;border-radius:8px;font-size:.85rem;font-weight:700;text-decoration:none;transition:.2s;">
+                            <i class="fas fa-hand-holding-usd"></i> استرداد الأموال
+                        </a>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- ⑤ Two-column: Courses + Events -->
         <div class="td-row">
             <div class="td-card">
                 <p class="td-card-title"><i class="fas fa-graduation-cap"></i> تقدمي في الدورات</p>
@@ -953,4 +1011,13 @@
             return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
         }
     })();
+
+    function copyTransferCode() {
+        var code = document.getElementById('transfer-code-val').innerText.trim();
+        navigator.clipboard.writeText(code).then(function () {
+            var btn = event.currentTarget;
+            btn.innerHTML = '<i class="fas fa-check"></i>';
+            setTimeout(function () { btn.innerHTML = '<i class="fas fa-copy"></i>'; }, 1800);
+        });
+    }
 </script>

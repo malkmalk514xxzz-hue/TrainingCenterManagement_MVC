@@ -18,16 +18,18 @@ namespace TrainingCenterManagement_MVC.Controllers
     public class CoursesController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly TrainingCenterManagement_MVC.Services.ExchangeRateApiService _rateService;
 
-        public CoursesController(ApplicationDbContext context)
+        public CoursesController(ApplicationDbContext context,
+            TrainingCenterManagement_MVC.Services.ExchangeRateApiService rateService)
         {
             _context = context;
+            _rateService = rateService;
         }
 
         // GET: Courses
         public async Task<IActionResult> Index()
         {
-            // FIX: Filter out soft-deleted courses
             var courses = await _context.Courses
                 .Where(c => !c.IsDeleted)
                 .Include(c => c.Admin).ThenInclude(a => a.User)
@@ -35,7 +37,107 @@ namespace TrainingCenterManagement_MVC.Controllers
                 .Include(c => c.CourseTrainees)
                 .ToListAsync();
 
+            if (User.IsInRole("Trainee"))
+            {
+                decimal sypPerUsd = await _rateService.GetSypPerUsdAsync();
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var trainee = await _context.Trainees.FirstOrDefaultAsync(t => t.UserId == userId);
+                if (trainee != null)
+                {
+                    var enrolled = await _context.CourseTrainees
+                        .Where(ct => ct.TraineeId == trainee.TraineeId)
+                        .Select(ct => ct.CourseId)
+                        .ToListAsync();
+                    ViewBag.EnrolledCourseIds = enrolled;
+                    ViewBag.TraineeBalanceSYP = trainee.BalanceSYP + (trainee.BalanceUSD * sypPerUsd);
+                }
+            }
+
             return View(courses);
+        }
+
+        // GET: Courses/Purchase/5
+        [Authorize(Roles = "Trainee")]
+        public async Task<IActionResult> Purchase(Guid id)
+        {
+            var course = await _context.Courses
+                .Include(c => c.CourseTrainers).ThenInclude(ct => ct.Trainer).ThenInclude(t => t.User)
+                .FirstOrDefaultAsync(c => c.CourseId == id && !c.IsDeleted);
+
+            if (course == null) return NotFound();
+
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var trainee = await _context.Trainees.FirstOrDefaultAsync(t => t.UserId == userId);
+            if (trainee == null) return Forbid();
+
+            bool alreadyEnrolled = await _context.CourseTrainees
+                .AnyAsync(ct => ct.CourseId == id && ct.TraineeId == trainee.TraineeId);
+            if (alreadyEnrolled)
+            {
+                TempData["Info"] = "أنت مسجل بالفعل في هذه الدورة.";
+                return RedirectToAction("TraineeDashboard", "Dashboard");
+            }
+
+            decimal sypPerUsd = await _rateService.GetSypPerUsdAsync();
+            decimal priceInSyp = course.CourseCurrency == PaymentCurrency.SYP
+                ? course.Price
+                : course.Price * sypPerUsd;
+
+            decimal totalSyp = trainee.BalanceSYP + (trainee.BalanceUSD * sypPerUsd);
+
+            ViewBag.PriceInSYP = priceInSyp;
+            ViewBag.PriceInUSD = priceInSyp / sypPerUsd;
+            ViewBag.TraineeTotalSYP = totalSyp;
+            ViewBag.TraineeBalanceUSD = trainee.BalanceUSD;
+            ViewBag.TraineeBalanceSYP = trainee.BalanceSYP;
+            ViewBag.InsufficientBalance = TempData["InsufficientBalance"];
+            ViewBag.NeededSYP = TempData["NeededSYP"];
+            return View(course);
+        }
+
+        // POST: Courses/ConfirmPurchase
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Trainee")]
+        public async Task<IActionResult> ConfirmPurchase(Guid courseId)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var trainee = await _context.Trainees.FirstOrDefaultAsync(t => t.UserId == userId);
+            if (trainee == null) return Forbid();
+
+            var course = await _context.Courses.FindAsync(courseId);
+            if (course == null) return NotFound();
+
+            bool alreadyEnrolled = await _context.CourseTrainees
+                .AnyAsync(ct => ct.CourseId == courseId && ct.TraineeId == trainee.TraineeId);
+            if (alreadyEnrolled)
+            {
+                TempData["Info"] = "أنت مسجل بالفعل في هذه الدورة.";
+                return RedirectToAction("TraineeDashboard", "Dashboard");
+            }
+
+            decimal sypPerUsd = await _rateService.GetSypPerUsdAsync();
+            var (hasBalance, errorMsg) = CheckAndDeductBalance(trainee, course, sypPerUsd);
+            if (!hasBalance)
+            {
+                decimal priceInSyp = course.CourseCurrency == PaymentCurrency.SYP
+                    ? course.Price
+                    : course.Price * sypPerUsd;
+                decimal totalSyp = trainee.BalanceSYP + (trainee.BalanceUSD * sypPerUsd);
+                TempData["InsufficientBalance"] = true;
+                TempData["NeededSYP"] = Math.Ceiling(priceInSyp - totalSyp);
+                return RedirectToAction(nameof(Purchase), new { id = courseId });
+            }
+
+            _context.CourseTrainees.Add(new CourseTrainee
+            {
+                CourseId = courseId,
+                TraineeId = trainee.TraineeId
+            });
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = $"تم التسجيل في دورة \"{course.CourseName}\" بنجاح!";
+            return RedirectToAction("TraineeDashboard", "Dashboard");
         }
 
         // GET: Courses/Details/5
@@ -383,23 +485,32 @@ namespace TrainingCenterManagement_MVC.Controllers
             if (string.IsNullOrEmpty(userId))
                 return Unauthorized();
 
-            // FIX: null check before accessing TraineeId
             var trainee = await _context.Trainees.FirstOrDefaultAsync(t => t.UserId == userId);
             if (trainee == null)
                 return Unauthorized();
+
+            var course = await _context.Courses.FindAsync(courseId);
+            if (course == null)
+                return NotFound();
 
             bool alreadyAssigned = await _context.CourseTrainees
                 .AnyAsync(ct => ct.CourseId == courseId && ct.TraineeId == trainee.TraineeId);
 
             if (!alreadyAssigned)
             {
-                // FIX: Was incorrectly adding to CourseTrainers — now correctly adds to CourseTrainees
-                var courseTrainee = new CourseTrainee
+                decimal sypPerUsd = await _rateService.GetSypPerUsdAsync();
+                var (hasBalance, errorMsg) = CheckAndDeductBalance(trainee, course, sypPerUsd);
+                if (!hasBalance)
+                {
+                    TempData["ErrorMessage"] = errorMsg;
+                    return RedirectToAction(nameof(Details), new { id = courseId });
+                }
+
+                _context.CourseTrainees.Add(new CourseTrainee
                 {
                     CourseId = courseId,
                     TraineeId = trainee.TraineeId
-                };
-                _context.CourseTrainees.Add(courseTrainee);
+                });
                 await _context.SaveChangesAsync();
             }
 
@@ -434,13 +545,19 @@ namespace TrainingCenterManagement_MVC.Controllers
                 return RedirectToAction("Index");
             }
 
-            var courseTrainee = new CourseTrainee
+            decimal sypPerUsd = await _rateService.GetSypPerUsdAsync();
+            var (hasBalance, errorMsg) = CheckAndDeductBalance(trainee, course, sypPerUsd);
+            if (!hasBalance)
+            {
+                TempData["ErrorMessage"] = errorMsg;
+                return RedirectToAction(nameof(Details), new { id });
+            }
+
+            _context.CourseTrainees.Add(new CourseTrainee
             {
                 CourseId = id,
-                TraineeId = trainee.TraineeId,
-            };
-
-            _context.CourseTrainees.Add(courseTrainee);
+                TraineeId = trainee.TraineeId
+            });
             await _context.SaveChangesAsync();
 
             TempData["SuccessMessage"] = "تم التسجيل في الدورة بنجاح.";
@@ -579,6 +696,40 @@ namespace TrainingCenterManagement_MVC.Controllers
         private bool CourseExists(Guid id)
         {
             return _context.Courses.Any(e => e.CourseId == id);
+        }
+
+        private (bool success, string error) CheckAndDeductBalance(Trainee trainee, Course course, decimal sypPerUsd)
+        {
+            decimal priceUsd = course.CourseCurrency == PaymentCurrency.USD
+                ? course.Price
+                : course.Price / sypPerUsd;
+
+            decimal totalUsd = trainee.BalanceUSD + (trainee.BalanceSYP / sypPerUsd);
+
+            if (totalUsd < priceUsd)
+            {
+                string currencyLabel = course.CourseCurrency == PaymentCurrency.USD ? "USD" : "SYP";
+                return (false,
+                    $"رصيدك غير كافٍ للتسجيل في هذه الدورة. " +
+                    $"سعر الدورة: {course.Price} {currencyLabel} " +
+                    $"| رصيدك: {trainee.BalanceUSD:0.##} USD + {trainee.BalanceSYP:0.##} SYP " +
+                    $"(ما يعادل {totalUsd:0.##} USD).");
+            }
+
+            decimal remaining = priceUsd;
+            if (trainee.BalanceUSD >= remaining)
+            {
+                trainee.BalanceUSD -= remaining;
+            }
+            else
+            {
+                remaining -= trainee.BalanceUSD;
+                trainee.BalanceUSD = 0;
+                trainee.BalanceSYP -= remaining * sypPerUsd;
+                if (trainee.BalanceSYP < 0) trainee.BalanceSYP = 0;
+            }
+
+            return (true, string.Empty);
         }
     }
 }

@@ -356,6 +356,18 @@
                         <span asp-validation-for="BusinessLink" class="tr-field-error"></span>
                     </div>
 
+                    <!-- ShamCash Account Code -->
+                    <div class="tr-form-group">
+                        <label asp-for="ShamCashAccountCode" class="tr-label">
+                            <i class="fas fa-wallet"></i>
+                            كود حساب الشام كاش <span class="tr-required">*</span>
+                        </label>
+                        <input asp-for="ShamCashAccountCode" class="tr-input"
+                               maxlength="32"
+                               placeholder="1906b1ad48773bc8785b9b2004d3ccc6" dir="ltr" />
+                        <span asp-validation-for="ShamCashAccountCode" class="tr-field-error"></span>
+                    </div>
+
                     <!-- Actions -->
                     <div class="tr-submit-row">
                         <a asp-action="Details" asp-route-id="@Model.TrainerId" class="tr-btn-cancel">

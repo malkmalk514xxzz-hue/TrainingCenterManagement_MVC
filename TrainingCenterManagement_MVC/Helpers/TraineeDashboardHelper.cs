@@ -35,7 +35,11 @@ namespace TrainingCenterManagement_MVC.Helpers
                 UpcomingEvents = await GetUpcomingEventsAsync(traineeId),
                 Certificates = await GetCertificatesAsync(traineeId),
                 Notifications = await GetNotificationsAsync(traineeId),
-                UpcomingLiveSessions = await GetUpcomingLiveSessionsAsync(traineeId)
+                UpcomingLiveSessions = await GetUpcomingLiveSessionsAsync(traineeId),
+                BalanceUSD = trainee.BalanceUSD,
+                BalanceSYP = trainee.BalanceSYP,
+                TotalEquivalentUSD = trainee.BalanceUSD + (trainee.BalanceSYP / 130m),
+                TransferCode = trainee.TransferCode
             };
         }
 

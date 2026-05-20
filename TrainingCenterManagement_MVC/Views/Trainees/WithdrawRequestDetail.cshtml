@@ -1,0 +1,162 @@
+@model TrainingCenterManagement_MVC.Models.WithdrawRequest
+@using TrainingCenterManagement_MVC.Models
+@{
+    ViewData["Title"] = "تفاصيل طلب الاسترداد";
+    var trainee = Model.Trainee;
+    var user = trainee?.User;
+}
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+<style>
+    :root {
+        --warn:#f59e0b; --success:#10b981; --teal:#0d9488;
+        --body:#f1f5f9; --card:#fff; --t1:#0f172a; --t2:#475569; --t3:#94a3b8;
+        --border:#e2e8f0; --radius:16px; --shadow:0 4px 24px rgba(0,0,0,.09);
+    }
+    .wrd-page { background:var(--body); min-height:100vh; direction:rtl; font-family:'Segoe UI',sans-serif; padding:28px 16px 60px; }
+    .wrd-inner { max-width:760px; margin:0 auto; }
+    .wrd-back { display:inline-flex; align-items:center; gap:6px; color:var(--teal); font-size:.87rem; font-weight:600; text-decoration:none; margin-bottom:24px; }
+    .wrd-back:hover { text-decoration:underline; }
+
+    .wrd-hero { background:linear-gradient(135deg,#92400e,#d97706); border-radius:var(--radius); padding:22px 28px; color:#fff; margin-bottom:24px; display:flex; align-items:center; gap:14px; }
+    .wrd-hero-icon { width:46px; height:46px; background:rgba(255,255,255,.2); border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:1.3rem; flex-shrink:0; }
+    .wrd-hero h1 { font-size:1.2rem; font-weight:800; margin:0 0 2px; }
+    .wrd-hero p  { font-size:.82rem; opacity:.85; margin:0; }
+
+    .wrd-card { background:var(--card); border-radius:var(--radius); border:1px solid var(--border); box-shadow:var(--shadow); padding:24px 28px; margin-bottom:20px; }
+    .wrd-title { font-size:.95rem; font-weight:700; color:var(--t1); margin:0 0 16px; display:flex; align-items:center; gap:8px; }
+    .wrd-title i { color:var(--warn); }
+
+    .wrd-row { display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid var(--border); font-size:.88rem; }
+    .wrd-row:last-child { border-bottom:none; }
+    .wrd-label { color:var(--t2); }
+    .wrd-val   { font-weight:700; color:var(--t1); }
+
+    /* Transfer code box */
+    .wrd-code-box { background:linear-gradient(135deg,#f0fdfa,#e0f2fe); border:2px dashed var(--teal); border-radius:12px; padding:16px 20px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; margin-bottom:20px; }
+    .wrd-code-label { font-size:.76rem; color:var(--teal); font-weight:600; margin-bottom:4px; }
+    .wrd-code-val { font-size:1.3rem; font-weight:800; letter-spacing:3px; font-family:monospace; color:var(--t1); }
+    .wrd-copy-btn { background:var(--teal); color:#fff; border:none; border-radius:8px; padding:8px 16px; font-size:.82rem; font-weight:700; cursor:pointer; font-family:inherit; }
+
+    /* Barcode image */
+    .wrd-barcode-wrap { text-align:center; }
+    .wrd-barcode-wrap img { max-width:280px; width:100%; border-radius:12px; border:3px solid var(--border); box-shadow:var(--shadow); }
+
+    /* Steps */
+    .wrd-steps { list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:12px; }
+    .wrd-step { display:flex; align-items:flex-start; gap:12px; }
+    .wrd-step-n { width:28px; height:28px; border-radius:50%; background:var(--warn); color:#fff; font-weight:800; font-size:.85rem; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+    .wrd-step-t { font-size:.87rem; color:var(--t2); line-height:1.6; padding-top:3px; }
+
+    .wrd-badge { display:inline-flex; align-items:center; gap:5px; padding:3px 10px; border-radius:10px; font-size:.78rem; font-weight:700; }
+    .wrd-badge.pending  { background:#fef3c7; color:#92400e; border:1px solid #fcd34d; }
+    .wrd-badge.partial  { background:#ede9fe; color:#5b21b6; border:1px solid #c4b5fd; }
+    .wrd-badge.approved { background:#d1fae5; color:#065f46; border:1px solid #6ee7b7; }
+</style>
+
+<div class="wrd-page">
+    <div class="wrd-inner">
+
+        <a asp-action="WithdrawRequests" class="wrd-back">
+            <i class="fas fa-arrow-right"></i> العودة لقائمة الطلبات
+        </a>
+
+        <div class="wrd-hero">
+            <div class="wrd-hero-icon"><i class="fas fa-hand-holding-usd"></i></div>
+            <div>
+                <h1>طلب استرداد — @(user?.FullName ?? "—")</h1>
+                <p>@Model.CreatedAt.ToLocalTime().ToString("yyyy/MM/dd HH:mm")</p>
+            </div>
+        </div>
+
+        <!-- حالة الطلب -->
+        <div class="wrd-card">
+            <div class="wrd-title"><i class="fas fa-info-circle"></i> معلومات الطلب</div>
+            <div class="wrd-row">
+                <span class="wrd-label">الحالة</span>
+                <span>
+                    @if (Model.Status == WithdrawStatus.PendingReview)
+                    { <span class="wrd-badge pending"><i class="fas fa-clock"></i> قيد المراجعة</span> }
+                    else if (Model.Status == WithdrawStatus.PartiallyApproved)
+                    { <span class="wrd-badge partial"><i class="fas fa-hourglass-half"></i> تم جزئياً</span> }
+                    else
+                    { <span class="wrd-badge approved"><i class="fas fa-check-circle"></i> تم كلياً</span> }
+                </span>
+            </div>
+            <div class="wrd-row">
+                <span class="wrd-label">المطلوب استرداده (USD)</span>
+                <span class="wrd-val">@(Model.AmountUSD > 0 ? $"${Model.AmountUSD:N2}" : "—")</span>
+            </div>
+            <div class="wrd-row">
+                <span class="wrd-label">المطلوب استرداده (SYP)</span>
+                <span class="wrd-val">@(Model.AmountSYP > 0 ? $"{Model.AmountSYP:N0} ل.س" : "—")</span>
+            </div>
+            <div class="wrd-row">
+                <span class="wrd-label">المدفوع فعلياً (USD)</span>
+                <span class="wrd-val" style="color:var(--success);">@(Model.PaidAmountUSD > 0 ? $"${Model.PaidAmountUSD:N2}" : "—")</span>
+            </div>
+            <div class="wrd-row">
+                <span class="wrd-label">المدفوع فعلياً (SYP)</span>
+                <span class="wrd-val" style="color:var(--success);">@(Model.PaidAmountSYP > 0 ? $"{Model.PaidAmountSYP:N0} ل.س" : "—")</span>
+            </div>
+        </div>
+
+        <!-- رمز التحويل -->
+        <div class="wrd-card">
+            <div class="wrd-title"><i class="fas fa-key"></i> رمز التحويل للمتدرب</div>
+            <p style="font-size:.85rem;color:var(--t2);margin:0 0 14px;">ضع هذا الرمز في خانة الملاحظات عند إجراء التحويل لكي يتم رصده تلقائياً.</p>
+            <div class="wrd-code-box">
+                <div>
+                    <div class="wrd-code-label">رمز التحويل</div>
+                    <div class="wrd-code-val" id="wrd-code">@(trainee?.TransferCode ?? "—")</div>
+                </div>
+                <button class="wrd-copy-btn" onclick="copyCode()">
+                    <i class="fas fa-copy" id="copy-icon"></i> نسخ
+                </button>
+            </div>
+
+            <ul class="wrd-steps">
+                <li class="wrd-step">
+                    <div class="wrd-step-n">١</div>
+                    <div class="wrd-step-t">افتح تطبيق شام كاش وابحث عن باركود المتدرب الظاهر أدناه</div>
+                </li>
+                <li class="wrd-step">
+                    <div class="wrd-step-n">٢</div>
+                    <div class="wrd-step-t">أدخل المبلغ المطلوب وفي خانة الملاحظات ضع رمز التحويل: <strong style="font-family:monospace;letter-spacing:2px;color:var(--teal);">@(trainee?.TransferCode)</strong></div>
+                </li>
+                <li class="wrd-step">
+                    <div class="wrd-step-n">٣</div>
+                    <div class="wrd-step-t">سيتم رصد العملية تلقائياً وإشعار المتدرب عند اكتمال التحويل</div>
+                </li>
+            </ul>
+        </div>
+
+        <!-- باركود المتدرب -->
+        <div class="wrd-card">
+            <div class="wrd-title"><i class="fas fa-qrcode"></i> باركود شام كاش للمتدرب</div>
+            @if (!string.IsNullOrEmpty(Model.BarCodeImagePath))
+            {
+                <div class="wrd-barcode-wrap">
+                    <img src="@Model.BarCodeImagePath" alt="باركود المتدرب" />
+                </div>
+            }
+            else
+            {
+                <p style="color:var(--t3);text-align:center;">لا توجد صورة باركود</p>
+            }
+        </div>
+
+    </div>
+</div>
+
+<script>
+    function copyCode() {
+        var code = document.getElementById('wrd-code').innerText.trim();
+        navigator.clipboard.writeText(code).then(function () {
+            document.getElementById('copy-icon').className = 'fas fa-check';
+            setTimeout(function () {
+                document.getElementById('copy-icon').className = 'fas fa-copy';
+            }, 1800);
+        });
+    }
+</script>

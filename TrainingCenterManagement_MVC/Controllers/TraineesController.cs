@@ -9,6 +9,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using TrainingCenterManagement_MVC.Data;
+using TrainingCenterManagement_MVC.Helpers;
 using TrainingCenterManagement_MVC.Models;
 using TrainingCenterManagement_MVC.ViewModels;
 
@@ -92,7 +93,8 @@ namespace TrainingCenterManagement_MVC.Controllers
             var trainee = new Trainee
             {
                 TraineeId = model.TraineeId,
-                UserId = user.Id
+                UserId = user.Id,
+                TransferCode = await GenerateUniqueTransferCodeAsync()
             };
 
             _context.Trainees.Add(trainee);
@@ -146,6 +148,18 @@ namespace TrainingCenterManagement_MVC.Controllers
         private bool TraineeExists(Guid id)
         {
             return _context.Trainees.Any(e => e.TraineeId == id);
+        }
+
+        private async Task<string> GenerateUniqueTransferCodeAsync()
+        {
+            string code;
+            do
+            {
+                code = TransferCodeGenerator.Generate();
+            }
+            while (await _context.Trainees.AnyAsync(t => t.TransferCode == code));
+
+            return code;
         }
 
         [Authorize(Roles = "Trainee")]
@@ -320,6 +334,140 @@ namespace TrainingCenterManagement_MVC.Controllers
             }
 
             return RedirectToAction("TraineeDashboard", "Dashboard");
+        }
+
+        [Authorize(Roles = "Trainee")]
+        public async Task<IActionResult> Deposit()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var trainee = await _context.Trainees.FirstOrDefaultAsync(t => t.UserId == userId);
+            if (trainee == null) return Forbid();
+            ViewBag.TransferCode = trainee.TransferCode;
+            return View();
+        }
+
+        // GET: Trainees/Refund
+        [Authorize(Roles = "Trainee")]
+        public async Task<IActionResult> Refund()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var trainee = await _context.Trainees.FirstOrDefaultAsync(t => t.UserId == userId);
+            if (trainee == null) return Forbid();
+            ViewBag.BalanceUSD = trainee.BalanceUSD;
+            ViewBag.BalanceSYP = trainee.BalanceSYP;
+            return View();
+        }
+
+        // POST: Trainees/SubmitRefund
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Trainee")]
+        public async Task<IActionResult> SubmitRefund(decimal amountUSD, decimal amountSYP, IFormFile barcodeImage)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var trainee = await _context.Trainees.Include(t => t.User)
+                .FirstOrDefaultAsync(t => t.UserId == userId);
+            if (trainee == null) return Forbid();
+
+            if (amountUSD < 0) amountUSD = 0;
+            if (amountSYP < 0) amountSYP = 0;
+
+            if (amountUSD > trainee.BalanceUSD)
+            {
+                TempData["RefundError"] = "المبلغ المطلوب بالدولار يتجاوز رصيدك الحالي.";
+                return RedirectToAction(nameof(Refund));
+            }
+            if (amountSYP > trainee.BalanceSYP)
+            {
+                TempData["RefundError"] = "المبلغ المطلوب بالليرة السورية يتجاوز رصيدك الحالي.";
+                return RedirectToAction(nameof(Refund));
+            }
+            if (amountUSD == 0 && amountSYP == 0)
+            {
+                TempData["RefundError"] = "يجب إدخال مبلغ للاسترداد.";
+                return RedirectToAction(nameof(Refund));
+            }
+            if (barcodeImage == null || barcodeImage.Length == 0)
+            {
+                TempData["RefundError"] = "يجب رفع صورة الباركود الخاص بحسابك.";
+                return RedirectToAction(nameof(Refund));
+            }
+
+            // Save barcode image
+            string barcodeDir = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "barcodes");
+            Directory.CreateDirectory(barcodeDir);
+            string ext = Path.GetExtension(barcodeImage.FileName);
+            string fileName = $"{Guid.NewGuid()}{ext}";
+            string filePath = Path.Combine(barcodeDir, fileName);
+            using (var fs = new FileStream(filePath, FileMode.Create))
+                await barcodeImage.CopyToAsync(fs);
+
+            // Deduct balance immediately
+            trainee.BalanceUSD -= amountUSD;
+            trainee.BalanceSYP -= amountSYP;
+
+            var request = new WithdrawRequest
+            {
+                Id = Guid.NewGuid(),
+                TraineeId = trainee.TraineeId,
+                AmountUSD = amountUSD,
+                AmountSYP = amountSYP,
+                BarCodeImagePath = $"/uploads/barcodes/{fileName}",
+                Status = WithdrawStatus.PendingReview,
+                CreatedAt = DateTime.UtcNow
+            };
+            _context.WithdrawRequests.Add(request);
+            await _context.SaveChangesAsync();
+
+            // Notify admins and receptionists
+            var adminIds = await _context.Admins.Select(a => a.UserId).ToListAsync();
+            var recepIds = await _context.Receptionists.Select(r => r.UserId).ToListAsync();
+            var targets = adminIds.Union(recepIds).Distinct().ToList();
+
+            string currency = amountUSD > 0 && amountSYP > 0
+                ? $"{amountUSD:N2} USD + {amountSYP:N0} ل.س"
+                : amountUSD > 0 ? $"{amountUSD:N2} USD" : $"{amountSYP:N0} ل.س";
+
+            foreach (var uid in targets)
+            {
+                _context.Notifications.Add(new UserNotification
+                {
+                    NotificationId = Guid.NewGuid(),
+                    UserId = uid,
+                    Title = "طلب استرداد أموال جديد",
+                    Message = $"قام المتدرب {trainee.User.FullName} بطلب استرداد {currency}.\nيرجى مراجعة الطلب وإجراء التحويل.",
+                    Type = NotificationType.General,
+                    IsRead = false,
+                    CreatedAt = DateTime.UtcNow,
+                    RelatedId = request.Id.ToString()
+                });
+            }
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = "تم تقديم طلب الاسترداد بنجاح. سيتم مراجعته قريباً.";
+            return RedirectToAction("TraineeDashboard", "Dashboard");
+        }
+
+        // GET: Trainees/WithdrawRequests — Admin & Receptionist only
+        [Authorize(Roles = "Admin,Receptionist")]
+        public async Task<IActionResult> WithdrawRequests()
+        {
+            var requests = await _context.WithdrawRequests
+                .Include(w => w.Trainee).ThenInclude(t => t.User)
+                .OrderByDescending(w => w.CreatedAt)
+                .ToListAsync();
+            return View(requests);
+        }
+
+        // GET: Trainees/WithdrawRequestDetail/{id} — Admin & Receptionist only
+        [Authorize(Roles = "Admin,Receptionist")]
+        public async Task<IActionResult> WithdrawRequestDetail(Guid id)
+        {
+            var request = await _context.WithdrawRequests
+                .Include(w => w.Trainee).ThenInclude(t => t.User)
+                .FirstOrDefaultAsync(w => w.Id == id);
+            if (request == null) return NotFound();
+            return View(request);
         }
     }
 }

@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using TrainingCenterManagement_MVC.Data;
 using TrainingCenterManagement_MVC.Helpers;
@@ -110,6 +111,12 @@ namespace TrainingCenterManagement_MVC.Controllers
         {
             if (ModelState.IsValid)
             {
+                if (model.Role == RoleType.Trainer && string.IsNullOrWhiteSpace(model.ShamCashAccountCode))
+                {
+                    ModelState.AddModelError(nameof(model.ShamCashAccountCode), "كود حساب الشام كاش مطلوب للمدرب.");
+                    return View(model);
+                }
+
                 var existingUser = await _userHelper.GetUserByEmailAsync(model.Username);
 
                 if (existingUser == null)
@@ -136,9 +143,15 @@ namespace TrainingCenterManagement_MVC.Controllers
                     await _userHelper.AddUserToRoleAsync(user, role);
 
                     if (model.Role == RoleType.Trainee)
-                        await _context.Trainees.AddAsync(new Trainee { User = user });
+                        await _context.Trainees.AddAsync(new Trainee { User = user, TransferCode = await GenerateUniqueTransferCodeAsync() });
                     else if (model.Role == RoleType.Trainer)
-                        await _context.Trainers.AddAsync(new Trainer { User = user });
+                        await _context.Trainers.AddAsync(new Trainer
+                        {
+                            User = user,
+                            Specialty = "IT",
+                            YearsOfExperience = 0,
+                            ShamCashAccountCode = model.ShamCashAccountCode.Trim()
+                        });
 
                     await _context.SaveChangesAsync();
 
@@ -200,7 +213,7 @@ namespace TrainingCenterManagement_MVC.Controllers
             }
 
             await _userHelper.AddUserToRoleAsync(user, "Trainee");
-            await _context.Trainees.AddAsync(new Trainee { User = user });
+            await _context.Trainees.AddAsync(new Trainee { User = user, TransferCode = await GenerateUniqueTransferCodeAsync() });
             await _context.SaveChangesAsync();
 
             // Notify all admins
@@ -393,6 +406,18 @@ namespace TrainingCenterManagement_MVC.Controllers
             var random = new Random();
             return new string(Enumerable.Repeat(chars, length)
                 .Select(s => s[random.Next(s.Length)]).ToArray());
+        }
+
+        private async Task<string> GenerateUniqueTransferCodeAsync()
+        {
+            string code;
+            do
+            {
+                code = TransferCodeGenerator.Generate();
+            }
+            while (await _context.Trainees.AnyAsync(t => t.TransferCode == code));
+
+            return code;
         }
     }
 }

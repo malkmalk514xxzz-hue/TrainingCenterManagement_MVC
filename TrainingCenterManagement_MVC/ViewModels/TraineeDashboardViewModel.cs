@@ -20,6 +20,12 @@ namespace TrainingCenterManagement_MVC.ViewModels
         public Guid TraineeId { get; set; }
         public List<Notification> Notifications { get; set; } = new List<Notification>();
         public List<LiveSessionSummary> UpcomingLiveSessions { get; set; } = new List<LiveSessionSummary>();
+
+        // Wallet
+        public decimal BalanceUSD { get; set; }
+        public decimal BalanceSYP { get; set; }
+        public decimal TotalEquivalentUSD { get; set; }
+        public string TransferCode { get; set; } = string.Empty;
     }
 
     public class DashboardStats

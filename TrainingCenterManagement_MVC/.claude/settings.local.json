@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\Hseno-PC\\\\source\\\\repos\\\\TrainingCenterManagement_MVC1\\\\TrainingCenterManagement_MVC\\\\Views\" -Recurse -Directory)",
+      "Bash(Select-Object FullName)",
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\Hseno-PC\\\\source\\\\repos\\\\TrainingCenterManagement_MVC1\\\\TrainingCenterManagement_MVC\\\\Views\\\\Trainees\" -File)",
+      "Bash(Select-Object -ExpandProperty FullName)",
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\Hseno-PC\\\\source\\\\repos\\\\TrainingCenterManagement_MVC1\\\\TrainingCenterManagement_MVC\\\\Controllers\" -Filter \"*Trainee*.cs\")",
+      "Bash(dotnet ef *)",
+      "PowerShell(cd \"c:\\\\Users\\\\Hseno-PC\\\\source\\\\repos\\\\TrainingCenterManagement_MVC1\\\\TrainingCenterManagement_MVC\"; dotnet build -v q 2>&1 | Select-Object -Last 5; & \"$env:USERPROFILE\\\\.dotnet\\\\tools\\\\dotnet-ef.exe\" migrations add add-WithdrawRequest 2>&1)",
+      "PowerShell(Get-ChildItem \"c:\\\\Users\\\\Hseno-PC\\\\source\\\\repos\\\\TrainingCenterManagement_MVC1\\\\TrainingCenterManagement_MVC\\\\Migrations\\\\\" | Where-Object {$_.Name -match \"^\\\\d\"} | Sort-Object Name | Select-Object -Last 3 -ExpandProperty Name)",
+      "Bash(dir \"c:\\\\Users\\\\Hseno-PC\\\\source\\\\repos\\\\TrainingCenterManagement_MVC1\\\\TrainingCenterManagement_MVC\\\\Migrations\")",
+      "Bash(findstr \"shamCash\")",
+      "Bash(sqlcmd -S \"\\(localdb\\)\\\\MSSQLLocalDB\" -d \"aspnet-TrainingCenterManagement_MVC1212412\" -Q \"SELECT MigrationId FROM [__EFMigrationsHistory] ORDER BY MigrationId;\")",
+      "Bash(sqllocaldb info *)",
+      "Bash(sqlcmd -S \"\\(localdb\\)\\\\MSSQLLocalDB\" -Q \"SELECT name FROM sys.databases;\")",
+      "Bash(sqlcmd -S \"\\(localdb\\)\\\\MSSQLLocalDB\" -d \"aspnet-TrainingCenterManagement_MVC1212412\" -Q \"SELECT name FROM sys.tables ORDER BY name;\")",
+      "Bash(sqlcmd -S \"\\(localdb\\)\\\\MSSQLLocalDB\" -d \"aspnet-TrainingCenterManagement_MVC1212412\" -Q \"SELECT MigrationId FROM [__EFMigrationsHistory] WHERE MigrationId LIKE '%WithdrawRequest%';\")",
+      "Bash(sqlcmd -S \"\\(localdb\\)\\\\MSSQLLocalDB\" -d \"aspnet-TrainingCenterManagement_MVC1212412\" -Q \"PRINT DB_NAME\\(\\); PRINT 'Creating table...'; CREATE TABLE [dbo].[WithdrawRequests] \\([Id] uniqueidentifier NOT NULL, [TraineeId] uniqueidentifier NOT NULL, [AmountUSD] decimal\\(18,2\\) NOT NULL CONSTRAINT DF_WR_AUSD DEFAULT 0, [AmountSYP] decimal\\(18,2\\) NOT NULL CONSTRAINT DF_WR_ASYP DEFAULT 0, [BarCodeImagePath] nvarchar\\(max\\) NOT NULL CONSTRAINT DF_WR_BCP DEFAULT '', [Status] int NOT NULL CONSTRAINT DF_WR_ST DEFAULT 0, [CreatedAt] datetime2 NOT NULL, [PaidAmountUSD] decimal\\(18,2\\) NOT NULL CONSTRAINT DF_WR_PUSD DEFAULT 0, [PaidAmountSYP] decimal\\(18,2\\) NOT NULL CONSTRAINT DF_WR_PSYP DEFAULT 0, CONSTRAINT [PK_WithdrawRequests] PRIMARY KEY CLUSTERED \\([Id] ASC\\), CONSTRAINT [FK_WithdrawRequests_Trainees_TraineeId] FOREIGN KEY \\([TraineeId]\\) REFERENCES [dbo].[Trainees]\\([TraineeId]\\) ON DELETE CASCADE\\); PRINT 'Table created.'; CREATE INDEX [IX_WithdrawRequests_TraineeId] ON [dbo].[WithdrawRequests]\\([TraineeId]\\); INSERT INTO [dbo].[__EFMigrationsHistory]\\([MigrationId],[ProductVersion]\\) VALUES\\('20260521000000_add-WithdrawRequest','8.0.0'\\); PRINT 'Done.';\")",
+      "Bash(sqlcmd -S \"\\(localdb\\)\\\\MSSQLLocalDB\" -d \"aspnet-TrainingCenterManagement_MVC1212412\" -Q \"SELECT name FROM sys.tables WHERE name='WithdrawRequests';\")"
+    ]
+  }
+}

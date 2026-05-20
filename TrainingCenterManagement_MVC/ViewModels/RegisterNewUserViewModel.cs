@@ -42,5 +42,9 @@ namespace TrainingCenterManagement_MVC.ViewModels
         public TrainingCenterManagement_MVC.Models.Gender Gender { get; set; } = TrainingCenterManagement_MVC.Models.Gender.Male;
 
         public string? ProfilePictureUrl { get; set; }
+
+        [StringLength(32, MinimumLength = 32, ErrorMessage = "ShamCash account code must be 32 characters.")]
+        [RegularExpression("^[a-fA-F0-9]{32}$", ErrorMessage = "ShamCash account code must contain only hex characters.")]
+        public string ShamCashAccountCode { get; set; } = string.Empty;
     }
 }

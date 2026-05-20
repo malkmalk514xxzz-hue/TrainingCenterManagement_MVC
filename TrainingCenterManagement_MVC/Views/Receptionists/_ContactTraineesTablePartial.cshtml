@@ -1,0 +1,171 @@
+@model IEnumerable<TrainingCenterManagement_MVC.Models.Trainee>
+
+@{
+    int    currentPage = ViewBag.CurrentPage ?? 1;
+    int    totalPages  = ViewBag.TotalPages  ?? 1;
+    int    totalCount  = ViewBag.TotalCount  ?? 0;
+    int    pageSize    = ViewBag.PageSize    ?? 8;
+}
+
+@if (!Model.Any())
+{
+    <div class="ct-empty">
+        <i class="fas fa-user-slash"></i>
+        <p>لا يوجد متدربون مطابقون للبحث</p>
+    </div>
+}
+else
+{
+    <!-- Results summary -->
+    <div class="ct-results">
+        عرض
+        <strong>@(((currentPage - 1) * pageSize) + 1)–@(Math.Min(currentPage * pageSize, totalCount))</strong>
+        من <strong>@totalCount</strong> متدرب
+    </div>
+
+    <!-- Cards Grid -->
+    <div class="ct-grid">
+        @{
+            int rowNum = ((currentPage - 1) * pageSize) + 1;
+        }
+        @foreach (var trainee in Model)
+        {
+            var avatarChar = trainee.User?.FullName?.Length > 0
+                ? trainee.User.FullName[0].ToString() : "م";
+            var birthStr = trainee.User?.BirthDate != default(DateTime)
+                ? trainee.User.BirthDate.ToString("yyyy-MM-dd") : "—";
+
+            <div class="ct-trainee-card">
+
+                <!-- Card Header -->
+                <div class="ct-tc-head">
+                    <div class="ct-tc-avatar">@avatarChar</div>
+                    <div style="flex:1; min-width:0;">
+                        <div class="ct-tc-name">@trainee.User?.FullName</div>
+                        <a href="mailto:@trainee.User?.Email" class="ct-tc-email">
+                            <i class="fas fa-envelope" style="font-size:.7rem;"></i>
+                            @trainee.User?.Email
+                        </a>
+                    </div>
+                    <div class="ct-tc-badge">
+                        <i class="fas fa-calendar-alt"></i>
+                        @birthStr
+                    </div>
+                </div>
+
+                <!-- Message Form -->
+                <div class="ct-tc-body">
+                    <form asp-action="SendMessageToTrainee"
+                          asp-controller="Receptionists"
+                          method="post"
+                          class="ct-msg-form"
+                          data-name="@trainee.User?.FullName">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="email" value="@trainee.User?.Email" />
+                        <div class="ct-msg-row">
+                            <input type="text"
+                                   name="message"
+                                   class="ct-msg-input"
+                                   placeholder="اكتب رسالتك هنا…"
+                                   required
+                                   autocomplete="off" />
+                            <button type="submit" class="ct-send-btn">
+                                <i class="fas fa-paper-plane"></i>
+                                إرسال
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+            </div>
+            rowNum++;
+        }
+    </div>
+
+    <!-- Pagination -->
+    @if (totalPages > 1)
+    {
+        <div class="ct-pag-wrap">
+            <div class="ct-pag-info">صفحة @currentPage من @totalPages</div>
+            <ul class="ct-pag">
+
+                <!-- Prev -->
+                <li class="@(currentPage <= 1 ? "disabled" : "")">
+                    <a href="#" class="ct-pag-link" data-page="@(currentPage - 1)" title="السابق">
+                        <i class="fas fa-chevron-right"></i>
+                    </a>
+                </li>
+
+                @{
+                    int startP = Math.Max(1, currentPage - 2);
+                    int endP   = Math.Min(totalPages, currentPage + 2);
+
+                    if (startP > 1)
+                    {
+                        <li><a href="#" class="ct-pag-link" data-page="1">1</a></li>
+                        if (startP > 2)
+                        {
+                            <li class="ellipsis"><span>…</span></li>
+                        }
+                    }
+
+                    for (int i = startP; i <= endP; i++)
+                    {
+                        <li class="@(i == currentPage ? "active" : "")">
+                            <a href="#" class="ct-pag-link" data-page="@i">@i</a>
+                        </li>
+                    }
+
+                    if (endP < totalPages)
+                    {
+                        if (endP < totalPages - 1)
+                        {
+                            <li class="ellipsis"><span>…</span></li>
+                        }
+                        <li><a href="#" class="ct-pag-link" data-page="@totalPages">@totalPages</a></li>
+                    }
+                }
+
+                <!-- Next -->
+                <li class="@(currentPage >= totalPages ? "disabled" : "")">
+                    <a href="#" class="ct-pag-link" data-page="@(currentPage + 1)" title="التالي">
+                        <i class="fas fa-chevron-left"></i>
+                    </a>
+                </li>
+
+            </ul>
+        </div>
+    }
+}
+
+<script>
+    // Ajax send message — بدون إعادة تحميل الصفحة
+    $(document).on('submit', '.ct-msg-form', function (e) {
+        e.preventDefault();
+        const form    = $(this);
+        const btn     = form.find('.ct-send-btn');
+        const name    = form.data('name') || 'المتدرب';
+        const msgInput = form.find('input[name="message"]');
+
+        if (!msgInput.val().trim()) return;
+
+        btn.prop('disabled', true).html('<i class="fas fa-circle-notch fa-spin"></i>');
+
+        $.ajax({
+            url:  form.attr('action'),
+            type: 'POST',
+            data: form.serialize(),
+            success: () => {
+                msgInput.val('');
+                btn.prop('disabled', false).html('<i class="fas fa-paper-plane"></i> إرسال');
+                // Show mini success badge
+                const badge = $('<div class="ct-sent-badge"><i class="fas fa-check-circle"></i> تم الإرسال بنجاح</div>');
+                form.after(badge);
+                setTimeout(() => badge.fadeOut(400, () => badge.remove()), 3000);
+            },
+            error: () => {
+                btn.prop('disabled', false).html('<i class="fas fa-paper-plane"></i> إرسال');
+            }
+        });
+    });
+</script>

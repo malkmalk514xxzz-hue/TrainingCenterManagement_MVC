@@ -14,6 +14,12 @@ namespace TrainingCenterManagement_MVC.Models
         public string UserId { get; set; }
         public ApplicationUser User { get; set; }
 
+        [MaxLength(8)]
+        public string TransferCode { get; set; } = string.Empty;
+
+        public decimal BalanceUSD { get; set; } = 0;
+        public decimal BalanceSYP { get; set; } = 0;
+
         public ICollection<CourseTrainee> CourseTrainees { get; set; } = new List<CourseTrainee>();
         public ICollection<Payment> Payments { get; set; } = new List<Payment>();
         public ICollection<Presence> Presences { get; set; } = new List<Presence>();

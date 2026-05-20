@@ -15,13 +15,17 @@ namespace TrainingCenterManagement_MVC.Models
         public ApplicationUser User { get; set; }
 
         [Required, MaxLength(100)]
-        public string Specialty { get; set; }
+        public string Specialty { get; set; } = string.Empty;
 
         [Required]
         public int YearsOfExperience { get; set; }
 
         [Url]
         public string? BusinessLink { get; set; }
+
+        [Required, StringLength(32, MinimumLength = 32)]
+        [RegularExpression("^[a-fA-F0-9]{32}$")]
+        public string ShamCashAccountCode { get; set; } = string.Empty;
 
         public ICollection<CourseTrainer> CourseTrainers { get; set; } = new List<CourseTrainer>();
         public ICollection<Certificate> Certificates { get; set; } = new List<Certificate>();

@@ -70,6 +70,10 @@ namespace TrainingCenterManagement_MVC.Data
         public DbSet<AISystemConfig>   AISystemConfigs   { get; set; }
         public DbSet<AIKnowledgeEntry> AIKnowledgeEntries { get; set; }
 
+        // ── Sham cash ─────────────────────────────────────────────
+        public DbSet<shamCashTranslation> shamCashTranslation { get; set; }
+        public DbSet<WithdrawRequest> WithdrawRequests { get; set; }
+
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);

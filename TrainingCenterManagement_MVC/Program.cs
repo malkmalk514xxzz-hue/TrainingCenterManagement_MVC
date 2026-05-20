@@ -96,6 +96,13 @@ builder.Services.AddScoped<TrainingCenterManagement_MVC.Services.IAIPermissionSe
 builder.Services.AddScoped<TrainingCenterManagement_MVC.Services.IAIAssistantService,
                            TrainingCenterManagement_MVC.Services.AIAssistantService>();
 
+
+// تسجيل خدمة المراقبة المستمرة كل 30 ثانية لحساب الشام كاش
+builder.Services.AddHostedService<TrainingCenterManagement_MVC.Services.ShamCashMonitorService>();
+
+// Exchange rate API (cached 10 minutes)
+builder.Services.AddScoped<TrainingCenterManagement_MVC.Services.ExchangeRateApiService>();
+
 // ====================== Build App ======================
 var app = builder.Build();
 
@@ -120,6 +127,7 @@ using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     var context = services.GetRequiredService<ApplicationDbContext>();
+    //await context.Database.MigrateAsync();
     var roleInitializer = services.GetRequiredService<RoleInitializer>();
     await roleInitializer.SeedRolesAsync();
     var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();

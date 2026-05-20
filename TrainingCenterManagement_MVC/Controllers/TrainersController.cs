@@ -64,9 +64,20 @@ namespace TrainingCenterManagement_MVC.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Create([Bind("UserId,Specialty,YearsOfExperience,BusinessLink")] Trainer trainer)
+        public async Task<IActionResult> Create([Bind("UserId,Specialty,YearsOfExperience,BusinessLink,ShamCashAccountCode")] Trainer trainer)
         {
-           
+            trainer.ShamCashAccountCode = trainer.ShamCashAccountCode?.Trim();
+            if (string.IsNullOrWhiteSpace(trainer.ShamCashAccountCode))
+            {
+                ModelState.AddModelError(nameof(trainer.ShamCashAccountCode), "كود حساب الشام كاش مطلوب.");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                ViewData["UserId"] = new SelectList(_context.Users, "Id", "Id", trainer.UserId);
+                return View(trainer);
+            }
+
             trainer.TrainerId = Guid.NewGuid(); // يُولّد تلقائيًا
             _context.Add(trainer);
             await _context.SaveChangesAsync();
@@ -103,7 +114,7 @@ namespace TrainingCenterManagement_MVC.Controllers
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Admin")]
 
-        public async Task<IActionResult> Edit(Guid id, [Bind("TrainerId,UserId,Specialty,YearsOfExperience,BusinessLink")] Trainer trainer)
+        public async Task<IActionResult> Edit(Guid id, [Bind("TrainerId,UserId,Specialty,YearsOfExperience,BusinessLink,ShamCashAccountCode")] Trainer trainer)
         {
             if (id != trainer.TrainerId)
             {
@@ -112,6 +123,13 @@ namespace TrainingCenterManagement_MVC.Controllers
 
                 try
                 {
+                    trainer.ShamCashAccountCode = trainer.ShamCashAccountCode?.Trim();
+                    if (!ModelState.IsValid)
+                    {
+                        ViewData["UserId"] = new SelectList(_context.Users, "Id", "Id", trainer.UserId);
+                        return View(trainer);
+                    }
+
                     _context.Update(trainer);
                     await _context.SaveChangesAsync();
                 }

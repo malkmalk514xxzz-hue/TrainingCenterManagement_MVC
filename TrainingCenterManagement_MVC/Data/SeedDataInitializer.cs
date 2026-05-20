@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Security.Policy;
 using System.Text.Json;
 using TrainingCenterManagement_MVC.Data;
+using TrainingCenterManagement_MVC.Helpers;
 using TrainingCenterManagement_MVC.Models;
 using TrainingCenterManagement_MVC.Models.Enums;
 
@@ -47,6 +48,7 @@ namespace TrainingCenterManagement_MVC.Data
 
         #region Roles + Users
         private const string DefaultPassword = "P@ssw0rd!123";
+        private const string SeedShamCashAccountCode = "37d26cb36d1599f159843f49ebbb75e6";
         private record SeedUser(string FullName, string EmailPrefix, Gender Gender = Gender.Male);
 
    
@@ -143,21 +145,72 @@ namespace TrainingCenterManagement_MVC.Data
                             _context.Admins.Add(new Admin { UserId = user.Id, User = user });
                         break;
                     case RoleType.Receptionist:
-                        if (!await _context.Receptionists.AnyAsync(x => x.UserId == user.Id))
-                            _context.Receptionists.Add(new Receptionist { UserId = user.Id, User = user });
+                        var receptionist = await _context.Receptionists.FirstOrDefaultAsync(x => x.UserId == user.Id);
+                        if (receptionist == null)
+                        {
+                            _context.Receptionists.Add(new Receptionist
+                            {
+                                UserId = user.Id,
+                                User = user,
+                                ShamCashAccountCode = SeedShamCashAccountCode
+                            });
+                        }
+                        else
+                        {
+                            receptionist.ShamCashAccountCode = SeedShamCashAccountCode;
+                        }
                         break;
                     case RoleType.Trainer:
-                        if (!await _context.Trainers.AnyAsync(x => x.UserId == user.Id))
-                            _context.Trainers.Add(new Trainer { UserId = user.Id, User = user, Specialty = specialty ?? "IT", YearsOfExperience = 3 + rnd.Next(0, 10), BusinessLink = "https://example.com" });
+                        var trainer = await _context.Trainers.FirstOrDefaultAsync(x => x.UserId == user.Id);
+                        if (trainer == null)
+                        {
+                            _context.Trainers.Add(new Trainer
+                            {
+                                UserId = user.Id,
+                                User = user,
+                                Specialty = specialty ?? "IT",
+                                YearsOfExperience = 3 + rnd.Next(0, 10),
+                                BusinessLink = "https://example.com",
+                                ShamCashAccountCode = SeedShamCashAccountCode
+                            });
+                        }
+                        else
+                        {
+                            trainer.ShamCashAccountCode = SeedShamCashAccountCode;
+                        }
                         break;
                     case RoleType.Trainee:
-                        if (!await _context.Trainees.AnyAsync(x => x.UserId == user.Id))
-                            _context.Trainees.Add(new Trainee { UserId = user.Id, User = user });
+                        var trainee = await _context.Trainees.FirstOrDefaultAsync(x => x.UserId == user.Id);
+                        if (trainee == null)
+                        {
+                            _context.Trainees.Add(new Trainee
+                            {
+                                UserId = user.Id,
+                                User = user,
+                                TransferCode = await GenerateUniqueTransferCodeAsync()
+                            });
+                        }
+                        else if (string.IsNullOrWhiteSpace(trainee.TransferCode))
+                        {
+                            trainee.TransferCode = await GenerateUniqueTransferCodeAsync();
+                        }
                         break;
                 }
             }
 
             await _context.SaveChangesAsync();
+        }
+
+        private async Task<string> GenerateUniqueTransferCodeAsync()
+        {
+            string code;
+            do
+            {
+                code = TransferCodeGenerator.Generate();
+            }
+            while (await _context.Trainees.AnyAsync(t => t.TransferCode == code));
+
+            return code;
         }
         #endregion
 

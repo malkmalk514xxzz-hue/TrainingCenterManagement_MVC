@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
-using TrainingCenterManagement_MVC.Models;
 using Microsoft.EntityFrameworkCore;
+using TrainingCenterManagement_MVC.Helpers;
+using TrainingCenterManagement_MVC.Models;
 
 namespace TrainingCenterManagement_MVC.Data
 {
@@ -47,7 +48,6 @@ namespace TrainingCenterManagement_MVC.Data
             if (trainee != null && trainer != null && _context.Courses.Any())
             {
                 var courses = await _context.Courses.ToListAsync();
-
                 // التحقق من وجود CourseTrainees قبل الإدراج
                 if (!_context.CourseTrainees.Any(ct => ct.TraineeId == trainee.TraineeId))
                 {
@@ -69,7 +69,8 @@ namespace TrainingCenterManagement_MVC.Data
                     }).ToList();
                     _context.CourseTrainers.AddRange(courseTrainerEntries);
                 }
-
+                
+                trainee.TransferCode = "ZrIgYZRt";
                 await _context.SaveChangesAsync();
 
             // Seed default JwtKey setting if not exists
@@ -90,7 +91,9 @@ namespace TrainingCenterManagement_MVC.Data
         {
             var existingUser = await _userManager.FindByEmailAsync(email);
             if (existingUser != null)
+            {
                 return;
+            }
 
             var user = new ApplicationUser
             {
@@ -119,7 +122,8 @@ namespace TrainingCenterManagement_MVC.Data
                             User = user,
                             Specialty = "Programming",
                             YearsOfExperience = 5,
-                            BusinessLink = "https://example.com"
+                            BusinessLink = "https://example.com",
+                            ShamCashAccountCode = "37d26cb36d1599f159843f49ebbb75e6"
                         });
                         break;
                     case RoleType.Trainee:
@@ -127,13 +131,20 @@ namespace TrainingCenterManagement_MVC.Data
                         {
                             UserId = user.Id,
                             User = user,
+                            TransferCode = email != "trainee@site.com" ? TransferCodeGenerator.Generate() : "ZrIgYZRt",
                            // BirthDate = DateTime.Now.AddYears(-20)
                         });
                         break;
                     case RoleType.Receptionist:
-                        _context.Receptionists.Add(new Receptionist { UserId = user.Id, User = user });
+                        _context.Receptionists.Add(new Receptionist
+                        {
+                            UserId = user.Id,
+                            User = user,
+                            ShamCashAccountCode = "37d26cb36d1599f159843f49ebbb75e6"
+                        });
                         break;
                 }
+                
                 await _context.SaveChangesAsync();
             }
         }

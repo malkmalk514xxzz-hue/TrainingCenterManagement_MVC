@@ -7,7 +7,9 @@
     var activeCourses = allCourses.Where(c => !c.IsDeleted).ToList();
     var isAdmin = User.IsInRole("Admin");
     var isTrainer = User.IsInRole("Trainer");
+    var isTrainee = User.IsInRole("Trainee");
     var canManage = isAdmin || isTrainer;
+    var enrolledIds = ViewBag.EnrolledCourseIds as List<Guid> ?? new List<Guid>();
 }
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
@@ -176,7 +178,12 @@
                             {
                                 <span class="ci-featured-badge"><i class="fas fa-star"></i> مميز</span>
                             }
-                            <span class="ci-price-tag">$ @item.Price.ToString("N0")</span>
+                            @{
+                                string priceLabel = item.CourseCurrency == TrainingCenterManagement_MVC.Models.PaymentCurrency.SYP
+                                    ? $"{item.Price:N0} ل.س"
+                                    : $"$ {item.Price:N0}";
+                            }
+                            <span class="ci-price-tag">@priceLabel</span>
                         </div>
                         <div class="ci-card-body">
                             <h3 class="ci-card-title">@item.CourseName</h3>
@@ -212,6 +219,23 @@
                             <a asp-action="Details" asp-route-id="@item.CourseId" class="ci-cta">
                                 <i class="fas fa-info-circle"></i> التفاصيل
                             </a>
+                            @if (isTrainee && !item.IsDeleted)
+                            {
+                                bool enrolled = enrolledIds.Contains(item.CourseId);
+                                if (enrolled)
+                                {
+                                    <span style="display:inline-flex;align-items:center;gap:5px;padding:7px 12px;border-radius:7px;background:#d1fae5;color:#065f46;font-size:.78rem;font-weight:600;">
+                                        <i class="fas fa-check-circle"></i> مسجل
+                                    </span>
+                                }
+                                else
+                                {
+                                    <a asp-action="Purchase" asp-route-id="@item.CourseId"
+                                       style="display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border-radius:7px;background:linear-gradient(135deg,#0d9488,#0891b2);color:#fff;text-decoration:none;font-size:.78rem;font-weight:700;">
+                                        <i class="fas fa-shopping-cart"></i> سجّل - @priceLabel
+                                    </a>
+                                }
+                            }
                             @if (canManage)
                             {
                                 <a asp-action="Edit" asp-route-id="@item.CourseId" class="ci-action-btn" title="تعديل">
