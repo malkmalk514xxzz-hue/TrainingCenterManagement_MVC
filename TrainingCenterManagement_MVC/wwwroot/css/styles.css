@@ -1336,17 +1336,17 @@
   .sidebar {
     width: var(--sidebar-width);
     background-color: var(--background);
-    border-left: 1px solid var(--border);
+    border-left: 1px solid var(--border);  /* الحد يفصله عن المحتوى من يساره */
     border-right: none;
     display: flex;
     flex-direction: column;
     transition: width 0.3s ease;
-    order: 2;
+    order: 1;   /* في RTL: order:1 = أقصى اليمين */
   }
 
   .dashboard-main {
     flex: 1;
-    order: 1;
+    order: 2;   /* في RTL: order:2 = يسار الـ sidebar */
     overflow: auto;
   }
   

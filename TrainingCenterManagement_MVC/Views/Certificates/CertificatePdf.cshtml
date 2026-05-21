@@ -2,24 +2,24 @@
 @model TrainingCenterManagement_MVC.Models.Certificate
 @{
     Layout = null;
-    var baseUrl    = $"{Context.Request.Scheme}://{Context.Request.Host}";
-    var certUrl    = $"{baseUrl}/Certificates/Verify/{Model.CertificateId}";
-    var issueDate  = DateTime.Now.ToString("MMMM dd, yyyy");
+    var baseUrl     = $"{Context.Request.Scheme}://{Context.Request.Host}";
+    var certUrl     = $"{baseUrl}/Certificates/Verify/{Model.CertificateId}";
+    var issueDate   = DateTime.Now.ToString("MMMM dd, yyyy");
     var certIdShort = Model.CertificateId.ToString().ToUpper()[..8];
-    var grade = Model.Average switch {
-        >= 90 => "Distinction",
-        >= 80 => "Excellence",
-        >= 70 => "Very Good",
-        >= 60 => "Good",
-        _     => "Pass"
+    var gradeShort  = Model.Average switch {
+        >= 95f => "Highest Distinction",
+        >= 90f => "Distinction",
+        >= 80f => "Excellence",
+        >= 70f => "Very Good",
+        >= 60f => "Good",
+        _      => "Pass"
     };
-
     string qrBase64 = "";
     try {
         using var gen  = new QRCodeGenerator();
         using var data = gen.CreateQrCode(certUrl, QRCodeGenerator.ECCLevel.Q);
         using var png  = new PngByteQRCode(data);
-        qrBase64 = Convert.ToBase64String(png.GetGraphic(8));
+        qrBase64 = Convert.ToBase64String(png.GetGraphic(7));
     } catch { }
 }
 <!DOCTYPE html>
@@ -29,371 +29,376 @@
 <title>Certificate — @Model.Trainee.User.FullName</title>
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
-
-body {
-    width: 297mm;
-    height: 210mm;
-    background: #fffef8;
-    font-family: 'Georgia', 'Times New Roman', serif;
-    color: #1a2c5b;
+html, body {
+    width: 297mm; height: 210mm;
     overflow: hidden;
+    font-family: Georgia, 'Times New Roman', serif;
+    background: #0d0b07;
 }
-
-/* ─── Page ─── */
 .page {
-    width: 297mm;
-    height: 210mm;
+    width: 297mm; height: 210mm;
     position: relative;
-    background: #fffef8;
-}
-
-/* ─── Background Pattern ─── */
-.page::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background-image:
-        repeating-linear-gradient(
-            45deg,
-            transparent,
-            transparent 30px,
-            rgba(201,162,39,.035) 30px,
-            rgba(201,162,39,.035) 31px
-        );
-    pointer-events: none;
-}
-
-/* ─── Borders ─── */
-.border-out {
-    position: absolute;
-    inset: 6mm;
-    border: 4px solid #1a2c5b;
-}
-.border-gold {
-    position: absolute;
-    inset: 8.5mm;
-    border: 1.5px solid #c9a227;
-}
-.border-in {
-    position: absolute;
-    inset: 10.5mm;
-    border: 1px solid #1a2c5b;
-}
-
-/* ─── Corner Ornaments ─── */
-.corners { position: absolute; inset: 0; pointer-events: none; }
-.corner {
-    position: absolute;
-    width: 24mm; height: 24mm;
+    background: #0d0b07;
     overflow: hidden;
 }
-.corner::before, .corner::after { content: ''; position: absolute; background: #c9a227; }
-.corner-tl { top: 5mm; left: 5mm; }
-.corner-tl::before { width: 100%; height: 3px; top: 0; }
-.corner-tl::after  { width: 3px; height: 100%; left: 0; }
-.corner-tr { top: 5mm; right: 5mm; transform: scaleX(-1); }
-.corner-tr::before { width: 100%; height: 3px; top: 0; }
-.corner-tr::after  { width: 3px; height: 100%; left: 0; }
-.corner-bl { bottom: 5mm; left: 5mm; transform: scaleY(-1); }
-.corner-bl::before { width: 100%; height: 3px; top: 0; }
-.corner-bl::after  { width: 3px; height: 100%; left: 0; }
-.corner-br { bottom: 5mm; right: 5mm; transform: scale(-1); }
-.corner-br::before { width: 100%; height: 3px; top: 0; }
-.corner-br::after  { width: 3px; height: 100%; left: 0; }
 
-.corner-gem {
-    position: absolute;
-    width: 10px; height: 10px;
-    background: #c9a227;
-    transform: rotate(45deg);
+/* ─── Background ─────────────────────────── */
+.bg-glow {
+    position: absolute; top:0; right:0; bottom:0; left:0;
+    background: radial-gradient(ellipse at 50% 45%, #211d0e 0%, #090705 100%);
 }
-.corner-tl .corner-gem { top: -5px; left: -5px; }
-.corner-tr .corner-gem { top: -5px; left: -5px; }
-.corner-bl .corner-gem { top: -5px; left: -5px; }
-.corner-br .corner-gem { top: -5px; left: -5px; }
-
-/* ─── Left Accent Bar ─── */
-.accent-left {
-    position: absolute;
-    top: 12mm; bottom: 12mm; left: 12mm;
-    width: 14mm;
-    background: linear-gradient(180deg, #1a2c5b 0%, #2a4494 50%, #1a2c5b 100%);
-    display: flex; flex-direction: column;
-    align-items: center; justify-content: center; gap: 6px;
-}
-.accent-left-text {
-    writing-mode: vertical-rl;
-    transform: rotate(180deg);
-    color: #c9a227;
-    font-size: 7px;
-    letter-spacing: 2px;
-    font-weight: bold;
-    text-transform: uppercase;
-}
-.accent-star {
-    color: #c9a227;
-    font-size: 14px;
-    line-height: 1;
+.bg-grain {
+    position: absolute; top:0; right:0; bottom:0; left:0;
+    background-image: repeating-linear-gradient(135deg,
+        transparent, transparent 28px,
+        rgba(201,162,39,.014) 28px, rgba(201,162,39,.014) 29px);
 }
 
-/* ─── Content Area ─── */
+/* ─── Borders ────────────────────────────── */
+.b1 { position:absolute; top:5mm;   right:5mm;   bottom:5mm;   left:5mm;   border:1.5px solid #c9a227; }
+.b2 { position:absolute; top:8.5mm; right:8.5mm; bottom:8.5mm; left:8.5mm; border:0.6px solid #c9a227; opacity:.4; }
+
+/* ─── Corner Ornaments ──────────────────── */
+.corner { position:absolute; width:34mm; height:34mm; z-index:5; }
+.c-tl { top:3mm;    left:3mm;  }
+.c-tr { top:3mm;    right:3mm; }
+.c-bl { bottom:3mm; left:3mm;  }
+.c-br { bottom:3mm; right:3mm; }
+
+/* ─── TOP LOGO (top right) ───────────────── */
+/* logo circle: right:14mm top:11mm 34mm×34mm */
+.cert-logo {
+    position:absolute; top:11mm; right:14mm;
+    width:36mm; text-align:center; z-index:4;
+}
+.cert-logo-label { font-size:8.5px; letter-spacing:2px; color:#c9a227; text-transform:uppercase; margin-top:3px; font-weight:bold; }
+.cert-logo-sub   { font-size:6.5px; letter-spacing:2px; color:rgba(201,162,39,.6); text-transform:uppercase; margin-top:1px; }
+
+/* ─── TITLE (top center, clear of logo) ───── */
+/* logo+text right zone ≈ 55mm; badge gone from top, so left free */
+.title-area {
+    position:absolute; top:12mm; left:30mm; right:55mm;
+    text-align:center; z-index:4;
+}
+.title-stars { font-size:13px; color:#c9a227; letter-spacing:14px; display:block; margin-bottom:4px; }
+.title-main  { font-size:40px; font-weight:bold; letter-spacing:12px; color:#c9a227; text-transform:uppercase; line-height:1; }
+.title-sub   { font-size:10.5px; letter-spacing:9px; color:rgba(201,162,39,.78); text-transform:uppercase; margin-top:5px; }
+
+/* ─── MAIN CONTENT (vertically centred) ──── */
+/*
+  A4 landscape = 210mm tall.
+  Title bottom ≈ 47mm. Bottom section top ≈ 165mm.
+  Available zone: 47–165 = 118mm.
+  Content block height ≈ 78mm  → top margin = (118-78)/2 = 20mm → starts at 47+20 = 67mm.
+*/
 .content {
-    position: absolute;
-    top: 12mm; bottom: 12mm;
-    left: 28mm; right: 12mm;
-    display: flex; flex-direction: column;
-    align-items: center; justify-content: space-between;
-    padding: 6mm 10mm;
+    position:absolute; top:62mm; left:22mm; right:22mm;
+    z-index:4; text-align:center;
 }
 
-/* ─── Header ─── */
-.header { text-align: center; width: 100%; }
-.institution {
-    font-size: 22px;
-    font-weight: bold;
-    letter-spacing: 4px;
-    text-transform: uppercase;
-    color: #1a2c5b;
-    line-height: 1.2;
+/* Presented box */
+.presented-box {
+    border-top:1.5px solid #c9a227; border-bottom:1.5px solid #c9a227;
+    border-left:4px solid #c9a227;  border-right:4px solid #c9a227;
+    padding:5px 0; background:rgba(201,162,39,.04);
+    margin-bottom:9px;
 }
-.institution-sub {
-    font-size: 9px;
-    letter-spacing: 3px;
-    color: #c9a227;
-    text-transform: uppercase;
-    margin-top: 2px;
-    font-weight: bold;
-}
-.divider {
-    display: flex; align-items: center; gap: 8px;
-    margin: 5px auto; width: 80%;
-}
-.divider-line { flex: 1; height: 1px; background: linear-gradient(90deg, transparent, #c9a227, transparent); }
-.divider-gem  { width: 6px; height: 6px; background: #c9a227; transform: rotate(45deg); flex-shrink: 0; }
+.presented-text { font-size:8.5px; letter-spacing:4px; color:#c9a227; text-transform:uppercase; }
 
-/* ─── Certificate Title ─── */
-.cert-title {
-    font-size: 30px;
-    letter-spacing: 6px;
-    color: #1a2c5b;
-    text-transform: uppercase;
-    font-weight: bold;
-    line-height: 1;
-    text-shadow: 1px 1px 0 rgba(201,162,39,.3);
-}
-.cert-sub {
-    font-size: 10px;
-    letter-spacing: 2px;
-    color: #7a6a3a;
-    margin-top: 2px;
+/* Name */
+.cert-name {
+    font-size:43px; font-style:italic; font-weight:bold;
+    color:#c9a227; line-height:1.05; margin-bottom:5px;
 }
 
-/* ─── Body ─── */
-.body-section { text-align: center; width: 100%; }
-.presented-to {
-    font-size: 10px;
-    letter-spacing: 2px;
-    color: #666;
-    text-transform: uppercase;
-    font-style: italic;
-}
-.recipient-name {
-    font-size: 36px;
-    color: #1a2c5b;
-    font-style: italic;
-    font-weight: bold;
-    margin: 3px 0 5px;
-    line-height: 1.1;
-    letter-spacing: 1px;
-}
-.name-underline {
-    width: 70%; height: 1px; margin: 0 auto 5px;
-    background: linear-gradient(90deg, transparent, #c9a227, transparent);
-}
-.completion-text {
-    font-size: 10px;
-    color: #555;
-    letter-spacing: 1px;
-    margin-bottom: 4px;
-}
-.course-box {
-    display: inline-block;
-    border-top: 1.5px solid #c9a227;
-    border-bottom: 1.5px solid #c9a227;
-    padding: 4px 20px;
-    margin: 4px 0;
-}
-.course-name {
-    font-size: 17px;
-    color: #1a2c5b;
-    font-weight: bold;
-    letter-spacing: 1px;
-}
-.grade-row {
-    font-size: 10px;
-    color: #555;
-    margin-top: 4px;
-    letter-spacing: 1px;
-}
-.grade-val {
-    font-size: 13px;
-    color: #c9a227;
-    font-weight: bold;
+/* Ornamental divider */
+.name-orn { margin-bottom:9px; }
+
+/* Description */
+.cert-desc {
+    font-size:9px; color:rgba(220,200,140,.75); line-height:1.7;
+    padding:0 12mm; margin-bottom:5px;
 }
 
-/* ─── Footer ─── */
-.footer {
-    display: flex;
-    align-items: flex-end;
-    justify-content: space-between;
-    width: 100%;
+/* Course highlight */
+.course-line {
+    font-size:10.5px; font-style:italic; color:#e8c84a;
+    font-weight:bold; letter-spacing:.5px; margin-bottom:5px;
 }
-.footer-col { text-align: center; min-width: 80px; }
-.sig-line {
-    width: 90px; height: 1px;
-    background: #1a2c5b;
-    margin: 0 auto 3px;
-}
-.sig-name  { font-size: 9px; font-weight: bold; color: #1a2c5b; letter-spacing: 1px; }
-.sig-title { font-size: 7.5px; color: #888; letter-spacing: 1px; text-transform: uppercase; }
 
-/* Seal / medallion */
-.seal {
-    width: 60px; height: 60px;
-    border-radius: 50%;
-    border: 3px double #c9a227;
-    display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
-    background: radial-gradient(circle, #fffef8 60%, #f5eec8 100%);
-    margin: 0 auto 4px;
-    position: relative;
-}
-.seal::before {
-    content: '';
-    position: absolute;
-    inset: 4px;
-    border-radius: 50%;
-    border: 1px solid #c9a227;
-}
-.seal-star  { font-size: 18px; color: #c9a227; line-height: 1; }
-.seal-text  { font-size: 5.5px; letter-spacing: 1px; color: #1a2c5b; text-transform: uppercase; font-weight: bold; }
+/* Score row */
+.score-row { font-size:9px; color:rgba(220,200,140,.7); letter-spacing:1.5px; }
+.score-val { font-size:13px; font-weight:bold; color:#e8c84a; }
+.score-grade { font-size:11px; font-weight:bold; color:#e8c84a; font-style:italic; }
 
-/* Date / ID block */
-.date-block { text-align: left; }
-.date-label { font-size: 7px; letter-spacing: 1px; color: #888; text-transform: uppercase; }
-.date-val   { font-size: 10px; font-weight: bold; color: #1a2c5b; }
-.cert-id    { font-size: 7px; color: #aaa; letter-spacing: 1px; margin-top: 3px; }
+/* ─── BOTTOM AREA ─────────────────────────
+   top ≈ 165mm  height ≈ 210-13.5-165 = 31.5mm
+   Layout (left→right):
+     [badge 28mm] [sig-trainer 60mm] [qr center] [sig-date 60mm]
+*/
 
-/* QR */
-.qr-block { text-align: right; }
-.qr-block img { width: 55px; height: 55px; }
-.qr-text { font-size: 6px; color: #aaa; letter-spacing: 1px; text-align: center; }
+/* Badge – small, bottom-left */
+.badge-wrap {
+    position:absolute; bottom:13mm; left:14mm;
+    width:30mm; z-index:4; text-align:center;
+}
+
+/* Trainer signature (to the right of badge) */
+.sig-left {
+    position:absolute; bottom:17mm; left:48mm;
+    width:68mm; text-align:center; z-index:4;
+}
+
+/* Date signature (right) */
+.sig-right {
+    position:absolute; bottom:17mm; right:17mm;
+    width:68mm; text-align:center; z-index:4;
+}
+
+.sig-line { height:1px; background:#c9a227; width:100%; margin-bottom:4px; opacity:.65; }
+.sig-name { font-size:9px; font-weight:bold; color:#c9a227; letter-spacing:.5px; }
+.sig-role { font-size:7px; color:rgba(201,162,39,.6); letter-spacing:2px; text-transform:uppercase; margin-top:1px; }
+
+/* QR – bottom center */
+.qr-block {
+    position:absolute; bottom:13mm; left:50%;
+    width:22mm; margin-left:-11mm;
+    text-align:center; z-index:4;
+}
+.qr-block img { width:20mm; height:20mm; display:block; margin:0 auto; }
+.qr-label { font-size:5.5px; color:rgba(201,162,39,.5); letter-spacing:1px; text-transform:uppercase; margin-top:2px; }
+
+/* Cert ID */
+.cert-id-line {
+    position:absolute; bottom:8mm; right:17mm;
+    font-size:6px; color:rgba(201,162,39,.35); letter-spacing:1px; z-index:4; font-family:monospace;
+}
 </style>
 </head>
 <body>
 <div class="page">
 
-    <!-- Borders -->
-    <div class="border-out"></div>
-    <div class="border-gold"></div>
-    <div class="border-in"></div>
+    <div class="bg-glow"></div>
+    <div class="bg-grain"></div>
+    <div class="b1"></div>
+    <div class="b2"></div>
 
-    <!-- Corner ornaments -->
-    <div class="corners">
-        <div class="corner corner-tl"><div class="corner-gem"></div></div>
-        <div class="corner corner-tr"><div class="corner-gem"></div></div>
-        <div class="corner corner-bl"><div class="corner-gem"></div></div>
-        <div class="corner corner-br"><div class="corner-gem"></div></div>
+    <!-- ── Corner Ornaments ─────────────────── -->
+    <div class="corner c-tl">
+        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
+            <line x1="5" y1="5" x2="92" y2="5" stroke="#c9a227" stroke-width="1.5"/>
+            <line x1="5" y1="5" x2="5" y2="92" stroke="#c9a227" stroke-width="1.5"/>
+            <polygon points="5,0 10,5 5,10 0,5" fill="#c9a227"/>
+            <path d="M22,5 C22,-2 30,-2 30,5 C30,-2 38,-2 38,5" stroke="#c9a227" stroke-width="1" fill="none" stroke-linecap="round"/>
+            <circle cx="20" cy="5" r="2" fill="#c9a227"/>
+            <circle cx="40" cy="5" r="2" fill="#c9a227"/>
+            <path d="M5,22 C-2,22 -2,30 5,30 C-2,30 -2,38 5,38" stroke="#c9a227" stroke-width="1" fill="none" stroke-linecap="round"/>
+            <circle cx="5" cy="20" r="2" fill="#c9a227"/>
+            <circle cx="5" cy="40" r="2" fill="#c9a227"/>
+            <ellipse cx="52" cy="5" rx="5" ry="3" fill="none" stroke="#c9a227" stroke-width=".7" opacity=".5"/>
+            <ellipse cx="5" cy="52" rx="3" ry="5" fill="none" stroke="#c9a227" stroke-width=".7" opacity=".5"/>
+        </svg>
+    </div>
+    <div class="corner c-tr">
+        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
+            <g transform="translate(100,0) scale(-1,1)">
+                <line x1="5" y1="5" x2="92" y2="5" stroke="#c9a227" stroke-width="1.5"/>
+                <line x1="5" y1="5" x2="5" y2="92" stroke="#c9a227" stroke-width="1.5"/>
+                <polygon points="5,0 10,5 5,10 0,5" fill="#c9a227"/>
+                <path d="M22,5 C22,-2 30,-2 30,5 C30,-2 38,-2 38,5" stroke="#c9a227" stroke-width="1" fill="none" stroke-linecap="round"/>
+                <circle cx="20" cy="5" r="2" fill="#c9a227"/>
+                <circle cx="40" cy="5" r="2" fill="#c9a227"/>
+                <path d="M5,22 C-2,22 -2,30 5,30 C-2,30 -2,38 5,38" stroke="#c9a227" stroke-width="1" fill="none" stroke-linecap="round"/>
+                <circle cx="5" cy="20" r="2" fill="#c9a227"/>
+                <circle cx="5" cy="40" r="2" fill="#c9a227"/>
+                <ellipse cx="52" cy="5" rx="5" ry="3" fill="none" stroke="#c9a227" stroke-width=".7" opacity=".5"/>
+                <ellipse cx="5" cy="52" rx="3" ry="5" fill="none" stroke="#c9a227" stroke-width=".7" opacity=".5"/>
+            </g>
+        </svg>
+    </div>
+    <div class="corner c-bl">
+        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
+            <g transform="translate(0,100) scale(1,-1)">
+                <line x1="5" y1="5" x2="92" y2="5" stroke="#c9a227" stroke-width="1.5"/>
+                <line x1="5" y1="5" x2="5" y2="92" stroke="#c9a227" stroke-width="1.5"/>
+                <polygon points="5,0 10,5 5,10 0,5" fill="#c9a227"/>
+                <path d="M22,5 C22,-2 30,-2 30,5 C30,-2 38,-2 38,5" stroke="#c9a227" stroke-width="1" fill="none" stroke-linecap="round"/>
+                <circle cx="20" cy="5" r="2" fill="#c9a227"/>
+                <circle cx="40" cy="5" r="2" fill="#c9a227"/>
+                <path d="M5,22 C-2,22 -2,30 5,30 C-2,30 -2,38 5,38" stroke="#c9a227" stroke-width="1" fill="none" stroke-linecap="round"/>
+                <circle cx="5" cy="20" r="2" fill="#c9a227"/>
+                <circle cx="5" cy="40" r="2" fill="#c9a227"/>
+                <ellipse cx="52" cy="5" rx="5" ry="3" fill="none" stroke="#c9a227" stroke-width=".7" opacity=".5"/>
+                <ellipse cx="5" cy="52" rx="3" ry="5" fill="none" stroke="#c9a227" stroke-width=".7" opacity=".5"/>
+            </g>
+        </svg>
+    </div>
+    <div class="corner c-br">
+        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
+            <g transform="translate(100,100) scale(-1,-1)">
+                <line x1="5" y1="5" x2="92" y2="5" stroke="#c9a227" stroke-width="1.5"/>
+                <line x1="5" y1="5" x2="5" y2="92" stroke="#c9a227" stroke-width="1.5"/>
+                <polygon points="5,0 10,5 5,10 0,5" fill="#c9a227"/>
+                <path d="M22,5 C22,-2 30,-2 30,5 C30,-2 38,-2 38,5" stroke="#c9a227" stroke-width="1" fill="none" stroke-linecap="round"/>
+                <circle cx="20" cy="5" r="2" fill="#c9a227"/>
+                <circle cx="40" cy="5" r="2" fill="#c9a227"/>
+                <path d="M5,22 C-2,22 -2,30 5,30 C-2,30 -2,38 5,38" stroke="#c9a227" stroke-width="1" fill="none" stroke-linecap="round"/>
+                <circle cx="5" cy="20" r="2" fill="#c9a227"/>
+                <circle cx="5" cy="40" r="2" fill="#c9a227"/>
+                <ellipse cx="52" cy="5" rx="5" ry="3" fill="none" stroke="#c9a227" stroke-width=".7" opacity=".5"/>
+                <ellipse cx="5" cy="52" rx="3" ry="5" fill="none" stroke="#c9a227" stroke-width=".7" opacity=".5"/>
+            </g>
+        </svg>
     </div>
 
-    <!-- Left accent bar -->
-    <div class="accent-left">
-        <span class="accent-star">&#9670;</span>
-        <span class="accent-left-text">Training Center Academy</span>
-        <span class="accent-star">&#9670;</span>
-        <span class="accent-left-text">Certificate of Completion</span>
-        <span class="accent-star">&#9670;</span>
+    <!-- ── Logo (top right) ────────────────── -->
+    <div class="cert-logo">
+        <svg viewBox="0 0 120 120" width="34mm" height="34mm" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="60" cy="60" r="57" fill="#110e07" stroke="#c9a227" stroke-width="3"/>
+            <circle cx="60" cy="60" r="50" fill="none" stroke="#c9a227" stroke-width=".8" stroke-dasharray="3,3" opacity=".6"/>
+            <polygon points="60,22 84,32 60,42 36,32" fill="#c9a227"/>
+            <rect x="58.5" y="32" width="3" height="12" fill="#c9a227"/>
+            <circle cx="60" cy="45.5" r="3" fill="#c9a227"/>
+            <path d="M26,67 Q26,59 32,57 L60,62 L60,80 Q53,78 45,81 Q35,85 26,81 Z" fill="#c9a227" opacity=".9"/>
+            <path d="M94,67 Q94,59 88,57 L60,62 L60,80 Q67,78 75,81 Q85,85 94,81 Z" fill="#c9a227" opacity=".9"/>
+            <rect x="58.5" y="57" width="3" height="23" fill="#f5e068" rx="1"/>
+            <text x="22" y="47" font-size="9" fill="#c9a227" text-anchor="middle">&#9733;</text>
+            <text x="98" y="47" font-size="9" fill="#c9a227" text-anchor="middle">&#9733;</text>
+            <text x="60" y="100" font-family="Georgia,serif" font-size="8" font-weight="bold" fill="#c9a227" text-anchor="middle" letter-spacing="1.5">TRAINING</text>
+            <text x="60" y="110" font-family="Georgia,serif" font-size="6.5" fill="#a0b8d8" text-anchor="middle" letter-spacing="2">CENTER</text>
+        </svg>
+        <div class="cert-logo-label">Training Center</div>
+        <div class="cert-logo-sub">Academy</div>
     </div>
 
-    <!-- Main content -->
+    <!-- ── Title (top center) ──────────────── -->
+    <div class="title-area">
+        <span class="title-stars">&#9733; &#9733; &#9733;</span>
+        <div class="title-main">Certificate</div>
+        <div class="title-sub">of &nbsp; Achievement</div>
+    </div>
+
+    <!-- ── Horizontal separator after title ─── -->
+    <!-- thin gold line below title area -->
+    <div style="position:absolute;top:50mm;left:22mm;right:22mm;height:1px;
+                background:-webkit-linear-gradient(left,transparent,#c9a227 20%,#c9a227 80%,transparent);
+                background:linear-gradient(to right,transparent,#c9a227 20%,#c9a227 80%,transparent);
+                opacity:.35;z-index:3;"></div>
+
+    <!-- ── Main Content (centred) ─────────── -->
     <div class="content">
 
-        <!-- Header -->
-        <div class="header">
-            <div class="institution">Training Center Academy</div>
-            <div class="institution-sub">&#9670;&nbsp; Professional Development &amp; Certification &nbsp;&#9670;</div>
-            <div class="divider">
-                <div class="divider-line"></div>
-                <div class="divider-gem"></div>
-                <div class="divider-line"></div>
-                <div class="divider-gem"></div>
-                <div class="divider-line"></div>
-            </div>
+        <!-- "THIS CERTIFICATE IS PROUDLY PRESENTED BY" -->
+        <div class="presented-box">
+            <span class="presented-text">This Certificate is Proudly Presented by</span>
         </div>
 
-        <!-- Title -->
-        <div style="text-align:center;">
-            <div class="cert-title">Certificate</div>
-            <div class="cert-sub">&#9670;&nbsp; of Completion &nbsp;&#9670;</div>
+        <!-- Recipient name -->
+        <div class="cert-name">@Model.Trainee.User.FullName</div>
+
+        <!-- Ornamental name divider -->
+        <div class="name-orn">
+            <svg viewBox="0 0 400 18" xmlns="http://www.w3.org/2000/svg" width="100%" height="14px">
+                <line x1="0"   y1="9" x2="148" y2="9" stroke="#c9a227" stroke-width=".8" opacity=".45"/>
+                <polygon points="156,9 163,4 170,9 163,14" fill="none" stroke="#c9a227" stroke-width="1" opacity=".65"/>
+                <circle cx="180" cy="9" r="4" fill="#c9a227" opacity=".85"/>
+                <polygon points="192,9 202,1 212,9 202,17" fill="#c9a227"/>
+                <circle cx="220" cy="9" r="4" fill="#c9a227" opacity=".85"/>
+                <polygon points="230,9 237,4 244,9 237,14" fill="none" stroke="#c9a227" stroke-width="1" opacity=".65"/>
+                <line x1="252" y1="9" x2="400" y2="9" stroke="#c9a227" stroke-width=".8" opacity=".45"/>
+            </svg>
         </div>
 
-        <!-- Body -->
-        <div class="body-section">
-            <div class="presented-to">This is to proudly certify that</div>
-            <div class="recipient-name">@Model.Trainee.User.FullName</div>
-            <div class="name-underline"></div>
-            <div class="completion-text">has successfully fulfilled all the requirements and completed</div>
-            <div class="course-box">
-                <div class="course-name">@Model.Course.CourseName</div>
-            </div>
-            <div class="grade-row">
-                with a final score of &nbsp;<span class="grade-val">@Model.Average.ToString("F1") / 100</span>
-                &nbsp;—&nbsp;
-                <span class="grade-val">@grade</span>
-            </div>
+        <!-- Description -->
+        <div class="cert-desc">
+            has successfully fulfilled all requirements and completed<br/>
+            the following course with the mentioned final score
         </div>
 
-        <!-- Footer -->
-        <div class="footer">
-            <!-- Date + ID -->
-            <div class="date-block">
-                <div class="date-label">Date of Issue</div>
-                <div class="date-val">@issueDate</div>
-                <div class="cert-id">ID: @certIdShort</div>
-            </div>
+        <!-- Course name highlight -->
+        <div class="course-line">&#9830; &nbsp;@Model.Course.CourseName&nbsp; &#9830;</div>
 
-            <!-- Center: seal + signatures -->
-            <div style="text-align:center; display:flex; flex-direction:column; align-items:center; gap:8px;">
-                <div class="seal">
-                    <div class="seal-star">&#9733;</div>
-                    <div class="seal-text">Official</div>
-                    <div class="seal-text">Seal</div>
-                </div>
-                <div style="display:flex; gap:30px; align-items:flex-end;">
-                    <div class="footer-col">
-                        <div class="sig-line"></div>
-                        <div class="sig-name">@Model.Trainer.User.FullName</div>
-                        <div class="sig-title">Course Instructor</div>
-                    </div>
-                    <div class="footer-col">
-                        <div class="sig-line"></div>
-                        <div class="sig-name">Academy Director</div>
-                        <div class="sig-title">Training Center Academy</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- QR -->
-            <div class="qr-block">
-                @if (!string.IsNullOrEmpty(qrBase64))
-                {
-                    <img src="data:image/png;base64,@qrBase64" alt="Verify Certificate"/>
-                    <div class="qr-text">Scan to verify</div>
-                }
-            </div>
+        <!-- Score + grade -->
+        <div class="score-row">
+            Final Score &nbsp;
+            <span class="score-val">@Model.Average.ToString("F1") / 100</span>
+            &nbsp;&mdash;&nbsp;
+            <span class="score-grade">@gradeShort</span>
         </div>
 
     </div><!-- /content -->
+
+    <!-- thin gold line above bottom area -->
+    <div style="position:absolute;top:163mm;left:22mm;right:22mm;height:1px;
+                background:-webkit-linear-gradient(left,transparent,#c9a227 20%,#c9a227 80%,transparent);
+                background:linear-gradient(to right,transparent,#c9a227 20%,#c9a227 80%,transparent);
+                opacity:.35;z-index:3;"></div>
+
+    <!-- ── Badge (small, bottom-left) ────── -->
+    <div class="badge-wrap">
+        <svg viewBox="0 0 140 140" width="30mm" height="30mm" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="70" cy="70" r="65" fill="#110e07" stroke="#c9a227" stroke-width="2.5"/>
+            <circle cx="70" cy="70" r="58" fill="none" stroke="#c9a227" stroke-width="1" opacity=".5"/>
+            <!-- Laurel left -->
+            <g fill="#c9a227" opacity=".9">
+                <path d="M30,48 Q18,70 28,115" stroke="#c9a227" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+                <ellipse cx="22" cy="68" rx="7" ry="3" transform="rotate(-15,22,68)"/>
+                <ellipse cx="18" cy="80" rx="7" ry="3" transform="rotate(-25,18,80)"/>
+                <ellipse cx="17" cy="93" rx="7" ry="3" transform="rotate(-42,17,93)"/>
+                <ellipse cx="20" cy="105" rx="7" ry="3" transform="rotate(-56,20,105)"/>
+                <ellipse cx="20" cy="58" rx="7" ry="3" transform="rotate(-5,20,58)"/>
+            </g>
+            <!-- Laurel right -->
+            <g fill="#c9a227" opacity=".9">
+                <path d="M110,48 Q122,70 112,115" stroke="#c9a227" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+                <ellipse cx="118" cy="68" rx="7" ry="3" transform="rotate(15,118,68)"/>
+                <ellipse cx="122" cy="80" rx="7" ry="3" transform="rotate(25,122,80)"/>
+                <ellipse cx="123" cy="93" rx="7" ry="3" transform="rotate(42,123,93)"/>
+                <ellipse cx="120" cy="105" rx="7" ry="3" transform="rotate(56,120,105)"/>
+                <ellipse cx="120" cy="58" rx="7" ry="3" transform="rotate(5,120,58)"/>
+            </g>
+            <!-- bottom tie -->
+            <path d="M55,118 Q70,126 85,118" stroke="#c9a227" stroke-width="1.5" fill="none"/>
+            <circle cx="70" cy="121" r="2.5" fill="#c9a227"/>
+            <!-- star -->
+            <text x="70" y="50" text-anchor="middle" font-size="22" fill="#c9a227">&#9733;</text>
+            <!-- BEST AWARD -->
+            <text x="70" y="74" text-anchor="middle" font-family="Georgia,serif" font-size="16" font-weight="bold" fill="#c9a227" letter-spacing="2">BEST</text>
+            <line x1="48" y1="78" x2="92" y2="78" stroke="#c9a227" stroke-width="1" opacity=".6"/>
+            <text x="70" y="92" text-anchor="middle" font-family="Georgia,serif" font-size="11" fill="#c9a227" letter-spacing="3">AWARD</text>
+            <!-- small stars row -->
+            <text x="56" y="107" text-anchor="middle" font-size="8" fill="#c9a227" opacity=".7">&#9733;</text>
+            <text x="70" y="108" text-anchor="middle" font-size="10" fill="#c9a227">&#9733;</text>
+            <text x="84" y="107" text-anchor="middle" font-size="8" fill="#c9a227" opacity=".7">&#9733;</text>
+        </svg>
+    </div>
+
+    <!-- ── Trainer Signature (bottom, right of badge) ── -->
+    <div class="sig-left">
+        <div class="sig-line"></div>
+        <div class="sig-name">@Model.Trainer.User.FullName</div>
+        <div class="sig-role">Course Instructor</div>
+    </div>
+
+    <!-- ── QR Code (bottom center) ──────── -->
+    @if (!string.IsNullOrEmpty(qrBase64))
+    {
+        <div class="qr-block">
+            <img src="data:image/png;base64,@qrBase64" alt="Verify"/>
+            <div class="qr-label">Scan to Verify</div>
+        </div>
+    }
+
+    <!-- ── Date Signature (bottom right) ── -->
+    <div class="sig-right">
+        <div class="sig-line"></div>
+        <div class="sig-name">@issueDate</div>
+        <div class="sig-role">Date of Issue</div>
+    </div>
+
+    <!-- ── Cert ID ──────────────────────── -->
+    <div class="cert-id-line">ID: @certIdShort</div>
+
 </div><!-- /page -->
 </body>
 </html>

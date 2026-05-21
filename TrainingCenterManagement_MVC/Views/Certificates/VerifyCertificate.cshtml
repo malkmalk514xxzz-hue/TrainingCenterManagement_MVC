@@ -1,41 +1,502 @@
-﻿@model TrainingCenterManagement_MVC.Models.Certificate
+@model TrainingCenterManagement_MVC.Models.Certificate
+@using QRCoder
 @{
-    ViewData["Title"]       = $"التحقق من شهادة {Model.Trainee?.User?.FullName} | مركز التدريب";
-    ViewData["Description"] = $"تحقق من صحة شهادة {Model.Trainee?.User?.FullName} في دورة {Model.Course?.CourseName} الصادرة من مركز التدريب.";
-    ViewData["Keywords"]    = "التحقق من الشهادة, شهادة معتمدة, مركز تدريب";
+    ViewData["Title"]       = $"توثيق شهادة {Model.Trainee?.User?.FullName} | مركز التدريب";
+    ViewData["Description"] = $"تحقق من صحة شهادة {Model.Trainee?.User?.FullName} في دورة {Model.Course?.CourseName}";
     ViewData["Robots"]      = "noindex, follow";
+    Layout = null; // standalone public page — no sidebar/admin nav
+
+    // Build verify URL
+    var verifyUrl = $"{Context.Request.Scheme}://{Context.Request.Host}/Certificates/Verify/{Model.CertificateId}";
+
+    // QR Code
+    string qrBase64 = "";
+    try {
+        using var qrGen  = new QRCodeGenerator();
+        using var qrData = qrGen.CreateQrCode(verifyUrl, QRCodeGenerator.ECCLevel.Q);
+        using var qrCode = new PngByteQRCode(qrData);
+        qrBase64 = Convert.ToBase64String(qrCode.GetGraphic(8));
+    } catch { }
+
+    var avg       = (double)Model.Average;
+    var shortId = Model.CertificateId.ToString().ToUpper();
+
+    string gradeLabel, gradeColor;
+    if      (avg >= 90) { gradeLabel = "ممتاز";    gradeColor = "#16a34a"; }
+    else if (avg >= 80) { gradeLabel = "جيد جداً"; gradeColor = "#2563eb"; }
+    else if (avg >= 70) { gradeLabel = "جيد";      gradeColor = "#0891b2"; }
+    else if (avg >= 60) { gradeLabel = "مقبول";    gradeColor = "#d97706"; }
+    else                { gradeLabel = "غير ناجح"; gradeColor = "#dc2626"; }
 }
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@ViewData["Title"]</title>
+    <meta name="description" content="@ViewData["Description"]" />
+    <meta name="robots" content="@ViewData["Robots"]" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { font-size: 16px; }
+        body {
+            font-family: 'Tajawal', sans-serif;
+            direction: rtl;
+            min-height: 100vh;
+            background: linear-gradient(145deg, #0b1426 0%, #0f2040 40%, #081632 100%);
+            color: #1e293b;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 32px 16px 60px;
+        }
 
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card shadow border-0">
-                <div class="card-header bg-gradient bg-success text-white text-center">
-                    <h4 class="mb-0">Certificate Verification</h4>
+        /* ── Top bar ── */
+        .vfy-topbar {
+            width: 100%;
+            max-width: 700px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 28px;
+        }
+        .vfy-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+        .vfy-brand-text {
+            font-size: .85rem;
+            font-weight: 800;
+            color: #f1f5f9;
+            line-height: 1.2;
+        }
+        .vfy-brand-sub { font-size: .7rem; color: #94a3b8; font-weight: 400; }
+        .vfy-print-btn {
+            display: flex; align-items: center; gap: 6px;
+            padding: 8px 16px; border-radius: 8px;
+            background: rgba(255,255,255,.07);
+            color: #cbd5e1; font-size: .8rem; font-weight: 600;
+            border: 1px solid rgba(255,255,255,.12);
+            cursor: pointer; text-decoration: none;
+            transition: .15s;
+        }
+        .vfy-print-btn:hover { background: rgba(255,255,255,.12); color: #f1f5f9; }
+
+        /* ── Card ── */
+        .vfy-card {
+            width: 100%; max-width: 700px;
+            background: #ffffff;
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 32px 80px rgba(0,0,0,.45);
+        }
+
+        /* ── Header band ── */
+        .vfy-header {
+            background: linear-gradient(135deg, #0d2347 0%, #1a3a6e 50%, #0d2347 100%);
+            padding: 28px 32px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        .vfy-header::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: repeating-linear-gradient(
+                45deg,
+                transparent,
+                transparent 20px,
+                rgba(255,255,255,.018) 20px,
+                rgba(255,255,255,.018) 21px
+            );
+        }
+        .vfy-logo-wrap { flex-shrink: 0; position: relative; z-index: 1; }
+        .vfy-header-text { position: relative; z-index: 1; flex: 1; }
+        .vfy-header-text h1 {
+            font-size: 1.15rem; font-weight: 900;
+            color: #f8f0d8; margin: 0 0 4px;
+            letter-spacing: .5px;
+        }
+        .vfy-header-text p {
+            font-size: .8rem; color: #c9b98a; margin: 0;
+        }
+        .vfy-verified-badge {
+            position: relative; z-index: 1;
+            display: flex; flex-direction: column;
+            align-items: center; gap: 4px;
+            padding: 10px 16px;
+            background: rgba(22,163,74,.18);
+            border: 1.5px solid rgba(74,222,128,.35);
+            border-radius: 12px;
+            flex-shrink: 0;
+        }
+        .vfy-verified-badge i {
+            font-size: 1.4rem; color: #4ade80;
+        }
+        .vfy-verified-badge span {
+            font-size: .7rem; font-weight: 700; color: #4ade80; white-space: nowrap;
+        }
+
+        /* ── Gold divider ── */
+        .vfy-divider {
+            height: 3px;
+            background: linear-gradient(90deg, transparent, #d4a015 20%, #f0c040 50%, #d4a015 80%, transparent);
+        }
+
+        /* ── Body ── */
+        .vfy-body { padding: 28px 32px; }
+
+        /* name block */
+        .vfy-name-block {
+            text-align: center; margin-bottom: 24px; padding-bottom: 20px;
+            border-bottom: 1.5px solid #f1f5f9;
+        }
+        .vfy-congrats { font-size: .8rem; color: #64748b; margin-bottom: 6px; letter-spacing: .5px; text-transform: uppercase; }
+        .vfy-trainee-name {
+            font-size: 1.7rem; font-weight: 900; color: #0d2347;
+            margin-bottom: 8px;
+        }
+        .vfy-course-name {
+            display: inline-block;
+            font-size: 1rem; font-weight: 700;
+            color: #1a3a6e;
+            background: linear-gradient(135deg, #fffbeb, #fef3c7);
+            border: 1px solid #fcd34d;
+            border-radius: 8px;
+            padding: 6px 18px;
+        }
+
+        /* detail grid */
+        .vfy-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+            margin-bottom: 24px;
+        }
+        .vfy-detail {
+            background: #f8fafc;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 12px 14px;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+        .vfy-detail-icon {
+            width: 32px; height: 32px; border-radius: 8px;
+            background: linear-gradient(135deg, #1e40af, #3b82f6);
+            display: flex; align-items: center; justify-content: center;
+            color: #fff; font-size: .8rem; flex-shrink: 0;
+        }
+        .vfy-detail-label { font-size: .72rem; color: #94a3b8; margin-bottom: 2px; }
+        .vfy-detail-value { font-size: .88rem; font-weight: 700; color: #0f172a; }
+
+        /* score */
+        .vfy-score-card {
+            display: flex; align-items: center; gap: 16px;
+            background: linear-gradient(135deg, #0d2347, #1a3a6e);
+            border-radius: 12px;
+            padding: 16px 20px;
+            margin-bottom: 24px;
+        }
+        .vfy-score-circle {
+            width: 60px; height: 60px; border-radius: 50%;
+            background: rgba(255,255,255,.08);
+            border: 3px solid #d4a015;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+        .vfy-score-num { font-size: 1rem; font-weight: 900; color: #fcd34d; }
+        .vfy-score-pct { font-size: .6rem; color: #94a3b8; }
+        .vfy-score-info { flex: 1; }
+        .vfy-score-label { font-size: .75rem; color: #94a3b8; margin-bottom: 4px; }
+        .vfy-score-grade {
+            font-size: 1rem; font-weight: 800;
+            color: @gradeColor;
+        }
+        .vfy-score-bar-wrap {
+            height: 5px; background: rgba(255,255,255,.1);
+            border-radius: 4px; overflow: hidden; margin-top: 6px;
+        }
+        .vfy-score-bar {
+            height: 100%; border-radius: 4px;
+            background: linear-gradient(90deg, #d4a015, #fbbf24);
+            width: @(Math.Min(avg, 100))%;
+        }
+        .vfy-score-desc { font-size: .82rem; color: #d4a015; font-weight: 700; margin-top: 2px; }
+
+        /* course details */
+        .vfy-course-desc { margin-bottom: 24px; }
+        .vfy-course-desc-label { font-size: .75rem; color: #64748b; font-weight: 700; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+        .vfy-course-desc-text { font-size: .85rem; color: #374151; line-height: 1.7; background: #f8fafc; border-radius: 8px; padding: 12px 14px; border: 1px solid #e2e8f0; }
+
+        /* QR + cert ID */
+        .vfy-qr-section {
+            display: flex; align-items: center; gap: 20px;
+            background: #f8fafc;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 14px;
+            padding: 16px 20px;
+        }
+        .vfy-qr-img {
+            width: 80px; height: 80px; flex-shrink: 0;
+            border-radius: 8px;
+            border: 2px solid #e2e8f0;
+            background: #fff;
+        }
+        .vfy-qr-info { flex: 1; }
+        .vfy-qr-title { font-size: .75rem; font-weight: 700; color: #64748b; margin-bottom: 4px; }
+        .vfy-cert-id {
+            font-family: 'Courier New', monospace;
+            font-size: .72rem; color: #1e293b;
+            word-break: break-all;
+            line-height: 1.5;
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 6px 8px;
+            margin-bottom: 6px;
+        }
+        .vfy-copy-btn {
+            display: inline-flex; align-items: center; gap: 5px;
+            font-size: .72rem; font-weight: 600;
+            color: #2563eb; cursor: pointer;
+            background: none; border: none; padding: 0;
+        }
+        .vfy-copy-btn:hover { text-decoration: underline; }
+
+        /* ── Footer ── */
+        .vfy-footer {
+            background: linear-gradient(135deg, #0d2347, #1a3a6e);
+            padding: 16px 32px;
+            display: flex; align-items: center; justify-content: space-between;
+            gap: 12px; flex-wrap: wrap;
+        }
+        .vfy-footer-note { font-size: .72rem; color: #94a3b8; }
+        .vfy-footer-note strong { color: #c9b98a; }
+        .vfy-footer-issue {
+            font-size: .72rem; color: #64748b;
+            background: rgba(255,255,255,.06);
+            border-radius: 6px; padding: 4px 10px;
+            color: #94a3b8;
+        }
+
+        /* ── Print ── */
+        @@media print {
+            body { background: #fff !important; padding: 0; }
+            .vfy-topbar, .vfy-print-btn { display: none !important; }
+            .vfy-card { box-shadow: none; border-radius: 0; }
+        }
+        @@media (max-width: 540px) {
+            .vfy-header { padding: 20px; flex-wrap: wrap; }
+            .vfy-body { padding: 20px; }
+            .vfy-details { grid-template-columns: 1fr; }
+            .vfy-footer { padding: 14px 20px; }
+            .vfy-trainee-name { font-size: 1.3rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Top bar -->
+    <div class="vfy-topbar">
+        <a href="/" class="vfy-brand">
+            <!-- inline logo -->
+            <svg xmlns="http://www.w3.org/2000/svg" width="38" height="38" viewBox="0 0 120 120">
+                <defs>
+                    <radialGradient id="vbg" cx="50%" cy="40%" r="55%">
+                        <stop offset="0%" stop-color="#1a3a6e"/>
+                        <stop offset="100%" stop-color="#0a1f3d"/>
+                    </radialGradient>
+                </defs>
+                <circle cx="60" cy="60" r="57" fill="url(#vbg)" stroke="#c9a227" stroke-width="3"/>
+                <circle cx="60" cy="60" r="50" fill="none" stroke="#c9a227" stroke-width="1" stroke-dasharray="4 4" opacity=".5"/>
+                <polygon points="60,22 100,42 100,44 60,34 20,44 20,42" fill="#c9a227"/>
+                <rect x="55" y="34" width="10" height="22" fill="#c9a227"/>
+                <ellipse cx="60" cy="57" rx="14" ry="8" fill="#c9a227" opacity=".9"/>
+                <circle cx="60" cy="56" r="4" fill="#fde68a"/>
+                <text x="60" y="98" text-anchor="middle" font-family="sans-serif" font-size="9" font-weight="700" fill="#c9a227" letter-spacing="1">TRAINING</text>
+            </svg>
+            <div>
+                <div class="vfy-brand-text">مركز التدريب</div>
+                <div class="vfy-brand-sub">Training Center</div>
+            </div>
+        </a>
+        <button class="vfy-print-btn" onclick="window.print()">
+            <i class="fas fa-print"></i> طباعة
+        </button>
+    </div>
+
+    <!-- Main card -->
+    <div class="vfy-card">
+
+        <!-- Header band -->
+        <div class="vfy-header">
+            <div class="vfy-logo-wrap">
+                <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 120 120">
+                    <defs>
+                        <radialGradient id="hbg" cx="50%" cy="40%" r="55%">
+                            <stop offset="0%" stop-color="#1a3a6e"/>
+                            <stop offset="100%" stop-color="#0a1f3d"/>
+                        </radialGradient>
+                    </defs>
+                    <circle cx="60" cy="60" r="57" fill="url(#hbg)" stroke="#c9a227" stroke-width="3"/>
+                    <circle cx="60" cy="60" r="50" fill="none" stroke="#c9a227" stroke-width="1" stroke-dasharray="4 4" opacity=".6"/>
+                    <polygon points="60,22 100,42 100,44 60,34 20,44 20,42" fill="#c9a227"/>
+                    <rect x="55" y="34" width="10" height="22" fill="#c9a227"/>
+                    <ellipse cx="60" cy="57" rx="14" ry="8" fill="#c9a227" opacity=".9"/>
+                    <circle cx="60" cy="56" r="4" fill="#fde68a"/>
+                    <path d="M34,74 Q34,66 42,66 L78,66 Q86,66 86,74 L86,82 Q86,88 78,88 L42,88 Q34,88 34,82 Z" fill="none" stroke="#c9a227" stroke-width="1.5" opacity=".7"/>
+                    <line x1="60" y1="66" x2="60" y2="88" stroke="#fbbf24" stroke-width="1.5" opacity=".8"/>
+                    <text x="60" y="98" text-anchor="middle" font-family="sans-serif" font-size="9" font-weight="700" fill="#c9a227" letter-spacing="1">TRAINING</text>
+                </svg>
+            </div>
+            <div class="vfy-header-text">
+                <h1>شهادة موثَّقة ومعتمدة</h1>
+                <p>صادرة عن مركز التدريب — يمكن التحقق من صحة هذه الشهادة عبر الرابط أدناه</p>
+            </div>
+            <div class="vfy-verified-badge">
+                <i class="fas fa-shield-check"></i>
+                <span>مُوثَّقة ✓</span>
+            </div>
+        </div>
+
+        <div class="vfy-divider"></div>
+
+        <!-- Body -->
+        <div class="vfy-body">
+
+            <!-- Trainee name + course -->
+            <div class="vfy-name-block">
+                <div class="vfy-congrats">تشهد هذه الوثيقة بأن</div>
+                <div class="vfy-trainee-name">@(Model.Trainee?.User?.FullName ?? "—")</div>
+                <div style="font-size:.8rem;color:#64748b;margin-bottom:10px;">قد أتمّ/أتمّت بنجاح دورة</div>
+                <div class="vfy-course-name">@(Model.Course?.CourseName ?? "—")</div>
+            </div>
+
+            <!-- Detail grid -->
+            <div class="vfy-details">
+                <div class="vfy-detail">
+                    <div class="vfy-detail-icon"><i class="fas fa-chalkboard-teacher"></i></div>
+                    <div>
+                        <div class="vfy-detail-label">المدرّب</div>
+                        <div class="vfy-detail-value">@(Model.Trainer?.User?.FullName ?? "—")</div>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <div class="text-center mb-4">
-                        <h3 class="fw-bold text-primary">@Model.Trainee.User.FullName</h3>
-                        <p class="lead">has successfully completed the course</p>
-                        <h5 class="text-dark">@Model.Course.CourseName</h5>
+                <div class="vfy-detail">
+                    <div class="vfy-detail-icon" style="background:linear-gradient(135deg,#d97706,#f59e0b);">
+                        <i class="fas fa-book"></i>
                     </div>
-
-                    <hr />
-
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <p><strong>Issued By:</strong> @Model.Trainer?.User?.FullName</p>
-                        </div>
-                        <div class="col-md-6 text-md-end">
-                            <p><strong>Average Score:</strong> @Model.Average%</p>
-                        </div>
+                    <div>
+                        <div class="vfy-detail-label">عدد المحاضرات</div>
+                        <div class="vfy-detail-value">@(Model.Course?.NumberOfLectures) محاضرة</div>
                     </div>
-
-                    <div class="text-center text-muted">
-                        <small><strong>Certificate ID:</strong> @Model.CertificateId</small>
+                </div>
+                <div class="vfy-detail">
+                    <div class="vfy-detail-icon" style="background:linear-gradient(135deg,#7c3aed,#a78bfa);">
+                        <i class="fas fa-graduation-cap"></i>
+                    </div>
+                    <div>
+                        <div class="vfy-detail-label">الدفعة</div>
+                        <div class="vfy-detail-value">الدفعة #@(Model.Course?.BatchNumber)</div>
+                    </div>
+                </div>
+                <div class="vfy-detail">
+                    <div class="vfy-detail-icon" style="background:linear-gradient(135deg,#0891b2,#22d3ee);">
+                        <i class="fas fa-calendar-check"></i>
+                    </div>
+                    <div>
+                        <div class="vfy-detail-label">تاريخ الإصدار</div>
+                        <div class="vfy-detail-value">@(Model.Course?.ReleaseDate.ToString("dd / MM / yyyy") ?? "—")</div>
                     </div>
                 </div>
             </div>
+
+            <!-- Score card -->
+            <div class="vfy-score-card">
+                <div class="vfy-score-circle">
+                    <span class="vfy-score-num">@avg.ToString("F0")</span>
+                    <span class="vfy-score-pct">%</span>
+                </div>
+                <div class="vfy-score-info">
+                    <div class="vfy-score-label">المعدل النهائي</div>
+                    <div class="vfy-score-grade">@gradeLabel</div>
+                    <div class="vfy-score-bar-wrap">
+                        <div class="vfy-score-bar"></div>
+                    </div>
+                    <div class="vfy-score-desc">@avg.ToString("F2") / 100</div>
+                </div>
+            </div>
+
+            @if (!string.IsNullOrWhiteSpace(Model.Course?.Description))
+            {
+                <div class="vfy-course-desc" style="margin-bottom:24px;">
+                    <div style="font-size:.75rem;color:#64748b;font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:6px;">
+                        <i class="fas fa-info-circle" style="color:#3b82f6;"></i> وصف الدورة
+                    </div>
+                    <div style="font-size:.85rem;color:#374151;line-height:1.7;background:#f8fafc;border-radius:8px;padding:12px 14px;border:1px solid #e2e8f0;">
+                        @Model.Course.Description
+                    </div>
+                </div>
+            }
+
+            <!-- QR + cert ID -->
+            <div class="vfy-qr-section">
+                @if (!string.IsNullOrEmpty(qrBase64))
+                {
+                    <img src="data:image/png;base64,@qrBase64" class="vfy-qr-img" alt="QR توثيق" />
+                }
+                else
+                {
+                    <div class="vfy-qr-img" style="display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:1.5rem;">
+                        <i class="fas fa-qrcode"></i>
+                    </div>
+                }
+                <div class="vfy-qr-info">
+                    <div class="vfy-qr-title"><i class="fas fa-fingerprint" style="margin-left:4px;"></i> رقم الشهادة (ID)</div>
+                    <div class="vfy-cert-id" id="certIdText">@shortId</div>
+                    <button class="vfy-copy-btn" onclick="copyCertId()">
+                        <i class="fas fa-copy"></i> نسخ الرقم الكامل
+                    </button>
+                </div>
+            </div>
+
+        </div><!-- /vfy-body -->
+
+        <!-- Footer -->
+        <div class="vfy-footer">
+            <div class="vfy-footer-note">
+                <i class="fas fa-lock" style="margin-left:4px;color:#c9b98a;"></i>
+                <strong>وثيقة رسمية</strong> — صادرة عن مركز التدريب
+            </div>
+            <div class="vfy-footer-issue">
+                <i class="fas fa-link" style="margin-left:4px;"></i>
+                للتحقق: <span style="color:#c9b98a;">@verifyUrl</span>
+            </div>
         </div>
-    </div>
-</div>
+
+    </div><!-- /vfy-card -->
+
+    <script>
+        function copyCertId() {
+            var fullId = '@shortId';
+            navigator.clipboard?.writeText(fullId).then(function () {
+                var btn = document.querySelector('.vfy-copy-btn');
+                btn.innerHTML = '<i class="fas fa-check"></i> تم النسخ!';
+                setTimeout(function () {
+                    btn.innerHTML = '<i class="fas fa-copy"></i> نسخ الرقم الكامل';
+                }, 2000);
+            });
+        }
+    </script>
+</body>
+</html>

@@ -59,128 +59,149 @@ namespace TrainingCenterManagement_MVC.Controllers
 
         // GET: Certificates/Create
         [Authorize(Roles = "Admin")]
-
         public IActionResult Create()
         {
-            ViewData["CourseId"] = new SelectList(_context.Courses, "CourseId", "CourseName");
-            ViewData["ExamId"] = new SelectList(_context.Exams, "ExamId", "ExamName");
-            //ViewData["TraineeId"] = new SelectList(_context.Trainees, "TraineeId", "UserId");
+            // Only trainees list — Course/Trainer/Exam are loaded on-demand via AJAX
             ViewData["TraineeId"] = new SelectList(
-                                            _context.Trainees
-                                                .Include(t => t.User)
-                                                .Select(t => new
-                                                {
-                                                    t.TraineeId,
-                                                    Email = t.User.Email // أو t.User.UserName إذا أردت عرض اسم الحساب
-                                                }),
-                                            "TraineeId",
-                                            "Email"
-                                        );
-            // ViewData["TrainerId"] = new SelectList(_context.Trainers, "TrainerId", "Specialty");
-            // Trainers (show email instead of Specialty)
-            ViewData["TrainerId"] = new SelectList(
-                                            _context.Trainers
-                                                .Include(tr => tr.User)
-                                                .Select(tr => new
-                                                {
-                                                    tr.TrainerId,
-                                                    Email = tr.User.Email
-                                                }),
-                                            "TrainerId",
-                                            "Email"
-                                        );
+                _context.Trainees
+                    .Include(t => t.User)
+                    .Select(t => new { t.TraineeId, Display = t.User.FullName + " (" + t.User.Email + ")" }),
+                "TraineeId", "Display");
             return View();
         }
 
         // POST: Certificates/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("CertificateId,Average,Url,IsDeleted,TraineeId,TrainerId,CourseId,ExamId")] Certificate certificate)
+        public async Task<IActionResult> Create([Bind("Average,IsDeleted,TraineeId,TrainerId,CourseId,ExamId")] Certificate certificate)
         {
-            
-                certificate.CertificateId = Guid.NewGuid();
-                _context.Add(certificate);
-                await _context.SaveChangesAsync();  
-            ViewData["CourseId"] = new SelectList(_context.Courses, "CourseId", "CourseName", certificate.CourseId);
-            ViewData["ExamId"] = new SelectList(_context.Exams, "ExamId", "ExamName", certificate.ExamId);
-            ViewData["TraineeId"] = new SelectList(_context.Trainees, "TraineeId", "UserId", certificate.TraineeId);
-            ViewData["TrainerId"] = new SelectList(_context.Trainers, "TrainerId", "Specialty", certificate.TrainerId);
+            certificate.CertificateId = Guid.NewGuid();
+            // Auto-generate verification URL — no manual entry needed
+            certificate.Url = Url.Action("Verify", "Certificates",
+                new { id = certificate.CertificateId }, Request.Scheme) ?? string.Empty;
+
+            _context.Add(certificate);
+            await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
+        }
+
+        // ── AJAX helpers for cascading dropdowns ─────────────────────────────
+        [HttpGet]
+        public async Task<IActionResult> GetCoursesByTrainee(Guid traineeId)
+        {
+            var courses = await _context.CourseTrainees
+                .Where(ct => ct.TraineeId == traineeId)
+                .Include(ct => ct.Course)
+                .Select(ct => new { value = ct.CourseId, text = ct.Course.CourseName })
+                .ToListAsync();
+            return Json(courses);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetTrainersByCourse(Guid courseId)
+        {
+            var trainers = await _context.CourseTrainers
+                .Where(ct => ct.CourseId == courseId)
+                .Include(ct => ct.Trainer).ThenInclude(t => t.User)
+                .Select(ct => new { value = ct.TrainerId, text = ct.Trainer.User.FullName + " (" + ct.Trainer.User.Email + ")" })
+                .ToListAsync();
+            return Json(trainers);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetExamsByCourse(Guid courseId)
+        {
+            var exams = await _context.Exams
+                .Where(e => e.CourseId == courseId)
+                .Select(e => new { value = e.ExamId, text = e.ExamName })
+                .ToListAsync();
+            return Json(exams);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetAttemptScore(Guid examId, Guid traineeId)
+        {
+            var attempt = await _context.ExamAttempts
+                .Where(a => a.ExamId == examId && a.TraineeId == traineeId)
+                .OrderByDescending(a => a.ScorePercentage)
+                .FirstOrDefaultAsync();
+
+            if (attempt?.ScorePercentage != null)
+                return Json(new { score = Math.Round((double)attempt.ScorePercentage, 1) });
+
+            return Json(new { score = (double?)null });
         }
 
         // GET: Certificates/Edit/5
         [Authorize(Roles = "Admin")]
-
         public async Task<IActionResult> Edit(Guid? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            if (id == null) return NotFound();
 
             var certificate = await _context.Certificates
-                .Include(c => c.Trainee)
-                    .ThenInclude(t => t.User) // لجلب بيانات المستخدم
+                .Include(c => c.Trainee).ThenInclude(t => t.User)
+                .Include(c => c.Course)
+                .Include(c => c.Trainer).ThenInclude(t => t.User)
+                .Include(c => c.Exam)
                 .FirstOrDefaultAsync(c => c.CertificateId == id);
 
-            if (certificate == null)
-            {
-                return NotFound();
-            }
+            if (certificate == null) return NotFound();
 
-            ViewData["CourseId"] = new SelectList(_context.Courses, "CourseId", "CourseName", certificate.CourseId);
-            ViewData["ExamId"] = new SelectList(_context.Exams, "ExamId", "ExamName", certificate.ExamId);
-
-            // هنا نعرض Email بدل UserId
+            // Trainee list (all)
             ViewData["TraineeId"] = new SelectList(
-                _context.Trainees.Include(t => t.User),
-                "TraineeId",
-                "User.Email",
-                certificate.TraineeId
-            );
+                _context.Trainees.Include(t => t.User)
+                    .Select(t => new { t.TraineeId, Display = t.User.FullName + " (" + t.User.Email + ")" }),
+                "TraineeId", "Display", certificate.TraineeId);
 
-            ViewData["TrainerId"] = new SelectList(_context.Trainers, "TrainerId", "Specialty", certificate.TrainerId);
+            // Current course/trainer/exam for this certificate (cascade will refresh on change)
+            ViewData["CourseId"]   = new SelectList(
+                _context.CourseTrainees.Where(ct => ct.TraineeId == certificate.TraineeId)
+                    .Include(ct => ct.Course)
+                    .Select(ct => new { ct.CourseId, ct.Course.CourseName }),
+                "CourseId", "CourseName", certificate.CourseId);
+
+            ViewData["TrainerId"]  = new SelectList(
+                _context.CourseTrainers.Where(ct => ct.CourseId == certificate.CourseId)
+                    .Include(ct => ct.Trainer).ThenInclude(t => t.User)
+                    .Select(ct => new { ct.TrainerId, Display = ct.Trainer.User.FullName + " (" + ct.Trainer.User.Email + ")" }),
+                "TrainerId", "Display", certificate.TrainerId);
+
+            ViewData["ExamId"]     = new SelectList(
+                _context.Exams.Where(e => e.CourseId == certificate.CourseId)
+                    .Select(e => new { e.ExamId, e.ExamName }),
+                "ExamId", "ExamName", certificate.ExamId);
 
             return View(certificate);
         }
 
-
         // POST: Certificates/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Guid id, [Bind("CertificateId,Average,Url,IsDeleted,TraineeId,TrainerId,CourseId,ExamId")] Certificate certificate)
+        public async Task<IActionResult> Edit(Guid id, [Bind("CertificateId,Average,IsDeleted,TraineeId,TrainerId,CourseId,ExamId")] Certificate certificate)
         {
-            if (id != certificate.CertificateId)
-            {
-                return NotFound();
-            }
+            if (id != certificate.CertificateId) return NotFound();
 
-           
-                try
-                {
-                    _context.Update(certificate);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!CertificateExists(certificate.CertificateId))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-           
-            ViewData["CourseId"] = new SelectList(_context.Courses, "CourseId", "CourseName", certificate.CourseId);
-            ViewData["ExamId"] = new SelectList(_context.Exams, "ExamId", "ExamName", certificate.ExamId);
-            ViewData["TraineeId"] = new SelectList(_context.Trainees, "TraineeId", "UserId", certificate.TraineeId);
-            ViewData["TrainerId"] = new SelectList(_context.Trainers, "TrainerId", "Specialty", certificate.TrainerId);
+            // Preserve existing URL or generate one if missing
+            var existingUrl = await _context.Certificates
+                .AsNoTracking()
+                .Where(c => c.CertificateId == id)
+                .Select(c => c.Url)
+                .FirstOrDefaultAsync();
+
+            certificate.Url = string.IsNullOrEmpty(existingUrl)
+                ? Url.Action("Verify", "Certificates", new { id = certificate.CertificateId }, Request.Scheme) ?? string.Empty
+                : existingUrl;
+
+            try
+            {
+                _context.Update(certificate);
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!CertificateExists(certificate.CertificateId)) return NotFound();
+                throw;
+            }
             return RedirectToAction(nameof(Index));
         }
 

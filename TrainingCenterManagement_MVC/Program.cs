@@ -149,16 +149,20 @@ app.UseStaticFiles();
 app.UseRotativa();
 
 // Language middleware
+// CurrentUICulture → controls UI string resources (Arabic/English labels).
+// CurrentCulture   → controls date/number formatting. We always use en-US here
+//                    to avoid UmAlQuraCalendar range errors (valid only 1900–2077).
 app.Use(async (context, next) =>
 {
+    var formatCulture = new CultureInfo("en-US"); // safe Gregorian calendar for formatting
     if (context.Request.Cookies.TryGetValue("Language", out var langCookie))
     {
-        Thread.CurrentThread.CurrentCulture = new CultureInfo(langCookie);
+        Thread.CurrentThread.CurrentCulture   = formatCulture;
         Thread.CurrentThread.CurrentUICulture = new CultureInfo(langCookie);
     }
     else
     {
-        Thread.CurrentThread.CurrentCulture = new CultureInfo("ar-SA");
+        Thread.CurrentThread.CurrentCulture   = formatCulture;
         Thread.CurrentThread.CurrentUICulture = new CultureInfo("ar-SA");
     }
     await next();

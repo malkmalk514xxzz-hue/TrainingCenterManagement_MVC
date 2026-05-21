@@ -615,7 +615,7 @@
                         <div class="td-event-item ls-row" id="ls-row-@ls.Id" style="align-items:center;">
                             <div class="td-event-date" style="background:#f3e8ff;color:#7c3aed;min-width:52px;">
                                 <div class="day">@ls.ScheduledAt.ToLocalTime().Day</div>
-                                <div class="mon">@ls.ScheduledAt.ToLocalTime().ToString("MMM")</div>
+                                <div class="mon">@ls.ScheduledAt.ToLocalTime().ToString("MMM", System.Globalization.CultureInfo.InvariantCulture)</div>
                             </div>
                             <div style="flex:1;">
                                 <div class="td-event-title">@ls.Title</div>
@@ -623,7 +623,7 @@
                                     <span style="background:#ede9fe;color:#7c3aed;font-size:.7rem;padding:1px 7px;border-radius:10px;margin-left:4px;">
                                         @ls.CourseName
                                     </span>
-                                    @ls.ScheduledAt.ToLocalTime().ToString("hh:mm tt")
+                                    @ls.ScheduledAt.ToLocalTime().ToString("hh:mm tt", System.Globalization.CultureInfo.InvariantCulture)
                                 </div>
                             </div>
                             <a asp-controller="LiveSessions" asp-action="Join" asp-route-id="@ls.Id"
@@ -652,17 +652,21 @@
                 {
                     @foreach (var ev in Model.UpcomingEvents)
                     {
-                        var evDate = DateTime.TryParse(ev.Date, out var d) ? d : DateTime.MinValue;
+                        // Use InvariantCulture to avoid UmAlQuraCalendar range errors (requires 1900–2077)
+                        var hasDate = DateTime.TryParse(ev.Date,
+                            System.Globalization.CultureInfo.InvariantCulture,
+                            System.Globalization.DateTimeStyles.None, out var d)
+                            && d.Year >= 1900 && d.Year <= 2077;
                         <div class="td-event-item">
                             <div class="td-event-date">
-                                <div class="day">@(evDate != DateTime.MinValue ? evDate.Day.ToString() : "-")</div>
-                                <div class="mon">@(evDate != DateTime.MinValue ? evDate.ToString("MMM") : "")</div>
+                                <div class="day">@(hasDate ? d.Day.ToString() : "-")</div>
+                                <div class="mon">@(hasDate ? d.ToString("MMM", System.Globalization.CultureInfo.InvariantCulture) : "")</div>
                             </div>
                             <div>
                                 <div class="td-event-title">@ev.Title</div>
                                 <div class="td-event-time">
                                     <i class="fas fa-clock" style="margin-left:3px;font-size:.65rem;"></i>
-                                    @(evDate != DateTime.MinValue ? evDate.ToString("HH:mm") : ev.Date)
+                                    @(hasDate ? d.ToString("HH:mm", System.Globalization.CultureInfo.InvariantCulture) : ev.Date)
                                 </div>
                             </div>
                         </div>

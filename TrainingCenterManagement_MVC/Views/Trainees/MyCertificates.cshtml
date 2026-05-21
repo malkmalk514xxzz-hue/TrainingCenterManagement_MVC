@@ -1,42 +1,175 @@
-﻿@model IEnumerable<TrainingCenterManagement_MVC.Models.Certificate>
-
-<h2 class="mb-4">My Certificates</h2>
-
-@if (!Model.Any())
-{
-    <div class="alert alert-warning" role="alert">
-        You have no certificates yet.
-    </div>
+@model IEnumerable<TrainingCenterManagement_MVC.Models.Certificate>
+@{
+    ViewData["Title"] = "شهاداتي";
 }
-else
-{
-    <table class="table table-bordered table-hover">
-        <thead class="table-primary">
-            <tr>
-                <th>Course</th>
-                <th>Trainer</th>
-                <th>Average</th>
-                <th>Issued</th>
-                <th style="width: 140px;">Actions</th> <!-- عمود جديد -->
-            </tr>
-        </thead>
-        <tbody>
+
+<style>
+    .cert-wrap   { padding: 8px 0; direction: rtl; }
+    .cert-header { margin-bottom: 24px; }
+    .cert-header h2 { font-size: 1.2rem; font-weight: 700; color: #0f172a; margin: 0 0 4px; }
+    .cert-header p  { font-size: .85rem; color: #64748b; margin: 0; }
+
+    .cert-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 18px;
+    }
+
+    .cert-card {
+        background: #fff;
+        border-radius: 14px;
+        border: 1.5px solid #e2e8f0;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        transition: .2s;
+        box-shadow: 0 1px 4px rgba(0,0,0,.05);
+        position: relative;
+        overflow: hidden;
+    }
+    .cert-card::before {
+        content: "";
+        position: absolute;
+        top: 0; right: 0;
+        width: 4px; height: 100%;
+        background: linear-gradient(180deg, #d4a015, #b8841a);
+        border-radius: 0 14px 14px 0;
+    }
+    .cert-card:hover { border-color: #fcd34d; box-shadow: 0 6px 20px rgba(212,160,21,.12); }
+
+    .cert-top { display: flex; align-items: flex-start; gap: 14px; }
+    .cert-icon {
+        width: 46px; height: 46px; border-radius: 12px; flex-shrink: 0;
+        background: linear-gradient(135deg, #d4a015, #b8841a);
+        display: flex; align-items: center; justify-content: center;
+        color: #fff; font-size: 1.1rem;
+        box-shadow: 0 4px 12px rgba(180,130,20,.25);
+    }
+    .cert-info { flex: 1; min-width: 0; }
+    .cert-course { font-size: .95rem; font-weight: 700; color: #0f172a; margin: 0 0 4px; }
+    .cert-trainer { font-size: .8rem; color: #64748b; margin: 0; display: flex; align-items: center; gap: 5px; }
+
+    .cert-score-row { display: flex; align-items: center; gap: 10px; }
+    .cert-score-bar-wrap {
+        flex: 1; height: 6px; border-radius: 4px;
+        background: #f1f5f9; overflow: hidden;
+    }
+    .cert-score-bar {
+        height: 100%; border-radius: 4px;
+        background: linear-gradient(90deg, #d4a015, #f59e0b);
+        transition: width .4s ease;
+    }
+    .cert-score-num { font-size: .8rem; font-weight: 700; color: #d4a015; white-space: nowrap; }
+
+    .cert-grade {
+        display: inline-flex; align-items: center; gap: 5px;
+        padding: 3px 10px; border-radius: 20px;
+        font-size: .75rem; font-weight: 700;
+    }
+    .grade-excellent { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
+    .grade-very-good { background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; }
+    .grade-good      { background: #f0f9ff; color: #0891b2; border: 1px solid #bae6fd; }
+    .grade-pass      { background: #fffbeb; color: #d97706; border: 1px solid #fde68a; }
+    .grade-fail      { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+
+    .cert-id {
+        font-size: .72rem; color: #94a3b8;
+        font-family: 'Courier New', monospace;
+        letter-spacing: .5px;
+    }
+
+    .cert-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 2px; }
+    .cert-btn {
+        flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px;
+        padding: 9px 12px; border-radius: 8px; text-decoration: none;
+        font-size: .8rem; font-weight: 600; transition: .15s;
+        border: none; cursor: pointer;
+    }
+    .cert-btn-pdf  { background: #fff1f2; color: #e11d48; }
+    .cert-btn-pdf:hover  { background: #ffe4e6; color: #be123c; }
+    .cert-btn-verify { background: #f0fdf4; color: #16a34a; }
+    .cert-btn-verify:hover { background: #dcfce7; color: #15803d; }
+
+    .cert-empty { padding: 60px 20px; text-align: center; }
+    .cert-empty i { font-size: 3rem; color: #fcd34d; display: block; margin-bottom: 16px; }
+    .cert-empty p { color: #64748b; font-size: .9rem; margin: 0; }
+</style>
+
+<div class="cert-wrap">
+    <div class="cert-header">
+        <h2>
+            <i class="fas fa-certificate" style="color:#d4a015;margin-left:6px;"></i>
+            شهاداتي
+        </h2>
+        <p>الشهادات التي حصلت عليها بعد إتمام الدورات</p>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="cert-empty">
+            <i class="fas fa-certificate"></i>
+            <p>لم تحصل على أي شهادة بعد — أكمل دوراتك لتحصل على شهاداتك!</p>
+        </div>
+    }
+    else
+    {
+        <div class="cert-grid">
             @foreach (var cert in Model)
             {
-                <tr>
-                    <td>@cert.Course.CourseName</td>
-                    <td>@cert.Trainer?.User?.FullName ?? "N/A"</td>
-                    <td>@cert.Average.ToString("F2")</td>
-                    <td class="text-center text-success" title="Certificate Issued">✔️</td>
-                    <td>
-                        <a asp-controller="Certificates" asp-action="CertificatePdf" asp-route-certificateId="@cert.CertificateId"
-                           class="btn btn-danger btn-sm"
-                           title="Download Certificate PDF">
-                            <i class="bi bi-file-earmark-pdf"></i> Download PDF
+                var avg    = (double)cert.Average;
+                var pct    = Math.Min(avg, 100);
+                string gradeClass, gradeLabel, gradeIcon;
+                if      (avg >= 90) { gradeClass = "grade-excellent"; gradeLabel = "ممتاز";    gradeIcon = "fas fa-star"; }
+                else if (avg >= 80) { gradeClass = "grade-very-good"; gradeLabel = "جيد جداً"; gradeIcon = "fas fa-thumbs-up"; }
+                else if (avg >= 70) { gradeClass = "grade-good";      gradeLabel = "جيد";      gradeIcon = "fas fa-check-circle"; }
+                else if (avg >= 60) { gradeClass = "grade-pass";      gradeLabel = "مقبول";    gradeIcon = "fas fa-check"; }
+                else                { gradeClass = "grade-fail";      gradeLabel = "غير ناجح"; gradeIcon = "fas fa-times"; }
+                var shortId = cert.CertificateId.ToString().Substring(0, 8).ToUpper();
+                <div class="cert-card">
+                    <div class="cert-top">
+                        <div class="cert-icon"><i class="fas fa-award"></i></div>
+                        <div class="cert-info">
+                            <p class="cert-course">@cert.Course?.CourseName</p>
+                            <p class="cert-trainer">
+                                <i class="fas fa-user-tie"></i>
+                                @(cert.Trainer?.User?.FullName ?? "غير محدد")
+                            </p>
+                        </div>
+                        <span class="cert-grade @gradeClass">
+                            <i class="@gradeIcon"></i>@gradeLabel
+                        </span>
+                    </div>
+
+                    <div class="cert-score-row">
+                        <div class="cert-score-bar-wrap">
+                            <div class="cert-score-bar" style="width:@pct%"></div>
+                        </div>
+                        <span class="cert-score-num">@avg.ToString("F1")%</span>
+                    </div>
+
+                    <div class="cert-id">
+                        <i class="fas fa-fingerprint" style="margin-left:4px;"></i>
+                        #@shortId
+                    </div>
+
+                    <div class="cert-actions">
+                        <a asp-controller="Certificates" asp-action="CertificatePdf"
+                           asp-route-certificateId="@cert.CertificateId"
+                           class="cert-btn cert-btn-pdf"
+                           title="تحميل الشهادة PDF">
+                            <i class="fas fa-file-pdf"></i> تحميل PDF
                         </a>
-                    </td>
-                </tr>
+                        <a asp-controller="Certificates" asp-action="Verify"
+                           asp-route-id="@cert.CertificateId"
+                           target="_blank"
+                           class="cert-btn cert-btn-verify"
+                           title="رابط التحقق العام">
+                            <i class="fas fa-shield-alt"></i> توثيق
+                        </a>
+                    </div>
+                </div>
             }
-        </tbody>
-    </table>
-}
+        </div>
+    }
+</div>

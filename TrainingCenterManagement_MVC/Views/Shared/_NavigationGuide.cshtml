@@ -64,9 +64,9 @@
 /* ── FAB ──────────────────────────────────────────────── */
 #ng-fab {
   position: fixed;
-  bottom: 28px;
-  left: 28px;
-  right: auto;
+  bottom: 90px;   /* stacked above #ai-fab (bottom:28px) — keeps right column tidy */
+  right: 28px;
+  left: auto;
   z-index: 9996;
   border: none;
   cursor: pointer;
@@ -101,19 +101,19 @@
 /* ── PANEL ────────────────────────────────────────────── */
 #ng-panel {
   position: fixed;
-  bottom: 86px;
-  left: 28px;
-  right: auto;
+  bottom: 148px;  /* opens upward from #ng-fab at bottom:90px */
+  right: 28px;
+  left: auto;
   z-index: 9997;
   width: 380px;
-  max-height: calc(100vh - 120px);
+  max-height: calc(100vh - 180px);
   background: #fff;
   border-radius: 20px;
   box-shadow: 0 24px 70px rgba(0,0,0,.2), 0 0 0 1px rgba(0,0,0,.06);
   display: none;
   flex-direction: column;
   overflow: hidden;
-  transform-origin: bottom left;
+  transform-origin: bottom right;
 }
 #ng-panel.ng-open    { display: flex; animation: ngIn  .3s cubic-bezier(.34,1.56,.64,1) both; }
 #ng-panel.ng-closing { animation: ngOut .2s ease forwards; }
@@ -218,7 +218,7 @@
 
 /* ── MOBILE ───────────────────────────────────────────── */
 @@media (max-width: 640px) {
-  #ng-fab { bottom: 20px !important; left: 16px !important; }
+  #ng-fab { bottom: 20px !important; right: 16px !important; left: auto !important; }
   #ng-panel {
     bottom: 0 !important; left: 0 !important; right: 0 !important;
     width: 100% !important; max-height: 88dvh !important;

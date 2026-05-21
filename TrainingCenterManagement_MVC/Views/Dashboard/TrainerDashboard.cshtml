@@ -764,16 +764,18 @@
                 {
                     @foreach (var ev in Model.UpcomingEvents)
                     {
-                        var evDate = DateTime.TryParse(ev.Date, out var d) ? d : DateTime.MinValue;
-                        var evCulture = System.Globalization.CultureInfo.InvariantCulture;
+                        var ic = System.Globalization.CultureInfo.InvariantCulture;
+                        var hasDate = DateTime.TryParse(ev.Date, ic,
+                            System.Globalization.DateTimeStyles.None, out var d)
+                            && d.Year >= 1900 && d.Year <= 2077;
                         <div class="td-event-item">
                             <div class="td-event-date">
-                                <div class="day">@(evDate != DateTime.MinValue ? evDate.Day.ToString(evCulture) : "-")</div>
-                                <div class="mon">@(evDate != DateTime.MinValue ? evDate.ToString("MMM", evCulture) : "")</div>
+                                <div class="day">@(hasDate ? d.Day.ToString(ic) : "-")</div>
+                                <div class="mon">@(hasDate ? d.ToString("MMM", ic) : "")</div>
                             </div>
                             <div class="td-event-body">
                                 <div class="td-event-title">@ev.Title</div>
-                                <span class="td-event-type lecture"><i class="fas fa-clock" style="margin-left:3px;font-size:.65rem;"></i>@(evDate != DateTime.MinValue ? evDate.ToString("HH:mm", evCulture) : ev.Date)</span>
+                                <span class="td-event-type lecture"><i class="fas fa-clock" style="margin-left:3px;font-size:.65rem;"></i>@(hasDate ? d.ToString("HH:mm", ic) : ev.Date)</span>
                             </div>
                         </div>
                     }
