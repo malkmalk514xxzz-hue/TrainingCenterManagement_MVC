@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TrainingCenterManagement_MVC.Data;
 
@@ -11,9 +12,11 @@ using TrainingCenterManagement_MVC.Data;
 namespace TrainingCenterManagement_MVC.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260520115037_AddApiKeysToConfig")]
+    partial class AddApiKeysToConfig
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -405,7 +408,7 @@ namespace TrainingCenterManagement_MVC.Migrations
                             CanReadAdminData = false,
                             CanReadOtherUsersData = false,
                             CanReadPersonalData = true,
-                            CreatedAt = new DateTime(2026, 5, 20, 16, 18, 49, 183, DateTimeKind.Utc).AddTicks(4559),
+                            CreatedAt = new DateTime(2026, 5, 20, 11, 50, 36, 554, DateTimeKind.Utc).AddTicks(2070),
                             CreatedBy = "System",
                             DailyQueryLimit = 50,
                             RoleName = "Trainee"
@@ -421,7 +424,7 @@ namespace TrainingCenterManagement_MVC.Migrations
                             CanReadAdminData = false,
                             CanReadOtherUsersData = false,
                             CanReadPersonalData = true,
-                            CreatedAt = new DateTime(2026, 5, 20, 16, 18, 49, 183, DateTimeKind.Utc).AddTicks(4573),
+                            CreatedAt = new DateTime(2026, 5, 20, 11, 50, 36, 554, DateTimeKind.Utc).AddTicks(2083),
                             CreatedBy = "System",
                             DailyQueryLimit = 100,
                             RoleName = "Trainer"
@@ -437,7 +440,7 @@ namespace TrainingCenterManagement_MVC.Migrations
                             CanReadAdminData = true,
                             CanReadOtherUsersData = true,
                             CanReadPersonalData = true,
-                            CreatedAt = new DateTime(2026, 5, 20, 16, 18, 49, 183, DateTimeKind.Utc).AddTicks(4576),
+                            CreatedAt = new DateTime(2026, 5, 20, 11, 50, 36, 554, DateTimeKind.Utc).AddTicks(2093),
                             CreatedBy = "System",
                             DailyQueryLimit = -1,
                             RoleName = "Admin"
@@ -453,7 +456,7 @@ namespace TrainingCenterManagement_MVC.Migrations
                             CanReadAdminData = false,
                             CanReadOtherUsersData = false,
                             CanReadPersonalData = true,
-                            CreatedAt = new DateTime(2026, 5, 20, 16, 18, 49, 183, DateTimeKind.Utc).AddTicks(4588),
+                            CreatedAt = new DateTime(2026, 5, 20, 11, 50, 36, 554, DateTimeKind.Utc).AddTicks(2096),
                             CreatedBy = "System",
                             DailyQueryLimit = 100,
                             RoleName = "Receptionist"
@@ -1826,11 +1829,6 @@ namespace TrainingCenterManagement_MVC.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("ShamCashAccountCode")
-                        .IsRequired()
-                        .HasMaxLength(32)
-                        .HasColumnType("nvarchar(32)");
-
                     b.Property<string>("UserId")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
@@ -1973,17 +1971,6 @@ namespace TrainingCenterManagement_MVC.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<decimal>("BalanceSYP")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("BalanceUSD")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("TransferCode")
-                        .IsRequired()
-                        .HasMaxLength(8)
-                        .HasColumnType("nvarchar(8)");
-
                     b.Property<string>("UserId")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
@@ -2004,11 +1991,6 @@ namespace TrainingCenterManagement_MVC.Migrations
 
                     b.Property<string>("BusinessLink")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ShamCashAccountCode")
-                        .IsRequired()
-                        .HasMaxLength(32)
-                        .HasColumnType("nvarchar(32)");
 
                     b.Property<string>("Specialty")
                         .IsRequired()
@@ -2130,82 +2112,6 @@ namespace TrainingCenterManagement_MVC.Migrations
                         .HasDatabaseName("UX_VideoView_VideoId_TraineeId");
 
                     b.ToTable("VideoViews");
-                });
-
-            modelBuilder.Entity("TrainingCenterManagement_MVC.Models.shamCashTranslation", b =>
-                {
-                    b.Property<int>("id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("id"));
-
-                    b.Property<decimal>("amountValue")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<int>("currencyType")
-                        .HasColumnType("int");
-
-                    b.Property<string>("notes")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("registrationDate")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("transactionId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("transactionType")
-                        .HasColumnType("int");
-
-                    b.Property<string>("userName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("id");
-
-                    b.ToTable("shamCashTranslation");
-                });
-
-            modelBuilder.Entity("TrainingCenterManagement_MVC.Models.WithdrawRequest", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<decimal>("AmountUSD")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("AmountSYP")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("BarCodeImagePath")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<decimal>("PaidAmountUSD")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("PaidAmountSYP")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
-
-                    b.Property<Guid>("TraineeId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("TraineeId");
-
-                    b.ToTable("WithdrawRequests");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -2731,17 +2637,6 @@ namespace TrainingCenterManagement_MVC.Migrations
                         .IsRequired();
 
                     b.Navigation("Resource");
-
-                    b.Navigation("Trainee");
-                });
-
-            modelBuilder.Entity("TrainingCenterManagement_MVC.Models.WithdrawRequest", b =>
-                {
-                    b.HasOne("TrainingCenterManagement_MVC.Models.Trainee", "Trainee")
-                        .WithMany()
-                        .HasForeignKey("TraineeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
 
                     b.Navigation("Trainee");
                 });

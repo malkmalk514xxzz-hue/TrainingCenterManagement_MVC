@@ -1,0 +1,987 @@
+@* ════════════════════════════════════════════════════════════════════
+   _LectureAITools.cshtml  — أدوات الذكاء الاصطناعي للمحاضرات
+   الميزات: تلخيص | خريطة ذهنية | أسئلة وأجوبة | تصدير PDF
+   الاستخدام: @await Html.PartialAsync("_LectureAITools", Model.LectureId)
+   ════════════════════════════════════════════════════════════════════ *@
+
+@{
+    var lectureIdStr = Model?.ToString() ?? ViewBag.LectureId?.ToString() ?? "";
+}
+
+<!-- ══ AI Toolbar ══════════════════════════════════════════════════ -->
+<div id="lai-toolbar" class="lai-toolbar" data-lecture-id="@lectureIdStr">
+
+  <div class="lai-toolbar-header">
+    <div class="lai-toolbar-title">
+      <span class="lai-title-icon"><i class="fas fa-robot"></i></span>
+      <span>أدوات الذكاء الاصطناعي</span>
+      <span class="lai-beta-badge">AI</span>
+    </div>
+    <div class="lai-toolbar-sub">حلّل هذه المحاضرة باستخدام الذكاء الاصطناعي</div>
+  </div>
+
+  <div class="lai-buttons">
+
+    <button class="lai-btn lai-btn-summary" onclick="laiTools.run('summary')" title="تلخيص المحاضرة">
+      <div class="lai-btn-icon" style="background:linear-gradient(135deg,#0ea5e9,#0284c7)">
+        <i class="fas fa-file-lines"></i>
+      </div>
+      <div class="lai-btn-text">
+        <div class="lai-btn-name">ملخص المحاضرة</div>
+        <div class="lai-btn-desc">ملخص احترافي منظم بالعربية</div>
+      </div>
+      <div class="lai-btn-arrow"><i class="fas fa-chevron-left"></i></div>
+    </button>
+
+    <button class="lai-btn lai-btn-mindmap" onclick="laiTools.run('mindmap')" title="خريطة ذهنية">
+      <div class="lai-btn-icon" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed)">
+        <i class="fas fa-sitemap"></i>
+      </div>
+      <div class="lai-btn-text">
+        <div class="lai-btn-name">خريطة ذهنية</div>
+        <div class="lai-btn-desc">خريطة تفاعلية لمحتوى المحاضرة</div>
+      </div>
+      <div class="lai-btn-arrow"><i class="fas fa-chevron-left"></i></div>
+    </button>
+
+    <button class="lai-btn lai-btn-qna" onclick="laiTools.run('qna')" title="أسئلة وأجوبة">
+      <div class="lai-btn-icon" style="background:linear-gradient(135deg,#f59e0b,#d97706)">
+        <i class="fas fa-question-circle"></i>
+      </div>
+      <div class="lai-btn-text">
+        <div class="lai-btn-name">أسئلة وأجوبة</div>
+        <div class="lai-btn-desc">اختبارات متنوعة عن المحاضرة</div>
+      </div>
+      <div class="lai-btn-arrow"><i class="fas fa-chevron-left"></i></div>
+    </button>
+
+  </div>
+</div>
+
+<!-- ══ Result Modal ════════════════════════════════════════════════ -->
+<div id="lai-modal-overlay" class="lai-overlay" onclick="laiTools.closeModal()"></div>
+
+<div id="lai-modal" class="lai-modal" role="dialog" aria-modal="true">
+
+  <div class="lai-modal-header" id="lai-modal-header">
+    <div class="lai-modal-title-row">
+      <span id="lai-modal-icon" class="lai-modal-icon-badge"></span>
+      <div>
+        <div id="lai-modal-title" class="lai-modal-title"></div>
+        <div id="lai-modal-sub"   class="lai-modal-sub"></div>
+      </div>
+    </div>
+    <div class="lai-modal-actions">
+      <button id="lai-pdf-btn"  class="lai-action-pill lai-pdf-pill"  onclick="laiTools.exportPDF()"  title="تصدير PDF" style="display:none">
+        <i class="fas fa-file-pdf"></i> تصدير PDF
+      </button>
+      <button id="lai-copy-btn" class="lai-action-pill lai-copy-pill" onclick="laiTools.copyContent()" title="نسخ">
+        <i class="fas fa-copy"></i> نسخ
+      </button>
+      <button class="lai-close-btn" onclick="laiTools.closeModal()" title="إغلاق">
+        <i class="fas fa-xmark"></i>
+      </button>
+    </div>
+  </div>
+
+  <div id="lai-modal-body" class="lai-modal-body">
+
+    <!-- Loading state -->
+    <div id="lai-loading" class="lai-loading">
+      <div class="lai-spinner"></div>
+      <div class="lai-loading-title">جاري تحليل المحاضرة…</div>
+      <div class="lai-loading-sub" id="lai-loading-sub">يرجى الانتظار، قد يستغرق هذا 15-30 ثانية</div>
+    </div>
+
+    <!-- Content (summary / qna) -->
+    <div id="lai-content" class="lai-content" style="display:none">
+      <div id="lai-md-output" class="lai-md"></div>
+    </div>
+
+    <!-- Mind map container -->
+    <div id="lai-mindmap-wrap" class="lai-mindmap-wrap" style="display:none">
+      <div id="lai-mindmap-toolbar" class="lai-mm-toolbar">
+        <span class="lai-mm-hint"><i class="fas fa-hand-pointer"></i> اسحب للتحريك · عجلة الماوس للتكبير</span>
+        <button onclick="laiTools.mmZoomIn()"  title="تكبير"><i class="fas fa-plus"></i></button>
+        <button onclick="laiTools.mmZoomOut()" title="تصغير"><i class="fas fa-minus"></i></button>
+        <button onclick="laiTools.mmFit()"     title="ملاءمة الشاشة"><i class="fas fa-expand"></i></button>
+      </div>
+      <div id="lai-mm-container" class="lai-mm-container">
+        <svg id="lai-mm-svg"></svg>
+      </div>
+    </div>
+
+    <!-- Error state -->
+    <div id="lai-error" class="lai-error" style="display:none">
+      <div class="lai-error-icon"><i class="fas fa-triangle-exclamation"></i></div>
+      <div id="lai-error-msg" class="lai-error-msg"></div>
+      <button class="lai-retry-btn" onclick="laiTools.retry()">
+        <i class="fas fa-rotate-right"></i> إعادة المحاولة
+      </button>
+    </div>
+
+  </div>
+
+  <!-- Provider tag -->
+  <div id="lai-provider-row" class="lai-provider-row" style="display:none">
+    <i class="fas fa-microchip"></i>
+    <span id="lai-provider-txt"></span>
+  </div>
+
+</div>
+
+<!-- ══ STYLES ══════════════════════════════════════════════════════ -->
+<style>
+/* ── Toolbar ────────────────────────────────────────── */
+.lai-toolbar {
+  background: #fff;
+  border: 1.5px solid #e0e7ff;
+  border-radius: 18px;
+  padding: 20px;
+  margin: 24px 0;
+  box-shadow: 0 4px 20px rgba(79,70,229,.07);
+  direction: rtl;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+}
+.lai-toolbar-header { margin-bottom: 16px; }
+.lai-toolbar-title {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 1rem; font-weight: 700; color: #1e1b4b;
+}
+.lai-title-icon {
+  width: 32px; height: 32px; border-radius: 10px;
+  background: linear-gradient(135deg,#7c3aed,#4f46e5);
+  color: #fff; display: flex; align-items: center; justify-content: center;
+  font-size: .85rem; flex-shrink: 0;
+}
+.lai-beta-badge {
+  background: linear-gradient(135deg,#7c3aed,#4f46e5);
+  color: #fff; font-size: .6rem; font-weight: 800;
+  padding: 2px 7px; border-radius: 10px; letter-spacing: .05em;
+}
+.lai-toolbar-sub { font-size: .78rem; color: #64748b; margin-top: 4px; }
+
+/* ── Buttons ─────────────────────────────────────────── */
+.lai-buttons { display: flex; flex-direction: column; gap: 10px; }
+.lai-btn {
+  display: flex; align-items: center; gap: 14px;
+  padding: 14px 16px; border-radius: 14px;
+  border: 1.5px solid #f1f5f9; background: #fafafa;
+  cursor: pointer; text-align: right; width: 100%;
+  transition: all .2s; position: relative; overflow: hidden;
+}
+.lai-btn::before {
+  content: ''; position: absolute; inset: 0; opacity: 0;
+  transition: opacity .2s;
+}
+.lai-btn-summary::before { background: linear-gradient(135deg,rgba(14,165,233,.06),rgba(2,132,199,.04)); }
+.lai-btn-mindmap::before { background: linear-gradient(135deg,rgba(139,92,246,.06),rgba(124,58,237,.04)); }
+.lai-btn-qna::before     { background: linear-gradient(135deg,rgba(245,158,11,.06),rgba(217,119,6,.04)); }
+.lai-btn:hover { border-color: #c7d2fe; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(79,70,229,.1); }
+.lai-btn:hover::before { opacity: 1; }
+.lai-btn:active { transform: translateY(0); }
+.lai-btn:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+
+.lai-btn-icon {
+  width: 42px; height: 42px; border-radius: 12px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.1rem; color: #fff; position: relative; z-index: 1;
+  box-shadow: 0 4px 12px rgba(0,0,0,.15);
+}
+.lai-btn-text { flex: 1; min-width: 0; position: relative; z-index: 1; }
+.lai-btn-name { font-size: .88rem; font-weight: 700; color: #1e293b; }
+.lai-btn-desc { font-size: .73rem; color: #64748b; margin-top: 2px; }
+.lai-btn-arrow { color: #94a3b8; font-size: .8rem; position: relative; z-index: 1; }
+
+/* ── Overlay ─────────────────────────────────────────── */
+.lai-overlay {
+  display: none; position: fixed; inset: 0; z-index: 10000;
+  background: rgba(0,0,0,.5); backdrop-filter: blur(3px);
+  animation: laiOverlayIn .2s ease;
+}
+@@keyframes laiOverlayIn { from { opacity: 0; } to { opacity: 1; } }
+
+/* ── Modal ───────────────────────────────────────────── */
+.lai-modal {
+  display: none; position: fixed; z-index: 10001;
+  top: 50%; left: 50%; transform: translate(-50%, -48%) scale(.96);
+  width: min(880px, 95vw); max-height: 88vh;
+  background: #fff; border-radius: 22px;
+  box-shadow: 0 32px 80px rgba(0,0,0,.25), 0 0 0 1px rgba(0,0,0,.06);
+  flex-direction: column; overflow: hidden; direction: rtl;
+  transition: transform .25s cubic-bezier(.34,1.56,.64,1), opacity .2s;
+}
+.lai-modal.lai-open {
+  display: flex;
+  transform: translate(-50%,-50%) scale(1);
+  animation: laiModalIn .28s cubic-bezier(.34,1.56,.64,1) both;
+}
+@@keyframes laiModalIn {
+  from { opacity: 0; transform: translate(-50%,-46%) scale(.94); }
+  to   { opacity: 1; transform: translate(-50%,-50%) scale(1); }
+}
+
+/* ── Modal Header ────────────────────────────────────── */
+.lai-modal-header {
+  padding: 18px 20px 16px; border-bottom: 1px solid #f1f5f9;
+  display: flex; align-items: center; justify-content: space-between;
+  flex-shrink: 0; gap: 12px; flex-wrap: wrap;
+}
+.lai-modal-title-row { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; }
+.lai-modal-icon-badge {
+  width: 44px; height: 44px; border-radius: 14px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.2rem; color: #fff;
+}
+.lai-modal-title { font-size: 1.05rem; font-weight: 800; color: #0f172a; }
+.lai-modal-sub   { font-size: .75rem; color: #64748b; margin-top: 2px; }
+.lai-modal-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+
+.lai-action-pill {
+  display: flex; align-items: center; gap: 6px;
+  padding: 7px 14px; border-radius: 10px; border: 1.5px solid;
+  font-size: .78rem; font-weight: 600; cursor: pointer;
+  transition: all .15s; white-space: nowrap;
+}
+.lai-pdf-pill  { background: #fef2f2; color: #dc2626; border-color: #fca5a5; }
+.lai-pdf-pill:hover  { background: #dc2626; color: #fff; }
+.lai-copy-pill { background: #f0fdf4; color: #16a34a; border-color: #86efac; }
+.lai-copy-pill:hover { background: #16a34a; color: #fff; }
+.lai-copy-pill.copied { background: #16a34a; color: #fff; }
+
+.lai-close-btn {
+  width: 36px; height: 36px; border-radius: 10px; border: 1px solid #e2e8f0;
+  background: #f8fafc; color: #64748b; cursor: pointer; font-size: .95rem;
+  display: flex; align-items: center; justify-content: center;
+  transition: all .15s;
+}
+.lai-close-btn:hover { background: #fee2e2; color: #dc2626; border-color: #fca5a5; }
+
+/* ── Modal Body ──────────────────────────────────────── */
+.lai-modal-body {
+  flex: 1; overflow-y: auto; position: relative;
+}
+.lai-modal-body::-webkit-scrollbar { width: 5px; }
+.lai-modal-body::-webkit-scrollbar-track { background: transparent; }
+.lai-modal-body::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 5px; }
+
+/* ── Loading ─────────────────────────────────────────── */
+.lai-loading {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: 16px; padding: 60px 20px; text-align: center;
+}
+.lai-spinner {
+  width: 52px; height: 52px; border-radius: 50%;
+  border: 4px solid #e0e7ff;
+  border-top-color: #7c3aed;
+  animation: laiSpin 1s linear infinite;
+}
+@@keyframes laiSpin { to { transform: rotate(360deg); } }
+.lai-loading-title { font-size: 1rem; font-weight: 700; color: #1e293b; }
+.lai-loading-sub   { font-size: .8rem; color: #64748b; max-width: 300px; line-height: 1.6; }
+
+/* ── Content / Markdown ──────────────────────────────── */
+.lai-content {
+  padding: 24px 28px;
+  direction: rtl; text-align: right;
+}
+.lai-md {
+  font-size: .9rem; line-height: 1.8; color: #1e293b;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+}
+.lai-md h1 { font-size: 1.3rem; font-weight: 800; color: #1e1b4b; margin: 0 0 14px; border-bottom: 2px solid #e0e7ff; padding-bottom: 8px; }
+.lai-md h2 { font-size: 1.05rem; font-weight: 700; color: #1e1b4b; margin: 20px 0 8px; display: flex; align-items: center; gap: 6px; }
+.lai-md h3 { font-size: .95rem; font-weight: 700; color: #334155; margin: 14px 0 6px; }
+.lai-md h4 { font-size: .88rem; font-weight: 600; color: #475569; margin: 10px 0 4px; }
+.lai-md p  { margin: 0 0 10px; }
+.lai-md p:last-child { margin-bottom: 0; }
+.lai-md ul, .lai-md ol { padding-right: 20px; margin: 8px 0 12px; }
+.lai-md li { margin-bottom: 6px; }
+.lai-md strong { font-weight: 700; color: #0f172a; }
+.lai-md em     { font-style: italic; color: #475569; }
+.lai-md code {
+  background: #f1f5f9; padding: 2px 7px; border-radius: 6px;
+  font-family: 'Consolas','Courier New',monospace; font-size: .84em;
+  color: #0f172a; border: 1px solid #e2e8f0;
+}
+.lai-md pre {
+  background: #0f172a; border-radius: 12px; padding: 16px; margin: 12px 0;
+  overflow-x: auto; direction: ltr;
+}
+.lai-md pre code { background: none; border: none; color: #e2e8f0; font-size: .84em; }
+.lai-md hr { border: none; border-top: 1.5px solid #e0e7ff; margin: 16px 0; }
+.lai-md blockquote {
+  border-right: 4px solid #7c3aed; padding: 8px 14px;
+  background: #faf5ff; border-radius: 0 8px 8px 0; margin: 10px 0; color: #4c1d95;
+}
+/* Q&A specific styling */
+.lai-md .qna-q { background:#eff6ff; border-radius:10px; padding:10px 14px; margin:14px 0 4px; font-weight:700; color:#1d4ed8; }
+.lai-md .qna-a { background:#f0fdf4; border-radius:10px; padding:10px 14px; margin:0 0 14px; color:#166534; }
+
+/* ── Mind Map ────────────────────────────────────────── */
+.lai-mindmap-wrap {
+  display: flex; flex-direction: column; height: 100%;
+  min-height: 500px;
+}
+.lai-mm-toolbar {
+  display: flex; align-items: center; gap: 6px;
+  padding: 8px 14px; background: #fff;
+  border-bottom: 1px solid #f1f5f9; flex-shrink: 0;
+  justify-content: flex-end;
+}
+.lai-mm-toolbar button {
+  width: 32px; height: 32px; border-radius: 8px; border: 1px solid #e2e8f0;
+  background: #f8fafc; color: #475569; cursor: pointer; font-size: .82rem;
+  display: flex; align-items: center; justify-content: center;
+  transition: all .15s; flex-shrink: 0;
+}
+.lai-mm-toolbar button:hover {
+  background: #ede9fe; color: #7c3aed; border-color: #c4b5fd;
+  transform: scale(1.08);
+}
+.lai-mm-hint {
+  font-size: .7rem; color: #94a3b8; margin-right: auto;
+  display: flex; align-items: center; gap: 4px;
+}
+.lai-mm-container {
+  flex: 1; overflow: hidden; position: relative;
+  /* subtle grid background like markmap */
+  background-color: #f8fafd;
+  background-image:
+    linear-gradient(rgba(203,213,225,.35) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(203,213,225,.35) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+#lai-mm-svg {
+  width: 100%; height: 100%;
+  display: block;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* ── Error ───────────────────────────────────────────── */
+.lai-error {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: 12px; padding: 50px 24px; text-align: center;
+}
+.lai-error-icon { font-size: 2.5rem; color: #f59e0b; }
+.lai-error-msg  { font-size: .9rem; color: #334155; max-width: 320px; line-height: 1.6; }
+.lai-retry-btn  {
+  padding: 8px 20px; border-radius: 10px; border: none;
+  background: linear-gradient(135deg,#7c3aed,#4f46e5); color: #fff;
+  font-size: .85rem; font-weight: 600; cursor: pointer;
+  display: flex; align-items: center; gap: 6px;
+  transition: all .18s;
+}
+.lai-retry-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(124,58,237,.35); }
+
+/* ── Provider Row ────────────────────────────────────── */
+.lai-provider-row {
+  padding: 8px 20px; background: #f8fafc; border-top: 1px solid #f1f5f9;
+  display: flex; align-items: center; gap: 6px; font-size: .7rem; color: #94a3b8;
+  flex-shrink: 0;
+}
+
+/* ── Responsive ──────────────────────────────────────── */
+@@media (max-width: 640px) {
+  .lai-modal { width: 100%; max-height: 96dvh; border-radius: 22px 22px 0 0; top: auto; bottom: 0; left: 0; transform: none; }
+  .lai-modal.lai-open { transform: none; animation: laiSlideUp .28s ease both; }
+  @@keyframes laiSlideUp { from { transform: translateY(40px); opacity: 0; } to { transform: none; opacity: 1; } }
+  .lai-content { padding: 16px; }
+  .lai-modal-header { padding: 14px; }
+}
+</style>
+
+<!-- ══ JavaScript ══════════════════════════════════════════════════ -->
+<script>
+const laiTools = (() => {
+  'use strict';
+
+  // ── State ──────────────────────────────────────────────────────
+  let _lastType       = '';
+  let _lastContent    = '';
+  let _lastTitle      = '';
+  let _mmTransform    = { x: 0, y: 0, k: 1 };
+  let _mmDragging     = false;
+  let _mmDragStart    = { x: 0, y: 0, ox: 0, oy: 0, ok: 1 };
+
+  // ── DOM helpers ────────────────────────────────────────────────
+  const el  = id => document.getElementById(id);
+  const CSRF = () => document.querySelector('input[name="__RequestVerificationToken"]')?.value ?? '';
+
+  function getLectureId() {
+    return el('lai-toolbar')?.dataset.lectureId ?? '';
+  }
+
+  // ── Open / Close Modal ─────────────────────────────────────────
+  function openModal() {
+    el('lai-modal').classList.add('lai-open');
+    el('lai-modal-overlay').style.display = 'block';
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeModal() {
+    el('lai-modal').classList.remove('lai-open');
+    el('lai-modal-overlay').style.display = 'none';
+    document.body.style.overflow = '';
+  }
+
+  // ── Show states ────────────────────────────────────────────────
+  function showLoading(subText) {
+    el('lai-loading').style.display = 'flex';
+    el('lai-content').style.display = 'none';
+    el('lai-mindmap-wrap').style.display = 'none';
+    el('lai-error').style.display = 'none';
+    el('lai-provider-row').style.display = 'none';
+    el('lai-pdf-btn').style.display = 'none';
+    el('lai-copy-btn').style.display = 'none';
+    if (subText) el('lai-loading-sub').textContent = subText;
+  }
+
+  function showContent(html) {
+    el('lai-loading').style.display = 'none';
+    el('lai-content').style.display = 'block';
+    el('lai-mindmap-wrap').style.display = 'none';
+    el('lai-error').style.display = 'none';
+    el('lai-md-output').innerHTML = html;
+    el('lai-pdf-btn').style.display = 'flex';
+    el('lai-copy-btn').style.display = 'flex';
+  }
+
+  function showMindMap() {
+    el('lai-loading').style.display = 'none';
+    el('lai-content').style.display = 'none';
+    el('lai-mindmap-wrap').style.display = 'flex';
+    el('lai-error').style.display = 'none';
+    el('lai-pdf-btn').style.display = 'none';
+    el('lai-copy-btn').style.display = 'flex';
+  }
+
+  function showError(msg) {
+    el('lai-loading').style.display = 'none';
+    el('lai-content').style.display = 'none';
+    el('lai-mindmap-wrap').style.display = 'none';
+    el('lai-error').style.display = 'flex';
+    el('lai-error-msg').textContent = msg;
+    el('lai-pdf-btn').style.display = 'none';
+    el('lai-copy-btn').style.display = 'none';
+    el('lai-provider-row').style.display = 'none';
+  }
+
+  // ── Header configuration ───────────────────────────────────────
+  const typeConfig = {
+    summary: {
+      icon:  '<i class="fas fa-file-lines"></i>',
+      bg:    'linear-gradient(135deg,#0ea5e9,#0284c7)',
+      title: 'ملخص المحاضرة',
+      sub:   'ملخص احترافي ومنظم بالذكاء الاصطناعي',
+      loadingMsg: 'يرجى الانتظار — يتم كتابة الملخص…'
+    },
+    mindmap: {
+      icon:  '<i class="fas fa-sitemap"></i>',
+      bg:    'linear-gradient(135deg,#8b5cf6,#7c3aed)',
+      title: 'الخريطة الذهنية',
+      sub:   'خريطة تفاعلية مرسومة بالذكاء الاصطناعي',
+      loadingMsg: 'يرجى الانتظار — يتم بناء الخريطة الذهنية…'
+    },
+    qna: {
+      icon:  '<i class="fas fa-question-circle"></i>',
+      bg:    'linear-gradient(135deg,#f59e0b,#d97706)',
+      title: 'أسئلة وأجوبة',
+      sub:   'اختبارات متنوعة توليدية بالذكاء الاصطناعي',
+      loadingMsg: 'يرجى الانتظار — يتم توليد الأسئلة…'
+    }
+  };
+
+  function setHeader(type) {
+    const cfg = typeConfig[type] || typeConfig.summary;
+    const badge = el('lai-modal-icon');
+    badge.innerHTML = cfg.icon;
+    badge.style.background = cfg.bg;
+    el('lai-modal-title').textContent = cfg.title;
+    el('lai-modal-sub').textContent   = cfg.sub;
+  }
+
+  // ── Main runner ────────────────────────────────────────────────
+  async function run(type) {
+    _lastType = type;
+    const lectureId = getLectureId();
+    if (!lectureId) { alert('لم يتم تحديد معرّف المحاضرة.'); return; }
+
+    // Disable all buttons while running
+    document.querySelectorAll('.lai-btn').forEach(b => b.disabled = true);
+
+    setHeader(type);
+    openModal();
+    const cfg = typeConfig[type] || typeConfig.summary;
+    showLoading(cfg.loadingMsg);
+
+    const endpointMap = {
+      summary: '/api/aiassistant/lecture/summarize',
+      mindmap: '/api/aiassistant/lecture/mindmap',
+      qna:     '/api/aiassistant/lecture/qna'
+    };
+
+    try {
+      const res  = await fetch(endpointMap[type], {
+        method:  'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'RequestVerificationToken': CSRF()
+        },
+        body: JSON.stringify({ lectureId })
+      });
+
+      const data = await res.json();
+
+      if (!data.success) {
+        showError(data.error || 'حدث خطأ غير متوقع. يرجى المحاولة مجدداً.');
+        return;
+      }
+
+      _lastContent = data.content ?? '';
+      _lastTitle   = data.lectureTitle ?? 'المحاضرة';
+
+      // Provider
+      if (data.provider) {
+        el('lai-provider-txt').textContent = data.provider;
+        el('lai-provider-row').style.display = 'flex';
+      }
+
+      if (type === 'mindmap') {
+        showMindMap();
+        await renderMindMap(_lastContent);
+      } else {
+        showContent(mdToHtml(_lastContent));
+      }
+
+    } catch (err) {
+      showError('فشل الاتصال بالخادم. يرجى التحقق من الاتصال والمحاولة مجدداً.');
+      console.error('laiTools error:', err);
+    } finally {
+      document.querySelectorAll('.lai-btn').forEach(b => b.disabled = false);
+    }
+  }
+
+  function retry() { if (_lastType) run(_lastType); }
+
+  // ── Markdown → HTML ────────────────────────────────────────────
+  function mdToHtml(raw) {
+    if (!raw) return '<p class="lai-md">لا يوجد محتوى.</p>';
+    let t = raw
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+    // Code blocks
+    t = t.replace(/```(\w*)\n?([\s\S]*?)```/g, (_, _l, code) =>
+      `<pre><code>${code.trim()}</code></pre>`);
+    // Inline code
+    t = t.replace(/`([^`\n]+)`/g, '<code>$1</code>');
+    // Bold / italic
+    t = t.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+    t = t.replace(/\*([^*\n]+?)\*/g, '<em>$1</em>');
+    // Headings
+    t = t.replace(/^#### (.+)$/gm, '<h4>$1</h4>');
+    t = t.replace(/^### (.+)$/gm,  '<h3>$1</h3>');
+    t = t.replace(/^## (.+)$/gm,   '<h2>$1</h2>');
+    t = t.replace(/^# (.+)$/gm,    '<h1>$1</h1>');
+    // HR
+    t = t.replace(/^---$/gm, '<hr>');
+    // Blockquote
+    t = t.replace(/^> (.+)$/gm, '<blockquote>$1</blockquote>');
+    // Lists
+    t = t.replace(/^[\-\*] (.+)$/gm, '<li>$1</li>');
+    t = t.replace(/(<li>[\s\S]+?<\/li>)(?=\n|$)/g, '<ul>$1</ul>');
+    t = t.replace(/^\d+\. (.+)$/gm, '<li>$1</li>');
+    // Paragraphs
+    t = t.replace(/\n\n+/g, '</p><p>');
+    t = t.replace(/\n/g, '<br>');
+    return `<div class="lai-md"><p>${t}</p></div>`;
+  }
+
+  // ── Mind Map Renderer v2 — markmap-style, full text, auto-fit ──
+
+  // Persistent references for zoom/pan controls
+  let _mmEdgeG = null;
+  let _mmNodeG = null;
+
+  // Color palette (markmap-inspired, 10 vivid branch colors)
+  const MM_PALETTE = [
+    '#7c3aed','#0ea5e9','#10b981','#f59e0b',
+    '#ef4444','#6366f1','#ec4899','#14b8a6',
+    '#84cc16','#f97316'
+  ];
+
+  // Per-depth visual style
+  function mmStyle(depth) {
+    if (depth === 0) return { fs: 15, fw: '700', px: 22, py: 11, rx: 14, sw: 0 };
+    if (depth === 1) return { fs: 13, fw: '600', px: 18, py:  9, rx: 12, sw: 2 };
+    if (depth === 2) return { fs: 12, fw: '500', px: 15, py:  7, rx: 10, sw: 1.5 };
+                     return { fs: 11, fw: '400', px: 12, py:  6, rx:  8, sw: 1 };
+  }
+
+  // Measure actual SVG text bbox — no truncation, no guesses
+  function mmMeasure(svg, label, depth) {
+    const s = mmStyle(depth);
+    const t = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    t.setAttribute('font-size',   s.fs);
+    t.setAttribute('font-weight', s.fw);
+    t.setAttribute('font-family', "'Segoe UI','Noto Kufi Arabic',system-ui,sans-serif");
+    t.setAttribute('visibility',  'hidden');
+    t.textContent = label;
+    svg.appendChild(t);
+    let tw = label.length * s.fs * 0.55, th = s.fs * 1.25; // fallback
+    try { const b = t.getBBox(); if (b.width > 0) { tw = b.width; th = b.height; } } catch {}
+    svg.removeChild(t);
+    return {
+      nw: Math.ceil(tw) + s.px * 2,
+      nh: Math.ceil(th) + s.py * 2
+    };
+  }
+
+  async function renderMindMap(markdown) {
+    const tree = parseMindMapMarkdown(markdown);
+    if (!tree) { showError('تعذّر تحليل بيانات الخريطة الذهنية.'); return; }
+
+    const svg = el('lai-mm-svg');
+    svg.innerHTML = '';
+    _mmEdgeG = null; _mmNodeG = null;
+
+    const V_GAP = 10;   // vertical gap between siblings
+    const H_GAP = 52;   // horizontal gap between levels
+
+    // ── 1. Measure all nodes ──────────────────────────────────────
+    ;(function measure(node) {
+      const { nw, nh } = mmMeasure(svg, node.label, node.depth);
+      node.nw = nw; node.nh = nh;
+      node.st = mmStyle(node.depth);
+      (node.children || []).forEach(measure);
+    })(tree);
+
+    // ── 2. Compute subtree height (bottom-up) ─────────────────────
+    ;(function subH(node) {
+      if (!node.children || !node.children.length) { node.sH = node.nh; return; }
+      node.children.forEach(subH);
+      const tot = node.children.reduce((s,c) => s + c.sH, 0)
+                + (node.children.length - 1) * V_GAP;
+      node.sH = Math.max(node.nh, tot);
+    })(tree);
+
+    // ── 3. Assign x/y positions (top-down) ───────────────────────
+    ;(function pos(node, x, y, ci) {
+      node.x  = x;
+      node.y  = y + (node.sH - node.nh) / 2;
+      node.ci = ci;
+      if (!node.children || !node.children.length) return;
+      let cy = y;
+      node.children.forEach((c, i) => {
+        const childCi = node.depth === 0 ? i % MM_PALETTE.length : ci;
+        pos(c, x + node.nw + H_GAP, cy, childCi);
+        cy += c.sH + V_GAP;
+      });
+    })(tree, 40, 40, 0);
+
+    // ── 4. Compute total canvas size ──────────────────────────────
+    let maxX = 0, maxY = 0;
+    ;(function bounds(n) {
+      maxX = Math.max(maxX, n.x + n.nw);
+      maxY = Math.max(maxY, n.y + n.nh);
+      (n.children || []).forEach(bounds);
+    })(tree);
+    const CW = maxX + 60, CH = maxY + 60;
+    svg.setAttribute('viewBox', `0 0 ${CW} ${CH}`);
+
+    // ── 5. Defs ───────────────────────────────────────────────────
+    const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+    defs.innerHTML = `
+      <filter id="mmS0" x="-10%" y="-20%" width="120%" height="140%">
+        <feDropShadow dx="0" dy="3" stdDeviation="5" flood-color="#00000022"/>
+      </filter>
+      <filter id="mmS1" x="-8%" y="-15%" width="116%" height="130%">
+        <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#00000015"/>
+      </filter>`;
+    svg.appendChild(defs);
+
+    // ── 6. Build SVG groups ───────────────────────────────────────
+    const edgeG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    const nodeG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    edgeG.id = 'mm-eg'; nodeG.id = 'mm-ng';
+    svg.appendChild(edgeG);
+    svg.appendChild(nodeG);
+    _mmEdgeG = edgeG; _mmNodeG = nodeG;
+
+    // ── 7. Draw recursively ───────────────────────────────────────
+    ;(function draw(node) {
+      const color  = MM_PALETTE[node.ci % MM_PALETTE.length];
+      const isRoot = node.depth === 0;
+      const isL1   = node.depth === 1;
+      const s      = node.st;
+
+      // Curved edge to parent
+      if (node.parent) {
+        const x1 = node.parent.x + node.parent.nw, y1 = node.parent.y + node.parent.nh / 2;
+        const x2 = node.x,                          y2 = node.y + node.nh / 2;
+        const mx = x1 + (x2 - x1) * 0.55;
+        const p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        p.setAttribute('d', `M${x1},${y1} C${mx},${y1} ${mx},${y2} ${x2},${y2}`);
+        p.setAttribute('fill',            'none');
+        p.setAttribute('stroke',          color);
+        p.setAttribute('stroke-width',    isL1 ? 2.5 : 1.8);
+        p.setAttribute('stroke-linecap',  'round');
+        p.setAttribute('opacity',         '0.72');
+        edgeG.appendChild(p);
+      }
+
+      // Node background rect
+      const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      rect.setAttribute('x',      node.x);
+      rect.setAttribute('y',      node.y);
+      rect.setAttribute('width',  node.nw);
+      rect.setAttribute('height', node.nh);
+      rect.setAttribute('rx',     s.rx);
+      if (isRoot) {
+        rect.setAttribute('fill',   color);
+        rect.setAttribute('filter', 'url(#mmS0)');
+      } else if (isL1) {
+        rect.setAttribute('fill',         '#ffffff');
+        rect.setAttribute('stroke',       color);
+        rect.setAttribute('stroke-width', '2');
+        rect.setAttribute('filter',       'url(#mmS1)');
+      } else {
+        rect.setAttribute('fill',         color + '1a');
+        rect.setAttribute('stroke',       color + '66');
+        rect.setAttribute('stroke-width', s.sw);
+      }
+      nodeG.appendChild(rect);
+
+      // Node text — full label, centered, no truncation
+      const txt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      txt.setAttribute('x',           node.x + node.nw / 2);
+      txt.setAttribute('y',           node.y + node.nh / 2 + s.fs * 0.37);
+      txt.setAttribute('text-anchor', 'middle');
+      txt.setAttribute('font-size',   s.fs);
+      txt.setAttribute('font-weight', s.fw);
+      txt.setAttribute('font-family', "'Segoe UI','Noto Kufi Arabic',system-ui,sans-serif");
+      txt.setAttribute('fill', isRoot ? '#ffffff' : isL1 ? color : '#1e293b');
+      txt.setAttribute('pointer-events', 'none');
+      txt.textContent = node.label;
+      nodeG.appendChild(txt);
+
+      // Recurse
+      (node.children || []).forEach(c => { c.parent = node; draw(c); });
+    })(tree);
+
+    // ── 8. Init pan/zoom then auto-fit ───────────────────────────
+    _mmTransform = { x: 0, y: 0, k: 1 };
+    mmInitEvents(svg);
+    requestAnimationFrame(() => mmAutoFit(CW, CH));
+  }
+
+  // ── Auto-fit canvas to container viewport ────────────────────────
+  function mmAutoFit(cw, ch) {
+    const container = el('lai-mm-container');
+    if (!container || !_mmEdgeG) return;
+    const vw = container.clientWidth  || 700;
+    const vh = container.clientHeight || 460;
+    const k  = Math.min(vw / (cw || 800), vh / (ch || 500)) * 0.88;
+    const tx = Math.max(0, (vw - (cw || 800) * k) / 2);
+    const ty = Math.max(0, (vh - (ch || 500) * k) / 2);
+    _mmTransform = { x: tx, y: ty, k };
+    mmApply();
+  }
+
+  // ── Apply current transform to SVG groups ─────────────────────────
+  function mmApply() {
+    if (!_mmEdgeG || !_mmNodeG) return;
+    const t = `translate(${_mmTransform.x},${_mmTransform.y}) scale(${_mmTransform.k})`;
+    _mmEdgeG.setAttribute('transform', t);
+    _mmNodeG.setAttribute('transform', t);
+  }
+
+  // ── Pan / Zoom event setup (called once per render) ───────────────
+  let _mmEventsReady = false;
+  function mmInitEvents(svg) {
+    if (_mmEventsReady) return;
+    _mmEventsReady = true;
+
+    // Mouse drag
+    svg.addEventListener('mousedown', e => {
+      if (e.button !== 0) return;
+      _mmDragging  = true;
+      _mmDragStart = { x: e.clientX, y: e.clientY, ox: _mmTransform.x, oy: _mmTransform.y };
+      svg.style.cursor = 'grabbing';
+    });
+    window.addEventListener('mousemove', e => {
+      if (!_mmDragging) return;
+      _mmTransform.x = _mmDragStart.ox + (e.clientX - _mmDragStart.x);
+      _mmTransform.y = _mmDragStart.oy + (e.clientY - _mmDragStart.y);
+      mmApply();
+    });
+    window.addEventListener('mouseup', () => {
+      _mmDragging = false;
+      svg.style.cursor = 'grab';
+    });
+    svg.style.cursor = 'grab';
+
+    // Wheel zoom (zoom toward cursor position)
+    svg.addEventListener('wheel', e => {
+      e.preventDefault();
+      const rect    = svg.getBoundingClientRect();
+      const mx      = e.clientX - rect.left;
+      const my      = e.clientY - rect.top;
+      const factor  = e.deltaY < 0 ? 1.13 : 0.885;
+      const newK    = Math.max(0.12, Math.min(4, _mmTransform.k * factor));
+      const ratio   = newK / _mmTransform.k;
+      _mmTransform.x = mx - (mx - _mmTransform.x) * ratio;
+      _mmTransform.y = my - (my - _mmTransform.y) * ratio;
+      _mmTransform.k = newK;
+      mmApply();
+    }, { passive: false });
+
+    // Touch pinch-zoom + drag
+    let _t0 = null, _t1 = null;
+    svg.addEventListener('touchstart', e => {
+      if (e.touches.length === 1) {
+        _t0 = e.touches[0];
+        _mmDragStart = { ox: _mmTransform.x, oy: _mmTransform.y };
+      } else if (e.touches.length === 2) {
+        _t0 = e.touches[0]; _t1 = e.touches[1];
+        _mmDragStart = { ox: _mmTransform.x, oy: _mmTransform.y, ok: _mmTransform.k };
+      }
+    }, { passive: true });
+
+    svg.addEventListener('touchmove', e => {
+      if (e.touches.length === 1 && _t0) {
+        _mmTransform.x = _mmDragStart.ox + (e.touches[0].clientX - _t0.clientX);
+        _mmTransform.y = _mmDragStart.oy + (e.touches[0].clientY - _t0.clientY);
+        mmApply();
+      } else if (e.touches.length === 2 && _t0 && _t1) {
+        const d0 = Math.hypot(_t0.clientX - _t1.clientX, _t0.clientY - _t1.clientY);
+        const d1 = Math.hypot(e.touches[0].clientX - e.touches[1].clientX,
+                              e.touches[0].clientY - e.touches[1].clientY);
+        _mmTransform.k = Math.max(0.12, Math.min(4, _mmDragStart.ok * (d1 / d0)));
+        mmApply();
+      }
+    }, { passive: true });
+  }
+
+  // ── Zoom buttons (use stored refs) ────────────────────────────────
+  function mmZoomIn()  { _mmTransform.k = Math.min(4,   _mmTransform.k * 1.22); mmApply(); }
+  function mmZoomOut() { _mmTransform.k = Math.max(0.12, _mmTransform.k * 0.82); mmApply(); }
+  function mmFit() {
+    const svg = el('lai-mm-svg');
+    if (!svg) return;
+    const vb = (svg.getAttribute('viewBox') || '').split(' ').map(Number);
+    if (vb.length === 4) mmAutoFit(vb[2], vb[3]);
+    else { _mmTransform = { x: 0, y: 0, k: 1 }; mmApply(); }
+  }
+
+  // ── Parse Markdown → tree ─────────────────────────────────────────
+  function parseMindMapMarkdown(md) {
+    const lines = md.split('\n').map(l => l.trim()).filter(Boolean);
+    let root = null;
+    const stack = [];
+    for (const line of lines) {
+      const m = line.match(/^(#{1,5})\s+(.+)/);
+      if (!m) continue;
+      const depth = m[1].length - 1;
+      const label = m[2].replace(/\*\*/g,'').replace(/\*/g,'').trim();
+      const node  = { label, depth, children: [] };
+      if (depth === 0) { root = node; stack.length = 0; stack.push(node); }
+      else {
+        while (stack.length > 1 && stack[stack.length-1].depth >= depth) stack.pop();
+        stack[stack.length-1].children.push(node);
+        stack.push(node);
+      }
+    }
+    return root;
+  }
+
+  // ── Copy content ───────────────────────────────────────────────
+  function copyContent() {
+    const text = _lastContent;
+    navigator.clipboard?.writeText(text).then(() => {
+      const btn = el('lai-copy-btn');
+      btn.innerHTML = '<i class="fas fa-check"></i> تم النسخ';
+      btn.classList.add('copied');
+      setTimeout(() => {
+        btn.innerHTML = '<i class="fas fa-copy"></i> نسخ';
+        btn.classList.remove('copied');
+      }, 2500);
+    });
+  }
+
+  // ── Export PDF ─────────────────────────────────────────────────
+  function exportPDF() {
+    // Load html2pdf.js from CDN if not already loaded
+    if (typeof html2pdf === 'undefined') {
+      const script = document.createElement('script');
+      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
+      script.onload = () => _doPDF();
+      document.head.appendChild(script);
+    } else {
+      _doPDF();
+    }
+  }
+
+  function _doPDF() {
+    const btn = el('lai-pdf-btn');
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جارٍ التصدير…';
+    btn.disabled  = true;
+
+    const typeNames = { summary: 'ملخص', mindmap: 'خريطة ذهنية', qna: 'أسئلة وأجوبة' };
+    const filename  = `${typeNames[_lastType] || 'تحليل'} - ${_lastTitle}.pdf`;
+
+    // Build printable HTML
+    const wrap = document.createElement('div');
+    wrap.style.cssText = `
+      direction:rtl; text-align:right; font-family:'Segoe UI',system-ui,sans-serif;
+      padding:32px; color:#1e293b; font-size:13px; line-height:1.8; max-width:800px;
+    `;
+    wrap.innerHTML = `
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px;padding-bottom:16px;border-bottom:2px solid #e0e7ff;">
+        <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">🤖</div>
+        <div>
+          <div style="font-size:18px;font-weight:800;color:#1e1b4b;">${_lastTitle}</div>
+          <div style="font-size:12px;color:#64748b;">${typeNames[_lastType] || 'تحليل AI'} — تم التوليد بواسطة مساعد الذكاء الاصطناعي</div>
+        </div>
+      </div>
+      ${el('lai-md-output')?.innerHTML ?? mdToHtml(_lastContent)}
+      <div style="margin-top:32px;padding-top:12px;border-top:1px solid #e0e7ff;font-size:11px;color:#94a3b8;">
+        تم التوليد بواسطة نظام إدارة مركز التدريب — ${new Date().toLocaleDateString('ar-SA')}
+      </div>
+    `;
+
+    const opt = {
+      margin:      [12, 12, 12, 12],
+      filename,
+      image:       { type: 'jpeg', quality: 0.97 },
+      html2canvas: { scale: 2, useCORS: true, scrollY: 0, logging: false },
+      jsPDF:       { unit: 'mm', format: 'a4', orientation: 'portrait', compress: true }
+    };
+
+    html2pdf().set(opt).from(wrap).save()
+      .then(() => {
+        btn.innerHTML = '<i class="fas fa-file-pdf"></i> تصدير PDF';
+        btn.disabled  = false;
+      })
+      .catch(() => {
+        btn.innerHTML = '<i class="fas fa-file-pdf"></i> تصدير PDF';
+        btn.disabled  = false;
+        alert('تعذّر تصدير PDF. يرجى المحاولة مجدداً.');
+      });
+  }
+
+  // ── Keyboard close ─────────────────────────────────────────────
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeModal();
+  });
+
+  return {
+    run, retry, closeModal,
+    copyContent, exportPDF,
+    mmZoomIn, mmZoomOut, mmFit,
+    // expose applyTransform alias for backward compat
+    applyTransform: mmApply
+  };
+})();
+</script>

@@ -100,6 +100,65 @@ namespace TrainingCenterManagement_MVC.Controllers
                 ? Ok(new { success = true })
                 : NotFound(new { success = false });
         }
+
+        // ── Lecture AI Tools ──────────────────────────────────────────────────
+
+        // POST /api/aiassistant/lecture/summarize
+        [HttpPost("lecture/summarize")]
+        public async Task<IActionResult> SummarizeLecture([FromBody] LectureAIRequest request)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+            try
+            {
+                var result = await _ai.SummarizeLectureAsync(userId, request.LectureId);
+                return result.Success
+                    ? Ok(new { success = true,  content = result.Content, lectureTitle = result.LectureTitle, provider = result.Provider, type = result.AnalysisType })
+                    : Ok(new { success = false, error   = result.Error });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "SummarizeLecture failed for user {UserId}", userId);
+                return Ok(new { success = false, error = "حدث خطأ أثناء التلخيص. يرجى المحاولة مجدداً." });
+            }
+        }
+
+        // POST /api/aiassistant/lecture/mindmap
+        [HttpPost("lecture/mindmap")]
+        public async Task<IActionResult> GenerateMindMap([FromBody] LectureAIRequest request)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+            try
+            {
+                var result = await _ai.GenerateMindMapAsync(userId, request.LectureId);
+                return result.Success
+                    ? Ok(new { success = true,  content = result.Content, lectureTitle = result.LectureTitle, provider = result.Provider, type = result.AnalysisType })
+                    : Ok(new { success = false, error   = result.Error });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "GenerateMindMap failed for user {UserId}", userId);
+                return Ok(new { success = false, error = "حدث خطأ أثناء إنشاء الخريطة الذهنية. يرجى المحاولة مجدداً." });
+            }
+        }
+
+        // POST /api/aiassistant/lecture/qna
+        [HttpPost("lecture/qna")]
+        public async Task<IActionResult> GenerateQnA([FromBody] LectureAIRequest request)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+            try
+            {
+                var result = await _ai.GenerateQnAAsync(userId, request.LectureId);
+                return result.Success
+                    ? Ok(new { success = true,  content = result.Content, lectureTitle = result.LectureTitle, provider = result.Provider, type = result.AnalysisType })
+                    : Ok(new { success = false, error   = result.Error });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "GenerateQnA failed for user {UserId}", userId);
+                return Ok(new { success = false, error = "حدث خطأ أثناء توليد الأسئلة. يرجى المحاولة مجدداً." });
+            }
+        }
     }
 
     public class AskRequest
@@ -115,5 +174,11 @@ namespace TrainingCenterManagement_MVC.Controllers
 
         [MaxLength(500)]
         public string? Feedback { get; set; }
+    }
+
+    public class LectureAIRequest
+    {
+        [Required]
+        public Guid LectureId { get; set; }
     }
 }

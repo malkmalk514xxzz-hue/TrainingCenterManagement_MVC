@@ -1,8 +1,18 @@
 @model TrainingCenterManagement_MVC.Models.AISystemConfig
 @{
     ViewData["Title"] = "إعدادات المساعد الذكي";
-    bool anthropicOk = (bool)(ViewBag.AnthropicKeyConfigured ?? false);
-    var currentModel = Model.OllamaModel ?? "";
+    bool anthropicOk     = (bool)(ViewBag.AnthropicKeyConfigured ?? false);
+    bool openAiOk        = (bool)(ViewBag.OpenAIKeyConfigured    ?? false);
+    bool groqOk          = (bool)(ViewBag.GroqKeyConfigured      ?? false);
+    string antMasked     = ViewBag.AnthropicKeyMasked ?? "";
+    string openAiMasked  = ViewBag.OpenAIKeyMasked    ?? "";
+    string groqMasked    = ViewBag.GroqKeyMasked      ?? "";
+    bool antInDb         = (bool)(ViewBag.AnthropicKeyInDb ?? false);
+    bool openAiInDb      = (bool)(ViewBag.OpenAIKeyInDb    ?? false);
+    bool groqInDb        = (bool)(ViewBag.GroqKeyInDb      ?? false);
+    var currentModel     = Model.OllamaModel ?? "";
+    var openAiModel      = Model.OpenAIModel ?? "gpt-4o-mini";
+    var groqModel        = Model.GroqModel   ?? "llama-3.3-70b-versatile";
 }
 
 <style>
@@ -75,6 +85,30 @@
 .btn-dl       { background:#ede9fe; color:#5b21b6; }
 .btn-dl:hover { background:#7c3aed; color:#fff; }
 .btn-current  { background:#e0e7ff; color:#4338ca; cursor:default; }
+
+/* Key input */
+.key-wrap { position:relative; }
+.key-wrap .field-ctrl { padding-left:90px; font-family:monospace; letter-spacing:.05em; }
+.key-eye {
+  position:absolute; left:8px; top:50%; transform:translateY(-50%);
+  background:none; border:none; cursor:pointer; color:#64748b;
+  display:flex; align-items:center; gap:5px; font-size:.78rem; font-weight:600;
+  padding:4px 6px; border-radius:6px; transition:background .15s;
+}
+.key-eye:hover { background:#f1f5f9; color:#1e293b; }
+.key-verify {
+  margin-top:8px; background:#f8fafc; border:1.5px solid #e2e8f0; color:#475569;
+  border-radius:8px; padding:6px 16px; font-size:.78rem; font-weight:600;
+  cursor:pointer; transition:all .15s; display:inline-flex; align-items:center; gap:6px;
+}
+.key-verify:hover { background:#ede9fe; border-color:#c4b5fd; color:#5b21b6; }
+.key-verify-result { font-size:.78rem; margin-top:6px; display:none; padding:6px 10px; border-radius:8px; }
+.key-source-badge {
+  display:inline-flex; align-items:center; gap:4px; font-size:.7rem; font-weight:700;
+  border-radius:20px; padding:2px 9px; margin-right:6px;
+}
+.badge-db  { background:#d1fae5; color:#065f46; }
+.badge-cfg { background:#e0f2fe; color:#0369a1; }
 </style>
 
 <div class="dashboard-wrapper">
@@ -149,28 +183,218 @@
                             </div>
                         </label>
                     </div>
+                    <div class="provider-option">
+                        <label class="d-flex align-items-center gap-3">
+                            <input type="radio" name="Provider" value="3"
+                                   @(Model.Provider == TrainingCenterManagement_MVC.Models.AIProviderType.OpenAI ? "checked" : "")
+                                   onchange="toggleProviders()">
+                            <div class="provider-icon" style="background:#e0f2fe">
+                                <i class="fas fa-brain" style="color:#0ea5e9"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="fw-semibold" style="font-size:.9rem">OpenAI GPT</div>
+                                <div style="font-size:.76rem;color:#64748b">GPT-4o / GPT-4o-mini عبر OpenAI API — يتطلب مفتاح API</div>
+                            </div>
+                            <span class="status-dot @(openAiOk ? "dot-green" : "dot-red")"></span>
+                            @if (openAiOk)
+                            {
+                                <span style="font-size:.72rem;color:#10b981;font-weight:600">مفعّل</span>
+                            }
+                            else
+                            {
+                                <span style="font-size:.72rem;color:#ef4444;font-weight:600">يحتاج مفتاح</span>
+                            }
+                        </label>
+                    </div>
+                    <div class="provider-option">
+                        <label class="d-flex align-items-center gap-3">
+                            <input type="radio" name="Provider" value="4"
+                                   @(Model.Provider == TrainingCenterManagement_MVC.Models.AIProviderType.Groq ? "checked" : "")
+                                   onchange="toggleProviders()">
+                            <div class="provider-icon" style="background:#fef3c7">
+                                <i class="fas fa-bolt" style="color:#f59e0b"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="fw-semibold" style="font-size:.9rem">Groq <span style="font-size:.72rem;background:#d1fae5;color:#065f46;border-radius:20px;padding:1px 8px;font-weight:700">مجاني</span></div>
+                                <div style="font-size:.76rem;color:#64748b">أسرع واجهة API متاحة مجاناً — Llama وMistral وGemma</div>
+                            </div>
+                            <span class="status-dot @(groqOk ? "dot-green" : "dot-red")"></span>
+                            @if (groqOk)
+                            {
+                                <span style="font-size:.72rem;color:#10b981;font-weight:600">مفعّل</span>
+                            }
+                            else
+                            {
+                                <span style="font-size:.72rem;color:#ef4444;font-weight:600">يحتاج مفتاح</span>
+                            }
+                        </label>
+                    </div>
                 </div>
 
                 <!-- Anthropic notice -->
                 <div id="anthropic-section" style="display:@(Model.Provider == TrainingCenterManagement_MVC.Models.AIProviderType.Anthropic ? "block" : "none")">
-                    <div class="ai-card" style="border-color:@(anthropicOk ? "#bbf7d0" : "#fecaca");background:@(anthropicOk ? "#f0fdf4" : "#fff5f5")">
-                        @if (anthropicOk)
-                        {
-                            <div style="color:#15803d;font-size:.88rem">
-                                <i class="fas fa-check-circle me-2"></i>
-                                مفتاح Anthropic API مُعيَّن في <code>appsettings.json</code>
-                            </div>
-                        }
-                        else
-                        {
-                            <div style="color:#b91c1c;font-size:.88rem">
-                                <i class="fas fa-exclamation-triangle me-2"></i>
-                                لم يُعيَّن مفتاح Anthropic API — أضفه في <code>appsettings.json</code>:
-                                <pre style="background:#fff;border-radius:8px;padding:10px;margin-top:8px;font-size:.8rem;border:1px solid #fecaca;direction:ltr;text-align:left">"Anthropic": {
-  "ApiKey": "sk-ant-api03-..."
-}</pre>
-                            </div>
-                        }
+                    <div class="ai-card">
+                        <div class="ai-card-header">
+                            <i class="fas fa-key" style="color:#f59e0b"></i> مفتاح Anthropic API
+                            @if (antInDb)   { <span class="key-source-badge badge-db"><i class="fas fa-database"></i>محفوظ في قاعدة البيانات</span> }
+                            else if (anthropicOk) { <span class="key-source-badge badge-cfg"><i class="fas fa-file-code"></i>من appsettings.json</span> }
+                        </div>
+                        <div class="key-wrap">
+                            <input type="password" id="ant-key-inp" name="AnthropicApiKey"
+                                   class="field-ctrl" placeholder="sk-ant-api03-..."
+                                   value="@antMasked" autocomplete="new-password">
+                            <button type="button" class="key-eye" onclick="toggleKey('ant-key-inp','ant-eye-icon')">
+                                <i id="ant-eye-icon" class="fas fa-eye"></i> عرض
+                            </button>
+                        </div>
+                        <div style="margin-top:8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+                            <button type="button" class="key-verify"
+                                    onclick="verifyKey('anthropic','ant-key-inp','ant-verify-result')">
+                                <i class="fas fa-plug"></i> اختبار الاتصال
+                            </button>
+                            @if (anthropicOk)
+                            {
+                                <span style="color:#10b981;font-size:.78rem;font-weight:600">
+                                    <i class="fas fa-check-circle me-1"></i>المفتاح فعّال
+                                </span>
+                            }
+                            else
+                            {
+                                <span style="color:#ef4444;font-size:.78rem;font-weight:600">
+                                    <i class="fas fa-exclamation-circle me-1"></i>مفتاح غير مُعيَّن
+                                </span>
+                            }
+                        </div>
+                        <div id="ant-verify-result" class="key-verify-result"></div>
+                        <div style="margin-top:8px;font-size:.73rem;color:#94a3b8">
+                            اتركه فارغاً للإبقاء على المفتاح الحالي — احذف المحتوى بالكامل لإزالة المفتاح من قاعدة البيانات
+                        </div>
+                    </div>
+                </div>
+
+                <!-- OpenAI Section -->
+                <div id="openai-section" style="display:@(Model.Provider == TrainingCenterManagement_MVC.Models.AIProviderType.OpenAI ? "block" : "none")">
+                    <div class="ai-card">
+                        <div class="ai-card-header">
+                            <i class="fas fa-key" style="color:#0ea5e9"></i> مفتاح OpenAI API
+                            @if (openAiInDb)   { <span class="key-source-badge badge-db"><i class="fas fa-database"></i>محفوظ في قاعدة البيانات</span> }
+                            else if (openAiOk) { <span class="key-source-badge badge-cfg"><i class="fas fa-file-code"></i>من appsettings.json</span> }
+                        </div>
+                        <div class="key-wrap" style="margin-bottom:14px">
+                            <input type="password" id="oai-key-inp" name="OpenAIApiKey"
+                                   class="field-ctrl" placeholder="sk-..."
+                                   value="@openAiMasked" autocomplete="new-password">
+                            <button type="button" class="key-eye" onclick="toggleKey('oai-key-inp','oai-eye-icon')">
+                                <i id="oai-eye-icon" class="fas fa-eye"></i> عرض
+                            </button>
+                        </div>
+                        <div style="margin-bottom:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+                            <button type="button" class="key-verify"
+                                    onclick="verifyKey('openai','oai-key-inp','oai-verify-result')">
+                                <i class="fas fa-plug"></i> اختبار الاتصال
+                            </button>
+                            @if (openAiOk)
+                            {
+                                <span style="color:#10b981;font-size:.78rem;font-weight:600">
+                                    <i class="fas fa-check-circle me-1"></i>المفتاح فعّال
+                                </span>
+                            }
+                            else
+                            {
+                                <span style="color:#ef4444;font-size:.78rem;font-weight:600">
+                                    <i class="fas fa-exclamation-circle me-1"></i>مفتاح غير مُعيَّن
+                                </span>
+                            }
+                        </div>
+                        <div id="oai-verify-result" class="key-verify-result" style="margin-bottom:12px"></div>
+                        <label class="field-lbl">اختر نموذج GPT</label>
+                        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px;margin-top:6px">
+                            @foreach (var m in new[]
+                            {
+                                new { Id = "gpt-4o-mini",   Desc = "الأسرع والأقل تكلفة — موصى به", Tag = "موصى به", Color = "#fef3c7" },
+                                new { Id = "gpt-4o",        Desc = "الأقوى والأكثر دقة",              Tag = "قوي",     Color = "#dbeafe" },
+                                new { Id = "gpt-4-turbo",   Desc = "جيل سابق — سريع وقوي",            Tag = "سريع",    Color = "#dcfce7" },
+                                new { Id = "gpt-3.5-turbo", Desc = "خفيف جداً — للأسئلة البسيطة",     Tag = "خفيف",    Color = "#f3f4f6" }
+                            })
+                            {
+                                var isSelected = openAiModel == m.Id;
+                                var cardId = "gpt-card-" + m.Id.Replace(".", "_").Replace("-", "_");
+                                <div onclick="selectOpenAIModel('@m.Id')" id="@cardId"
+                                     style="border:2px solid @(isSelected ? "#0ea5e9" : "#e2e8f0");border-radius:12px;padding:13px;cursor:pointer;background:@(isSelected ? "#e0f2fe" : "#fff");transition:all .18s">
+                                    <div style="font-size:.64rem;font-weight:700;background:@m.Color;border-radius:20px;padding:2px 8px;display:inline-block;margin-bottom:6px">@m.Tag</div>
+                                    <div style="font-weight:700;font-size:.87rem;color:#1e293b">@m.Id</div>
+                                    <div style="font-size:.73rem;color:#64748b;margin-top:3px">@m.Desc</div>
+                                </div>
+                            }
+                        </div>
+                        <input type="hidden" name="OpenAIModel" id="openAiModelInput" value="@openAiModel">
+                        <div style="margin-top:12px;font-size:.78rem;color:#0369a1;background:#e0f2fe;border-radius:8px;padding:8px 12px">
+                            <i class="fas fa-info-circle me-1"></i>
+                            الحصول على مفتاح API: <a href="https://platform.openai.com/api-keys" target="_blank" style="color:#0284c7;font-weight:600">platform.openai.com/api-keys</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Groq Section -->
+                <div id="groq-section" style="display:@(Model.Provider == TrainingCenterManagement_MVC.Models.AIProviderType.Groq ? "block" : "none")">
+                    <div class="ai-card">
+                        <div class="ai-card-header">
+                            <i class="fas fa-key" style="color:#f59e0b"></i> مفتاح Groq API
+                            @if (groqInDb)   { <span class="key-source-badge badge-db"><i class="fas fa-database"></i>محفوظ في قاعدة البيانات</span> }
+                            else if (groqOk) { <span class="key-source-badge badge-cfg"><i class="fas fa-file-code"></i>من appsettings.json</span> }
+                        </div>
+                        <div class="key-wrap" style="margin-bottom:14px">
+                            <input type="password" id="groq-key-inp" name="GroqApiKey"
+                                   class="field-ctrl" placeholder="gsk_..."
+                                   value="@groqMasked" autocomplete="new-password">
+                            <button type="button" class="key-eye" onclick="toggleKey('groq-key-inp','groq-eye-icon')">
+                                <i id="groq-eye-icon" class="fas fa-eye"></i> عرض
+                            </button>
+                        </div>
+                        <div style="margin-bottom:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+                            <button type="button" class="key-verify"
+                                    onclick="verifyKey('groq','groq-key-inp','groq-verify-result')">
+                                <i class="fas fa-plug"></i> اختبار الاتصال
+                            </button>
+                            @if (groqOk)
+                            {
+                                <span style="color:#10b981;font-size:.78rem;font-weight:600">
+                                    <i class="fas fa-check-circle me-1"></i>المفتاح فعّال
+                                </span>
+                            }
+                            else
+                            {
+                                <span style="color:#ef4444;font-size:.78rem;font-weight:600">
+                                    <i class="fas fa-exclamation-circle me-1"></i>مفتاح غير مُعيَّن
+                                </span>
+                            }
+                        </div>
+                        <div id="groq-verify-result" class="key-verify-result" style="margin-bottom:12px"></div>
+                        <label class="field-lbl">اختر نموذج Groq</label>
+                        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px;margin-top:6px">
+                            @foreach (var m in new[]
+                            {
+                                new { Id = "llama-3.3-70b-versatile", Desc = "الأقوى — ممتاز للعربية",          Tag = "موصى به", Color = "#fef3c7" },
+                                new { Id = "llama-3.1-8b-instant",    Desc = "الأسرع والأخف — ردود فورية",     Tag = "سريع",    Color = "#dcfce7" },
+                                new { Id = "mixtral-8x7b-32768",       Desc = "متعدد اللغات — سياق طويل",       Tag = "متعدد",   Color = "#e0f2fe" },
+                                new { Id = "gemma2-9b-it",             Desc = "Google Gemma — دقيق ومتوازن",    Tag = "خفيف",    Color = "#f3f4f6" }
+                            })
+                            {
+                                var isSelected = groqModel == m.Id;
+                                var cardId = "groq-card-" + m.Id.Replace(".", "_").Replace("-", "_");
+                                <div onclick="selectGroqModel('@m.Id')" id="@cardId"
+                                     style="border:2px solid @(isSelected ? "#f59e0b" : "#e2e8f0");border-radius:12px;padding:13px;cursor:pointer;background:@(isSelected ? "#fffbeb" : "#fff");transition:all .18s">
+                                    <div style="font-size:.64rem;font-weight:700;background:@m.Color;border-radius:20px;padding:2px 8px;display:inline-block;margin-bottom:6px">@m.Tag</div>
+                                    <div style="font-weight:700;font-size:.87rem;color:#1e293b">@m.Id</div>
+                                    <div style="font-size:.73rem;color:#64748b;margin-top:3px">@m.Desc</div>
+                                </div>
+                            }
+                        </div>
+                        <input type="hidden" name="GroqModel" id="groqModelInput" value="@groqModel">
+                        <div style="margin-top:12px;font-size:.78rem;color:#92400e;background:#fef3c7;border-radius:8px;padding:8px 12px">
+                            <i class="fas fa-info-circle me-1"></i>
+                            الحصول على مفتاح API مجاناً: <a href="https://console.groq.com/keys" target="_blank" style="color:#b45309;font-weight:600">console.groq.com/keys</a>
+                        </div>
                     </div>
                 </div>
 
@@ -345,9 +569,35 @@ const STATUS_MAP = {
 
 /* ─── Provider toggle ────────────────────────────────────── */
 function toggleProviders() {
-  var ant = document.querySelector('input[name="Provider"][value="1"]').checked;
-  document.getElementById('anthropic-section').style.display = ant ? 'block' : 'none';
-  document.getElementById('ollama-section').style.display    = ant ? 'none'  : 'block';
+  var val = document.querySelector('input[name="Provider"]:checked').value;
+  document.getElementById('anthropic-section').style.display = val === '1' ? 'block' : 'none';
+  document.getElementById('ollama-section').style.display    = val === '2' ? 'block' : 'none';
+  document.getElementById('openai-section').style.display    = val === '3' ? 'block' : 'none';
+  document.getElementById('groq-section').style.display      = val === '4' ? 'block' : 'none';
+}
+
+/* ─── OpenAI model selector ──────────────────────────────── */
+function selectOpenAIModel(model) {
+  document.getElementById('openAiModelInput').value = model;
+  document.querySelectorAll('[id^="gpt-card-"]').forEach(function(card) {
+    card.style.border     = '2px solid #e2e8f0';
+    card.style.background = '#fff';
+  });
+  var id = 'gpt-card-' + model.replace(/\./g,'_').replace(/-/g,'_');
+  var el = document.getElementById(id);
+  if (el) { el.style.border = '2px solid #0ea5e9'; el.style.background = '#e0f2fe'; }
+}
+
+/* ─── Groq model selector ────────────────────────────────── */
+function selectGroqModel(model) {
+  document.getElementById('groqModelInput').value = model;
+  document.querySelectorAll('[id^="groq-card-"]').forEach(function(card) {
+    card.style.border     = '2px solid #e2e8f0';
+    card.style.background = '#fff';
+  });
+  var id = 'groq-card-' + model.replace(/\./g,'_').replace(/-/g,'_');
+  var el = document.getElementById(id);
+  if (el) { el.style.border = '2px solid #f59e0b'; el.style.background = '#fffbeb'; }
 }
 
 /* ─── Fetch all models ───────────────────────────────────── */
@@ -604,5 +854,59 @@ function isSame(a, b) {
   const sp = s => [s.split(':')[0].toLowerCase(), (s.includes(':') ? s.split(':')[1] : 'latest').toLowerCase()];
   const [aB, aT] = sp(a), [bB, bT] = sp(b);
   return aB === bB && aT === bT;
+}
+
+/* ─── Key: show / hide toggle ────────────────────────────── */
+function toggleKey(inputId, iconId) {
+  const inp  = document.getElementById(inputId);
+  const icon = document.getElementById(iconId);
+  const btn  = icon.closest('.key-eye');
+  if (inp.type === 'password') {
+    inp.type = 'text';
+    icon.className = 'fas fa-eye-slash';
+    btn.querySelector('span,#' + iconId)?.remove?.();
+    btn.lastChild.textContent = ' إخفاء';
+  } else {
+    inp.type = 'password';
+    icon.className = 'fas fa-eye';
+    btn.lastChild.textContent = ' عرض';
+  }
+}
+
+/* ─── Key: verify via AJAX ───────────────────────────────── */
+async function verifyKey(provider, inputId, resultId) {
+  const key     = document.getElementById(inputId).value.trim();
+  const resEl   = document.getElementById(resultId);
+  const token   = document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
+
+  if (!key || key.includes('•')) {
+    resEl.style.display = 'block';
+    resEl.style.background = '#fef3c7'; resEl.style.color = '#92400e';
+    resEl.textContent = 'أدخل مفتاحاً صالحاً أولاً';
+    return;
+  }
+
+  resEl.style.display = 'block';
+  resEl.style.background = '#f1f5f9'; resEl.style.color = '#475569';
+  resEl.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>جاري اختبار الاتصال...';
+
+  try {
+    const form = new FormData();
+    form.append('provider', provider);
+    form.append('key', key);
+    form.append('__RequestVerificationToken', token);
+    const res  = await fetch('/AdminAI/VerifyKey', { method: 'POST', body: form });
+    const data = await res.json();
+
+    if (data.success) {
+      resEl.style.background = '#d1fae5'; resEl.style.color = '#065f46';
+    } else {
+      resEl.style.background = '#fee2e2'; resEl.style.color = '#991b1b';
+    }
+    resEl.textContent = data.message;
+  } catch {
+    resEl.style.background = '#fee2e2'; resEl.style.color = '#991b1b';
+    resEl.textContent = 'خطأ في الاتصال بالخادم';
+  }
 }
 </script>

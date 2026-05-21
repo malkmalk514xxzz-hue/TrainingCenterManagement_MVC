@@ -1,0 +1,482 @@
+@* Navigation Guide Widget — role-aware site navigator *@
+@{
+    var role = User.IsInRole("Admin")        ? "Admin"
+             : User.IsInRole("Trainer")      ? "Trainer"
+             : User.IsInRole("Receptionist") ? "Receptionist"
+             : "Trainee";
+}
+
+<div id="ng-root">
+
+  <button id="ng-fab" title="دليل التصفح" aria-label="دليل التصفح">
+    <span class="ng-fab-glow"></span>
+    <span class="ng-fab-inner">
+      <i class="fas fa-compass"></i>
+      <span>دليل الموقع</span>
+    </span>
+  </button>
+
+  <div id="ng-panel" aria-hidden="true">
+    <div class="ng-header">
+      <div class="ng-header-icon"><i class="fas fa-compass"></i></div>
+      <div class="ng-header-info">
+        <div class="ng-title">دليل التصفح</div>
+        <div class="ng-sub">ابحث عن أي صفحة بسرعة</div>
+      </div>
+      <button class="ng-close" onclick="ngW.close()" title="إغلاق">
+        <i class="fas fa-xmark"></i>
+      </button>
+    </div>
+
+    <div class="ng-search-row">
+      <div class="ng-search-box">
+        <i class="fas fa-search ng-search-icon"></i>
+        <input type="text" id="ng-search" class="ng-search-inp"
+               placeholder="ابحث عن صفحة… (مثال: دفع، دورات، حضور)"
+               oninput="ngW.search(this.value)" autocomplete="off">
+        <button class="ng-search-clear" id="ng-clear" onclick="ngW.clearSearch()" style="display:none">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+    </div>
+
+    <div id="ng-body" class="ng-body">
+      <div id="ng-results"></div>
+    </div>
+
+    <div class="ng-footer">
+      <i class="fas fa-lightbulb" style="color:#f59e0b;margin-left:5px"></i>
+      اضغط على أي صفحة للانتقال إليها مباشرةً
+    </div>
+  </div>
+
+</div>
+
+<style>
+#ng-root {
+  --c1: #0ea5e9;
+  --c2: #0284c7;
+  --head-bg: linear-gradient(135deg,#0c4a6e,#075985);
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  direction: rtl;
+}
+
+/* ── FAB ──────────────────────────────────────────────── */
+#ng-fab {
+  position: fixed;
+  bottom: 28px;
+  left: 28px;
+  right: auto;
+  z-index: 9996;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  background: transparent;
+  transition: transform .2s cubic-bezier(.34,1.56,.64,1);
+}
+#ng-fab:hover  { transform: translateY(-3px); }
+#ng-fab:active { transform: scale(.96); }
+
+.ng-fab-glow {
+  position: absolute; inset: -4px; border-radius: 30px;
+  background: linear-gradient(135deg,var(--c1),var(--c2));
+  opacity: .28; filter: blur(9px);
+  animation: ngGlow 3s ease-in-out infinite; pointer-events: none;
+}
+@@keyframes ngGlow {
+  0%,100% { opacity:.25; transform:scale(1); }
+  50%      { opacity:.45; transform:scale(1.08); }
+}
+
+.ng-fab-inner {
+  position: relative; display: flex; align-items: center; gap: 8px;
+  background: linear-gradient(135deg,var(--c1),var(--c2));
+  color: #fff; padding: 10px 18px 10px 12px; border-radius: 28px;
+  font-size: .85rem; font-weight: 700;
+  box-shadow: 0 5px 20px rgba(14,165,233,.42);
+  pointer-events: none;
+}
+.ng-fab-inner i { font-size: .95rem; }
+
+/* ── PANEL ────────────────────────────────────────────── */
+#ng-panel {
+  position: fixed;
+  bottom: 86px;
+  left: 28px;
+  right: auto;
+  z-index: 9997;
+  width: 380px;
+  max-height: calc(100vh - 120px);
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 24px 70px rgba(0,0,0,.2), 0 0 0 1px rgba(0,0,0,.06);
+  display: none;
+  flex-direction: column;
+  overflow: hidden;
+  transform-origin: bottom left;
+}
+#ng-panel.ng-open    { display: flex; animation: ngIn  .3s cubic-bezier(.34,1.56,.64,1) both; }
+#ng-panel.ng-closing { animation: ngOut .2s ease forwards; }
+
+@@keyframes ngIn  { from { opacity:0; transform:translateY(16px) scale(.93); } to { opacity:1; transform:none; } }
+@@keyframes ngOut { to   { opacity:0; transform:translateY(12px) scale(.96); } }
+
+/* ── HEADER ───────────────────────────────────────────── */
+.ng-header {
+  background: var(--head-bg);
+  padding: 14px 16px;
+  display: flex; align-items: center; gap: 10px;
+  flex-shrink: 0;
+}
+.ng-header-icon {
+  width: 38px; height: 38px; border-radius: 50%;
+  background: rgba(255,255,255,.15);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem; color: #fff; flex-shrink: 0;
+}
+.ng-header-info { flex: 1; }
+.ng-title { font-weight: 700; font-size: .92rem; color: #fff; }
+.ng-sub   { font-size: .7rem;  color: rgba(255,255,255,.65); margin-top: 1px; }
+.ng-close {
+  width: 30px; height: 30px; border-radius: 8px; border: none; cursor: pointer;
+  background: rgba(255,255,255,.12); color: rgba(255,255,255,.8);
+  display: flex; align-items: center; justify-content: center;
+  transition: background .15s;
+}
+.ng-close:hover { background: rgba(255,255,255,.22); color: #fff; }
+
+/* ── SEARCH ───────────────────────────────────────────── */
+.ng-search-row { padding: 12px 14px 8px; flex-shrink: 0; }
+.ng-search-box {
+  background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 12px;
+  display: flex; align-items: center; padding: 0 12px; gap: 8px;
+  transition: border-color .18s;
+}
+.ng-search-box:focus-within { border-color: var(--c1); background: #fff; }
+.ng-search-icon { color: #94a3b8; font-size: .8rem; flex-shrink: 0; }
+.ng-search-inp {
+  flex: 1; border: none; background: transparent; outline: none;
+  font-size: .84rem; color: #0f172a; padding: 9px 0; direction: rtl;
+  font-family: inherit;
+}
+.ng-search-inp::placeholder { color: #94a3b8; }
+.ng-search-clear {
+  background: none; border: none; cursor: pointer;
+  color: #94a3b8; font-size: .8rem; padding: 4px; flex-shrink: 0;
+  transition: color .15s;
+}
+.ng-search-clear:hover { color: #475569; }
+
+/* ── BODY ─────────────────────────────────────────────── */
+.ng-body {
+  flex: 1; overflow-y: auto; padding: 4px 10px 10px;
+}
+.ng-body::-webkit-scrollbar { width: 4px; }
+.ng-body::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 4px; }
+
+/* ── SECTION ──────────────────────────────────────────── */
+.ng-section { margin-bottom: 4px; }
+.ng-section-title {
+  font-size: .68rem; font-weight: 800; color: #94a3b8;
+  padding: 8px 6px 4px; letter-spacing: .06em; text-transform: uppercase;
+}
+
+/* ── PAGE ITEM ────────────────────────────────────────── */
+.ng-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 10px; border-radius: 12px; cursor: pointer;
+  text-decoration: none; color: inherit;
+  transition: background .15s, transform .12s;
+  margin-bottom: 3px;
+}
+.ng-item:hover { background: #f0f9ff; transform: translateX(-2px); text-decoration: none; color: inherit; }
+.ng-item.ng-active { background: #e0f2fe; }
+.ng-icon {
+  width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center; font-size: .85rem;
+}
+.ng-item-info { flex: 1; min-width: 0; }
+.ng-item-title { font-size: .84rem; font-weight: 600; color: #0f172a; }
+.ng-item-desc  { font-size: .7rem;  color: #64748b; margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ng-item-arrow { color: #cbd5e1; font-size: .7rem; flex-shrink: 0; }
+.ng-item:hover .ng-item-arrow { color: var(--c1); }
+
+/* ── EMPTY STATE ──────────────────────────────────────── */
+.ng-empty {
+  text-align: center; padding: 28px 16px; color: #94a3b8;
+}
+.ng-empty i { font-size: 2rem; display: block; margin-bottom: 8px; opacity: .4; }
+.ng-empty p { font-size: .82rem; }
+
+/* ── FOOTER ───────────────────────────────────────────── */
+.ng-footer {
+  padding: 8px 14px; background: #f8fafc;
+  border-top: 1px solid #f1f5f9;
+  font-size: .72rem; color: #94a3b8; flex-shrink: 0;
+  display: flex; align-items: center;
+}
+
+/* ── MOBILE ───────────────────────────────────────────── */
+@@media (max-width: 640px) {
+  #ng-fab { bottom: 20px !important; left: 16px !important; }
+  #ng-panel {
+    bottom: 0 !important; left: 0 !important; right: 0 !important;
+    width: 100% !important; max-height: 88dvh !important;
+    border-radius: 20px 20px 0 0 !important;
+    transform-origin: bottom center !important;
+  }
+}
+</style>
+
+<script>
+const ngW = (() => {
+
+  let _open = false;
+
+  /* ── Page map (role-aware, embedded from server) ────── */
+  const ROLE = '@role';
+
+  const ALL_PAGES = {
+    Admin: [
+      {
+        section: 'الرئيسية',
+        pages: [
+          { icon:'fas fa-chart-line', color:'#6366f1', bg:'#ede9fe', title:'لوحة التحكم',     url:'/Dashboard',            desc:'إحصائيات ونظرة عامة على المركز',      kw:['داشبورد','إحصائيات','نظرة'] },
+          { icon:'fas fa-robot',      color:'#7c3aed', bg:'#ede9fe', title:'المساعد الذكي',   url:'/AIAssistant/Chat',      desc:'محادثة مع المساعد الذكي',              kw:['ai','ذكاء','بوت','روبوت'] },
+        ]
+      },
+      {
+        section: 'إدارة المستخدمين',
+        pages: [
+          { icon:'fas fa-user-graduate', color:'#0ea5e9', bg:'#e0f2fe', title:'المتدربون',     url:'/Trainees',             desc:'إضافة وإدارة المتدربين',               kw:['طالب','متدرب','تسجيل','طلاب'] },
+          { icon:'fas fa-chalkboard-teacher', color:'#10b981', bg:'#d1fae5', title:'المدربون', url:'/Trainers',             desc:'إدارة المدربين والمدرّسين',            kw:['مدرب','أستاذ','معلم'] },
+          { icon:'fas fa-headset',       color:'#f59e0b', bg:'#fef3c7', title:'موظفو الاستقبال', url:'/Receptionists',      desc:'إدارة موظفي الاستقبال',               kw:['استقبال','موظف','سكرتير'] },
+        ]
+      },
+      {
+        section: 'الدورات والتعليم',
+        pages: [
+          { icon:'fas fa-book',          color:'#6366f1', bg:'#ede9fe', title:'الدورات',        url:'/Courses',             desc:'إنشاء وإدارة الدورات التدريبية',       kw:['دورة','كورس','مادة'] },
+          { icon:'fas fa-video',         color:'#8b5cf6', bg:'#ede9fe', title:'المحاضرات',      url:'/Lectures',            desc:'إدارة المحاضرات والمحتوى',             kw:['محاضرة','فيديو','درس'] },
+          { icon:'fas fa-broadcast-tower', color:'#ef4444', bg:'#fee2e2', title:'البث المباشر', url:'/LiveSessions',        desc:'جدولة وإدارة الجلسات المباشرة',        kw:['بث','مباشر','لايف','زووم'] },
+          { icon:'fas fa-file-alt',      color:'#0ea5e9', bg:'#e0f2fe', title:'الامتحانات',     url:'/Exams',               desc:'إنشاء وإدارة الامتحانات',              kw:['امتحان','اختبار','سؤال'] },
+          { icon:'fas fa-award',         color:'#f59e0b', bg:'#fef3c7', title:'الشهادات',       url:'/Certificates',        desc:'إصدار وإدارة الشهادات',                kw:['شهادة','جواز','وثيقة'] },
+        ]
+      },
+      {
+        section: 'المالية والتقارير',
+        pages: [
+          { icon:'fas fa-credit-card',   color:'#10b981', bg:'#d1fae5', title:'المدفوعات',      url:'/Payments',            desc:'سجلات وإدارة المدفوعات',               kw:['دفع','فاتورة','مبلغ','مالية'] },
+          { icon:'fas fa-money-check',   color:'#6366f1', bg:'#ede9fe', title:'طلبات الدفع',    url:'/PaymentRequests',     desc:'مراجعة وقبول طلبات الدفع',             kw:['طلب','قبول','رفض'] },
+          { icon:'fas fa-dollar-sign',   color:'#f59e0b', bg:'#fef3c7', title:'الرواتب',        url:'/Salary',              desc:'إدارة رواتب المدربين',                  kw:['راتب','أجر','مرتب'] },
+        ]
+      },
+      {
+        section: 'الإعدادات والنظام',
+        pages: [
+          { icon:'fas fa-cog',           color:'#6366f1', bg:'#ede9fe', title:'إعدادات AI',     url:'/AdminAI/Settings',    desc:'ضبط مزودي الذكاء الاصطناعي والمفاتيح', kw:['ai','إعداد','مفتاح','نموذج'] },
+          { icon:'fas fa-book-open',     color:'#10b981', bg:'#d1fae5', title:'قاعدة المعرفة',  url:'/AdminAI/Knowledge',   desc:'المعلومات الثابتة للمساعد الذكي',      kw:['معرفة','كنولج','معلومات'] },
+          { icon:'fas fa-bell',          color:'#f59e0b', bg:'#fef3c7', title:'الإشعارات',      url:'/Notifications',       desc:'عرض وإدارة الإشعارات',                 kw:['إشعار','تنبيه','رسالة'] },
+          { icon:'fas fa-comments',      color:'#0ea5e9', bg:'#e0f2fe', title:'المحادثات',      url:'/Chat',                desc:'المحادثات الفورية مع المستخدمين',      kw:['چات','شات','محادثة','رسالة'] },
+          { icon:'fas fa-user-circle',   color:'#64748b', bg:'#f1f5f9', title:'ملفي الشخصي',    url:'/Profile',             desc:'تعديل بياناتك الشخصية',                kw:['بروفايل','حساب','صورة'] },
+        ]
+      }
+    ],
+    Trainer: [
+      {
+        section: 'الرئيسية',
+        pages: [
+          { icon:'fas fa-tachometer-alt', color:'#6366f1', bg:'#ede9fe', title:'لوحتي',         url:'/Dashboard',           desc:'نظرة عامة على دوراتك ونشاطك',          kw:['داشبورد','رئيسية'] },
+          { icon:'fas fa-robot',          color:'#7c3aed', bg:'#ede9fe', title:'المساعد الذكي',  url:'/AIAssistant/Chat',     desc:'اسأل الذكاء الاصطناعي',                kw:['ai','ذكاء','مساعد'] },
+        ]
+      },
+      {
+        section: 'الدورات والتعليم',
+        pages: [
+          { icon:'fas fa-book',          color:'#6366f1', bg:'#ede9fe', title:'دوراتي',          url:'/Courses',             desc:'الدورات التي تُدرّسها',                 kw:['دورة','مادة'] },
+          { icon:'fas fa-video',         color:'#8b5cf6', bg:'#ede9fe', title:'المحاضرات',       url:'/Lectures',            desc:'إضافة وإدارة المحاضرات',               kw:['محاضرة','درس','فيديو'] },
+          { icon:'fas fa-broadcast-tower', color:'#ef4444', bg:'#fee2e2', title:'البث المباشر',  url:'/LiveSessions',        desc:'جدولة جلساتك المباشرة',                kw:['بث','مباشر','لايف'] },
+          { icon:'fas fa-file-alt',      color:'#0ea5e9', bg:'#e0f2fe', title:'الامتحانات',      url:'/Exams',               desc:'إنشاء امتحانات لطلابك',                 kw:['امتحان','اختبار'] },
+          { icon:'fas fa-percentage',    color:'#10b981', bg:'#d1fae5', title:'الحضور',          url:'/Presences',           desc:'تسجيل حضور المتدربين',                  kw:['حضور','غياب','حضرت'] },
+        ]
+      },
+      {
+        section: 'التواصل',
+        pages: [
+          { icon:'fas fa-bell',          color:'#f59e0b', bg:'#fef3c7', title:'الإشعارات',       url:'/Notifications',       desc:'تنبيهاتك ورسائلك',                     kw:['إشعار','تنبيه'] },
+          { icon:'fas fa-comments',      color:'#0ea5e9', bg:'#e0f2fe', title:'المحادثات',       url:'/Chat',                desc:'تواصل مع المتدربين',                    kw:['شات','محادثة','رسالة'] },
+          { icon:'fas fa-user-circle',   color:'#64748b', bg:'#f1f5f9', title:'ملفي الشخصي',     url:'/Profile',             desc:'بياناتك الشخصية',                       kw:['بروفايل','حساب'] },
+        ]
+      }
+    ],
+    Receptionist: [
+      {
+        section: 'الرئيسية',
+        pages: [
+          { icon:'fas fa-tachometer-alt', color:'#6366f1', bg:'#ede9fe', title:'لوحتي',          url:'/Dashboard',          desc:'ملخص اليوم والنشاط',                    kw:['داشبورد','رئيسية'] },
+          { icon:'fas fa-robot',          color:'#7c3aed', bg:'#ede9fe', title:'المساعد الذكي',   url:'/AIAssistant/Chat',   desc:'اسأل الذكاء الاصطناعي',                kw:['ai','مساعد'] },
+        ]
+      },
+      {
+        section: 'المتدربون والدورات',
+        pages: [
+          { icon:'fas fa-user-graduate', color:'#0ea5e9', bg:'#e0f2fe', title:'المتدربون',        url:'/Trainees',           desc:'تسجيل وإدارة المتدربين',               kw:['متدرب','طالب','تسجيل'] },
+          { icon:'fas fa-book',          color:'#6366f1', bg:'#ede9fe', title:'الدورات',           url:'/Courses',            desc:'عرض الدورات المتاحة',                   kw:['دورة','كورس'] },
+        ]
+      },
+      {
+        section: 'المدفوعات',
+        pages: [
+          { icon:'fas fa-credit-card',   color:'#10b981', bg:'#d1fae5', title:'المدفوعات',        url:'/Payments',           desc:'تسجيل وعرض المدفوعات',                 kw:['دفع','مبلغ','فاتورة'] },
+          { icon:'fas fa-money-check',   color:'#6366f1', bg:'#ede9fe', title:'طلبات الدفع',      url:'/PaymentRequests',    desc:'مراجعة طلبات الدفع المعلقة',            kw:['طلب','قبول'] },
+        ]
+      },
+      {
+        section: 'التواصل',
+        pages: [
+          { icon:'fas fa-bell',          color:'#f59e0b', bg:'#fef3c7', title:'الإشعارات',        url:'/Notifications',      desc:'تنبيهاتك ورسائلك',                     kw:['إشعار','تنبيه'] },
+          { icon:'fas fa-comments',      color:'#0ea5e9', bg:'#e0f2fe', title:'المحادثات',        url:'/Chat',               desc:'المحادثات الفورية',                     kw:['شات','محادثة'] },
+          { icon:'fas fa-user-circle',   color:'#64748b', bg:'#f1f5f9', title:'ملفي الشخصي',      url:'/Profile',            desc:'بياناتك الشخصية',                       kw:['بروفايل','حساب'] },
+        ]
+      }
+    ],
+    Trainee: [
+      {
+        section: 'الرئيسية',
+        pages: [
+          { icon:'fas fa-tachometer-alt', color:'#6366f1', bg:'#ede9fe', title:'لوحتي',           url:'/Dashboard',          desc:'ملخص أدائك وتقدمك',                    kw:['داشبورد','رئيسية','تقدم'] },
+          { icon:'fas fa-robot',          color:'#7c3aed', bg:'#ede9fe', title:'المساعد الذكي',    url:'/AIAssistant/Chat',   desc:'اسأل الذكاء الاصطناعي',                kw:['ai','مساعد','ذكاء'] },
+        ]
+      },
+      {
+        section: 'دراستي',
+        pages: [
+          { icon:'fas fa-book-open',     color:'#0ea5e9', bg:'#e0f2fe', title:'دوراتي',            url:'/Courses',            desc:'الدورات التي سجلت فيها',               kw:['دورة','كورس','تسجيل'] },
+          { icon:'fas fa-video',         color:'#8b5cf6', bg:'#ede9fe', title:'المحاضرات',         url:'/Lectures',           desc:'محاضرات دوراتك',                        kw:['محاضرة','درس','فيديو'] },
+          { icon:'fas fa-broadcast-tower', color:'#ef4444', bg:'#fee2e2', title:'الجلسات المباشرة', url:'/LiveSessions',      desc:'جلساتك القادمة',                        kw:['بث','مباشر','لايف'] },
+          { icon:'fas fa-calendar-check', color:'#10b981', bg:'#d1fae5', title:'الحضور',            url:'/Presences',         desc:'سجل حضورك وغيابك',                     kw:['حضور','غياب','نسبة'] },
+        ]
+      },
+      {
+        section: 'الامتحانات والإنجازات',
+        pages: [
+          { icon:'fas fa-file-alt',      color:'#0ea5e9', bg:'#e0f2fe', title:'امتحاناتي',         url:'/ExamAttempt',        desc:'أداء الامتحانات وعرض نتائجك',           kw:['امتحان','اختبار','درجة','نتيجة'] },
+          { icon:'fas fa-chart-bar',     color:'#6366f1', bg:'#ede9fe', title:'تقدمي',              url:'/Progress',           desc:'مستوى أدائك في كل دورة',               kw:['تقدم','أداء','إحصاء'] },
+          { icon:'fas fa-award',         color:'#f59e0b', bg:'#fef3c7', title:'شهاداتي',            url:'/Certificates',       desc:'الشهادات التي حصلت عليها',              kw:['شهادة','جائزة'] },
+        ]
+      },
+      {
+        section: 'المالية والتواصل',
+        pages: [
+          { icon:'fas fa-credit-card',   color:'#10b981', bg:'#d1fae5', title:'مدفوعاتي',          url:'/Payments',           desc:'سجل مدفوعاتك',                          kw:['دفع','فاتورة','مبلغ'] },
+          { icon:'fas fa-bell',          color:'#f59e0b', bg:'#fef3c7', title:'الإشعارات',          url:'/Notifications',      desc:'تنبيهاتك ورسائلك',                     kw:['إشعار','تنبيه'] },
+          { icon:'fas fa-comments',      color:'#0ea5e9', bg:'#e0f2fe', title:'المحادثات',          url:'/Chat',               desc:'تواصل مع المدربين والزملاء',            kw:['شات','محادثة','رسالة'] },
+          { icon:'fas fa-user-circle',   color:'#64748b', bg:'#f1f5f9', title:'ملفي الشخصي',        url:'/Profile',            desc:'بياناتك وإعداداتك',                     kw:['بروفايل','حساب','إعداد'] },
+        ]
+      }
+    ]
+  };
+
+  const pages = ALL_PAGES[ROLE] || ALL_PAGES.Trainee;
+
+  /* ── Open / Close ──────────────────────────────────── */
+  function toggle() { _open ? close() : open(); }
+
+  function open() {
+    _open = true;
+    const p = document.getElementById('ng-panel');
+    p.classList.remove('ng-closing');
+    p.classList.add('ng-open');
+    p.setAttribute('aria-hidden','false');
+    _render('');
+    setTimeout(() => document.getElementById('ng-search')?.focus(), 280);
+  }
+
+  function close() {
+    _open = false;
+    const p = document.getElementById('ng-panel');
+    p.classList.add('ng-closing');
+    p.setAttribute('aria-hidden','true');
+    setTimeout(() => p.classList.remove('ng-open','ng-closing'), 200);
+  }
+
+  /* ── Search ────────────────────────────────────────── */
+  function search(val) {
+    document.getElementById('ng-clear').style.display = val ? 'flex' : 'none';
+    _render(val.trim());
+  }
+
+  function clearSearch() {
+    const inp = document.getElementById('ng-search');
+    inp.value = '';
+    inp.focus();
+    document.getElementById('ng-clear').style.display = 'none';
+    _render('');
+  }
+
+  /* ── Render ────────────────────────────────────────── */
+  function _render(q) {
+    const container = document.getElementById('ng-results');
+    const ql = q.toLowerCase();
+    let html = '';
+    let totalMatches = 0;
+
+    pages.forEach(section => {
+      const matched = section.pages.filter(p =>
+        !ql ||
+        p.title.includes(q) ||
+        p.desc.includes(q)  ||
+        (p.kw && p.kw.some(k => ql.includes(k) || k.includes(ql)))
+      );
+      if (!matched.length) return;
+      totalMatches += matched.length;
+
+      if (!ql) {
+        html += `<div class="ng-section-title">${section.section}</div>`;
+      }
+
+      matched.forEach(p => {
+        const current = window.location.pathname.startsWith(p.url) ? ' ng-active' : '';
+        html += `
+          <a href="${p.url}" class="ng-item${current}">
+            <div class="ng-icon" style="background:${p.bg};color:${p.color}">
+              <i class="${p.icon}"></i>
+            </div>
+            <div class="ng-item-info">
+              <div class="ng-item-title">${_highlight(p.title, q)}</div>
+              <div class="ng-item-desc">${p.desc}</div>
+            </div>
+            <i class="fas fa-chevron-left ng-item-arrow"></i>
+          </a>`;
+      });
+    });
+
+    if (totalMatches === 0) {
+      html = `<div class="ng-empty">
+                <i class="fas fa-search"></i>
+                <p>لا توجد نتائج لـ "<strong>${q}</strong>"<br>جرّب كلمة أخرى</p>
+              </div>`;
+    }
+
+    container.innerHTML = html;
+  }
+
+  function _highlight(text, q) {
+    if (!q) return text;
+    const re = new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')})`, 'gi');
+    return text.replace(re, '<mark style="background:#bfdbfe;border-radius:3px;padding:0 2px">$1</mark>');
+  }
+
+  /* ── Init ──────────────────────────────────────────── */
+  document.getElementById('ng-fab').addEventListener('click', toggle);
+
+  // Close on outside click
+  document.addEventListener('click', e => {
+    if (!_open) return;
+    const root = document.getElementById('ng-root');
+    if (!root.contains(e.target)) close();
+  });
+
+  return { toggle, open, close, search, clearSearch };
+})();
+</script>

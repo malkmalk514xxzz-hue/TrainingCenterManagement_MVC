@@ -470,6 +470,9 @@
             }
         </div>
 
+        <!-- ─── AI Tools (تلخيص / خريطة ذهنية / أسئلة وأجوبة) ─────── -->
+        @await Html.PartialAsync("_LectureAITools", Model.LectureId)
+
         <!-- ─── Bottom Actions ─────────────────────────────────────── -->
         <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:32px;">
             <a asp-controller="Courses" asp-action="Details" asp-route-id="@Model.CourseId" class="vl-back">
