@@ -11,13 +11,8 @@ namespace TrainingCenterManagement_MVC.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<string>(
-                name: "GroqModel",
-                table: "AISystemConfigs",
-                type: "nvarchar(max)",
-                nullable: false,
-                defaultValue: "");
-
+            // Note: GroqModel is added in the next migration (AddGroqModel).
+            // Only OpenAIModel is added here to match the Designer.cs snapshot.
             migrationBuilder.AddColumn<string>(
                 name: "OpenAIModel",
                 table: "AISystemConfigs",
@@ -57,17 +52,13 @@ namespace TrainingCenterManagement_MVC.Migrations
                 table: "AISystemConfigs",
                 keyColumn: "Id",
                 keyValue: 1,
-                columns: new[] { "GroqModel", "OpenAIModel" },
-                values: new object[] { "llama-3.3-70b-versatile", "gpt-4o-mini" });
+                column: "OpenAIModel",
+                value: "gpt-4o-mini");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropColumn(
-                name: "GroqModel",
-                table: "AISystemConfigs");
-
             migrationBuilder.DropColumn(
                 name: "OpenAIModel",
                 table: "AISystemConfigs");
