@@ -1,0 +1,130 @@
+@model IEnumerable<TrainingCenterManagement_MVC.Models.Trainee>
+@using TrainingCenterManagement_MVC.Models
+
+@{
+    int    currentPage = ViewBag.CurrentPage ?? 1;
+    int    totalPages  = ViewBag.TotalPages  ?? 1;
+    int    filterCount = ViewBag.FilterCount ?? 0;
+    int    pageSize    = ViewBag.PageSize    ?? 10;
+    var    list        = Model.ToList();
+
+    string AvatarUrl(ApplicationUser u) {
+        if (!string.IsNullOrEmpty(u?.ProfilePictureUrl)) return u.ProfilePictureUrl;
+        var name = Uri.EscapeDataString(u?.FullName ?? "U");
+        var bg   = (u?.Gender == Gender.Female) ? "ec4899" : "1d4ed8";
+        return $"https://ui-avatars.com/api/?name={name}&background={bg}&color=ffffff&bold=true&size=128&rounded=true";
+    }
+}
+
+@if (!list.Any())
+{
+    <div class="tn-empty">
+        <i class="fas fa-user-graduate"></i>
+        <h3>لا يوجد متدربون مطابقون</h3>
+        <p>جرّب تغيير كلمة البحث أو الفلتر</p>
+    </div>
+}
+else
+{
+    <!-- Results summary — بارزة كما طُلب -->
+    <div class="tn-results-bar">
+        <span class="tn-results-text">
+            عرض
+            <strong class="tn-results-highlight">@(((currentPage - 1) * pageSize) + 1)</strong>
+            —
+            <strong class="tn-results-highlight">@(Math.Min(currentPage * pageSize, filterCount))</strong>
+            من
+            <strong class="tn-results-highlight">@filterCount</strong>
+            متدرب
+        </span>
+    </div>
+
+    <!-- Grid -->
+    <div class="tn-grid" id="tn-grid">
+        @foreach (var item in list)
+        {
+            var av       = AvatarUrl(item.User);
+            var isFemale = item.User?.Gender == Gender.Female;
+            var courses  = item.CourseTrainees?.Count ?? 0;
+
+            <div class="tn-card"
+                 data-name="@(item.User?.FullName?.ToLower())"
+                 data-email="@(item.User?.Email?.ToLower())"
+                 data-gender="@(isFemale ? "female" : "male")">
+                <div class="tn-avatar-wrap">
+                    <img src="@av" class="tn-avatar" alt="@item.User?.FullName"
+                         onerror="this.src='https://ui-avatars.com/api/?name=U&background=94a3b8&color=fff&rounded=true'" />
+                    <span class="tn-gender-dot @(isFemale ? "tn-gender-f" : "tn-gender-m")">
+                        <i class="fas @(isFemale ? "fa-venus" : "fa-mars")"></i>
+                    </span>
+                </div>
+                <div class="tn-name">@item.User?.FullName</div>
+                <div class="tn-email">@item.User?.Email</div>
+                @if (courses > 0)
+                {
+                    <span class="tn-courses-badge">
+                        <i class="fas fa-book-open"></i> @courses كورس
+                    </span>
+                }
+                <div class="tn-actions">
+                    <a asp-action="Details" asp-route-id="@item.TraineeId" class="tn-btn tn-btn-info">
+                        <i class="fas fa-eye"></i> تفاصيل
+                    </a>
+                    <a asp-action="Delete" asp-route-id="@item.TraineeId" class="tn-btn tn-btn-del">
+                        <i class="fas fa-trash-alt"></i>
+                    </a>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- Pagination -->
+    @if (totalPages > 1)
+    {
+        <div class="tn-pag-wrap">
+            <div class="tn-pag-info">
+                صفحة <strong>@currentPage</strong> من <strong>@totalPages</strong>
+            </div>
+            <ul class="tn-pag">
+
+                <li class="@(currentPage <= 1 ? "disabled" : "")">
+                    <a href="#" class="tn-pag-link" data-page="@(currentPage - 1)" title="السابق">
+                        <i class="fas fa-chevron-right"></i>
+                    </a>
+                </li>
+
+                @{
+                    int startP = Math.Max(1, currentPage - 3);
+                    int endP   = Math.Min(totalPages, startP + 6);
+                    if (endP - startP < 6) startP = Math.Max(1, endP - 6);
+                }
+
+                @if (startP > 1)
+                {
+                    <li><a href="#" class="tn-pag-link" data-page="1">1</a></li>
+                    if (startP > 2) { <li class="ellipsis"><span>…</span></li> }
+                }
+
+                @for (int pi = startP; pi <= endP; pi++)
+                {
+                    <li class="@(pi == currentPage ? "active" : "")">
+                        <a href="#" class="tn-pag-link" data-page="@pi">@pi</a>
+                    </li>
+                }
+
+                @if (endP < totalPages)
+                {
+                    if (endP < totalPages - 1) { <li class="ellipsis"><span>…</span></li> }
+                    <li><a href="#" class="tn-pag-link" data-page="@totalPages">@totalPages</a></li>
+                }
+
+                <li class="@(currentPage >= totalPages ? "disabled" : "")">
+                    <a href="#" class="tn-pag-link" data-page="@(currentPage + 1)" title="التالي">
+                        <i class="fas fa-chevron-left"></i>
+                    </a>
+                </li>
+
+            </ul>
+        </div>
+    }
+}

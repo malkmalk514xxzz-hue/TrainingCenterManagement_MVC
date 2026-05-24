@@ -1,0 +1,266 @@
+@model IEnumerable<IGrouping<dynamic, TrainingCenterManagement_MVC.Models.Payment>>
+
+@{
+    var monthNames  = new[] { "","يناير","فبراير","مارس","أبريل","مايو","يونيو","يوليو","أغسطس","سبتمبر","أكتوبر","نوفمبر","ديسمبر" };
+    var list        = Model.ToList();
+    int filterTotal = list.SelectMany(g => g).Count();
+
+    // تجميع الأشهر داخل سنوات
+    var byYear = list
+        .GroupBy(g => (int)g.Key.Year)
+        .OrderByDescending(y => y.Key)
+        .ToList();
+
+    int yearIdx  = 0;
+    int monthIdx = 0;
+}
+
+@if (!list.Any())
+{
+    <div class="py-empty">
+        <i class="fas fa-inbox"></i>
+        <h3>لا توجد دفعات مطابقة</h3>
+        <p>جرّب تغيير كلمة البحث</p>
+        <a asp-action="Create" class="py-add-btn" style="margin-top:16px;">
+            <i class="fas fa-plus"></i> إضافة دفعة
+        </a>
+    </div>
+}
+else
+{
+    <!-- Results bar -->
+    <div class="py-results-bar">
+        <span class="py-results-text">
+            <strong class="py-results-hl">@filterTotal</strong> دفعة
+            في <strong class="py-results-hl">@list.Count</strong> شهر
+            ضمن <strong class="py-results-hl">@byYear.Count</strong> سنة
+        </span>
+    </div>
+
+    @foreach (var yearGroup in byYear)
+    {
+        yearIdx++;
+        var yearTotal   = yearGroup.SelectMany(g => g).Sum(p => p.TotalAmount);
+        var yearCount   = yearGroup.SelectMany(g => g).Count();
+        var yearMonths  = yearGroup.Count();
+        var yid         = yearIdx;
+
+        <!-- ════ Year accordion ════ -->
+        <div class="py-year-section" id="py-year-@yid">
+
+            <!-- Year Header -->
+            <div class="py-year-head" onclick="toggleYear('@yid')" id="py-yhead-@yid">
+                <div class="py-year-left">
+                    <div class="py-year-icon"><i class="fas fa-calendar-alt"></i></div>
+                    <span class="py-year-label">@yearGroup.Key</span>
+                </div>
+                <div class="py-year-meta">
+                    <span class="py-ymeta-chip">
+                        <i class="fas fa-layer-group"></i> @yearMonths شهر
+                    </span>
+                    <span class="py-ymeta-chip">
+                        <i class="fas fa-receipt"></i> @yearCount دفعة
+                    </span>
+                    <span class="py-ymeta-chip py-ymeta-amount">
+                        <i class="fas fa-coins"></i> @yearTotal.ToString("N0")
+                    </span>
+                </div>
+                <i class="fas fa-chevron-down py-year-chevron" id="py-yicon-@yid"></i>
+            </div>
+
+            <!-- Year Body: months inside -->
+            <div class="py-year-body" id="py-ybody-@yid">
+
+                @foreach (var monthGroup in yearGroup.OrderByDescending(g => (int)g.Key.Month))
+                {
+                    monthIdx++;
+                    var groupTotal = monthGroup.Sum(p => p.TotalAmount);
+                    var groupCount = monthGroup.Count();
+                    var mid        = monthIdx;
+
+                    <div class="py-month-section">
+                        <div class="py-month-head" onclick="toggleGroup('@mid')" id="py-head-@mid">
+                            <span class="py-month-badge">
+                                @monthNames[monthGroup.Key.Month]
+                            </span>
+                            <span class="py-month-title"></span>
+                            <div class="py-month-meta">
+                                <span><i class="fas fa-receipt"></i> @groupCount دفعة</span>
+                                <span><i class="fas fa-coins"></i> @groupTotal.ToString("N0")</span>
+                            </div>
+                            <i class="fas fa-chevron-down py-toggle-icon" id="py-icon-@mid"></i>
+                        </div>
+
+                        <div id="py-body-@mid">
+                            <div style="overflow-x:auto;">
+                                <table class="py-table">
+                                    <thead>
+                                        <tr>
+                                            <th>الطالب</th>
+                                            <th>الدورة</th>
+                                            <th>المبلغ</th>
+                                            <th>التاريخ</th>
+                                            <th>ملاحظات</th>
+                                            <th>الإجراءات</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var item in monthGroup.OrderByDescending(p => p.CreatedDate))
+                                        {
+                                            var traineeName = item.Trainee?.User?.FullName ?? "—";
+                                            var avatarChar  = traineeName.Length > 0 ? traineeName[0].ToString() : "؟";
+                                            var currCode    = item.Currency == TrainingCenterManagement_MVC.Models.PaymentCurrency.USD ? "USD"
+                                                            : item.Currency == TrainingCenterManagement_MVC.Models.PaymentCurrency.EUR ? "EUR"
+                                                            : "SYP";
+
+                                            <tr>
+                                                <td>
+                                                    <div class="py-trainee-cell">
+                                                        <div class="py-avatar">@avatarChar</div>
+                                                        <span>@traineeName</span>
+                                                    </div>
+                                                </td>
+                                                <td style="color:var(--text-2);">@(item.Course?.CourseName ?? "—")</td>
+                                                <td>
+                                                    <span class="py-amount">@item.TotalAmount.ToString("N0")</span>
+                                                    <span class="py-curr-badge">@currCode</span>
+                                                </td>
+                                                <td style="color:var(--text-3);font-size:.82rem;">@item.CreatedDate.ToString("dd/MM/yyyy")</td>
+                                                <td>
+                                                    @if (!string.IsNullOrEmpty(item.Notes))
+                                                    {
+                                                        <span class="py-note">@item.Notes</span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span style="color:var(--border)">—</span>
+                                                    }
+                                                </td>
+                                                <td>
+                                                    <div style="display:flex;gap:6px;">
+                                                        <a asp-action="Details" asp-route-id="@item.PaymentId"
+                                                           class="py-action-btn py-btn-view">
+                                                            <i class="fas fa-eye"></i> تفاصيل
+                                                        </a>
+                                                        <a asp-action="Delete" asp-route-id="@item.PaymentId"
+                                                           class="py-action-btn py-btn-del">
+                                                            <i class="fas fa-trash"></i>
+                                                        </a>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                }
+
+            </div><!-- /py-year-body -->
+        </div><!-- /py-year-section -->
+    }
+}
+
+<style>
+    /* ── Year accordion ── */
+    .py-year-section {
+        margin-bottom: 20px;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 4px 20px rgba(29,78,216,.10);
+        border: 2px solid #bfdbfe;
+    }
+    .py-year-head {
+        background: linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 60%, #3b82f6 100%);
+        padding: 16px 24px;
+        display: flex; align-items: center; gap: 16px;
+        cursor: pointer; user-select: none;
+        transition: opacity .2s;
+    }
+    .py-year-head:hover { opacity: .92; }
+    .py-year-left  { display: flex; align-items: center; gap: 12px; }
+    .py-year-icon  {
+        width: 40px; height: 40px; border-radius: 10px;
+        background: rgba(255,255,255,.2);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1rem; color: #fff; flex-shrink: 0;
+    }
+    .py-year-label {
+        font-size: 1.25rem; font-weight: 800;
+        color: #fff; letter-spacing: .5px;
+    }
+    .py-year-meta  { display: flex; gap: 8px; flex-wrap: wrap; flex: 1; justify-content: flex-end; }
+    .py-ymeta-chip {
+        display: inline-flex; align-items: center; gap: 5px;
+        background: rgba(255,255,255,.18);
+        border-radius: 20px; padding: 4px 12px;
+        font-size: .8rem; font-weight: 600; color: #fff;
+    }
+    .py-ymeta-amount { background: rgba(16,185,129,.35); }
+    .py-year-chevron { color: rgba(255,255,255,.8); transition: transform .25s; flex-shrink: 0; font-size: 1rem; }
+    .py-year-head.collapsed .py-year-chevron { transform: rotate(-90deg); }
+
+    /* Year body padding */
+    .py-year-body { background: #f8fafc; padding: 16px 16px 4px; }
+
+    /* Month card inside year */
+    .py-month-section {
+        background: var(--card-bg); border-radius: 12px;
+        box-shadow: var(--shadow-sm); border: 1px solid var(--border);
+        overflow: hidden; margin-bottom: 12px; transition: var(--tr);
+    }
+    .py-month-section:hover { box-shadow: var(--shadow-md); }
+    .py-month-head {
+        padding: 12px 18px;
+        background: linear-gradient(to left, #f8fafc, var(--card-bg));
+        border-bottom: 1px solid var(--border);
+        display: flex; align-items: center; gap: 12px;
+        cursor: pointer; user-select: none;
+    }
+    .py-month-badge {
+        background: var(--primary-pale);
+        color: var(--primary);
+        border: 1.5px solid #bfdbfe;
+        border-radius: 8px; padding: 4px 14px;
+        font-size: .84rem; font-weight: 700; flex-shrink: 0;
+    }
+    .py-month-title { flex: 1; }
+    .py-month-meta  { font-size: .8rem; display: flex; gap: 10px; align-items: center; }
+    .py-month-meta span {
+        display: flex; align-items: center; gap: 5px;
+        background: var(--primary-pale); color: var(--primary);
+        padding: 3px 10px; border-radius: 12px;
+        font-size: .76rem; font-weight: 600;
+    }
+    .py-toggle-icon { color: var(--text-3); transition: transform .25s; flex-shrink: 0; }
+    .py-month-head.collapsed .py-toggle-icon { transform: rotate(-90deg); }
+</style>
+
+<script>
+    function toggleYear(yid) {
+        var head = document.getElementById('py-yhead-' + yid);
+        var body = document.getElementById('py-ybody-' + yid);
+        if (!body) return;
+        if (body.style.display === 'none') {
+            body.style.display = '';
+            head && head.classList.remove('collapsed');
+        } else {
+            body.style.display = 'none';
+            head && head.classList.add('collapsed');
+        }
+    }
+
+    function toggleGroup(mid) {
+        var head = document.getElementById('py-head-' + mid);
+        var body = document.getElementById('py-body-' + mid);
+        if (!body) return;
+        if (body.style.display === 'none') {
+            body.style.display = '';
+            head && head.classList.remove('collapsed');
+        } else {
+            body.style.display = 'none';
+            head && head.classList.add('collapsed');
+        }
+    }
+</script>

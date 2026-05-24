@@ -1,75 +1,189 @@
 @model IEnumerable<TrainingCenterManagement_MVC.Models.Trainer>
 @using TrainingCenterManagement_MVC.Models
+
 @{
     ViewData["Title"] = "إدارة المدربين";
-    var list = Model.ToList();
 
-    string AvatarUrl(Trainer t) {
-        if (!string.IsNullOrEmpty(t.User?.ProfilePictureUrl))
-            return t.User.ProfilePictureUrl;
-        var name = Uri.EscapeDataString(t.User?.FullName ?? "T");
-        var bg = (t.User?.Gender == Gender.Female) ? "ec4899" : "7c3aed";
-        return $"https://ui-avatars.com/api/?name={name}&background={bg}&color=ffffff&bold=true&size=128&rounded=true";
-    }
+    int    totalCount  = ViewBag.TotalCount  ?? 0;
+    int    maleCount   = ViewBag.MaleCount   ?? 0;
+    int    femaleCount = ViewBag.FemaleCount ?? 0;
+    int    avgExp      = ViewBag.AvgExp      ?? 0;
+    string search      = ViewBag.Search      ?? "";
+    string filter      = ViewBag.Filter      ?? "all";
+    int    pageSize    = ViewBag.PageSize    ?? 10;
 }
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 
 <style>
     :root {
-        --tr-pr:#7c3aed;--tr-pr-l:#6d28d9;--tr-pr-pale:#f5f3ff;
-        --success:#10b981;--danger:#ef4444;
-        --body:#f1f5f9;--card:#fff;--t1:#0f172a;--t2:#475569;--t3:#94a3b8;
-        --border:#e2e8f0;--shadow:0 4px 20px rgba(0,0,0,.07);--radius:14px;
+        --primary:       #1d4ed8;
+        --primary-light: #3b82f6;
+        --primary-pale:  #eff6ff;
+        --primary-dark:  #1e3a8a;
+        --success:       #10b981;
+        --danger:        #ef4444;
+        --warning:       #f59e0b;
+        --body-bg:       #f1f5f9;
+        --card-bg:       #ffffff;
+        --text-1:        #0f172a;
+        --text-2:        #475569;
+        --text-3:        #94a3b8;
+        --border:        #e2e8f0;
+        --shadow-sm:     0 1px 3px rgba(0,0,0,.08);
+        --shadow-md:     0 4px 16px rgba(0,0,0,.10);
+        --radius:        14px;
+        --radius-sm:     10px;
+        --tr:            .2s ease;
     }
-    .tr-page { background:var(--body); padding:28px 32px; direction:rtl; font-family:'Segoe UI',sans-serif; }
 
-    .tr-header { display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px; }
-    .tr-header h1 { font-size:1.5rem;font-weight:800;color:var(--t1);margin:0;display:flex;align-items:center;gap:10px; }
-    .tr-header h1 .icon { width:40px;height:40px;border-radius:10px;background:var(--tr-pr-pale);color:var(--tr-pr);display:flex;align-items:center;justify-content:center;font-size:1rem; }
-    .tr-add-btn { display:inline-flex;align-items:center;gap:7px;padding:9px 20px;border-radius:9px;background:var(--tr-pr);color:#fff;text-decoration:none;font-size:.84rem;font-weight:700;transition:all .2s; }
-    .tr-add-btn:hover { background:var(--tr-pr-l);color:#fff; }
+    .tr-page {
+        background: var(--body-bg); padding: 28px 32px;
+        direction: rtl; font-family: 'Segoe UI','Cairo',sans-serif; min-height: 100vh;
+    }
 
-    .tr-stats { display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px; }
-    @@media(max-width:700px){ .tr-stats{ grid-template-columns:repeat(2,1fr); } }
-    .tr-stat { background:var(--card);border-radius:12px;border:1px solid var(--border);padding:18px 20px;box-shadow:var(--shadow);display:flex;align-items:center;gap:14px; }
-    .tr-stat-icon { width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0; }
-    .tr-stat-val { font-size:1.5rem;font-weight:800;color:var(--t1);line-height:1; }
-    .tr-stat-lbl { font-size:.74rem;color:var(--t3);margin-top:2px; }
+    /* ── Header ── */
+    .tr-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:24px; flex-wrap:wrap; gap:12px; }
+    .tr-header-left { display:flex; align-items:center; gap:14px; }
+    .tr-header-icon {
+        width:48px; height:48px; border-radius:13px;
+        background:linear-gradient(135deg,var(--primary),var(--primary-light));
+        color:#fff; display:flex; align-items:center; justify-content:center;
+        font-size:1.2rem; box-shadow:0 4px 14px rgba(29,78,216,.30);
+    }
+    .tr-header h1 { font-size:1.5rem; font-weight:800; color:var(--text-1); margin:0 0 3px; }
+    .tr-header p  { font-size:.82rem; color:var(--text-2); margin:0; }
+    .tr-add-btn {
+        display:inline-flex; align-items:center; gap:7px; padding:9px 20px;
+        border-radius:var(--radius-sm);
+        background:linear-gradient(135deg,var(--primary),var(--primary-light));
+        color:#fff; text-decoration:none; font-size:.84rem; font-weight:700;
+        transition:var(--tr); box-shadow:0 4px 12px rgba(29,78,216,.25);
+    }
+    .tr-add-btn:hover { background:linear-gradient(135deg,var(--primary-dark),var(--primary)); color:#fff; transform:translateY(-1px); }
 
-    .tr-toolbar { background:var(--card);border-radius:12px;border:1px solid var(--border);padding:14px 18px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:20px; }
-    .tr-search { flex:1;min-width:180px;position:relative; }
-    .tr-search i { position:absolute;right:11px;top:50%;transform:translateY(-50%);color:var(--t3);font-size:.8rem; }
-    .tr-search input { width:100%;padding:8px 34px 8px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:.84rem;font-family:inherit;box-sizing:border-box; }
-    .tr-search input:focus { outline:none;border-color:var(--tr-pr);box-shadow:0 0 0 3px rgba(124,58,237,.1); }
-    .tr-fb { padding:6px 14px;border-radius:20px;border:1.5px solid var(--border);background:#fff;font-size:.75rem;font-weight:600;color:var(--t2);cursor:pointer;font-family:inherit;transition:all .2s; }
-    .tr-fb.active,.tr-fb:hover { background:var(--tr-pr);color:#fff;border-color:var(--tr-pr); }
-    .tr-count { font-size:.78rem;color:var(--t3);margin-right:auto; }
+    /* ── Stats ── */
+    .tr-stats { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:24px; }
+    @@media(max-width:900px){ .tr-stats{ grid-template-columns:repeat(2,1fr); } }
+    @@media(max-width:500px){ .tr-stats{ grid-template-columns:1fr; } }
+    .tr-stat {
+        background:var(--card-bg); border-radius:var(--radius-sm);
+        border:1px solid var(--border); padding:18px 20px;
+        box-shadow:var(--shadow-sm); display:flex; align-items:center; gap:14px;
+        transition:var(--tr);
+    }
+    .tr-stat:hover { box-shadow:var(--shadow-md); transform:translateY(-2px); }
+    .tr-stat-icon { width:46px; height:46px; border-radius:11px; display:flex; align-items:center; justify-content:center; font-size:1.1rem; flex-shrink:0; }
+    .tr-stat-val  { font-size:1.6rem; font-weight:800; color:var(--text-1); line-height:1; }
+    .tr-stat-lbl  { font-size:.74rem; color:var(--text-3); margin-top:3px; }
 
-    .tr-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:16px; }
+    /* ── Toolbar ── */
+    .tr-toolbar {
+        background:var(--card-bg); border-radius:var(--radius-sm);
+        border:1px solid var(--border); padding:14px 18px;
+        display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+        margin-bottom:20px; box-shadow:var(--shadow-sm);
+    }
+    .tr-search { flex:1; min-width:200px; position:relative; }
+    .tr-search .si { position:absolute; right:11px; top:50%; transform:translateY(-50%); color:var(--text-3); font-size:.85rem; pointer-events:none; }
+    .tr-search-clear { position:absolute; left:10px; top:50%; transform:translateY(-50%); background:none; border:none; color:var(--text-3); cursor:pointer; font-size:.8rem; display:none; padding:2px; }
+    .tr-search input {
+        width:100%; padding:9px 34px 9px 34px;
+        border:1.5px solid var(--border); border-radius:8px;
+        font-size:.85rem; font-family:inherit; outline:none;
+        background:#fafcff; transition:border-color var(--tr),box-shadow var(--tr);
+    }
+    .tr-search input:focus { border-color:var(--primary); box-shadow:0 0 0 3px rgba(29,78,216,.10); background:#fff; }
+    .tr-filter { display:flex; gap:6px; }
+    .tr-fb {
+        padding:6px 14px; border-radius:20px; border:1.5px solid var(--border);
+        background:#fff; font-size:.78rem; font-weight:600; color:var(--text-2);
+        cursor:pointer; font-family:inherit; transition:var(--tr);
+    }
+    .tr-fb.active,.tr-fb:hover { background:var(--primary); color:#fff; border-color:var(--primary); }
+    .tr-psize { display:flex; align-items:center; gap:6px; font-size:.82rem; color:var(--text-2); }
+    .tr-psize select { padding:6px 9px; border:1.5px solid var(--border); border-radius:8px; font-size:.82rem; outline:none; }
 
-    .tr-card { background:var(--card);border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);padding:24px 16px;display:flex;flex-direction:column;align-items:center;text-align:center;transition:all .2s;position:relative;overflow:hidden; }
-    .tr-card::before { content:'';position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--tr-pr),#a78bfa); }
-    .tr-card:hover { transform:translateY(-3px);box-shadow:0 8px 24px rgba(124,58,237,.14);border-color:#c4b5fd; }
-    .tr-avatar-wrap { position:relative;margin-bottom:12px; }
-    .tr-avatar { width:88px;height:88px;border-radius:50%;object-fit:cover;border:3px solid var(--border);transition:border-color .2s; }
-    .tr-card:hover .tr-avatar { border-color:#c4b5fd; }
-    .tr-gender-dot { position:absolute;bottom:2px;left:2px;width:18px;height:18px;border-radius:50%;border:2px solid #fff;display:flex;align-items:center;justify-content:center;font-size:.58rem;color:#fff; }
-    .tr-gm { background:#7c3aed; } .tr-gf { background:#ec4899; }
-    .tr-role-badge { position:absolute;top:16px;right:12px;background:var(--tr-pr-pale);color:var(--tr-pr);font-size:.65rem;font-weight:700;padding:2px 8px;border-radius:10px; }
-    .tr-name { font-size:.95rem;font-weight:700;color:var(--t1);margin:0 0 3px; }
-    .tr-email { font-size:.71rem;color:var(--t3);margin:0 0 6px;word-break:break-all; }
-    .tr-specialty { font-size:.75rem;color:var(--tr-pr);font-weight:600;background:var(--tr-pr-pale);padding:3px 10px;border-radius:10px;margin-bottom:4px;display:inline-block; }
-    .tr-exp { font-size:.72rem;color:var(--t3);margin-bottom:12px; }
-    .tr-actions { display:flex;gap:7px;width:100%; }
-    .tr-btn { flex:1;padding:7px 10px;border-radius:7px;font-size:.75rem;font-weight:600;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:5px;transition:all .2s;border:none;cursor:pointer;font-family:inherit; }
-    .tr-btn-info { background:var(--tr-pr-pale);color:var(--tr-pr); }
-    .tr-btn-info:hover { background:var(--tr-pr);color:#fff; }
-    .tr-btn-edit { background:#fffbeb;color:#92400e; }
-    .tr-btn-edit:hover { background:#f59e0b;color:#fff; }
-    .tr-btn-del { background:#fee2e2;color:var(--danger); }
-    .tr-btn-del:hover { background:var(--danger);color:#fff; }
+    /* ── Results bar — بارزة ── */
+    .tr-results-bar {
+        display:flex; align-items:center; margin-bottom:14px;
+        padding:10px 16px;
+        background:var(--primary-pale);
+        border:1.5px solid #bfdbfe;
+        border-radius:var(--radius-sm);
+    }
+    .tr-results-text { font-size:.88rem; color:var(--text-2); font-weight:500; }
+    .tr-results-hl {
+        font-size:1rem; font-weight:800;
+        color:var(--primary); background:#fff;
+        border:1.5px solid #bfdbfe; border-radius:6px;
+        padding:1px 8px; margin:0 3px;
+    }
 
-    .tr-empty { text-align:center;padding:60px 20px;color:var(--t3); }
-    .tr-empty i { font-size:2.5rem;margin-bottom:12px;display:block; }
+    /* ── Grid ── */
+    .tr-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); gap:16px; }
+
+    /* ── Card ── */
+    .tr-card {
+        background:var(--card-bg); border-radius:var(--radius);
+        border:1px solid var(--border); box-shadow:var(--shadow-sm);
+        padding:24px 16px; display:flex; flex-direction:column;
+        align-items:center; text-align:center;
+        transition:var(--tr); position:relative; overflow:hidden;
+    }
+    /* شريط علوي أزرق */
+    .tr-card::before {
+        content:''; position:absolute; top:0; left:0; right:0; height:4px;
+        background:linear-gradient(90deg,var(--primary),var(--primary-light));
+    }
+    .tr-card:hover { transform:translateY(-3px); box-shadow:0 8px 24px rgba(29,78,216,.14); border-color:#bfdbfe; }
+    .tr-avatar-wrap { position:relative; margin-bottom:12px; }
+    .tr-avatar { width:88px; height:88px; border-radius:50%; object-fit:cover; border:3px solid var(--border); transition:border-color var(--tr); }
+    .tr-card:hover .tr-avatar { border-color:#bfdbfe; }
+    .tr-gender-dot { position:absolute; bottom:2px; left:2px; width:18px; height:18px; border-radius:50%; border:2px solid #fff; display:flex; align-items:center; justify-content:center; font-size:.58rem; color:#fff; }
+    .tr-gm { background:var(--primary); }
+    .tr-gf { background:#ec4899; }
+    .tr-role-badge { position:absolute; top:16px; right:12px; background:var(--primary-pale); color:var(--primary); font-size:.65rem; font-weight:700; padding:2px 8px; border-radius:10px; }
+    .tr-name      { font-size:.95rem; font-weight:700; color:var(--text-1); margin:0 0 3px; }
+    .tr-email     { font-size:.71rem; color:var(--text-3); margin:0 0 6px; word-break:break-all; }
+    .tr-specialty { font-size:.75rem; color:var(--primary); font-weight:600; background:var(--primary-pale); padding:3px 10px; border-radius:10px; margin-bottom:4px; display:inline-block; }
+    .tr-exp       { font-size:.72rem; color:var(--text-3); margin-bottom:12px; }
+    .tr-actions   { display:flex; gap:7px; width:100%; }
+    .tr-btn { flex:1; padding:7px 10px; border-radius:7px; font-size:.76rem; font-weight:600; text-decoration:none; display:flex; align-items:center; justify-content:center; gap:5px; transition:var(--tr); border:none; cursor:pointer; font-family:inherit; }
+    .tr-btn-info { background:var(--primary-pale); color:var(--primary); }
+    .tr-btn-info:hover { background:var(--primary); color:#fff; }
+    .tr-btn-edit { background:#fffbeb; color:#92400e; }
+    .tr-btn-edit:hover { background:var(--warning); color:#fff; }
+    .tr-btn-del  { background:#fee2e2; color:var(--danger); }
+    .tr-btn-del:hover  { background:var(--danger); color:#fff; }
+
+    /* ── Empty ── */
+    .tr-empty { text-align:center; padding:60px 20px; color:var(--text-3); }
+    .tr-empty i  { font-size:2.5rem; margin-bottom:12px; display:block; }
+    .tr-empty h3 { font-size:1.1rem; color:var(--text-1); margin:0 0 6px; }
+    .tr-empty p  { font-size:.86rem; margin:0; }
+
+    /* ── Loader ── */
+    .tr-loader { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:60px; gap:14px; color:var(--text-3); }
+    .tr-spinner { width:38px; height:38px; border:3px solid var(--border); border-top-color:var(--primary); border-radius:50%; animation:tr-spin .7s linear infinite; }
+    @@keyframes tr-spin { to { transform:rotate(360deg); } }
+
+    /* ── Pagination ── */
+    .tr-pag-wrap { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; padding-top:24px; }
+    .tr-pag-info { font-size:.82rem; color:var(--text-3); }
+    .tr-pag-info strong { color:var(--text-2); }
+    .tr-pag { list-style:none; display:flex; gap:5px; margin:0; padding:0; flex-wrap:wrap; }
+    .tr-pag li a,
+    .tr-pag li span {
+        display:inline-flex; align-items:center; justify-content:center;
+        min-width:38px; height:38px; padding:0 6px; border-radius:9px;
+        font-size:.88rem; border:1.5px solid var(--border); color:var(--text-1);
+        text-decoration:none; background:var(--card-bg); transition:var(--tr); font-weight:500;
+    }
+    .tr-pag li a:hover { background:var(--primary); color:#fff; border-color:var(--primary); transform:translateY(-1px); box-shadow:0 3px 8px rgba(29,78,216,.25); }
+    .tr-pag li.active a { background:var(--primary); color:#fff; border-color:var(--primary); font-weight:700; pointer-events:none; box-shadow:0 3px 10px rgba(29,78,216,.30); }
+    .tr-pag li.disabled a { opacity:.4; pointer-events:none; }
+    .tr-pag li.ellipsis span { border:none; background:none; color:var(--text-3); min-width:24px; }
 </style>
 
 <div class="dashboard-wrapper">
@@ -78,135 +192,154 @@
 
         <!-- Header -->
         <div class="tr-header">
-            <h1>
-                <span class="icon"><i class="fas fa-chalkboard-teacher"></i></span>
-                إدارة المدربين
-            </h1>
+            <div class="tr-header-left">
+                <div class="tr-header-icon"><i class="fas fa-chalkboard-teacher"></i></div>
+                <div>
+                    <h1>إدارة المدربين</h1>
+                    <p>عرض وإدارة جميع المدربين المسجلين في المنصة</p>
+                </div>
+            </div>
             <a asp-action="Create" class="tr-add-btn">
                 <i class="fas fa-user-plus"></i> إضافة مدرب
             </a>
         </div>
 
         <!-- Stats -->
-        @{
-            var male   = list.Count(t => t.User?.Gender == Gender.Male);
-            var female = list.Count(t => t.User?.Gender == Gender.Female);
-            var avgExp = list.Any() ? (int)list.Average(t => t.YearsOfExperience) : 0;
-        }
         <div class="tr-stats">
             <div class="tr-stat">
-                <div class="tr-stat-icon" style="background:var(--tr-pr-pale);color:var(--tr-pr);"><i class="fas fa-chalkboard-teacher"></i></div>
-                <div><div class="tr-stat-val">@list.Count</div><div class="tr-stat-lbl">إجمالي المدربين</div></div>
+                <div class="tr-stat-icon" style="background:var(--primary-pale);color:var(--primary);">
+                    <i class="fas fa-chalkboard-teacher"></i>
+                </div>
+                <div>
+                    <div class="tr-stat-val">@totalCount</div>
+                    <div class="tr-stat-lbl">إجمالي المدربين</div>
+                </div>
             </div>
             <div class="tr-stat">
-                <div class="tr-stat-icon" style="background:#dbeafe;color:#1d4ed8;"><i class="fas fa-mars"></i></div>
-                <div><div class="tr-stat-val">@male</div><div class="tr-stat-lbl">ذكر</div></div>
+                <div class="tr-stat-icon" style="background:#dbeafe;color:#1d4ed8;">
+                    <i class="fas fa-mars"></i>
+                </div>
+                <div>
+                    <div class="tr-stat-val">@maleCount</div>
+                    <div class="tr-stat-lbl">ذكر</div>
+                </div>
             </div>
             <div class="tr-stat">
-                <div class="tr-stat-icon" style="background:#fce7f3;color:#db2777;"><i class="fas fa-venus"></i></div>
-                <div><div class="tr-stat-val">@female</div><div class="tr-stat-lbl">أنثى</div></div>
+                <div class="tr-stat-icon" style="background:#fce7f3;color:#db2777;">
+                    <i class="fas fa-venus"></i>
+                </div>
+                <div>
+                    <div class="tr-stat-val">@femaleCount</div>
+                    <div class="tr-stat-lbl">أنثى</div>
+                </div>
             </div>
             <div class="tr-stat">
-                <div class="tr-stat-icon" style="background:#d1fae5;color:#059669;"><i class="fas fa-star"></i></div>
-                <div><div class="tr-stat-val">@avgExp</div><div class="tr-stat-lbl">سنوات خبرة (متوسط)</div></div>
+                <div class="tr-stat-icon" style="background:#d1fae5;color:#059669;">
+                    <i class="fas fa-star"></i>
+                </div>
+                <div>
+                    <div class="tr-stat-val">@avgExp</div>
+                    <div class="tr-stat-lbl">سنوات خبرة (متوسط)</div>
+                </div>
             </div>
         </div>
 
         <!-- Toolbar -->
         <div class="tr-toolbar">
             <div class="tr-search">
-                <i class="fas fa-search"></i>
-                <input type="text" id="tr-q" placeholder="ابحث بالاسم أو التخصص..." oninput="trFilter()" />
+                <i class="fas fa-search si"></i>
+                <input type="text" id="tr-q"
+                       placeholder="ابحث بالاسم أو التخصص..."
+                       value="@search"
+                       autocomplete="off" />
+                <button class="tr-search-clear" id="trSearchClear">
+                    <i class="fas fa-times"></i>
+                </button>
             </div>
-            <button class="tr-fb active" onclick="trSetGender('all',this)">الكل</button>
-            <button class="tr-fb" onclick="trSetGender('male',this)">ذكور</button>
-            <button class="tr-fb" onclick="trSetGender('female',this)">إناث</button>
-            <span class="tr-count" id="tr-count">@list.Count مدرب</span>
-        </div>
-
-        <!-- Grid -->
-        @if (list.Any())
-        {
-            <div class="tr-grid" id="tr-grid">
-                @foreach (var item in list)
-                {
-                    var av = AvatarUrl(item);
-                    var isFemale = item.User?.Gender == Gender.Female;
-                    <div class="tr-card"
-                         data-name="@(item.User?.FullName?.ToLower())"
-                         data-specialty="@(item.Specialty?.ToLower())"
-                         data-gender="@(isFemale ? "female" : "male")">
-                        <span class="tr-role-badge"><i class="fas fa-chalkboard-teacher"></i> مدرب</span>
-                        <div class="tr-avatar-wrap">
-                            <img src="@av" class="tr-avatar" alt="@item.User?.FullName"
-                                 onerror="this.src='https://ui-avatars.com/api/?name=T&background=94a3b8&color=fff&rounded=true'" />
-                            <span class="tr-gender-dot @(isFemale ? "tr-gf" : "tr-gm")">
-                                <i class="fas @(isFemale ? "fa-venus" : "fa-mars")"></i>
-                            </span>
-                        </div>
-                        @if (item.User != null)
+            <div class="tr-filter">
+                <button class="tr-fb @(filter=="all"    ? "active" : "")" data-filter="all">الكل</button>
+                <button class="tr-fb @(filter=="male"   ? "active" : "")" data-filter="male">ذكور</button>
+                <button class="tr-fb @(filter=="female" ? "active" : "")" data-filter="female">إناث</button>
+            </div>
+            <div class="tr-psize">
+                <span>عرض</span>
+                <select id="trPageSize">
+                    @foreach (var s in new[] { 10, 20, 30, 50 })
+                    {
+                        if (pageSize == s)
                         {
-                            <div class="tr-name">@item.User.FullName</div>
-                            <div class="tr-email">@item.User.Email</div>
+                            <option value="@s" selected="selected">@s</option>
                         }
                         else
                         {
-                            <div class="tr-name" style="color:var(--t3);">لا يوجد مستخدم</div>
+                            <option value="@s">@s</option>
                         }
-                        @if (!string.IsNullOrEmpty(item.Specialty))
-                        {
-                            <span class="tr-specialty">@item.Specialty</span>
-                        }
-                        <div class="tr-exp">
-                            <i class="fas fa-briefcase" style="color:var(--t3);margin-left:4px;font-size:.68rem"></i>
-                            @item.YearsOfExperience سنوات خبرة
-                        </div>
-                        <div class="tr-actions">
-                            <a asp-action="Details" asp-route-id="@item.TrainerId" class="tr-btn tr-btn-info">
-                                <i class="fas fa-eye"></i> تفاصيل
-                            </a>
-                            <a asp-action="Edit" asp-route-id="@item.TrainerId" class="tr-btn tr-btn-edit">
-                                <i class="fas fa-pen"></i>
-                            </a>
-                            <a asp-action="Delete" asp-route-id="@item.TrainerId" class="tr-btn tr-btn-del">
-                                <i class="fas fa-trash-alt"></i>
-                            </a>
-                        </div>
-                    </div>
-                }
+                    }
+                </select>
             </div>
-        }
-        else
-        {
-            <div class="tr-empty">
-                <i class="fas fa-chalkboard-teacher"></i>
-                <p>لا يوجد مدربون مسجلون بعد</p>
-            </div>
-        }
+        </div>
+
+        <!-- Ajax container -->
+        <div id="tr-container">
+            @await Html.PartialAsync("_TrainersGridPartial", Model)
+        </div>
 
     </main>
 </div>
 
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script>
-    var trGender_ = 'all';
-    function trSetGender(g, btn) {
-        trGender_ = g;
-        document.querySelectorAll('.tr-fb').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        trApply();
-    }
-    function trFilter() { trApply(); }
-    function trApply() {
-        var q = (document.getElementById('tr-q').value || '').trim().toLowerCase();
-        var cards = document.querySelectorAll('#tr-grid .tr-card');
-        var count = 0;
-        cards.forEach(function(c) {
-            var mQ = !q || (c.dataset.name || '').includes(q) || (c.dataset.specialty || '').includes(q);
-            var mG = trGender_ === 'all' || c.dataset.gender === trGender_;
-            var show = mQ && mG;
-            c.style.display = show ? '' : 'none';
-            if (show) count++;
+    let trFilter = '@filter';
+    let trTimer  = null;
+
+    function loadTrainers(trPage = 1) {
+        const search   = $('#tr-q').val().trim();
+        const pageSize = $('#trPageSize').val();
+
+        $('#tr-container').html(
+            '<div class="tr-loader"><div class="tr-spinner"></div><span>جارٍ التحميل…</span></div>'
+        );
+
+        $.ajax({
+            url: '/Trainers/Index',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            data: { page: trPage, pageSize, search, filter: trFilter },
+            success: html  => $('#tr-container').html(html),
+            error:   ()    => $('#tr-container').html(
+                '<div class="tr-empty"><i class="fas fa-exclamation-circle"></i><h3>حدث خطأ</h3><p>يرجى تحديث الصفحة</p></div>'
+            )
         });
-        document.getElementById('tr-count').textContent = count + ' مدرب';
     }
+
+    // Pagination
+    $(document).on('click', '.tr-pag-link', function (e) {
+        e.preventDefault();
+        const p = parseInt($(this).data('page'));
+        if (!isNaN(p) && p >= 1) loadTrainers(p);
+    });
+
+    // Filter
+    $(document).on('click', '.tr-fb', function () {
+        trFilter = $(this).data('filter');
+        $('.tr-fb').removeClass('active');
+        $(this).addClass('active');
+        loadTrainers(1);
+    });
+
+    // Search
+    $('#tr-q').on('input', function () {
+        clearTimeout(trTimer);
+        $('#trSearchClear').css('display', this.value ? 'block' : 'none');
+        trTimer = setTimeout(() => loadTrainers(1), 300);
+    });
+
+    $('#trSearchClear').on('click', function () {
+        $('#tr-q').val('').trigger('input');
+    });
+
+    // Page size
+    $('#trPageSize').on('change', () => loadTrainers(1));
+
+    // Init
+    if ('@search'.length) $('#trSearchClear').show();
 </script>

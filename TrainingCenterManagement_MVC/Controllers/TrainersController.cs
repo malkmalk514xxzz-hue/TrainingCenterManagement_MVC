@@ -22,14 +22,64 @@ namespace TrainingCenterManagement_MVC.Controllers
             _context = context;
         }
 
-        // GET: Trainers
         [Authorize(Roles = "Admin,Trainer")]
-
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(
+      int page = 1,
+      int pageSize = 10,
+      string search = "",
+      string filter = "all")   // all | male | female
         {
-            var applicationDbContext = _context.Trainers.Include(t => t.User);
-            return View(await applicationDbContext.ToListAsync());
+            pageSize = Math.Clamp(pageSize, 5, 50);
+
+            var query = _context.Trainers
+                .Include(t => t.User)
+                .AsQueryable();
+
+            // ── Gender filter ─────────────────────────────────────────────
+            if (filter == "male") query = query.Where(t => t.User.Gender == Gender.Male);
+            if (filter == "female") query = query.Where(t => t.User.Gender == Gender.Female);
+
+            // ── Search (name + specialty) ─────────────────────────────────
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var term = search.Trim().ToLower();
+                query = query.Where(t =>
+                    (t.User.FullName != null && t.User.FullName.ToLower().Contains(term)) ||
+                    (t.User.Email != null && t.User.Email.ToLower().Contains(term)) ||
+                    (t.Specialty != null && t.Specialty.ToLower().Contains(term)));
+            }
+
+            // ── Stats (always from full list) ─────────────────────────────
+            var all = await _context.Trainers.Include(t => t.User).ToListAsync();
+            ViewBag.TotalCount = all.Count;
+            ViewBag.MaleCount = all.Count(t => t.User?.Gender == Gender.Male);
+            ViewBag.FemaleCount = all.Count(t => t.User?.Gender == Gender.Female);
+            ViewBag.AvgExp = all.Any() ? (int)all.Average(t => t.YearsOfExperience) : 0;
+
+            // ── Paging ────────────────────────────────────────────────────
+            var totalCount = await query.CountAsync();
+            var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+            page = Math.Max(1, Math.Min(page, Math.Max(1, totalPages)));
+
+            var trainers = await query
+                .OrderBy(t => t.User.FullName)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.FilterCount = totalCount;
+            ViewBag.PageSize = pageSize;
+            ViewBag.Search = search;
+            ViewBag.Filter = filter;
+
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                return PartialView("_TrainersGridPartial", trainers);
+
+            return View(trainers);
         }
+
 
         // GET: Trainers/Details/5
         [Authorize(Roles = "Admin,Trainer")]

@@ -2,224 +2,364 @@
 
 @{
     ViewData["Title"] = "سجل الدفعات المالية";
-    var monthNames = new[] { "", "يناير","فبراير","مارس","أبريل","مايو","يونيو","يوليو","أغسطس","سبتمبر","أكتوبر","نوفمبر","ديسمبر" };
-    var allPayments = Model.SelectMany(g => g).ToList();
-    var totalRevenue = allPayments.Sum(p => p.TotalAmount);
-    var totalCount   = allPayments.Count;
+
+    int     totalCount     = ViewBag.TotalCount     ?? 0;
+    decimal totalRevenue   = ViewBag.TotalRevenue   ?? 0m;
+    int     activeMonths   = ViewBag.ActiveMonths   ?? 0;
+    int     uniqueTrainees = ViewBag.UniqueTrainees ?? 0;
+    string  search         = ViewBag.Search         ?? "";
 }
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 
 <style>
-    .pay-header { background:linear-gradient(135deg,#0f172a 0%,#0369a1 60%,#0ea5e9 100%); border-radius:16px; padding:26px 32px; color:#fff; margin-bottom:28px; display:flex; align-items:center; gap:16px; }
-    .pay-header h1 { margin:0; font-size:1.4rem; font-weight:700; }
-    .pay-header p  { margin:4px 0 0; opacity:.8; font-size:.88rem; }
-    .pay-header-icon { width:54px; height:54px; border-radius:14px; background:rgba(255,255,255,.15); display:flex; align-items:center; justify-content:center; font-size:1.5rem; flex-shrink:0; }
-    .pay-kpis { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:16px; margin-bottom:28px; }
-    .pay-kpi { background:#fff; border-radius:12px; box-shadow:0 2px 12px rgba(0,0,0,.06); border:1px solid #e2e8f0; padding:18px 20px; display:flex; align-items:center; gap:14px; }
-    .pay-kpi-icon { width:42px; height:42px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1.1rem; flex-shrink:0; }
-    .pay-kpi .val { font-size:1.3rem; font-weight:800; color:#0f172a; }
-    .pay-kpi .lbl { font-size:.78rem; color:#64748b; margin-top:1px; }
-    /* Month section */
-    .month-section { background:#fff; border-radius:14px; box-shadow:0 2px 12px rgba(0,0,0,.06); border:1px solid #e2e8f0; overflow:hidden; margin-bottom:20px; }
-    .month-head { padding:14px 20px; background:linear-gradient(90deg,#f8fafc,#fff); border-bottom:1px solid #e2e8f0; display:flex; align-items:center; gap:12px; cursor:pointer; user-select:none; }
-    .month-badge { background:#0ea5e9; color:#fff; border-radius:8px; padding:4px 14px; font-size:.85rem; font-weight:700; }
-    .month-head .month-title { font-size:1rem; font-weight:700; color:#0f172a; flex:1; }
-    .month-head .month-meta { font-size:.82rem; color:#64748b; display:flex; gap:16px; }
-    .month-head .toggle-icon { color:#94a3b8; transition:transform .25s; }
-    .month-head.collapsed .toggle-icon { transform:rotate(-90deg); }
-    .pay-table { width:100%; border-collapse:collapse; font-size:.88rem; }
-    .pay-table th { padding:10px 16px; background:#f8fafc; color:#475569; font-weight:600; font-size:.78rem; text-transform:uppercase; letter-spacing:.03em; border-bottom:1px solid #e2e8f0; }
-    .pay-table td { padding:12px 16px; border-bottom:1px solid #f1f5f9; vertical-align:middle; color:#374151; }
-    .pay-table tr:last-child td { border-bottom:none; }
-    .pay-table tr:hover td { background:#fafbff; }
-    .trainee-cell { display:flex; align-items:center; gap:8px; }
-    .trainee-avatar { width:30px; height:30px; border-radius:50%; background:linear-gradient(135deg,#0ea5e9,#0284c7); color:#fff; display:flex; align-items:center; justify-content:center; font-size:.8rem; font-weight:700; flex-shrink:0; }
-    .amount-cell { font-weight:700; color:#059669; font-size:.92rem; }
-    .currency-badge { display:inline-block; background:#e0f2fe; color:#0369a1; border-radius:4px; padding:2px 7px; font-size:.72rem; font-weight:700; margin-right:4px; }
-    .note-cell { font-size:.8rem; color:#94a3b8; font-style:italic; }
-    .action-btn { display:inline-flex; align-items:center; gap:4px; border-radius:6px; padding:5px 10px; font-size:.78rem; font-weight:600; text-decoration:none; border:none; cursor:pointer; }
-    .btn-details { background:#e0f2fe; color:#0369a1; }
-    .btn-details:hover { background:#bae6fd; color:#0369a1; }
-    .btn-delete  { background:#fee2e2; color:#dc2626; }
-    .btn-delete:hover  { background:#fecaca; color:#dc2626; }
-    .add-btn { background:linear-gradient(135deg,#0ea5e9,#0284c7); color:#fff; border:none; border-radius:10px; padding:10px 22px; font-weight:700; font-size:.9rem; text-decoration:none; display:inline-flex; align-items:center; gap:8px; transition:opacity .2s; }
-    .add-btn:hover { opacity:.9; color:#fff; }
-    .empty-state { text-align:center; padding:48px 24px; color:#94a3b8; }
-    .empty-state i { font-size:2.5rem; margin-bottom:12px; display:block; }
-    @@media (max-width:640px) { .pay-kpis { grid-template-columns:1fr 1fr; } .month-head .month-meta { display:none; } }
+    :root {
+        --primary:       #1d4ed8;
+        --primary-light: #3b82f6;
+        --primary-pale:  #eff6ff;
+        --primary-dark:  #1e3a8a;
+        --success:       #10b981;
+        --danger:        #ef4444;
+        --warning:       #f59e0b;
+        --body-bg:       #f1f5f9;
+        --card-bg:       #ffffff;
+        --text-1:        #0f172a;
+        --text-2:        #475569;
+        --text-3:        #94a3b8;
+        --border:        #e2e8f0;
+        --shadow-sm:     0 1px 3px rgba(0,0,0,.08);
+        --shadow-md:     0 4px 16px rgba(0,0,0,.10);
+        --radius:        14px;
+        --radius-sm:     10px;
+        --tr:            .2s ease;
+    }
+
+    .py-page {
+        background: var(--body-bg); padding: 28px 32px;
+        direction: rtl; font-family: 'Segoe UI','Cairo',sans-serif;
+        min-height: 100vh; flex: 1; overflow-x: hidden;
+    }
+
+    /* ── Header Banner ── */
+    .py-header {
+        background: linear-gradient(135deg, #0f172a 0%, var(--primary-dark) 50%, var(--primary) 100%);
+        border-radius: var(--radius); padding: 26px 32px;
+        color: #fff; margin-bottom: 24px;
+        display: flex; align-items: center; gap: 16px;
+        box-shadow: 0 6px 24px rgba(29,78,216,.30);
+        position: relative; overflow: hidden;
+    }
+    .py-header::before {
+        content: ''; position: absolute; top: -60px; left: -40px;
+        width: 220px; height: 220px; border-radius: 50%;
+        background: rgba(255,255,255,.05);
+    }
+    .py-header-icon {
+        width: 54px; height: 54px; border-radius: 14px;
+        background: rgba(255,255,255,.15);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.5rem; flex-shrink: 0; position: relative; z-index: 1;
+    }
+    .py-header-text { flex: 1; position: relative; z-index: 1; }
+    .py-header-text h1 { margin: 0 0 4px; font-size: 1.4rem; font-weight: 700; }
+    .py-header-text p  { margin: 0; opacity: .8; font-size: .88rem; }
+
+    /* ── KPI Cards ── */
+    .py-kpis {
+        display: grid; grid-template-columns: repeat(4, 1fr);
+        gap: 16px; margin-bottom: 24px;
+    }
+    @@media(max-width:900px){ .py-kpis{ grid-template-columns:repeat(2,1fr); } }
+    @@media(max-width:500px){ .py-kpis{ grid-template-columns:1fr; } }
+    .py-kpi {
+        background: var(--card-bg); border-radius: var(--radius-sm);
+        border: 1px solid var(--border); padding: 18px 20px;
+        box-shadow: var(--shadow-sm); display: flex; align-items: center; gap: 14px;
+        transition: var(--tr);
+    }
+    .py-kpi:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+    .py-kpi-icon { width: 46px; height: 46px; border-radius: 11px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0; }
+    .py-kpi .val { font-size: 1.5rem; font-weight: 800; color: var(--text-1); line-height: 1; }
+    .py-kpi .lbl { font-size: .74rem; color: var(--text-3); margin-top: 3px; }
+
+    /* ── Toolbar ── */
+    .py-toolbar {
+        background: var(--card-bg); border-radius: var(--radius-sm);
+        border: 1px solid var(--border); padding: 14px 18px;
+        display: flex; align-items: center; gap: 10px;
+        flex-wrap: wrap; margin-bottom: 20px; box-shadow: var(--shadow-sm);
+    }
+    .py-search { flex: 1; min-width: 220px; position: relative; }
+    .py-search .si { position: absolute; right: 11px; top: 50%; transform: translateY(-50%); color: var(--text-3); font-size: .85rem; pointer-events: none; }
+    .py-search-clear { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-3); cursor: pointer; font-size: .8rem; display: none; padding: 2px; }
+    .py-search input {
+        width: 100%; padding: 9px 34px 9px 34px;
+        border: 1.5px solid var(--border); border-radius: 8px;
+        font-size: .85rem; font-family: inherit; outline: none;
+        background: #fafcff; transition: border-color var(--tr), box-shadow var(--tr);
+    }
+    .py-search input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(29,78,216,.10); background: #fff; }
+    .py-add-btn {
+        display: inline-flex; align-items: center; gap: 7px;
+        padding: 9px 20px; border-radius: var(--radius-sm);
+        background: linear-gradient(135deg, var(--primary), var(--primary-light));
+        color: #fff; text-decoration: none; font-size: .84rem; font-weight: 700;
+        transition: var(--tr); box-shadow: 0 4px 12px rgba(29,78,216,.25);
+        white-space: nowrap;
+    }
+    .py-add-btn:hover { background: linear-gradient(135deg, var(--primary-dark), var(--primary)); color: #fff; transform: translateY(-1px); }
+
+    /* ── Results bar — بارزة ── */
+    .py-results-bar {
+        display: flex; align-items: center; margin-bottom: 16px;
+        padding: 10px 16px;
+        background: var(--primary-pale);
+        border: 1.5px solid #bfdbfe;
+        border-radius: var(--radius-sm);
+    }
+    .py-results-text { font-size: .88rem; color: var(--text-2); font-weight: 500; }
+    .py-results-hl {
+        font-size: 1rem; font-weight: 800; color: var(--primary);
+        background: #fff; border: 1.5px solid #bfdbfe;
+        border-radius: 6px; padding: 1px 8px; margin: 0 3px;
+    }
+
+    /* ── Month section ── */
+    .py-month-section {
+        background: var(--card-bg); border-radius: var(--radius);
+        box-shadow: var(--shadow-sm); border: 1px solid var(--border);
+        overflow: hidden; margin-bottom: 16px; transition: var(--tr);
+    }
+    .py-month-section:hover { box-shadow: var(--shadow-md); }
+    .py-month-head {
+        padding: 14px 20px;
+        background: linear-gradient(to left, #f8fafc, var(--card-bg));
+        border-bottom: 1px solid var(--border);
+        display: flex; align-items: center; gap: 12px;
+        cursor: pointer; user-select: none;
+    }
+    .py-month-badge {
+        background: linear-gradient(135deg, var(--primary), var(--primary-light));
+        color: #fff; border-radius: 8px; padding: 4px 14px;
+        font-size: .85rem; font-weight: 700; flex-shrink: 0;
+        box-shadow: 0 2px 8px rgba(29,78,216,.25);
+    }
+    .py-month-title { flex: 1; }
+    .py-month-meta {
+        font-size: .82rem; color: var(--text-2);
+        display: flex; gap: 16px; align-items: center;
+    }
+    .py-month-meta span {
+        display: flex; align-items: center; gap: 5px;
+        background: var(--primary-pale); color: var(--primary);
+        padding: 3px 10px; border-radius: 12px;
+        font-size: .78rem; font-weight: 600;
+    }
+    .py-toggle-icon { color: var(--text-3); transition: transform .25s; flex-shrink: 0; }
+    .py-month-head.collapsed .py-toggle-icon { transform: rotate(-90deg); }
+
+    /* ── Table ── */
+    .py-table { width: 100%; border-collapse: collapse; font-size: .88rem; }
+    .py-table th {
+        padding: 10px 16px; background: #f8fafc;
+        color: var(--text-2); font-weight: 600;
+        font-size: .78rem; text-transform: uppercase;
+        letter-spacing: .03em; border-bottom: 1px solid var(--border);
+    }
+    .py-table td { padding: 12px 16px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; color: var(--text-1); }
+    .py-table tr:last-child td { border-bottom: none; }
+    .py-table tr:hover td { background: #fafbff; }
+
+    .py-trainee-cell { display: flex; align-items: center; gap: 8px; }
+    .py-avatar {
+        width: 32px; height: 32px; border-radius: 50%;
+        background: linear-gradient(135deg, var(--primary), var(--primary-light));
+        color: #fff; display: flex; align-items: center; justify-content: center;
+        font-size: .82rem; font-weight: 700; flex-shrink: 0;
+    }
+    .py-amount { font-weight: 700; color: var(--success); font-size: .92rem; }
+    .py-curr-badge {
+        display: inline-block; background: var(--primary-pale);
+        color: var(--primary); border-radius: 4px;
+        padding: 2px 7px; font-size: .72rem; font-weight: 700; margin-right: 4px;
+    }
+    .py-note { font-size: .8rem; color: var(--text-3); font-style: italic; }
+
+    .py-action-btn {
+        display: inline-flex; align-items: center; gap: 4px;
+        border-radius: 6px; padding: 5px 10px;
+        font-size: .78rem; font-weight: 600;
+        text-decoration: none; border: none; cursor: pointer;
+        transition: var(--tr);
+    }
+    .py-btn-view { background: var(--primary-pale); color: var(--primary); }
+    .py-btn-view:hover { background: var(--primary); color: #fff; }
+    .py-btn-del  { background: #fee2e2; color: var(--danger); }
+    .py-btn-del:hover  { background: var(--danger); color: #fff; }
+
+    /* ── Empty ── */
+    .py-empty { text-align: center; padding: 60px 24px; color: var(--text-3); }
+    .py-empty i  { font-size: 2.5rem; margin-bottom: 12px; display: block; }
+    .py-empty h3 { font-size: 1rem; font-weight: 600; color: var(--text-1); margin: 0 0 6px; }
+    .py-empty p  { margin: 0 0 16px; font-size: .88rem; }
+
+    /* ── Loader ── */
+    .py-loader { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px; gap: 14px; color: var(--text-3); }
+    .py-spinner { width: 38px; height: 38px; border: 3px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: py-spin .7s linear infinite; }
+    @@keyframes py-spin { to { transform: rotate(360deg); } }
 </style>
 
-<div class="dashboard-wrapper" style="display:flex;direction:rtl;min-height:100vh">
-@await Html.PartialAsync("_AdminSidebar")
-<main style="flex:1;padding:28px 32px;background:#f8fafc;overflow-x:hidden">
+<!-- FIX الـ Sidebar في اليمين:
+     dashboard-wrapper يستخدم flex — السايدبار في اليمين لأن direction:rtl
+     لذا نضع السايدبار أولاً في الـ HTML بعد main -->
+<div class="dashboard-wrapper" style="display:flex; direction:rtl; min-height:100vh;">
 
-<!-- Header -->
-<div class="pay-header">
-    <div class="pay-header-icon"><i class="fas fa-money-bill-wave"></i></div>
-    <div style="flex:1">
-        <h1>سجل الدفعات المالية</h1>
-        <p>عرض جميع الدفعات المسجلة مجمعةً حسب الشهر</p>
-    </div>
-    <a asp-action="Create" class="add-btn">
-        <i class="fas fa-plus"></i> إضافة دفعة جديدة
-    </a>
-</div>
+    <main class="py-page">
 
-@if (TempData["SuccessMessage"] != null)
-{
-    <div class="alert alert-success alert-dismissible fade show mb-3">
-        <i class="fas fa-check-circle me-2"></i>@TempData["SuccessMessage"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-}
-@if (TempData["ErrorMessage"] != null)
-{
-    <div class="alert alert-danger alert-dismissible fade show mb-3">
-        <i class="fas fa-exclamation-circle me-2"></i>@TempData["ErrorMessage"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-}
+        <!-- Header Banner -->
+        <div class="py-header">
+            <div class="py-header-icon"><i class="fas fa-money-bill-wave"></i></div>
+            <div class="py-header-text">
+                <h1>سجل الدفعات المالية</h1>
+                <p>عرض جميع الدفعات المسجلة مجمعةً حسب الشهر</p>
+            </div>
+            <a asp-action="Create" class="py-add-btn">
+                <i class="fas fa-plus"></i> إضافة دفعة جديدة
+            </a>
+        </div>
 
-<!-- KPIs -->
-<div class="pay-kpis">
-    <div class="pay-kpi">
-        <div class="pay-kpi-icon" style="background:#e0f2fe;color:#0369a1"><i class="fas fa-receipt"></i></div>
-        <div>
-            <div class="val">@totalCount</div>
-            <div class="lbl">إجمالي الدفعات</div>
-        </div>
-    </div>
-    <div class="pay-kpi">
-        <div class="pay-kpi-icon" style="background:#dcfce7;color:#16a34a"><i class="fas fa-calendar-alt"></i></div>
-        <div>
-            <div class="val">@Model.Count()</div>
-            <div class="lbl">شهر نشاط</div>
-        </div>
-    </div>
-    <div class="pay-kpi">
-        <div class="pay-kpi-icon" style="background:#fef3c7;color:#d97706"><i class="fas fa-users"></i></div>
-        <div>
-            <div class="val">@allPayments.Select(p => p.TraineeId).Distinct().Count()</div>
-            <div class="lbl">طالب دافع</div>
-        </div>
-    </div>
-    <div class="pay-kpi">
-        <div class="pay-kpi-icon" style="background:#ede9fe;color:#7c3aed"><i class="fas fa-coins"></i></div>
-        <div>
-            <div class="val">@totalRevenue.ToString("N0")</div>
-            <div class="lbl">مجموع المبالغ المسجلة</div>
-        </div>
-    </div>
-</div>
+        <!-- Alerts -->
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show mb-3">
+                <i class="fas fa-check-circle me-2"></i>@TempData["SuccessMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show mb-3">
+                <i class="fas fa-exclamation-circle me-2"></i>@TempData["ErrorMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
 
-@if (!Model.Any())
-{
-    <div class="month-section">
-        <div class="empty-state">
-            <i class="fas fa-inbox"></i>
-            <p style="font-size:1rem;font-weight:600;margin:0">لا توجد دفعات مسجلة بعد</p>
-            <p style="margin-top:6px;font-size:.88rem">ابدأ بإضافة أول دفعة مالية</p>
-            <a asp-action="Create" class="add-btn mt-3" style="margin:16px auto 0;width:fit-content">
+        <!-- KPIs -->
+        <div class="py-kpis">
+            <div class="py-kpi">
+                <div class="py-kpi-icon" style="background:var(--primary-pale);color:var(--primary);">
+                    <i class="fas fa-receipt"></i>
+                </div>
+                <div>
+                    <div class="val">@totalCount</div>
+                    <div class="lbl">إجمالي الدفعات</div>
+                </div>
+            </div>
+            <div class="py-kpi">
+                <div class="py-kpi-icon" style="background:#dcfce7;color:#16a34a;">
+                    <i class="fas fa-calendar-alt"></i>
+                </div>
+                <div>
+                    <div class="val">@activeMonths</div>
+                    <div class="lbl">شهر نشاط</div>
+                </div>
+            </div>
+            <div class="py-kpi">
+                <div class="py-kpi-icon" style="background:#fef3c7;color:#d97706;">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div>
+                    <div class="val">@uniqueTrainees</div>
+                    <div class="lbl">طالب دافع</div>
+                </div>
+            </div>
+            <div class="py-kpi">
+                <div class="py-kpi-icon" style="background:#d1fae5;color:#059669;">
+                    <i class="fas fa-coins"></i>
+                </div>
+                <div>
+                    <div class="val">@totalRevenue.ToString("N0")</div>
+                    <div class="lbl">مجموع المبالغ</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toolbar -->
+        <div class="py-toolbar">
+            <div class="py-search">
+                <i class="fas fa-search si"></i>
+                <input type="text" id="pySearch"
+                       placeholder="ابحث بالاسم أو الدورة أو الملاحظات..."
+                       value="@search"
+                       autocomplete="off" />
+                <button class="py-search-clear" id="pyClear">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <a asp-action="Create" class="py-add-btn">
                 <i class="fas fa-plus"></i> إضافة دفعة
             </a>
         </div>
-    </div>
-}
-else
-{
-    int groupIdx = 0;
-    foreach (var monthGroup in Model)
-    {
-        groupIdx++;
-        var groupTotal = monthGroup.Sum(p => p.TotalAmount);
-        var groupCount = monthGroup.Count();
-        <div class="month-section">
-            <div class="month-head" onclick="toggleGroup('@groupIdx')" id="head-@groupIdx">
-                <span class="month-badge">@monthNames[monthGroup.Key.Month] @monthGroup.Key.Year</span>
-                <span class="month-title"></span>
-                <div class="month-meta">
-                    <span><i class="fas fa-receipt me-1"></i>@groupCount دفعة</span>
-                    <span><i class="fas fa-coins me-1"></i>@groupTotal.ToString("N0")</span>
-                </div>
-                <i class="fas fa-chevron-down toggle-icon"></i>
-            </div>
-            <div id="body-@groupIdx">
-                <table class="pay-table">
-                    <thead>
-                        <tr>
-                            <th>الطالب</th>
-                            <th>الدورة</th>
-                            <th>المبلغ</th>
-                            <th>التاريخ</th>
-                            <th>ملاحظات</th>
-                            <th>الإجراءات</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var item in monthGroup.OrderByDescending(p => p.CreatedDate))
-                        {
-                            var traineeName = item.Trainee?.User?.FullName ?? "—";
-                            var avatarChar  = traineeName.Length > 0 ? traineeName[0].ToString() : "؟";
-                            var currSymbol  = item.Currency switch
-                            {
-                                TrainingCenterManagement_MVC.Models.PaymentCurrency.USD => "$",
-                                TrainingCenterManagement_MVC.Models.PaymentCurrency.EUR => "€",
-                                _ => "ل.س"
-                            };
-                            var currCode = item.Currency switch
-                            {
-                                TrainingCenterManagement_MVC.Models.PaymentCurrency.USD => "USD",
-                                TrainingCenterManagement_MVC.Models.PaymentCurrency.EUR => "EUR",
-                                _ => "SYP"
-                            };
-                            <tr>
-                                <td>
-                                    <div class="trainee-cell">
-                                        <div class="trainee-avatar">@avatarChar</div>
-                                        <span>@traineeName</span>
-                                    </div>
-                                </td>
-                                <td>@(item.Course?.CourseName ?? "—")</td>
-                                <td>
-                                    <span class="amount-cell">@item.TotalAmount.ToString("N0")</span>
-                                    <span class="currency-badge">@currCode</span>
-                                </td>
-                                <td style="color:#64748b;font-size:.82rem">@item.CreatedDate.ToString("dd/MM/yyyy")</td>
-                                <td>
-                                    @if (!string.IsNullOrEmpty(item.Notes))
-                                    { <span class="note-cell">@item.Notes</span> }
-                                    else
-                                    { <span style="color:#e2e8f0">—</span> }
-                                </td>
-                                <td>
-                                    <a asp-action="Details" asp-route-id="@item.PaymentId" class="action-btn btn-details">
-                                        <i class="fas fa-eye"></i> تفاصيل
-                                    </a>
-                                    <a asp-action="Delete" asp-route-id="@item.PaymentId" class="action-btn btn-delete me-1">
-                                        <i class="fas fa-trash"></i> حذف
-                                    </a>
-                                </td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    }
-}
 
-</main>
+        <!-- Ajax container -->
+        <div id="py-container">
+            @await Html.PartialAsync("_PaymentsGroupsPartial", Model)
+        </div>
+
+    </main>
+
+    <!-- السايدبار يأتي بعد main — في RTL سيظهر على اليمين تلقائياً -->
+    @await Html.PartialAsync("_AdminSidebar")
+
 </div>
 
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script>
-function toggleGroup(idx) {
-    var head = document.getElementById('head-' + idx);
-    var body = document.getElementById('body-' + idx);
-    if (body.style.display === 'none') {
-        body.style.display = '';
-        head.classList.remove('collapsed');
-    } else {
-        body.style.display = 'none';
-        head.classList.add('collapsed');
+    let pyTimer = null;
+
+    // ── Toggle month group ─────────────────────────────────────────
+    function toggleGroup(idx) {
+        var head = document.getElementById('py-head-' + idx);
+        var body = document.getElementById('py-body-' + idx);
+        var icon = document.getElementById('py-icon-' + idx);
+        if (!body) return;
+        if (body.style.display === 'none') {
+            body.style.display = '';
+            head && head.classList.remove('collapsed');
+        } else {
+            body.style.display = 'none';
+            head && head.classList.add('collapsed');
+        }
     }
-}
+
+    // ── Load payments via Ajax ─────────────────────────────────────
+    function loadPayments() {
+        const search = $('#pySearch').val().trim();
+        $('#py-container').html(
+            '<div class="py-loader"><div class="py-spinner"></div><span>جارٍ التحميل…</span></div>'
+        );
+        $.ajax({
+            url: '/Payments/Index',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            data: { search },
+            success: html  => $('#py-container').html(html),
+            error:   ()    => $('#py-container').html(
+                '<div class="py-empty"><i class="fas fa-exclamation-circle"></i><h3>حدث خطأ</h3><p>يرجى تحديث الصفحة</p></div>'
+            )
+        });
+    }
+
+    // ── Search with 300ms debounce ─────────────────────────────────
+    $('#pySearch').on('input', function () {
+        clearTimeout(pyTimer);
+        $('#pyClear').css('display', this.value ? 'block' : 'none');
+        pyTimer = setTimeout(loadPayments, 300);
+    });
+
+    $('#pyClear').on('click', function () {
+        $('#pySearch').val('').trigger('input');
+    });
+
+    // ── Init ───────────────────────────────────────────────────────
+    if ('@search'.length) $('#pyClear').show();
 </script>

@@ -1,67 +1,177 @@
 @model IEnumerable<TrainingCenterManagement_MVC.Models.Receptionist>
 @using TrainingCenterManagement_MVC.Models
+
 @{
     ViewData["Title"] = "إدارة موظفي الاستقبال";
-    var list = Model.ToList();
 
-    string AvatarUrl(ApplicationUser u) {
-        if (!string.IsNullOrEmpty(u?.ProfilePictureUrl)) return u.ProfilePictureUrl;
-        var name = Uri.EscapeDataString(u?.FullName ?? "R");
-        var bg   = (u?.Gender == Gender.Female) ? "ec4899" : "0891b2";
-        return $"https://ui-avatars.com/api/?name={name}&background={bg}&color=ffffff&bold=true&size=128&rounded=true";
-    }
+    int    totalCount  = ViewBag.TotalCount  ?? 0;
+    int    maleCount   = ViewBag.MaleCount   ?? 0;
+    int    femaleCount = ViewBag.FemaleCount ?? 0;
+    string search      = ViewBag.Search      ?? "";
+    string filter      = ViewBag.Filter      ?? "all";
+    int    pageSize    = ViewBag.PageSize    ?? 10;
 }
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 
 <style>
     :root {
-        --rc-pr:#0891b2;--rc-pr-l:#0e7490;--rc-pr-pale:#ecfeff;
-        --success:#10b981;--danger:#ef4444;
-        --body:#f1f5f9;--card:#fff;--t1:#0f172a;--t2:#475569;--t3:#94a3b8;
-        --border:#e2e8f0;--shadow:0 4px 20px rgba(0,0,0,.07);--radius:14px;
+        --primary:       #1d4ed8;
+        --primary-light: #3b82f6;
+        --primary-pale:  #eff6ff;
+        --primary-dark:  #1e3a8a;
+        --success:       #10b981;
+        --danger:        #ef4444;
+        --body-bg:       #f1f5f9;
+        --card-bg:       #ffffff;
+        --text-1:        #0f172a;
+        --text-2:        #475569;
+        --text-3:        #94a3b8;
+        --border:        #e2e8f0;
+        --shadow-sm:     0 1px 3px rgba(0,0,0,.08);
+        --shadow-md:     0 4px 16px rgba(0,0,0,.10);
+        --radius:        14px;
+        --radius-sm:     10px;
+        --tr:            .2s ease;
     }
-    .rc-page { background:var(--body); padding:28px 32px; direction:rtl; font-family:'Segoe UI',sans-serif; }
 
-    .rc-header { display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px; }
-    .rc-header h1 { font-size:1.5rem;font-weight:800;color:var(--t1);margin:0;display:flex;align-items:center;gap:10px; }
-    .rc-header h1 .icon { width:40px;height:40px;border-radius:10px;background:var(--rc-pr-pale);color:var(--rc-pr);display:flex;align-items:center;justify-content:center;font-size:1rem; }
-    .rc-add-btn { display:inline-flex;align-items:center;gap:7px;padding:9px 20px;border-radius:9px;background:var(--rc-pr);color:#fff;text-decoration:none;font-size:.84rem;font-weight:700;transition:all .2s; }
-    .rc-add-btn:hover { background:var(--rc-pr-l);color:#fff; }
+    .rc-page {
+        background: var(--body-bg); padding: 28px 32px;
+        direction: rtl; font-family: 'Segoe UI','Cairo',sans-serif; min-height: 100vh;
+    }
 
-    .rc-stats { display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px; }
-    @@media(max-width:600px){ .rc-stats{ grid-template-columns:1fr 1fr; } }
-    .rc-stat { background:var(--card);border-radius:12px;border:1px solid var(--border);padding:18px 20px;box-shadow:var(--shadow);display:flex;align-items:center;gap:14px; }
-    .rc-stat-icon { width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0; }
-    .rc-stat-val { font-size:1.5rem;font-weight:800;color:var(--t1);line-height:1; }
-    .rc-stat-lbl { font-size:.74rem;color:var(--t3);margin-top:2px; }
+    /* ── Header ── */
+    .rc-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:24px; flex-wrap:wrap; gap:12px; }
+    .rc-header-left { display:flex; align-items:center; gap:14px; }
+    .rc-header-icon {
+        width:48px; height:48px; border-radius:13px;
+        background:linear-gradient(135deg,var(--primary),var(--primary-light));
+        color:#fff; display:flex; align-items:center; justify-content:center;
+        font-size:1.2rem; box-shadow:0 4px 14px rgba(29,78,216,.30);
+    }
+    .rc-header h1 { font-size:1.5rem; font-weight:800; color:var(--text-1); margin:0 0 3px; }
+    .rc-header p  { font-size:.82rem; color:var(--text-2); margin:0; }
+    .rc-add-btn {
+        display:inline-flex; align-items:center; gap:7px; padding:9px 20px;
+        border-radius:var(--radius-sm);
+        background:linear-gradient(135deg,var(--primary),var(--primary-light));
+        color:#fff; text-decoration:none; font-size:.84rem; font-weight:700;
+        transition:var(--tr); box-shadow:0 4px 12px rgba(29,78,216,.25);
+    }
+    .rc-add-btn:hover { background:linear-gradient(135deg,var(--primary-dark),var(--primary)); color:#fff; transform:translateY(-1px); }
 
-    .rc-toolbar { background:var(--card);border-radius:12px;border:1px solid var(--border);padding:14px 18px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:20px; }
-    .rc-search { flex:1;min-width:180px;position:relative; }
-    .rc-search i { position:absolute;right:11px;top:50%;transform:translateY(-50%);color:var(--t3);font-size:.8rem; }
-    .rc-search input { width:100%;padding:8px 34px 8px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:.84rem;font-family:inherit;box-sizing:border-box; }
-    .rc-search input:focus { outline:none;border-color:var(--rc-pr);box-shadow:0 0 0 3px rgba(8,145,178,.1); }
-    .rc-count { font-size:.78rem;color:var(--t3);margin-right:auto; }
+    /* ── Stats ── */
+    .rc-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:24px; }
+    @@media(max-width:700px){ .rc-stats{ grid-template-columns:1fr 1fr; } }
+    @@media(max-width:450px){ .rc-stats{ grid-template-columns:1fr; } }
+    .rc-stat {
+        background:var(--card-bg); border-radius:var(--radius-sm);
+        border:1px solid var(--border); padding:18px 20px;
+        box-shadow:var(--shadow-sm); display:flex; align-items:center; gap:14px;
+        transition:var(--tr);
+    }
+    .rc-stat:hover { box-shadow:var(--shadow-md); transform:translateY(-2px); }
+    .rc-stat-icon { width:46px; height:46px; border-radius:11px; display:flex; align-items:center; justify-content:center; font-size:1.1rem; flex-shrink:0; }
+    .rc-stat-val  { font-size:1.6rem; font-weight:800; color:var(--text-1); line-height:1; }
+    .rc-stat-lbl  { font-size:.74rem; color:var(--text-3); margin-top:3px; }
 
-    .rc-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px; }
+    /* ── Toolbar ── */
+    .rc-toolbar {
+        background:var(--card-bg); border-radius:var(--radius-sm);
+        border:1px solid var(--border); padding:14px 18px;
+        display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+        margin-bottom:20px; box-shadow:var(--shadow-sm);
+    }
+    .rc-search { flex:1; min-width:200px; position:relative; }
+    .rc-search .si { position:absolute; right:11px; top:50%; transform:translateY(-50%); color:var(--text-3); font-size:.85rem; pointer-events:none; }
+    .rc-search-clear { position:absolute; left:10px; top:50%; transform:translateY(-50%); background:none; border:none; color:var(--text-3); cursor:pointer; font-size:.8rem; display:none; padding:2px; }
+    .rc-search input {
+        width:100%; padding:9px 34px 9px 34px;
+        border:1.5px solid var(--border); border-radius:8px;
+        font-size:.85rem; font-family:inherit; outline:none;
+        background:#fafcff; transition:border-color var(--tr),box-shadow var(--tr);
+    }
+    .rc-search input:focus { border-color:var(--primary); box-shadow:0 0 0 3px rgba(29,78,216,.10); background:#fff; }
+    .rc-filter { display:flex; gap:6px; }
+    .rc-fb {
+        padding:6px 14px; border-radius:20px; border:1.5px solid var(--border);
+        background:#fff; font-size:.78rem; font-weight:600; color:var(--text-2);
+        cursor:pointer; font-family:inherit; transition:var(--tr);
+    }
+    .rc-fb.active, .rc-fb:hover { background:var(--primary); color:#fff; border-color:var(--primary); }
+    .rc-psize { display:flex; align-items:center; gap:6px; font-size:.82rem; color:var(--text-2); }
+    .rc-psize select { padding:6px 9px; border:1.5px solid var(--border); border-radius:8px; font-size:.82rem; outline:none; }
 
-    .rc-card { background:var(--card);border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);padding:24px 16px;display:flex;flex-direction:column;align-items:center;text-align:center;transition:all .2s;position:relative; }
-    .rc-card:hover { transform:translateY(-3px);box-shadow:0 8px 24px rgba(8,145,178,.14);border-color:#a5f3fc; }
-    .rc-avatar-wrap { position:relative;margin-bottom:12px; }
-    .rc-avatar { width:84px;height:84px;border-radius:50%;object-fit:cover;border:3px solid var(--border);transition:border-color .2s; }
-    .rc-card:hover .rc-avatar { border-color:#a5f3fc; }
-    .rc-gender-dot { position:absolute;bottom:2px;left:2px;width:18px;height:18px;border-radius:50%;border:2px solid #fff;display:flex;align-items:center;justify-content:center;font-size:.58rem;color:#fff; }
-    .rc-gm { background:#0891b2; } .rc-gf { background:#ec4899; }
-    .rc-role-badge { position:absolute;top:12px;right:12px;background:var(--rc-pr-pale);color:var(--rc-pr);font-size:.65rem;font-weight:700;padding:2px 8px;border-radius:10px; }
-    .rc-name { font-size:.95rem;font-weight:700;color:var(--t1);margin:0 0 3px; }
-    .rc-email { font-size:.71rem;color:var(--t3);margin:0 0 12px;word-break:break-all; }
-    .rc-actions { display:flex;gap:7px;width:100%; }
-    .rc-btn { flex:1;padding:7px 10px;border-radius:7px;font-size:.75rem;font-weight:600;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:5px;transition:all .2s;border:none;cursor:pointer;font-family:inherit; }
-    .rc-btn-info { background:var(--rc-pr-pale);color:var(--rc-pr); }
-    .rc-btn-info:hover { background:var(--rc-pr);color:#fff; }
-    .rc-btn-del { background:#fee2e2;color:var(--danger); }
-    .rc-btn-del:hover { background:var(--danger);color:#fff; }
+    /* ── Results bar — بارزة ── */
+    .rc-results-bar {
+        display:flex; align-items:center; margin-bottom:14px;
+        padding:10px 16px;
+        background:var(--primary-pale);
+        border:1.5px solid #bfdbfe;
+        border-radius:var(--radius-sm);
+    }
+    .rc-results-text { font-size:.88rem; color:var(--text-2); font-weight:500; }
+    .rc-results-hl {
+        font-size:1rem; font-weight:800;
+        color:var(--primary); background:#fff;
+        border:1.5px solid #bfdbfe; border-radius:6px;
+        padding:1px 8px; margin:0 3px;
+    }
 
-    .rc-empty { text-align:center;padding:60px 20px;color:var(--t3); }
-    .rc-empty i { font-size:2.5rem;margin-bottom:12px;display:block; }
+    /* ── Grid ── */
+    .rc-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:16px; }
+
+    /* ── Card ── */
+    .rc-card {
+        background:var(--card-bg); border-radius:var(--radius);
+        border:1px solid var(--border); box-shadow:var(--shadow-sm);
+        padding:24px 16px; display:flex; flex-direction:column;
+        align-items:center; text-align:center; transition:var(--tr); position:relative;
+    }
+    .rc-card:hover { transform:translateY(-3px); box-shadow:0 8px 24px rgba(29,78,216,.12); border-color:#bfdbfe; }
+    .rc-avatar-wrap { position:relative; margin-bottom:12px; }
+    .rc-avatar { width:84px; height:84px; border-radius:50%; object-fit:cover; border:3px solid var(--border); transition:border-color var(--tr); }
+    .rc-card:hover .rc-avatar { border-color:#bfdbfe; }
+    .rc-gender-dot { position:absolute; bottom:2px; left:2px; width:18px; height:18px; border-radius:50%; border:2px solid #fff; display:flex; align-items:center; justify-content:center; font-size:.58rem; color:#fff; }
+    .rc-gm { background:var(--primary); }
+    .rc-gf { background:#ec4899; }
+    .rc-role-badge { position:absolute; top:12px; right:12px; background:var(--primary-pale); color:var(--primary); font-size:.65rem; font-weight:700; padding:2px 8px; border-radius:10px; }
+    .rc-name  { font-size:.95rem; font-weight:700; color:var(--text-1); margin:0 0 3px; }
+    .rc-email { font-size:.71rem; color:var(--text-3); margin:0 0 12px; word-break:break-all; }
+    .rc-actions { display:flex; gap:7px; width:100%; }
+    .rc-btn { flex:1; padding:7px 10px; border-radius:7px; font-size:.76rem; font-weight:600; text-decoration:none; display:flex; align-items:center; justify-content:center; gap:5px; transition:var(--tr); border:none; cursor:pointer; font-family:inherit; }
+    .rc-btn-info { background:var(--primary-pale); color:var(--primary); }
+    .rc-btn-info:hover { background:var(--primary); color:#fff; }
+    .rc-btn-del  { background:#fee2e2; color:var(--danger); }
+    .rc-btn-del:hover  { background:var(--danger); color:#fff; }
+
+    /* ── Empty ── */
+    .rc-empty { text-align:center; padding:60px 20px; color:var(--text-3); }
+    .rc-empty i  { font-size:2.5rem; margin-bottom:12px; display:block; }
+    .rc-empty h3 { font-size:1.1rem; color:var(--text-1); margin:0 0 6px; }
+    .rc-empty p  { font-size:.86rem; margin:0; }
+
+    /* ── Loader ── */
+    .rc-loader { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:60px; gap:14px; color:var(--text-3); }
+    .rc-spinner { width:38px; height:38px; border:3px solid var(--border); border-top-color:var(--primary); border-radius:50%; animation:rc-spin .7s linear infinite; }
+    @@keyframes rc-spin { to { transform:rotate(360deg); } }
+
+    /* ── Pagination ── */
+    .rc-pag-wrap { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; padding-top:24px; }
+    .rc-pag-info { font-size:.82rem; color:var(--text-3); }
+    .rc-pag-info strong { color:var(--text-2); }
+    .rc-pag { list-style:none; display:flex; gap:5px; margin:0; padding:0; flex-wrap:wrap; }
+    .rc-pag li a,
+    .rc-pag li span {
+        display:inline-flex; align-items:center; justify-content:center;
+        min-width:38px; height:38px; padding:0 6px; border-radius:9px;
+        font-size:.88rem; border:1.5px solid var(--border); color:var(--text-1);
+        text-decoration:none; background:var(--card-bg); transition:var(--tr); font-weight:500;
+    }
+    .rc-pag li a:hover { background:var(--primary); color:#fff; border-color:var(--primary); transform:translateY(-1px); box-shadow:0 3px 8px rgba(29,78,216,.25); }
+    .rc-pag li.active a { background:var(--primary); color:#fff; border-color:var(--primary); font-weight:700; pointer-events:none; box-shadow:0 3px 10px rgba(29,78,216,.30); }
+    .rc-pag li.disabled a { opacity:.4; pointer-events:none; }
+    .rc-pag li.ellipsis span { border:none; background:none; color:var(--text-3); min-width:24px; }
 </style>
 
 <div class="dashboard-wrapper">
@@ -70,103 +180,145 @@
 
         <!-- Header -->
         <div class="rc-header">
-            <h1>
-                <span class="icon"><i class="fas fa-headset"></i></span>
-                إدارة موظفي الاستقبال
-            </h1>
+            <div class="rc-header-left">
+                <div class="rc-header-icon"><i class="fas fa-headset"></i></div>
+                <div>
+                    <h1>إدارة موظفي الاستقبال</h1>
+                    <p>عرض وإدارة جميع موظفي الاستقبال المسجلين</p>
+                </div>
+            </div>
             <a asp-action="Create" class="rc-add-btn">
                 <i class="fas fa-user-plus"></i> إضافة موظف
             </a>
         </div>
 
         <!-- Stats -->
-        @{
-            var male   = list.Count(r => r.User?.Gender == Gender.Male);
-            var female = list.Count(r => r.User?.Gender == Gender.Female);
-        }
         <div class="rc-stats">
             <div class="rc-stat">
-                <div class="rc-stat-icon" style="background:#ecfeff;color:#0891b2;"><i class="fas fa-headset"></i></div>
-                <div><div class="rc-stat-val">@list.Count</div><div class="rc-stat-lbl">إجمالي الموظفين</div></div>
+                <div class="rc-stat-icon" style="background:var(--primary-pale);color:var(--primary);">
+                    <i class="fas fa-headset"></i>
+                </div>
+                <div>
+                    <div class="rc-stat-val">@totalCount</div>
+                    <div class="rc-stat-lbl">إجمالي الموظفين</div>
+                </div>
             </div>
             <div class="rc-stat">
-                <div class="rc-stat-icon" style="background:#dbeafe;color:#1d4ed8;"><i class="fas fa-mars"></i></div>
-                <div><div class="rc-stat-val">@male</div><div class="rc-stat-lbl">ذكر</div></div>
+                <div class="rc-stat-icon" style="background:#dbeafe;color:#1d4ed8;">
+                    <i class="fas fa-mars"></i>
+                </div>
+                <div>
+                    <div class="rc-stat-val">@maleCount</div>
+                    <div class="rc-stat-lbl">ذكر</div>
+                </div>
             </div>
             <div class="rc-stat">
-                <div class="rc-stat-icon" style="background:#fce7f3;color:#db2777;"><i class="fas fa-venus"></i></div>
-                <div><div class="rc-stat-val">@female</div><div class="rc-stat-lbl">أنثى</div></div>
+                <div class="rc-stat-icon" style="background:#fce7f3;color:#db2777;">
+                    <i class="fas fa-venus"></i>
+                </div>
+                <div>
+                    <div class="rc-stat-val">@femaleCount</div>
+                    <div class="rc-stat-lbl">أنثى</div>
+                </div>
             </div>
         </div>
 
         <!-- Toolbar -->
         <div class="rc-toolbar">
             <div class="rc-search">
-                <i class="fas fa-search"></i>
-                <input type="text" id="rc-q" placeholder="ابحث بالاسم..." oninput="rcFilter()" />
+                <i class="fas fa-search si"></i>
+                <input type="text" id="rc-q"
+                       placeholder="ابحث بالاسم أو الإيميل..."
+                       value="@search"
+                       autocomplete="off" />
+                <button class="rc-search-clear" id="rcSearchClear">
+                    <i class="fas fa-times"></i>
+                </button>
             </div>
-            <span class="rc-count" id="rc-count">@list.Count موظف</span>
-        </div>
-
-        <!-- Grid -->
-        @if (list.Any())
-        {
-            <div class="rc-grid" id="rc-grid">
-                @foreach (var item in list)
-                {
-                    var av = AvatarUrl(item.User);
-                    var isFemale = item.User?.Gender == Gender.Female;
-                    <div class="rc-card" data-name="@(item.User?.FullName?.ToLower())">
-                        <span class="rc-role-badge"><i class="fas fa-headset"></i> استقبال</span>
-                        <div class="rc-avatar-wrap">
-                            <img src="@av" class="rc-avatar" alt="@item.User?.FullName"
-                                 onerror="this.src='https://ui-avatars.com/api/?name=R&background=94a3b8&color=fff&rounded=true'" />
-                            <span class="rc-gender-dot @(isFemale ? "rc-gf" : "rc-gm")">
-                                <i class="fas @(isFemale ? "fa-venus" : "fa-mars")"></i>
-                            </span>
-                        </div>
-                        @if (item.User != null)
+            <div class="rc-filter">
+                <button class="rc-fb @(filter=="all"    ? "active" : "")" data-filter="all">الكل</button>
+                <button class="rc-fb @(filter=="male"   ? "active" : "")" data-filter="male">ذكر</button>
+                <button class="rc-fb @(filter=="female" ? "active" : "")" data-filter="female">أنثى</button>
+            </div>
+            <div class="rc-psize">
+                <span>عرض</span>
+                <select id="rcPageSize">
+                    @foreach (var s in new[] { 10, 20, 30, 50 })
+                    {
+                        if (pageSize == s)
                         {
-                            <div class="rc-name">@item.User.FullName</div>
-                            <div class="rc-email">@item.User.Email</div>
+                            <option value="@s" selected="selected">@s</option>
                         }
                         else
                         {
-                            <div class="rc-name" style="color:var(--t3);">لا يوجد مستخدم مرتبط</div>
+                            <option value="@s">@s</option>
                         }
-                        <div class="rc-actions">
-                            <a asp-action="Details" asp-route-id="@item.ReceptionistId" class="rc-btn rc-btn-info">
-                                <i class="fas fa-eye"></i> تفاصيل
-                            </a>
-                            <a asp-action="Delete" asp-route-id="@item.ReceptionistId" class="rc-btn rc-btn-del">
-                                <i class="fas fa-trash-alt"></i>
-                            </a>
-                        </div>
-                    </div>
-                }
+                    }
+                </select>
             </div>
-        }
-        else
-        {
-            <div class="rc-empty">
-                <i class="fas fa-headset"></i>
-                <p>لا يوجد موظفو استقبال مسجلون بعد</p>
-            </div>
-        }
+        </div>
+
+        <!-- Ajax container -->
+        <div id="rc-container">
+            @await Html.PartialAsync("_ReceptionistsGridPartial", Model)
+        </div>
 
     </main>
 </div>
 
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script>
-    function rcFilter() {
-        var q = (document.getElementById('rc-q').value || '').trim().toLowerCase();
-        var cards = document.querySelectorAll('#rc-grid .rc-card');
-        var count = 0;
-        cards.forEach(function(c) {
-            var show = !q || (c.dataset.name || '').includes(q);
-            c.style.display = show ? '' : 'none';
-            if (show) count++;
+    let rcFilter = '@filter';
+    let rcTimer  = null;
+
+    function loadReceptionists(rcPage = 1) {
+        const search   = $('#rc-q').val().trim();
+        const pageSize = $('#rcPageSize').val();
+
+        $('#rc-container').html(
+            '<div class="rc-loader"><div class="rc-spinner"></div><span>جارٍ التحميل…</span></div>'
+        );
+
+        $.ajax({
+            url: '/Receptionists/Index',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            data: { page: rcPage, pageSize, search, filter: rcFilter },
+            success: html  => $('#rc-container').html(html),
+            error:   ()    => $('#rc-container').html(
+                '<div class="rc-empty"><i class="fas fa-exclamation-circle"></i><h3>حدث خطأ</h3><p>يرجى تحديث الصفحة</p></div>'
+            )
         });
-        document.getElementById('rc-count').textContent = count + ' موظف';
     }
+
+    // Pagination
+    $(document).on('click', '.rc-pag-link', function (e) {
+        e.preventDefault();
+        const p = parseInt($(this).data('page'));
+        if (!isNaN(p) && p >= 1) loadReceptionists(p);
+    });
+
+    // Filter
+    $(document).on('click', '.rc-fb', function () {
+        rcFilter = $(this).data('filter');
+        $('.rc-fb').removeClass('active');
+        $(this).addClass('active');
+        loadReceptionists(1);
+    });
+
+    // Search
+    $('#rc-q').on('input', function () {
+        clearTimeout(rcTimer);
+        $('#rcSearchClear').css('display', this.value ? 'block' : 'none');
+        rcTimer = setTimeout(() => loadReceptionists(1), 300);
+    });
+
+    $('#rcSearchClear').on('click', function () {
+        $('#rc-q').val('').trigger('input');
+    });
+
+    // Page size
+    $('#rcPageSize').on('change', () => loadReceptionists(1));
+
+    // Init
+    if ('@search'.length) $('#rcSearchClear').show();
 </script>

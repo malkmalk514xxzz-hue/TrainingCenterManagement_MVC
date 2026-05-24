@@ -28,15 +28,72 @@ namespace TrainingCenterManagement_MVC.Controllers
         }
 
         // GET: Courses
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(
+            int page = 1,
+            int pageSize = 10,
+            string search = "",
+            string filter = "all")   // all | active | deleted | featured
         {
-            var courses = await _context.Courses
-                .Where(c => !c.IsDeleted)
+            pageSize = Math.Clamp(pageSize, 3, 50);
+
+            // ── Base query ────────────────────────────────────────────────
+            var query = _context.Courses
                 .Include(c => c.Admin).ThenInclude(a => a.User)
                 .Include(c => c.Ratings)
                 .Include(c => c.CourseTrainees)
+                .AsQueryable();
+
+            // Non-admins/trainers never see deleted courses
+            bool canManage = User.IsInRole("Admin") || User.IsInRole("Trainer");
+            if (!canManage)
+                query = query.Where(c => !c.IsDeleted);
+
+            // ── Filter tab ────────────────────────────────────────────────
+            query = filter switch
+            {
+                "active" => query.Where(c => !c.IsDeleted),
+                "deleted" => query.Where(c => c.IsDeleted),
+                "featured" => query.Where(c => c.IsFeatured && !c.IsDeleted),
+                _ => query   // "all"
+            };
+
+            // ── Search ────────────────────────────────────────────────────
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var term = search.Trim().ToLower();
+                query = query.Where(c =>
+                    c.CourseName.ToLower().Contains(term) ||
+                    (c.Description != null && c.Description.ToLower().Contains(term)));
+            }
+
+            // ── Hero stats (always from full non-deleted set) ─────────────
+            var allActive = await _context.Courses
+                .Where(c => !c.IsDeleted)
+                .Include(c => c.CourseTrainees)
+                .Include(c => c.CourseTrainers)
                 .ToListAsync();
 
+            ViewBag.TotalCourses = allActive.Count;
+            ViewBag.TotalTrainees = allActive.Sum(c => c.CourseTrainees?.Count ?? 0);
+            ViewBag.TotalTrainers = allActive
+                .SelectMany(c => c.CourseTrainers ?? Enumerable.Empty<CourseTrainer>())
+                .Select(ct => ct.TrainerId).Distinct().Count();
+            ViewBag.TotalLectures = allActive.Sum(c => c.NumberOfLectures);
+
+            // ── Count before paging ───────────────────────────────────────
+            var totalCount = await query.CountAsync();
+            var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+            page = Math.Max(1, Math.Min(page, Math.Max(1, totalPages)));
+
+            // ── Page ──────────────────────────────────────────────────────
+            var courses = await query
+                .OrderByDescending(c => c.IsFeatured)
+                .ThenByDescending(c => c.CreatedDate)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            // ── Trainee-specific data ─────────────────────────────────────
             if (User.IsInRole("Trainee"))
             {
                 decimal sypPerUsd = await _rateService.GetSypPerUsdAsync();
@@ -48,13 +105,27 @@ namespace TrainingCenterManagement_MVC.Controllers
                         .Where(ct => ct.TraineeId == trainee.TraineeId)
                         .Select(ct => ct.CourseId)
                         .ToListAsync();
+
                     ViewBag.EnrolledCourseIds = enrolled;
                     ViewBag.TraineeBalanceSYP = trainee.BalanceSYP + (trainee.BalanceUSD * sypPerUsd);
                 }
             }
 
+            // ── ViewBag for paging / state ────────────────────────────────
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.TotalCount = totalCount;
+            ViewBag.PageSize = pageSize;
+            ViewBag.Search = search;
+            ViewBag.Filter = filter;
+
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                return PartialView("_CoursesGridPartial", courses);
+
             return View(courses);
         }
+
+
 
         // GET: Courses/Purchase/5
         [Authorize(Roles = "Trainee")]

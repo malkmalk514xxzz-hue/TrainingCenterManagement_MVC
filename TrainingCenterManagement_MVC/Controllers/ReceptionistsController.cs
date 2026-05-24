@@ -27,13 +27,62 @@ namespace TrainingCenterManagement_MVC.Controllers
         // ── Index ─────────────────────────────────────────────────────────────
 
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(
+      int page = 1,
+      int pageSize = 10,
+      string search = "",
+      string filter = "all")   // all | male | female
         {
-            var receptionists = await _context.Receptionists
+            pageSize = Math.Clamp(pageSize, 5, 50);
+
+            var query = _context.Receptionists
                 .Include(r => r.User)
+                .AsQueryable();
+
+            // ── Gender filter ──────────────────────────────────────────
+            if (filter == "male") query = query.Where(r => r.User.Gender == Gender.Male);
+            if (filter == "female") query = query.Where(r => r.User.Gender == Gender.Female);
+
+            // ── Search ─────────────────────────────────────────────────
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var term = search.Trim().ToLower();
+                query = query.Where(r =>
+                    (r.User.FullName != null && r.User.FullName.ToLower().Contains(term)) ||
+                    (r.User.Email != null && r.User.Email.ToLower().Contains(term)) ||
+                    (r.User.PhoneNumber != null && r.User.PhoneNumber.ToLower().Contains(term)));
+            }
+
+            // ── Stats (full list, unfiltered) ──────────────────────────
+            var all = await _context.Receptionists.Include(r => r.User).ToListAsync();
+            ViewBag.TotalCount = all.Count;
+            ViewBag.MaleCount = all.Count(r => r.User?.Gender == Gender.Male);
+            ViewBag.FemaleCount = all.Count(r => r.User?.Gender == Gender.Female);
+
+            // ── Paging ─────────────────────────────────────────────────
+            var totalCount = await query.CountAsync();
+            var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+            page = Math.Max(1, Math.Min(page, Math.Max(1, totalPages)));
+
+            var receptionists = await query
+                .OrderBy(r => r.User.FullName)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .ToListAsync();
+
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.FilterCount = totalCount;
+            ViewBag.PageSize = pageSize;
+            ViewBag.Search = search;
+            ViewBag.Filter = filter;
+
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                return PartialView("_ReceptionistsGridPartial", receptionists);
+
             return View(receptionists);
         }
+
 
         // ── Details ───────────────────────────────────────────────────────────
 

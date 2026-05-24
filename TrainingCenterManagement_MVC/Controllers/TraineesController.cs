@@ -24,13 +24,67 @@ namespace TrainingCenterManagement_MVC.Controllers
             _context = context;
         }
 
-        // GET: Trainees
         [Authorize(Roles = "Admin")]
-
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(
+         int page = 1,
+         int pageSize = 10,
+         string search = "",
+         string filter = "all")   // all | male | female
         {
-            var applicationDbContext = _context.Trainees.Include(t => t.User);
-            return View(await applicationDbContext.ToListAsync());
+            pageSize = Math.Clamp(pageSize, 5, 50);
+
+            var query = _context.Trainees
+                .Include(t => t.User)
+                .Include(t => t.CourseTrainees)
+                .AsQueryable();
+
+            // ── Gender filter ─────────────────────────────────────────────
+            if (filter == "male") query = query.Where(t => t.User.Gender == Gender.Male);
+            if (filter == "female") query = query.Where(t => t.User.Gender == Gender.Female);
+
+            // ── Search ────────────────────────────────────────────────────
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var term = search.Trim().ToLower();
+                query = query.Where(t =>
+                    (t.User.FullName != null && t.User.FullName.ToLower().Contains(term)) ||
+                    (t.User.Email != null && t.User.Email.ToLower().Contains(term)) ||
+                    (t.User.PhoneNumber != null && t.User.PhoneNumber.ToLower().Contains(term)));
+            }
+
+            // ── Stats (always from full list, not filtered) ───────────────
+            var all = await _context.Trainees
+                .Include(t => t.User)
+                .Include(t => t.CourseTrainees)
+                .ToListAsync();
+
+            ViewBag.TotalCount = all.Count;
+            ViewBag.MaleCount = all.Count(t => t.User?.Gender == Gender.Male);
+            ViewBag.FemaleCount = all.Count(t => t.User?.Gender == Gender.Female);
+            ViewBag.EnrolledCount = all.Count(t => t.CourseTrainees?.Any() == true);
+
+            // ── Count before paging ───────────────────────────────────────
+            var totalCount = await query.CountAsync();
+            var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+            page = Math.Max(1, Math.Min(page, Math.Max(1, totalPages)));
+
+            var trainees = await query
+                .OrderBy(t => t.User.FullName)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.FilterCount = totalCount;
+            ViewBag.PageSize = pageSize;
+            ViewBag.Search = search;
+            ViewBag.Filter = filter;
+
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                return PartialView("_TraineesGridPartial", trainees);
+
+            return View(trainees);
         }
 
 

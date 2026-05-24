@@ -1,18 +1,26 @@
 @model IEnumerable<TrainingCenterManagement_MVC.Models.Course>
+
 @{
     ViewData["Title"]       = "الكورسات والدورات التدريبية | مركز التدريب";
     ViewData["Description"] = "استعرض جميع الدورات التدريبية المتاحة في مركز التدريب. كورسات عملية بإشراف مدربين محترفين مع شهادات معتمدة.";
     ViewData["Keywords"]    = "دورات تدريبية, كورسات, تدريب مهني, شهادات, مركز تدريب";
-    var allCourses = Model.ToList();
-    var activeCourses = allCourses.Where(c => !c.IsDeleted).ToList();
-    var isAdmin = User.IsInRole("Admin");
-    var isTrainer = User.IsInRole("Trainer");
-    var isTrainee = User.IsInRole("Trainee");
-    var canManage = isAdmin || isTrainer;
-    var enrolledIds = ViewBag.EnrolledCourseIds as List<Guid> ?? new List<Guid>();
+
+    bool   isAdmin   = User.IsInRole("Admin");
+    bool   isTrainer = User.IsInRole("Trainer");
+    bool   isTrainee = User.IsInRole("Trainee");
+    bool   canManage = isAdmin || isTrainer;
+
+    int    totalCourses  = ViewBag.TotalCourses  ?? 0;
+    int    totalTrainees = ViewBag.TotalTrainees  ?? 0;
+    int    totalTrainers = ViewBag.TotalTrainers  ?? 0;
+    int    totalLectures = ViewBag.TotalLectures  ?? 0;
+    string search        = ViewBag.Search         ?? "";
+    string filter        = ViewBag.Filter         ?? "all";
+    int    pageSize      = ViewBag.PageSize        ?? 10;
 }
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
 <style>
     :root {
         --pr:#4f46e5; --pr-l:#6366f1; --pr-pale:#eef2ff;
@@ -22,7 +30,7 @@
     }
     .ci-page { background:var(--body); min-height:100vh; direction:rtl; font-family:'Segoe UI',sans-serif; }
 
-    /* Hero */
+    /* ── Hero ── */
     .ci-hero {
         background:linear-gradient(135deg,#1e1b4b 0%,#312e81 50%,#4338ca 100%);
         padding:48px 48px 40px; position:relative; overflow:hidden;
@@ -39,24 +47,36 @@
     .ci-hs strong { font-size:1.4rem; font-weight:800; color:#fff; }
     .ci-hs i { color:var(--gold); font-size:.9rem; }
 
-    /* Toolbar */
-    .ci-toolbar { background:var(--card); border-bottom:1px solid var(--border); padding:14px 48px; display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+    /* ── Toolbar ── */
+    .ci-toolbar {
+        background:var(--card); border-bottom:1px solid var(--border);
+        padding:14px 48px; display:flex; align-items:center; gap:12px; flex-wrap:wrap;
+        position:sticky; top:0; z-index:100; box-shadow:0 2px 8px rgba(0,0,0,.06);
+    }
     .ci-search { flex:1; min-width:200px; position:relative; }
-    .ci-search i { position:absolute; right:12px; top:50%; transform:translateY(-50%); color:var(--t3); font-size:.85rem; }
-    .ci-search input { width:100%; padding:8px 36px 8px 14px; border:1.5px solid var(--border); border-radius:8px; font-size:.85rem; font-family:inherit; box-sizing:border-box; background:#fff; }
-    .ci-search input:focus { outline:none; border-color:var(--pr); box-shadow:0 0 0 3px rgba(79,70,229,.1); }
+    .ci-search i.search-icon { position:absolute; right:12px; top:50%; transform:translateY(-50%); color:var(--t3); font-size:.85rem; pointer-events:none; }
+    .ci-search-clear { position:absolute; left:10px; top:50%; transform:translateY(-50%); background:none; border:none; color:var(--t3); cursor:pointer; font-size:.8rem; display:none; padding:2px; }
+    .ci-search input { width:100%; padding:9px 36px 9px 36px; border:1.5px solid var(--border); border-radius:8px; font-size:.85rem; font-family:inherit; background:#fff; outline:none; transition:border-color .2s, box-shadow .2s; }
+    .ci-search input:focus { border-color:var(--pr); box-shadow:0 0 0 3px rgba(79,70,229,.1); }
     .ci-filter-btns { display:flex; gap:6px; flex-wrap:wrap; }
     .ci-fb { padding:6px 14px; border-radius:20px; border:1.5px solid var(--border); background:#fff; font-size:.78rem; font-weight:600; color:var(--t2); cursor:pointer; font-family:inherit; transition:all .2s; }
     .ci-fb.active, .ci-fb:hover { background:var(--pr); color:#fff; border-color:var(--pr); }
+
+    /* Page size */
+    .ci-psize { display:flex; align-items:center; gap:6px; font-size:.82rem; color:var(--t2); }
+    .ci-psize select { padding:5px 9px; border:1.5px solid var(--border); border-radius:8px; font-size:.82rem; outline:none; }
+
     .ci-add-btn { display:inline-flex; align-items:center; gap:6px; padding:8px 18px; border-radius:8px; background:var(--pr); color:#fff; text-decoration:none; font-size:.84rem; font-weight:700; border:none; cursor:pointer; transition:all .2s; margin-right:auto; }
     .ci-add-btn:hover { background:var(--pr-l); color:#fff; }
 
-    /* Grid */
+    /* ── Body ── */
     .ci-body { padding:28px 48px 48px; max-width:1320px; margin:0 auto; }
     @@media(max-width:700px){ .ci-body{ padding:16px; } .ci-toolbar{ padding:12px 16px; } .ci-hero{ padding:28px 20px; } }
+
+    /* ── Grid ── */
     .ci-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:20px; }
 
-    /* Card */
+    /* ── Card ── */
     .ci-card { background:var(--card); border-radius:var(--radius); border:1px solid var(--border); box-shadow:var(--shadow); overflow:hidden; transition:transform .2s, box-shadow .2s; display:flex; flex-direction:column; }
     .ci-card:hover { transform:translateY(-4px); box-shadow:0 12px 32px rgba(79,70,229,.15); border-color:#c7d2fe; }
     .ci-card-thumb { position:relative; aspect-ratio:16/9; overflow:hidden; background:linear-gradient(135deg,#1e1b4b,#312e81); }
@@ -64,19 +84,16 @@
     .ci-card:hover .ci-card-thumb img { transform:scale(1.04); }
     .ci-card-thumb .no-thumb { display:flex; align-items:center; justify-content:center; height:100%; font-size:3rem; color:rgba(255,255,255,.3); }
     .ci-status-badge { position:absolute; top:10px; right:10px; padding:3px 10px; border-radius:12px; font-size:.7rem; font-weight:700; backdrop-filter:blur(6px); }
-    .ci-status-active { background:rgba(16,185,129,.25); border:1px solid rgba(16,185,129,.5); color:#6ee7b7; }
-    .ci-status-deleted { background:rgba(239,68,68,.25); border:1px solid rgba(239,68,68,.5); color:#fca5a5; }
+    .ci-status-active  { background:rgba(16,185,129,.25); border:1px solid rgba(16,185,129,.5); color:#6ee7b7; }
+    .ci-status-deleted { background:rgba(239,68,68,.25);  border:1px solid rgba(239,68,68,.5);  color:#fca5a5; }
     .ci-featured-badge { position:absolute; top:10px; left:10px; background:rgba(245,158,11,.9); color:#fff; padding:2px 8px; border-radius:8px; font-size:.68rem; font-weight:700; }
     .ci-price-tag { position:absolute; bottom:10px; left:10px; background:rgba(15,23,42,.8); color:#fff; padding:4px 10px; border-radius:8px; font-size:.82rem; font-weight:700; backdrop-filter:blur(4px); }
-
-    .ci-card-body { padding:16px; flex:1; display:flex; flex-direction:column; gap:8px; }
+    .ci-card-body  { padding:16px; flex:1; display:flex; flex-direction:column; gap:8px; }
     .ci-card-title { font-size:1rem; font-weight:700; color:var(--t1); margin:0; line-height:1.3; }
-    .ci-card-desc  { font-size:.78rem; color:var(--t2); line-height:1.6; margin:0; flex:1;
-        display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+    .ci-card-desc  { font-size:.78rem; color:var(--t2); line-height:1.6; margin:0; flex:1; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
     .ci-card-meta  { display:flex; gap:14px; flex-wrap:wrap; }
     .ci-meta-item  { display:flex; align-items:center; gap:5px; font-size:.74rem; color:var(--t3); }
     .ci-meta-item i { font-size:.75rem; }
-
     .ci-card-footer { padding:12px 16px; border-top:1px solid var(--border); display:flex; gap:8px; align-items:center; }
     .ci-cta { flex:1; display:flex; align-items:center; justify-content:center; gap:5px; padding:7px 12px; border-radius:7px; background:var(--pr); color:#fff; text-decoration:none; font-size:.78rem; font-weight:600; transition:all .2s; }
     .ci-cta:hover { background:var(--pr-l); color:#fff; }
@@ -84,14 +101,94 @@
     .ci-action-btn:hover { border-color:var(--pr); color:var(--pr); background:var(--pr-pale); }
     .ci-action-btn.del:hover { border-color:var(--danger); color:var(--danger); background:#fee2e2; }
 
-    /* Empty */
+    /* ── Empty ── */
     .ci-empty { text-align:center; padding:60px 20px; color:var(--t3); }
     .ci-empty i { font-size:3rem; margin-bottom:16px; display:block; }
     .ci-empty h3 { font-size:1.1rem; color:var(--t1); margin:0 0 8px; }
-    .ci-empty p { font-size:.86rem; margin:0; }
+    .ci-empty p  { font-size:.86rem; margin:0; }
 
-    /* Count */
+    /* ── Count ── */
     .ci-count { font-size:.82rem; color:var(--t2); padding:0 0 12px; }
+
+    /* ── Loader ── */
+    .ci-loader { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:60px; gap:14px; color:var(--t3); }
+    .ci-spinner { width:40px; height:40px; border:3px solid var(--border); border-top-color:var(--pr); border-radius:50%; animation:ci-spin .7s linear infinite; }
+    @@keyframes ci-spin { to{ transform:rotate(360deg); } }
+
+    /* ── Pagination ── */
+    .ci-pag-wrap { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; padding-top:28px; }
+    .ci-pag-info { font-size:.82rem; color:var(--t3); }
+    .ci-pag { list-style:none; display:flex; gap:5px; margin:0; padding:0; }
+    .ci-pag li a, .ci-pag li span { display:inline-flex; align-items:center; justify-content:center; width:38px; height:38px; border-radius:9px; font-size:.88rem; border:1.5px solid var(--border); color:var(--t1); text-decoration:none; background:var(--card); transition:all .2s; }
+    .ci-pag li a:hover { background:var(--pr); color:#fff; border-color:var(--pr); }
+    .ci-pag li.active a { background:var(--pr); color:#fff; border-color:var(--pr); font-weight:700; }
+    .ci-pag li.disabled a { opacity:.4; pointer-events:none; }
+    .ci-pag li.ellipsis span { border:none; background:none; cursor:default; }
+
+    /* ── Pagination buttons ── */
+    .ci-pag-wrap {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 12px;
+        padding-top: 28px;
+        direction: rtl;
+    }
+    .ci-pag-info { font-size: .82rem; color: var(--t3); }
+    .ci-pag-info strong { color: var(--t2); }
+    .ci-pag {
+        list-style: none;
+        display: flex;
+        gap: 5px;
+        margin: 0;
+        padding: 0;
+        flex-wrap: wrap;
+    }
+    .ci-pag li a,
+    .ci-pag li span {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 38px;
+        height: 38px;
+        padding: 0 6px;
+        border-radius: 9px;
+        font-size: .88rem;
+        border: 1.5px solid var(--border);
+        color: var(--t1);
+        text-decoration: none;
+        background: var(--card);
+        transition: all .2s;
+        font-weight: 500;
+    }
+    .ci-pag li a:hover {
+        background: var(--pr);
+        color: #fff;
+        border-color: var(--pr);
+        transform: translateY(-1px);
+        box-shadow: 0 3px 8px rgba(79,70,229,.25);
+    }
+    .ci-pag li.active a {
+        background: var(--pr);
+        color: #fff;
+        border-color: var(--pr);
+        font-weight: 700;
+        box-shadow: 0 3px 10px rgba(79,70,229,.30);
+        pointer-events: none;
+    }
+    .ci-pag li.disabled a {
+        opacity: .4;
+        pointer-events: none;
+        cursor: not-allowed;
+    }
+    .ci-pag li.ellipsis span {
+        border: none;
+        background: none;
+        color: var(--t3);
+        cursor: default;
+        min-width: 24px;
+    }
 </style>
 
 <div class="ci-page">
@@ -103,10 +200,10 @@
             <h1><i class="fas fa-graduation-cap" style="color:var(--gold);margin-left:10px;"></i> الكورسات التدريبية</h1>
             <p>استكشف مجموعتنا الشاملة من الدورات التدريبية المهنية وطوّر مهاراتك مع أفضل المدربين</p>
             <div class="ci-hero-stats">
-                <div class="ci-hs"><i class="fas fa-book-open"></i><div><strong>@activeCourses.Count</strong><div>كورس متاح</div></div></div>
-                <div class="ci-hs"><i class="fas fa-users"></i><div><strong>@activeCourses.Sum(c => c.CourseTrainees?.Count ?? 0)</strong><div>متدرب</div></div></div>
-                <div class="ci-hs"><i class="fas fa-chalkboard-teacher"></i><div><strong>@activeCourses.SelectMany(c => c.CourseTrainers ?? Enumerable.Empty<TrainingCenterManagement_MVC.Models.CourseTrainer>()).Select(ct => ct.TrainerId).Distinct().Count()</strong><div>مدرب</div></div></div>
-                <div class="ci-hs"><i class="fas fa-video"></i><div><strong>@activeCourses.Sum(c => c.NumberOfLectures)</strong><div>محاضرة</div></div></div>
+                <div class="ci-hs"><i class="fas fa-book-open"></i><div><strong>@totalCourses</strong><div>كورس متاح</div></div></div>
+                <div class="ci-hs"><i class="fas fa-users"></i><div><strong>@totalTrainees</strong><div>متدرب</div></div></div>
+                <div class="ci-hs"><i class="fas fa-chalkboard-teacher"></i><div><strong>@totalTrainers</strong><div>مدرب</div></div></div>
+                <div class="ci-hs"><i class="fas fa-video"></i><div><strong>@totalLectures</strong><div>محاضرة</div></div></div>
             </div>
         </div>
     </div>
@@ -114,18 +211,41 @@
     <!-- Toolbar -->
     <div class="ci-toolbar">
         <div class="ci-search">
-            <i class="fas fa-search"></i>
-            <input type="text" id="course-search" placeholder="ابحث عن كورس..." oninput="filterCourses()" />
+            <i class="fas fa-search search-icon"></i>
+            <input type="text" id="course-search"
+                   placeholder="ابحث عن كورس..."
+                   value="@search"
+                   autocomplete="off" />
+            <button class="ci-search-clear" id="searchClear"><i class="fas fa-times"></i></button>
         </div>
+
         <div class="ci-filter-btns">
-            <button class="ci-fb active" onclick="setFilter('all',this)">الكل</button>
-            <button class="ci-fb" onclick="setFilter('active',this)">نشط</button>
+            <button class="ci-fb @(filter == "all"     ? "active" : "")" data-filter="all">الكل</button>
+            <button class="ci-fb @(filter == "active"  ? "active" : "")" data-filter="active">نشط</button>
             @if (canManage)
             {
-                <button class="ci-fb" onclick="setFilter('deleted',this)">محذوف</button>
-                <button class="ci-fb" onclick="setFilter('featured',this)">مميز</button>
+                <button class="ci-fb @(filter == "deleted"  ? "active" : "")" data-filter="deleted">محذوف</button>
+                <button class="ci-fb @(filter == "featured" ? "active" : "")" data-filter="featured">مميز</button>
             }
         </div>
+
+        <div class="ci-psize">
+            <span>عرض</span>
+            <select id="ciPageSize">
+                @foreach (var s in new[] { 10, 20, 30, 50 })
+                {
+                    if (pageSize == s)
+                    {
+                        <option value="@s" selected="selected">@s</option>
+                    }
+                    else
+                    {
+                        <option value="@s">@s</option>
+                    }
+                }
+            </select>
+        </div>
+
         @if (canManage)
         {
             <a asp-action="Create" class="ci-add-btn">
@@ -136,154 +256,71 @@
 
     <!-- Body -->
     <div class="ci-body">
-        <div class="ci-count" id="course-count">
-            عرض <strong id="visible-count">@allCourses.Count</strong> كورس
+        <div id="courses-container">
+            @await Html.PartialAsync("_CoursesGridPartial", Model)
         </div>
-
-        @if (allCourses.Any())
-        {
-            <div class="ci-grid" id="courses-grid">
-                @foreach (var item in allCourses)
-                {
-                    string ytId = null;
-                    if (!string.IsNullOrEmpty(item.VideoUrl))
-                    {
-                        var v = item.VideoUrl;
-                        if (v.Contains("v="))
-                            try { ytId = System.Web.HttpUtility.ParseQueryString(new Uri(v).Query)["v"]; } catch { }
-                        else if (v.Contains("youtu.be/"))
-                            ytId = v.Split('/').Last().Split('?').First();
-                    }
-                    string thumb = item.ThumbnailUrl;
-                    if (string.IsNullOrEmpty(thumb) && ytId != null)
-                        thumb = $"https://img.youtube.com/vi/{ytId}/mqdefault.jpg";
-
-                    <div class="ci-card"
-                         data-status="@(item.IsDeleted ? "deleted" : "active")"
-                         data-featured="@item.IsFeatured.ToString().ToLower()"
-                         data-title="@item.CourseName.ToLower()">
-                        <div class="ci-card-thumb">
-                            @if (!string.IsNullOrEmpty(thumb))
-                            {
-                                <img src="@thumb" alt="@item.CourseName" loading="lazy" />
-                            }
-                            else
-                            {
-                                <div class="no-thumb"><i class="fas fa-graduation-cap"></i></div>
-                            }
-                            <span class="ci-status-badge @(item.IsDeleted ? "ci-status-deleted" : "ci-status-active")">
-                                @(item.IsDeleted ? "محذوف" : "نشط")
-                            </span>
-                            @if (item.IsFeatured)
-                            {
-                                <span class="ci-featured-badge"><i class="fas fa-star"></i> مميز</span>
-                            }
-                            @{
-                                string priceLabel = item.CourseCurrency == TrainingCenterManagement_MVC.Models.PaymentCurrency.SYP
-                                    ? $"{item.Price:N0} ل.س"
-                                    : $"$ {item.Price:N0}";
-                            }
-                            <span class="ci-price-tag">@priceLabel</span>
-                        </div>
-                        <div class="ci-card-body">
-                            <h3 class="ci-card-title">@item.CourseName</h3>
-                            @if (!string.IsNullOrEmpty(item.Description))
-                            {
-                                <p class="ci-card-desc">@item.Description</p>
-                            }
-                            @{
-                                var cardRatings = item.Ratings?.ToList() ?? new List<TrainingCenterManagement_MVC.Models.CourseRating>();
-                                var cardAvg = cardRatings.Any() ? cardRatings.Average(r => r.Stars) : 0.0;
-                                var cardRounded = (int)Math.Round(cardAvg);
-                            }
-                            @if (cardRatings.Any())
-                            {
-                                <div style="display:flex;align-items:center;gap:5px;margin-bottom:6px;">
-                                    @for (int s = 1; s <= 5; s++)
-                                    {
-                                        <span style="color:@(s <= cardRounded ? "#f59e0b" : "#d1d5db");font-size:.9rem;">★</span>
-                                    }
-                                    <span style="font-size:.76rem;color:#6b7280;font-weight:600;">@cardAvg.ToString("F1") (@cardRatings.Count)</span>
-                                </div>
-                            }
-                            <div class="ci-card-meta">
-                                <span class="ci-meta-item"><i class="fas fa-layer-group"></i> الدفعة @item.BatchNumber</span>
-                                <span class="ci-meta-item"><i class="fas fa-book-open"></i> @item.NumberOfLectures محاضرة</span>
-                                @if (item.CourseTrainees?.Any() == true)
-                                {
-                                    <span class="ci-meta-item"><i class="fas fa-users"></i> @item.CourseTrainees.Count متدرب</span>
-                                }
-                            </div>
-                        </div>
-                        <div class="ci-card-footer">
-                            <a asp-action="Details" asp-route-id="@item.CourseId" class="ci-cta">
-                                <i class="fas fa-info-circle"></i> التفاصيل
-                            </a>
-                            @if (isTrainee && !item.IsDeleted)
-                            {
-                                bool enrolled = enrolledIds.Contains(item.CourseId);
-                                if (enrolled)
-                                {
-                                    <span style="display:inline-flex;align-items:center;gap:5px;padding:7px 12px;border-radius:7px;background:#d1fae5;color:#065f46;font-size:.78rem;font-weight:600;">
-                                        <i class="fas fa-check-circle"></i> مسجل
-                                    </span>
-                                }
-                                else
-                                {
-                                    <a asp-action="Purchase" asp-route-id="@item.CourseId"
-                                       style="display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border-radius:7px;background:linear-gradient(135deg,#0d9488,#0891b2);color:#fff;text-decoration:none;font-size:.78rem;font-weight:700;">
-                                        <i class="fas fa-shopping-cart"></i> سجّل - @priceLabel
-                                    </a>
-                                }
-                            }
-                            @if (canManage)
-                            {
-                                <a asp-action="Edit" asp-route-id="@item.CourseId" class="ci-action-btn" title="تعديل">
-                                    <i class="fas fa-pen"></i>
-                                </a>
-                                <a asp-action="Delete" asp-route-id="@item.CourseId" class="ci-action-btn del" title="حذف">
-                                    <i class="fas fa-trash-alt"></i>
-                                </a>
-                            }
-                        </div>
-                    </div>
-                }
-            </div>
-        }
-        else
-        {
-            <div class="ci-empty">
-                <i class="fas fa-book-open"></i>
-                <h3>لا توجد كورسات بعد</h3>
-                <p>ابدأ بإضافة أول كورس تدريبي</p>
-            </div>
-        }
     </div>
 </div>
 
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script>
-    var currentFilter = 'all';
-    function setFilter(f, btn) {
-        currentFilter = f;
-        document.querySelectorAll('.ci-fb').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        applyFilters();
-    }
-    function filterCourses() { applyFilters(); }
-    function applyFilters() {
-        var q = document.getElementById('course-search').value.trim().toLowerCase();
-        var cards = document.querySelectorAll('#courses-grid .ci-card');
-        var visible = 0;
-        cards.forEach(function(c) {
-            var matchQ = !q || c.dataset.title.includes(q);
-            var matchF = currentFilter === 'all'
-                || (currentFilter === 'active' && c.dataset.status === 'active')
-                || (currentFilter === 'deleted' && c.dataset.status === 'deleted')
-                || (currentFilter === 'featured' && c.dataset.featured === 'true');
-            var show = matchQ && matchF;
-            c.style.display = show ? '' : 'none';
-            if (show) visible++;
+    let ciFilter   = '@filter';
+    let ciTimer    = null;
+
+    // ── Core load function ─────────────────────────────────────────
+    function loadCourses(ciPage = 1) {
+        const search   = $('#course-search').val().trim();
+        const pageSize = $('#ciPageSize').val();
+
+        $('#courses-container').html(
+            '<div class="ci-loader"><div class="ci-spinner"></div><span>جارٍ التحميل…</span></div>'
+        );
+
+        $.ajax({
+            url: '/Courses/Index',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            data: {
+                page:     ciPage,
+                pageSize: pageSize,
+                search:   search,
+                filter:   ciFilter
+            },
+            success: html  => $('#courses-container').html(html),
+            error:   ()    => $('#courses-container').html(
+                '<div class="ci-empty"><i class="fas fa-exclamation-circle"></i><h3>حدث خطأ</h3><p>يرجى تحديث الصفحة</p></div>'
+            )
         });
-        document.getElementById('visible-count').textContent = visible;
     }
+
+    // ── Pagination (delegated) ─────────────────────────────────────
+    $(document).on('click', '.ci-pag-link', function (e) {
+        e.preventDefault();
+        const p = parseInt($(this).data('page'));
+        if (!isNaN(p) && p >= 1) loadCourses(p);
+    });
+
+    // ── Filter buttons ─────────────────────────────────────────────
+    $(document).on('click', '.ci-fb', function () {
+        ciFilter = $(this).data('filter');
+        $('.ci-fb').removeClass('active');
+        $(this).addClass('active');
+        loadCourses(1);
+    });
+
+    // ── Search with 300ms debounce ─────────────────────────────────
+    $('#course-search').on('input', function () {
+        clearTimeout(ciTimer);
+        $('#searchClear').css('display', this.value ? 'block' : 'none');
+        ciTimer = setTimeout(() => loadCourses(1), 300);
+    });
+
+    $('#searchClear').on('click', function () {
+        $('#course-search').val('').trigger('input');
+    });
+
+    // ── Page size change ───────────────────────────────────────────
+    $('#ciPageSize').on('change', () => loadCourses(1));
+
+    // ── Init ───────────────────────────────────────────────────────
+    if ('@search'.length) $('#searchClear').show();
 </script>

@@ -28,22 +28,46 @@ namespace TrainingCenterManagement_MVC.Controllers
         }
 
         // GET: Payments
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string search = "")
         {
-            var payments = await _context.Payments
+            var query = _context.Payments
                 .Include(p => p.Course)
-                .Include(p => p.Trainee)
-                    .ThenInclude(t => t.User)
-                .ToListAsync();
+                .Include(p => p.Trainee).ThenInclude(t => t.User)
+                .AsQueryable();
 
-            var groupedPayments = payments
+            // ── Search ─────────────────────────────────────────────────────
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var term = search.Trim().ToLower();
+                query = query.Where(p =>
+                    (p.Trainee.User.FullName != null && p.Trainee.User.FullName.ToLower().Contains(term)) ||
+                    (p.Course.CourseName != null && p.Course.CourseName.ToLower().Contains(term)) ||
+                    (p.Notes != null && p.Notes.ToLower().Contains(term)));
+            }
+
+            var payments = await query.ToListAsync();
+
+            // ── Stats ──────────────────────────────────────────────────────
+            var allPayments = await _context.Payments.ToListAsync();
+            ViewBag.TotalCount = allPayments.Count;
+            ViewBag.TotalRevenue = allPayments.Sum(p => p.TotalAmount);
+            ViewBag.ActiveMonths = allPayments
+                .GroupBy(p => new { p.CreatedDate.Year, p.CreatedDate.Month }).Count();
+            ViewBag.UniqueTrainees = allPayments.Select(p => p.TraineeId).Distinct().Count();
+            ViewBag.Search = search;
+
+            var grouped = payments
                 .GroupBy(p => new { p.CreatedDate.Year, p.CreatedDate.Month })
                 .OrderByDescending(g => g.Key.Year)
                 .ThenByDescending(g => g.Key.Month)
                 .ToList();
 
-            return View(groupedPayments);
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                return PartialView("_PaymentsGroupsPartial", grouped);
+
+            return View(grouped);
         }
+
 
         // GET: Payments/Details/5
         public async Task<IActionResult> Details(Guid? id)

@@ -1,0 +1,197 @@
+@model IEnumerable<TrainingCenterManagement_MVC.Models.Course>
+
+@{
+    int currentPage = ViewBag.CurrentPage ?? 1;
+    int totalPages = ViewBag.TotalPages ?? 1;
+    int totalCount = ViewBag.TotalCount ?? 0;
+    int pageSize = ViewBag.PageSize ?? 10;
+    var enrolledIds = ViewBag.EnrolledCourseIds as List<Guid> ?? new List<Guid>();
+    bool isTrainee = User.IsInRole("Trainee");
+    bool canManage = User.IsInRole("Admin") || User.IsInRole("Trainer");
+    var list = Model.ToList();
+}
+
+@if (!list.Any())
+{
+    <div class="ci-empty">
+        <i class="fas fa-book-open"></i>
+        <h3>لا توجد كورسات مطابقة</h3>
+        <p>جرّب تغيير كلمة البحث أو الفلتر</p>
+    </div>
+}
+else
+{
+    <!-- Results count -->
+    <div class="ci-count">
+        عرض
+        <strong>@(((currentPage - 1) * pageSize) + 1)–@(Math.Min(currentPage * pageSize, totalCount))</strong>
+        من <strong id="visible-count">@totalCount</strong> كورس
+    </div>
+
+    <!-- Grid -->
+    <div class="ci-grid" id="courses-grid">
+        @foreach (var item in list)
+        {
+            string ytId = null;
+            if (!string.IsNullOrEmpty(item.VideoUrl))
+            {
+                var v = item.VideoUrl;
+                if (v.Contains("v="))
+                    try { ytId = System.Web.HttpUtility.ParseQueryString(new Uri(v).Query)["v"]; } catch { }
+                else if (v.Contains("youtu.be/"))
+                    ytId = v.Split('/').Last().Split('?').First();
+            }
+            string thumb = item.ThumbnailUrl;
+            if (string.IsNullOrEmpty(thumb) && ytId != null)
+                thumb = $"https://img.youtube.com/vi/{ytId}/mqdefault.jpg";
+
+            string priceLabel = item.CourseCurrency == TrainingCenterManagement_MVC.Models.PaymentCurrency.SYP
+                ? $"{item.Price:N0} ل.س"
+                : $"$ {item.Price:N0}";
+
+            var cardRatings = item.Ratings?.ToList() ?? new List<TrainingCenterManagement_MVC.Models.CourseRating>();
+            var cardAvg = cardRatings.Any() ? cardRatings.Average(r => r.Stars) : 0.0;
+            var cardRounded = (int)Math.Round(cardAvg);
+            bool enrolled = enrolledIds.Contains(item.CourseId);
+
+            <div class="ci-card"
+                 data-status="@(item.IsDeleted ? "deleted" : "active")"
+                 data-featured="@item.IsFeatured.ToString().ToLower()"
+                 data-title="@item.CourseName.ToLower()">
+
+                <div class="ci-card-thumb">
+                    @if (!string.IsNullOrEmpty(thumb))
+                    {
+                        <img src="@thumb" alt="@item.CourseName" loading="lazy" />
+                    }
+                    else
+                    {
+                        <div class="no-thumb"><i class="fas fa-graduation-cap"></i></div>
+                    }
+                    <span class="ci-status-badge @(item.IsDeleted ? "ci-status-deleted" : "ci-status-active")">
+                        @(item.IsDeleted ? "محذوف" : "نشط")
+                    </span>
+                    @if (item.IsFeatured)
+                    {
+                        <span class="ci-featured-badge"><i class="fas fa-star"></i> مميز</span>
+                    }
+                    <span class="ci-price-tag">@priceLabel</span>
+                </div>
+
+                <div class="ci-card-body">
+                    <h3 class="ci-card-title">@item.CourseName</h3>
+                    @if (!string.IsNullOrEmpty(item.Description))
+                    {
+                        <p class="ci-card-desc">@item.Description</p>
+                    }
+                    @if (cardRatings.Any())
+                    {
+                        <div style="display:flex;align-items:center;gap:5px;margin-bottom:6px;">
+                            @for (int s = 1; s <= 5; s++)
+                            {
+                                <span style="color:@(s <= cardRounded ? "#f59e0b" : "#d1d5db");font-size:.9rem;">★</span>
+                            }
+                            <span style="font-size:.76rem;color:#6b7280;font-weight:600;">
+                                @cardAvg.ToString("F1") (@cardRatings.Count)
+                            </span>
+                        </div>
+                    }
+                    <div class="ci-card-meta">
+                        <span class="ci-meta-item"><i class="fas fa-layer-group"></i> الدفعة @item.BatchNumber</span>
+                        <span class="ci-meta-item"><i class="fas fa-book-open"></i> @item.NumberOfLectures محاضرة</span>
+                        @if (item.CourseTrainees?.Any() == true)
+                        {
+                            <span class="ci-meta-item"><i class="fas fa-users"></i> @item.CourseTrainees.Count متدرب</span>
+                        }
+                    </div>
+                </div>
+
+                <div class="ci-card-footer">
+                    <a asp-action="Details" asp-route-id="@item.CourseId" class="ci-cta">
+                        <i class="fas fa-info-circle"></i> التفاصيل
+                    </a>
+                    @if (isTrainee && !item.IsDeleted)
+                    {
+                        if (enrolled)
+                        {
+                            <span style="display:inline-flex;align-items:center;gap:5px;padding:7px 12px;border-radius:7px;background:#d1fae5;color:#065f46;font-size:.78rem;font-weight:600;">
+                                <i class="fas fa-check-circle"></i> مسجل
+                            </span>
+                        }
+                        else
+                        {
+                            <a asp-action="Purchase" asp-route-id="@item.CourseId"
+                                   style="display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border-radius:7px;background:linear-gradient(135deg,#0d9488,#0891b2);color:#fff;text-decoration:none;font-size:.78rem;font-weight:700;">
+                                <i class="fas fa-shopping-cart"></i> سجّل - @priceLabel
+                            </a>
+                        }
+                    }
+                    @if (canManage)
+                    {
+                        <a asp-action="Edit" asp-route-id="@item.CourseId" class="ci-action-btn" title="تعديل"><i class="fas fa-pen"></i></a>
+                        <a asp-action="Delete" asp-route-id="@item.CourseId" class="ci-action-btn del" title="حذف"><i class="fas fa-trash-alt"></i></a>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- ── Pagination ── -->
+    @if (totalPages > 1)
+    {
+        <div class="ci-pag-wrap">
+            <div class="ci-pag-info">
+                صفحة <strong>@currentPage</strong> من <strong>@totalPages</strong>
+                &nbsp;·&nbsp; <strong>@totalCount</strong> نتيجة
+            </div>
+            <ul class="ci-pag">
+
+                <!-- Prev -->
+                <li class="@(currentPage <= 1 ? "disabled" : "")">
+                    <a href="#" class="ci-pag-link" data-page="@(currentPage - 1)" title="السابق">
+                        <i class="fas fa-chevron-right"></i>
+                    </a>
+                </li>
+
+                @{
+                    int startP = Math.Max(1, currentPage - 3);
+                    int endP = Math.Min(totalPages, startP + 6);
+                    if (endP - startP < 6) startP = Math.Max(1, endP - 6);
+                }
+
+                @if (startP > 1)
+                {
+                    <li><a href="#" class="ci-pag-link" data-page="1">1</a></li>
+                    if (startP > 2)
+                    {
+                        <li class="ellipsis"><span>…</span></li>
+                    }
+                }
+
+                @for (int pi = startP; pi <= endP; pi++)
+                {
+                    <li class="@(pi == currentPage ? "active" : "")">
+                        <a href="#" class="ci-pag-link" data-page="@pi">@pi</a>
+                    </li>
+                }
+
+                @if (endP < totalPages)
+                {
+                    if (endP < totalPages - 1)
+                    {
+                        <li class="ellipsis"><span>…</span></li>
+                    }
+                    <li><a href="#" class="ci-pag-link" data-page="@totalPages">@totalPages</a></li>
+                }
+
+                <!-- Next -->
+                <li class="@(currentPage >= totalPages ? "disabled" : "")">
+                    <a href="#" class="ci-pag-link" data-page="@(currentPage + 1)" title="التالي">
+                        <i class="fas fa-chevron-left"></i>
+                    </a>
+                </li>
+
+            </ul>
+        </div>
+    }
+}
