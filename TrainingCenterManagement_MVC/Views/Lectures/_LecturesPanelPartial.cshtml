@@ -1,0 +1,239 @@
+﻿@model IEnumerable<TrainingCenterManagement_MVC.Models.Lecture>
+@using TrainingCenterManagement_MVC.Models
+
+@{
+    bool isAdmin = User.IsInRole("Admin");
+    bool isTrainer = User.IsInRole("Trainer");
+    var course = ViewBag.SelectedCourse as Course;
+    int currentPage = ViewBag.CurrentPage ?? 1;
+    int totalPages = ViewBag.TotalPages ?? 1;
+    int totalCount = ViewBag.TotalCount ?? 0;
+    int pageSize = ViewBag.PageSize ?? 9;
+    string search = ViewBag.Search ?? "";
+    var list = Model.ToList();
+}
+
+<!-- Section header -->
+<div class="lc-section-head">
+    <div class="lc-section-left">
+        <h2>@course?.CourseName</h2>
+        <span class="lc-count-badge" id="lc-count-badge">@totalCount محاضرة</span>
+    </div>
+    @if (isAdmin || isTrainer)
+    {
+        <a asp-action="Create" asp-controller="Lectures" asp-route-courseId="@course?.CourseId" class="lc-add-btn">
+            <i class="fas fa-plus"></i> إضافة محاضرة
+        </a>
+    }
+</div>
+
+<!-- Search -->
+<div class="lc-search-wrap">
+    <i class="fas fa-search lc-search-icon"></i>
+    <input type="text" id="lcSearch"
+           placeholder="ابحث في محاضرات @course?.CourseName..."
+           value="@search"
+           autocomplete="off" />
+    <button class="lc-search-clear" id="lcSearchClear"><i class="fas fa-times"></i></button>
+</div>
+
+@if (!list.Any())
+{
+    <div class="lc-empty">
+        <i class="fas fa-chalkboard"></i>
+        <p>لا توجد محاضرات مطابقة</p>
+        @if (isAdmin || isTrainer)
+        {
+            <a asp-action="Create" asp-controller="Lectures" asp-route-courseId="@course?.CourseId" class="lc-add-btn">
+                <i class="fas fa-plus"></i> إضافة أول محاضرة
+            </a>
+        }
+    </div>
+}
+else
+{
+    <!-- Results bar -->
+    <div class="lc-results-bar">
+        <span class="lc-results-text">
+            عرض
+            <strong class="lc-results-hl">@(((currentPage - 1) * pageSize) + 1)</strong>
+            —
+            <strong class="lc-results-hl">@(Math.Min(currentPage * pageSize, totalCount))</strong>
+            من
+            <strong class="lc-results-hl">@totalCount</strong>
+            محاضرة
+        </span>
+    </div>
+
+    <!-- Cards grid -->
+    <div class="lc-grid">
+        @foreach (var lec in list)
+        {
+            var firstVid = lec.Videos?.Where(v => !v.IsDeleted).OrderBy(v => v.DisplayOrder).FirstOrDefault();
+            var thumb = firstVid?.ThumbnailUrl
+                         ?? (firstVid?.YouTubeVideoId != null
+                             ? $"https://img.youtube.com/vi/{firstVid.YouTubeVideoId}/mqdefault.jpg"
+                             : null);
+
+            if (thumb == null && !string.IsNullOrEmpty(lec.VideoUrl))
+            {
+                var ytId = lec.VideoUrl.Contains("v=")
+                    ? System.Web.HttpUtility.ParseQueryString(new Uri(lec.VideoUrl).Query)["v"]
+                    : lec.VideoUrl.Contains("youtu.be/")
+                        ? lec.VideoUrl.Split('/').Last()
+                        : lec.VideoUrl;
+                thumb = $"https://img.youtube.com/vi/{ytId}/mqdefault.jpg";
+            }
+
+            var vidCount = lec.Videos?.Count(v => !v.IsDeleted) ?? 0;
+            var resCount = lec.Resources?.Count(r => !r.IsDeleted) ?? 0;
+            var hasLegacyVideo = vidCount == 0 && !string.IsNullOrEmpty(lec.VideoUrl);
+
+            <div class="lc-card">
+
+                <!-- Thumbnail -->
+                <div class="lc-thumb-wrap">
+                    @if (thumb != null)
+                    {
+                        <img src="@thumb" alt="@lec.Title" loading="lazy" />
+                    }
+                    else
+                    {
+                        <div class="lc-thumb-fallback"><i class="fas fa-chalkboard-teacher"></i></div>
+                    }
+                    <a asp-action="ViewLecture" asp-controller="Lectures" asp-route-id="@lec.LectureId" class="lc-thumb-overlay">
+                        <span class="lc-play-btn"><i class="fas fa-play"></i></span>
+                    </a>
+                    @if (vidCount > 0 || hasLegacyVideo)
+                    {
+                        <span class="lc-vid-badge">
+                            <i class="fas fa-video"></i> @(vidCount > 0 ? vidCount.ToString() : "رابط")
+                        </span>
+                    }
+                </div>
+
+                <!-- Body -->
+                <div class="lc-card-body">
+                    <h3>@lec.Title</h3>
+                    @if (!string.IsNullOrEmpty(lec.Description))
+                    {
+                        <p>@lec.Description</p>
+                    }
+                    <div class="lc-meta-row">
+                        <span><i class="fas fa-calendar-alt"></i> @lec.LectureDate.ToString("dd/MM/yyyy")</span>
+                        @if (resCount > 0)
+                        {
+                            <span><i class="fas fa-paperclip"></i> @resCount ملف</span>
+                        }
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                @if (isAdmin || isTrainer)
+                {
+                    <div class="lc-actions">
+                        <a asp-action="ViewLecture" asp-controller="Lectures" asp-route-id="@lec.LectureId" class="lc-btn lc-btn-view" title="عرض المحاضرة">
+                            <i class="fas fa-eye"></i> عرض
+                        </a>
+                        <a asp-action="Edit" asp-controller="Lectures" asp-route-id="@lec.LectureId" class="lc-icon-btn lc-btn-edit" title="تعديل">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                        <a asp-action="Manage" asp-controller="LectureVideos" asp-route-lectureId="@lec.LectureId" class="lc-icon-btn lc-btn-video" title="الفيديوهات">
+                            <i class="fas fa-video"></i>
+                        </a>
+                        <a asp-action="Manage" asp-controller="LectureResources" asp-route-lectureId="@lec.LectureId" class="lc-icon-btn lc-btn-resource" title="الموارد">
+                            <i class="fas fa-folder-open"></i>
+                        </a>
+                        <a asp-action="Delete" asp-controller="Lectures" asp-route-id="@lec.LectureId" class="lc-icon-btn lc-btn-delete"
+                               title="حذف" onclick="return confirm('هل أنت متأكد من حذف محاضرة: @lec.Title ؟')">
+                            <i class="fas fa-trash"></i>
+                        </a>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+
+    <!-- Pagination -->
+    @if (totalPages > 1)
+    {
+        <div class="lc-pag-wrap">
+            <div class="lc-pag-info">
+                صفحة <strong>@currentPage</strong> من <strong>@totalPages</strong>
+            </div>
+            <ul class="lc-pag">
+
+                <li class="@(currentPage <= 1 ? "disabled" : "")">
+                    <a href="#" class="lc-pag-link" data-page="@(currentPage - 1)" title="السابق">
+                        <i class="fas fa-chevron-right"></i>
+                    </a>
+                </li>
+
+                @{
+                    int startP = Math.Max(1, currentPage - 3);
+                    int endP = Math.Min(totalPages, startP + 6);
+                    if (endP - startP < 6) startP = Math.Max(1, endP - 6);
+                }
+                @if (startP > 1)
+                {
+                    <li><a href="#" class="lc-pag-link" data-page="1">1</a></li>
+                    if (startP > 2)
+                    {
+                        <li class="ellipsis"><span>…</span></li>
+                    }
+                }
+                @for (int pi = startP; pi <= endP; pi++)
+                {
+                    <li class="@(pi == currentPage ? "active" : "")">
+                        <a href="#" class="lc-pag-link" data-page="@pi">@pi</a>
+                    </li>
+                }
+                @if (endP < totalPages)
+                {
+                    if (endP < totalPages - 1)
+                    {
+                        <li class="ellipsis"><span>…</span></li>
+                    }
+                    <li><a href="#" class="lc-pag-link" data-page="@totalPages">@totalPages</a></li>
+                }
+
+                <li class="@(currentPage >= totalPages ? "disabled" : "")">
+                    <a href="#" class="lc-pag-link" data-page="@(currentPage + 1)" title="التالي">
+                        <i class="fas fa-chevron-left"></i>
+                    </a>
+                </li>
+
+            </ul>
+        </div>
+    }
+}
+
+<script>
+    // ── Bind events every time this partial is (re)loaded ──────────────
+    (function () {
+        var searchInput = document.getElementById('lcSearch');
+        var clearBtn = document.getElementById('lcSearchClear');
+        if (clearBtn) clearBtn.style.display = searchInput && searchInput.value ? 'block' : 'none';
+
+        if (searchInput) {
+            searchInput.addEventListener('input', function () {
+                clearTimeout(window.lcTimer);
+                if (clearBtn) clearBtn.style.display = this.value ? 'block' : 'none';
+                window.lcTimer = setTimeout(function () { window.loadLectures(1); }, 300);
+            });
+        }
+        if (clearBtn) {
+            clearBtn.addEventListener('click', function () {
+                if (searchInput) { searchInput.value = ''; searchInput.dispatchEvent(new Event('input')); }
+            });
+        }
+
+        document.querySelectorAll('.lc-pag-link').forEach(function (a) {
+            a.addEventListener('click', function (e) {
+                e.preventDefault();
+                var p = parseInt(this.getAttribute('data-page'));
+                if (!isNaN(p) && p >= 1) window.loadLectures(p);
+            });
+        });
+    })();
+</script>

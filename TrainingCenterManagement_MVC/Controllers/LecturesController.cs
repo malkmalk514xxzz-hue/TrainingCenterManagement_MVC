@@ -37,28 +37,77 @@ namespace TrainingCenterManagement_MVC.Controllers
 
         // GET: Lectures
         [Authorize(Roles = "Trainer,Admin")]
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(
+                                         Guid? courseId = null,int page = 1, int pageSize = 9, string search = "")
         {
-            // Step 1: load courses (no Include to avoid duplicate-path issue)
+            pageSize = Math.Clamp(pageSize, 6, 30);
+
+            // ── Step 1: load all courses for the right-hand selector ───────
             var courses = await _context.Courses
+                .Where(c => !c.IsDeleted)
                 .OrderBy(c => c.CourseName)
                 .ToListAsync();
 
-            if (courses.Any())
-            {
-                var courseIds = courses.Select(c => c.CourseId).ToList();
+            if (!courses.Any())
+                return View(new LecturesIndexViewModel { Courses = courses });
 
-                // Step 2: load lectures once with both sub-navigations.
-                // EF Core relationship fixup automatically populates course.Lectures.
-                await _context.Lectures
-                    .Include(l => l.Videos)
-                    .Include(l => l.Resources)
-                    .Where(l => courseIds.Contains(l.CourseId))
-                    .AsSplitQuery()
-                    .LoadAsync();
+            // ── Lecture counts per course (for the badges in the selector) ─
+            var lectureCounts = await _context.Lectures
+                .Where(l => !l.IsDeleted && courses.Select(c => c.CourseId).Contains(l.CourseId))
+                .GroupBy(l => l.CourseId)
+                .Select(g => new { CourseId = g.Key, Count = g.Count() })
+                .ToDictionaryAsync(x => x.CourseId, x => x.Count);
+
+            ViewBag.LectureCounts = lectureCounts;
+
+            // ── Selected course (default = first course) ───────────────────
+            var selectedCourseId = courseId ?? courses.First().CourseId;
+            var selectedCourse = courses.FirstOrDefault(c => c.CourseId == selectedCourseId) ?? courses.First();
+            selectedCourseId = selectedCourse.CourseId;
+
+            // ── Step 2: load lectures for the selected course (paged) ──────
+            var query = _context.Lectures
+                .Where(l => l.CourseId == selectedCourseId && !l.IsDeleted)
+                .Include(l => l.Videos)
+                .Include(l => l.Resources)
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var term = search.Trim().ToLower();
+                query = query.Where(l =>
+                    l.Title.ToLower().Contains(term) ||
+                    (l.Description != null && l.Description.ToLower().Contains(term)));
             }
 
-            return View(courses);
+            var totalCount = await query.CountAsync();
+            var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+            page = Math.Max(1, Math.Min(page, Math.Max(1, totalPages)));
+
+            var lectures = await query
+                .OrderByDescending(l => l.LectureDate)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            ViewBag.SelectedCourseId = selectedCourseId;
+            ViewBag.SelectedCourse = selectedCourse;
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.TotalCount = totalCount;
+            ViewBag.PageSize = pageSize;
+            ViewBag.Search = search;
+
+            // ── Ajax: return only the lectures panel ────────────────────────
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                return PartialView("_LecturesPanelPartial", lectures);
+
+            var model = new LecturesIndexViewModel
+            {
+                Courses = courses,
+                Lectures = lectures
+            };
+            return View(model);
         }
 
 

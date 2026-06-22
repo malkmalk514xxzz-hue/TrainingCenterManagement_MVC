@@ -1,15 +1,195 @@
-@model IEnumerable<TrainingCenterManagement_MVC.Models.Course>
+@model TrainingCenterManagement_MVC.ViewModels.LecturesIndexViewModel
 @using TrainingCenterManagement_MVC.Models
+
 @{
     ViewData["Title"] = "المحاضرات";
-    var isAdmin = User.IsInRole("Admin");
-    var isTrainer = User.IsInRole("Trainer");
-    var firstCourse = Model.FirstOrDefault();
-    var firstCourseId = firstCourse?.CourseId.ToString() ?? "";
+    bool isAdmin   = User.IsInRole("Admin");
+    bool isTrainer = User.IsInRole("Trainer");
+    var  courses   = Model.Courses;
+    var  lectureCounts = ViewBag.LectureCounts as Dictionary<Guid, int> ?? new Dictionary<Guid, int>();
+    var  selectedCourseId = ViewBag.SelectedCourseId is Guid g ? g : (courses.FirstOrDefault()?.CourseId ?? Guid.Empty);
 }
 
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+<style>
+    :root {
+        --primary:       #1d4ed8;
+        --primary-light: #3b82f6;
+        --primary-pale:  #eff6ff;
+        --primary-dark:  #1e3a8a;
+        --success:       #10b981;
+        --danger:        #ef4444;
+        --warning:       #f59e0b;
+        --body-bg:       #f1f5f9;
+        --card-bg:       #ffffff;
+        --text-1:        #0f172a;
+        --text-2:        #475569;
+        --text-3:        #94a3b8;
+        --border:        #e2e8f0;
+        --shadow-sm:     0 1px 6px rgba(0,0,0,.07);
+        --shadow-md:     0 4px 16px rgba(0,0,0,.10);
+        --radius:        14px;
+        --radius-sm:     10px;
+        --tr:            .2s ease;
+    }
+
+    .lc-page {
+        background: var(--body-bg); direction: rtl;
+        font-family: 'Segoe UI','Cairo',sans-serif;
+        padding: 28px 32px; min-height: 100vh; overflow-y: auto;
+    }
+
+    /* ── Alerts ── */
+    .lc-alert-success { background:#dcfce7; color:#166534; border:1.5px solid #86efac; border-radius:10px; padding:12px 18px; margin-bottom:20px; font-size:.88rem; font-weight:600; display:flex; align-items:center; gap:10px; }
+    .lc-alert-danger  { background:#fee2e2; color:#991b1b; border:1.5px solid #fca5a5; border-radius:10px; padding:12px 18px; margin-bottom:20px; font-size:.88rem; font-weight:600; display:flex; align-items:center; gap:10px; }
+
+    /* ── Page header ── */
+    .lc-page-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:24px; flex-wrap:wrap; gap:12px; }
+    .lc-page-header h1 { font-size:1.5rem; font-weight:800; color:var(--text-1); margin:0 0 4px; }
+    .lc-page-header p  { font-size:.875rem; color:var(--text-2); margin:0; }
+    .lc-page-header p i { color:var(--primary); margin-left:4px; }
+    .lc-add-btn-main {
+        display:inline-flex; align-items:center; gap:8px; padding:10px 22px;
+        background:linear-gradient(135deg,var(--primary),var(--primary-light));
+        color:#fff; border-radius:var(--radius-sm); text-decoration:none;
+        font-weight:700; font-size:.875rem; transition:var(--tr);
+        box-shadow:0 4px 12px rgba(29,78,216,.28);
+    }
+    .lc-add-btn-main:hover { background:linear-gradient(135deg,var(--primary-dark),var(--primary)); color:#fff; transform:translateY(-1px); }
+
+    /* ── Empty state (no courses) ── */
+    .lc-no-courses { background:var(--card-bg); border-radius:var(--radius); padding:80px 20px; text-align:center; box-shadow:var(--shadow-sm); }
+    .lc-no-courses i { font-size:4rem; color:#bfdbfe; margin-bottom:20px; display:block; }
+    .lc-no-courses h2 { font-size:1.2rem; font-weight:700; color:var(--text-1); margin:0 0 8px; }
+    .lc-no-courses p  { color:var(--text-2); margin:0; font-size:.9rem; }
+
+    /* ── Two-panel layout ── */
+    .lc-layout { display:grid; grid-template-columns:260px 1fr; gap:20px; align-items:start; }
+    @@media(max-width:900px){ .lc-layout{ grid-template-columns:1fr; } }
+
+    /* ── Course Selector ── */
+    .lc-selector {
+        background:var(--card-bg); border-radius:var(--radius-sm);
+        box-shadow:var(--shadow-sm); overflow:hidden;
+        position:sticky; top:20px; border:1px solid var(--border);
+    }
+    .lc-selector-head {
+        padding:14px 16px; border-bottom:1px solid var(--border);
+        display:flex; align-items:center; gap:8px;
+        background:linear-gradient(to left,#fafbff,var(--card-bg));
+    }
+    .lc-selector-head i { color:var(--primary); font-size:.9rem; }
+    .lc-selector-head span { font-weight:700; color:var(--text-1); font-size:.9rem; }
+    .lc-selector-list { max-height:calc(100vh - 220px); overflow-y:auto; }
+
+    .course-item {
+        padding:12px 16px; cursor:pointer; border-bottom:1px solid #f8fafc;
+        transition:var(--tr); border-right:3px solid transparent;
+    }
+    .course-item:hover { background:#f8fafc; }
+    .course-item.active {
+        background:var(--primary-pale);
+        border-right:3px solid var(--primary);
+    }
+    .course-item-row { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+    .course-item-name { font-size:.85rem; font-weight:500; color:var(--text-2); }
+    .course-item.active .course-item-name { font-weight:700; color:var(--primary-dark); }
+    .course-item-badge {
+        font-size:.72rem; background:#f1f5f9; color:var(--text-2);
+        padding:2px 8px; border-radius:20px; white-space:nowrap; flex-shrink:0;
+    }
+    .course-item.active .course-item-badge { background:#dbeafe; color:var(--primary-dark); }
+
+    /* ── Lectures panel ── */
+    #lectures-panel { min-height: 200px; }
+
+    .lc-section-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; flex-wrap:wrap; gap:10px; }
+    .lc-section-left { display:flex; align-items:center; gap:10px; }
+    .lc-section-left h2 { font-size:1.1rem; font-weight:700; color:var(--text-1); margin:0; }
+    .lc-count-badge { background:var(--primary-pale); color:var(--primary-dark); padding:3px 10px; border-radius:20px; font-size:.78rem; font-weight:700; }
+    .lc-add-btn { display:inline-flex; align-items:center; gap:6px; padding:8px 16px; background:linear-gradient(135deg,var(--primary),var(--primary-light)); color:#fff; border-radius:var(--radius-sm); text-decoration:none; font-size:.8rem; font-weight:600; transition:var(--tr); }
+    .lc-add-btn:hover { background:linear-gradient(135deg,var(--primary-dark),var(--primary)); color:#fff; }
+
+    /* Search */
+    .lc-search-wrap { margin-bottom:16px; position:relative; }
+    .lc-search-icon { position:absolute; right:12px; top:50%; transform:translateY(-50%); color:var(--text-3); font-size:.85rem; pointer-events:none; }
+    .lc-search-clear { position:absolute; left:10px; top:50%; transform:translateY(-50%); background:none; border:none; color:var(--text-3); cursor:pointer; font-size:.8rem; display:none; padding:2px; }
+    .lc-search-wrap input {
+        width:100%; padding:9px 36px; border:1.5px solid var(--border); border-radius:8px;
+        font-size:.85rem; outline:none; font-family:inherit; background:#fafcff;
+        direction:rtl; transition:border-color var(--tr),box-shadow var(--tr); box-sizing:border-box;
+    }
+    .lc-search-wrap input:focus { border-color:var(--primary); box-shadow:0 0 0 3px rgba(29,78,216,.10); background:#fff; }
+
+    /* Results bar — بارزة */
+    .lc-results-bar { display:flex; align-items:center; margin-bottom:14px; padding:9px 14px; background:var(--primary-pale); border:1.5px solid #bfdbfe; border-radius:var(--radius-sm); }
+    .lc-results-text { font-size:.85rem; color:var(--text-2); font-weight:500; }
+    .lc-results-hl { font-size:.95rem; font-weight:800; color:var(--primary); background:#fff; border:1.5px solid #bfdbfe; border-radius:6px; padding:1px 7px; margin:0 3px; }
+
+    /* Empty */
+    .lc-empty { background:var(--card-bg); border-radius:var(--radius-sm); padding:60px 20px; text-align:center; box-shadow:var(--shadow-sm); }
+    .lc-empty i { font-size:3rem; color:#bfdbfe; margin-bottom:16px; display:block; }
+    .lc-empty p { color:var(--text-2); margin:0 0 16px; font-size:.9rem; }
+
+    /* Grid of lecture cards */
+    .lc-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(270px,1fr)); gap:16px; }
+
+    .lc-card { background:var(--card-bg); border-radius:var(--radius-sm); overflow:hidden; box-shadow:var(--shadow-sm); display:flex; flex-direction:column; transition:var(--tr); }
+    .lc-card:hover { box-shadow:var(--shadow-md); transform:translateY(-2px); }
+
+    .lc-thumb-wrap { position:relative; aspect-ratio:16/9; background:var(--border); overflow:hidden; flex-shrink:0; }
+    .lc-thumb-wrap img { width:100%; height:100%; object-fit:cover; }
+    .lc-thumb-fallback { width:100%; height:100%; display:flex; align-items:center; justify-content:center; background:linear-gradient(135deg,var(--primary-pale),#dbeafe); }
+    .lc-thumb-fallback i { font-size:2.5rem; color:var(--primary); }
+    .lc-thumb-overlay { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; background:rgba(15,23,42,.45); opacity:0; transition:var(--tr); text-decoration:none; }
+    .lc-thumb-wrap:hover .lc-thumb-overlay { opacity:1; }
+    .lc-play-btn { width:50px; height:50px; background:rgba(255,255,255,.92); border-radius:50%; display:flex; align-items:center; justify-content:center; }
+    .lc-play-btn i { color:var(--primary); font-size:1.1rem; }
+    .lc-vid-badge { position:absolute; bottom:8px; right:8px; background:rgba(0,0,0,.65); color:#fff; font-size:.7rem; padding:2px 8px; border-radius:4px; display:flex; align-items:center; gap:4px; }
+
+    .lc-card-body { padding:14px; flex:1; display:flex; flex-direction:column; gap:6px; }
+    .lc-card-body h3 { font-size:.92rem; font-weight:700; color:var(--text-1); margin:0; line-height:1.4; }
+    .lc-card-body p  { font-size:.8rem; color:var(--text-2); margin:0; line-height:1.5; overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; }
+    .lc-meta-row { display:flex; align-items:center; gap:12px; font-size:.75rem; color:var(--text-3); margin-top:auto; padding-top:6px; flex-wrap:wrap; }
+
+    .lc-actions { padding:10px 14px; border-top:1px solid #f1f5f9; display:flex; gap:6px; flex-wrap:wrap; }
+    .lc-btn { flex:1; display:flex; align-items:center; justify-content:center; gap:5px; padding:7px 10px; background:var(--primary-pale); color:var(--primary-dark); border-radius:6px; text-decoration:none; font-size:.78rem; font-weight:600; transition:var(--tr); }
+    .lc-btn:hover { background:var(--primary); color:#fff; }
+    .lc-icon-btn { display:flex; align-items:center; justify-content:center; width:34px; height:34px; border-radius:6px; text-decoration:none; font-size:.8rem; transition:var(--tr); }
+    .lc-btn-edit     { background:#fefce8; color:#d97706; }
+    .lc-btn-edit:hover     { background:#f59e0b; color:#fff; }
+    .lc-btn-video    { background:#f0fdf4; color:#16a34a; }
+    .lc-btn-video:hover    { background:#16a34a; color:#fff; }
+    .lc-btn-resource { background:var(--primary-pale); color:var(--primary); }
+    .lc-btn-resource:hover { background:var(--primary); color:#fff; }
+    .lc-btn-delete   { background:#fef2f2; color:#dc2626; }
+    .lc-btn-delete:hover   { background:#dc2626; color:#fff; }
+
+    /* Loader */
+    .lc-loader { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:60px; gap:14px; color:var(--text-3); }
+    .lc-spinner { width:38px; height:38px; border:3px solid var(--border); border-top-color:var(--primary); border-radius:50%; animation:lc-spin .7s linear infinite; }
+    @@keyframes lc-spin { to { transform:rotate(360deg); } }
+
+    /* Pagination */
+    .lc-pag-wrap { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; padding-top:22px; }
+    .lc-pag-info { font-size:.82rem; color:var(--text-3); }
+    .lc-pag-info strong { color:var(--text-2); }
+    .lc-pag { list-style:none; display:flex; gap:5px; margin:0; padding:0; flex-wrap:wrap; }
+    .lc-pag li a, .lc-pag li span {
+        display:inline-flex; align-items:center; justify-content:center;
+        min-width:36px; height:36px; padding:0 6px; border-radius:9px;
+        font-size:.86rem; border:1.5px solid var(--border); color:var(--text-1);
+        text-decoration:none; background:var(--card-bg); transition:var(--tr); font-weight:500;
+    }
+    .lc-pag li a:hover { background:var(--primary); color:#fff; border-color:var(--primary); transform:translateY(-1px); box-shadow:0 3px 8px rgba(29,78,216,.25); }
+    .lc-pag li.active a { background:var(--primary); color:#fff; border-color:var(--primary); font-weight:700; pointer-events:none; }
+    .lc-pag li.disabled a { opacity:.4; pointer-events:none; }
+    .lc-pag li.ellipsis span { border:none; background:none; color:var(--text-3); min-width:20px; }
+</style>
+
 <div class="dashboard-wrapper">
-    @if (User.IsInRole("Admin"))
+    @if (isAdmin)
     {
         @await Html.PartialAsync("_AdminSidebar")
     }
@@ -18,285 +198,112 @@
         @Html.Partial("_TrainerSidebar")
     }
 
-    <div class="dashboard-main" style="background:#f1f5f9;direction:rtl;font-family:'Segoe UI','Helvetica Neue',Arial,sans-serif;padding:28px 32px;min-height:100vh;overflow-y:auto;">
+    <div class="dashboard-main lc-page">
 
         @if (TempData["Success"] != null)
         {
-            <div style="background:#dcfce7;color:#166534;border:1.5px solid #86efac;border-radius:10px;padding:12px 18px;margin-bottom:20px;font-size:.88rem;font-weight:600;display:flex;align-items:center;gap:10px;">
-                <i class="fas fa-check-circle"></i> @TempData["Success"]
-            </div>
+            <div class="lc-alert-success"><i class="fas fa-check-circle"></i> @TempData["Success"]</div>
         }
         @if (TempData["Error"] != null)
         {
-            <div style="background:#fee2e2;color:#991b1b;border:1.5px solid #fca5a5;border-radius:10px;padding:12px 18px;margin-bottom:20px;font-size:.88rem;font-weight:600;display:flex;align-items:center;gap:10px;">
-                <i class="fas fa-exclamation-circle"></i> @TempData["Error"]
-            </div>
+            <div class="lc-alert-danger"><i class="fas fa-exclamation-circle"></i> @TempData["Error"]</div>
         }
 
         <!-- Page Header -->
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
+        <div class="lc-page-header">
             <div>
-                <h1 style="font-size:1.5rem;font-weight:700;color:#0f172a;margin:0 0 4px;">المحاضرات</h1>
-                <p style="font-size:.875rem;color:#64748b;margin:0;">
-                    <i class="fas fa-graduation-cap" style="color:#4f46e5;margin-left:4px;"></i>
-                    @Model.Count() دورة · @Model.Sum(c => c.Lectures?.Count(l => !l.IsDeleted) ?? 0) محاضرة
-                </p>
+                <h1>المحاضرات</h1>
+                <p><i class="fas fa-graduation-cap"></i> @courses.Count دورة · @lectureCounts.Values.Sum() محاضرة</p>
             </div>
             @if (isAdmin || isTrainer)
             {
-                <a asp-action="Create" asp-controller="Lectures"
-                   style="display:inline-flex;align-items:center;gap:8px;padding:10px 22px;background:#4f46e5;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;font-size:.875rem;transition:.15s;box-shadow:0 2px 8px rgba(79,70,229,.3);">
+                <a asp-action="Create" asp-controller="Lectures" class="lc-add-btn-main">
                     <i class="fas fa-plus"></i> محاضرة جديدة
                 </a>
             }
         </div>
 
-        @if (!Model.Any())
+        @if (!courses.Any())
         {
-            <div style="background:#fff;border-radius:14px;padding:80px 20px;text-align:center;box-shadow:0 1px 6px rgba(0,0,0,.07);">
-                <i class="fas fa-chalkboard-teacher" style="font-size:4rem;color:#c7d2fe;margin-bottom:20px;display:block;"></i>
-                <h2 style="font-size:1.2rem;font-weight:700;color:#0f172a;margin:0 0 8px;">لا توجد دورات مضافة</h2>
-                <p style="color:#64748b;margin:0 0 20px;font-size:.9rem;">قم بإضافة دورات أولاً ثم أضف محاضراتها</p>
+            <div class="lc-no-courses">
+                <i class="fas fa-chalkboard-teacher"></i>
+                <h2>لا توجد دورات مضافة</h2>
+                <p>قم بإضافة دورات أولاً ثم أضف محاضراتها</p>
             </div>
         }
         else
         {
-            <!-- Two-panel layout -->
-            <div style="display:grid;grid-template-columns:260px 1fr;gap:20px;align-items:start;">
+            <div class="lc-layout">
 
-                <!-- Course Selector (right side in RTL) -->
-                <div style="background:#fff;border-radius:12px;box-shadow:0 1px 6px rgba(0,0,0,.07);overflow:hidden;position:sticky;top:20px;">
-                    <div style="padding:14px 16px;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;gap:8px;">
-                        <i class="fas fa-list-ul" style="color:#4f46e5;font-size:.9rem;"></i>
-                        <span style="font-weight:700;color:#0f172a;font-size:.9rem;">الدورات التدريبية</span>
+                <!-- Course Selector -->
+                <div class="lc-selector">
+                    <div class="lc-selector-head">
+                        <i class="fas fa-list-ul"></i>
+                        <span>الدورات التدريبية</span>
                     </div>
-                    <div style="max-height:calc(100vh - 220px);overflow-y:auto;">
-                        @foreach (var course in Model)
+                    <div class="lc-selector-list" id="lc-course-list">
+                        @foreach (var course in courses)
                         {
-                            var lecCount = course.Lectures?.Count ?? 0;
-                            var isFirst = course.CourseId == firstCourse?.CourseId;
-                            <div class="course-item"
+                            var lecCount = lectureCounts.ContainsKey(course.CourseId) ? lectureCounts[course.CourseId] : 0;
+                            var isActive = course.CourseId == selectedCourseId;
+                            <div class="course-item @(isActive ? "active" : "")"
                                  id="ci-@course.CourseId"
-                                 onclick="selectCourse('@course.CourseId')"
-                                 style="padding:12px 16px;cursor:pointer;border-bottom:1px solid #f8fafc;transition:.15s;@(isFirst ? "background:#eff6ff;border-right:3px solid #4f46e5;" : "")">
-                                <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
-                                    <span style="font-size:.85rem;font-weight:@(isFirst ? "600" : "500");color:@(isFirst ? "#4338ca" : "#374151");">@course.CourseName</span>
-                                    <span style="font-size:.72rem;background:@(isFirst ? "#e0e7ff" : "#f1f5f9");color:@(isFirst ? "#4338ca" : "#6b7280");padding:2px 8px;border-radius:20px;white-space:nowrap;flex-shrink:0;">@lecCount</span>
+                                 data-course-id="@course.CourseId">
+                                <div class="course-item-row">
+                                    <span class="course-item-name">@course.CourseName</span>
+                                    <span class="course-item-badge">@lecCount</span>
                                 </div>
                             </div>
                         }
                     </div>
                 </div>
 
-                <!-- Lectures Display Panel -->
+                <!-- Lectures Display Panel (Ajax target) -->
                 <div id="lectures-panel">
-                    @foreach (var course in Model)
-                    {
-                        var isFirstCourse = course.CourseId == firstCourse?.CourseId;
-                        var lectures = course.Lectures?
-                            .Where(l => !l.IsDeleted)
-                            .GroupBy(l => l.LectureId).Select(g => g.First())
-                            .OrderByDescending(l => l.LectureDate).ToList() ?? new List<Lecture>();
-                        var csId = course.CourseId.ToString();
-                        <div class="course-section"
-                             id="cs-@course.CourseId"
-                             style="display:@(isFirstCourse ? "block" : "none");">
-
-                            <!-- Section header -->
-                            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px;">
-                                <div style="display:flex;align-items:center;gap:10px;">
-                                    <h2 style="font-size:1.1rem;font-weight:700;color:#0f172a;margin:0;">@course.CourseName</h2>
-                                    <span id="count-@csId" style="background:#e0e7ff;color:#4338ca;padding:3px 10px;border-radius:20px;font-size:.78rem;font-weight:700;">
-                                        @lectures.Count محاضرة
-                                    </span>
-                                </div>
-                                @if (isAdmin || isTrainer)
-                                {
-                                    <a asp-action="Create" asp-controller="Lectures" asp-route-courseId="@course.CourseId"
-                                       style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:#4f46e5;color:#fff;border-radius:8px;text-decoration:none;font-size:.8rem;font-weight:600;">
-                                        <i class="fas fa-plus"></i> إضافة محاضرة
-                                    </a>
-                                }
-                            </div>
-
-                            <!-- Search -->
-                            <div style="margin-bottom:16px;position:relative;">
-                                <i class="fas fa-search" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);color:#94a3b8;font-size:.85rem;pointer-events:none;"></i>
-                                <input type="text" placeholder="ابحث في محاضرات @course.CourseName..."
-                                       oninput="filterLectures('@csId', this.value)"
-                                       style="width:100%;padding:9px 36px 9px 14px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:.85rem;outline:none;font-family:inherit;background:#fff;direction:rtl;"
-                                       onfocus="this.style.borderColor='#818cf8'" onblur="this.style.borderColor='#e2e8f0'" /></div>
-
-                            @if (!lectures.Any())
-                            {
-                                <div style="background:#fff;border-radius:12px;padding:60px 20px;text-align:center;box-shadow:0 1px 6px rgba(0,0,0,.07);">
-                                    <i class="fas fa-chalkboard" style="font-size:3rem;color:#c7d2fe;margin-bottom:16px;display:block;"></i>
-                                    <p style="color:#64748b;margin:0 0 16px;font-size:.9rem;">لا توجد محاضرات لهذه الدورة حتى الآن</p>
-                                    @if (isAdmin || isTrainer)
-                                    {
-                                        <a asp-action="Create" asp-controller="Lectures" asp-route-courseId="@course.CourseId"
-                                           style="display:inline-flex;align-items:center;gap:6px;padding:10px 20px;background:#4f46e5;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;font-size:.875rem;">
-                                            <i class="fas fa-plus"></i> إضافة أول محاضرة
-                                        </a>
-                                    }
-                                </div>
-                            }
-                            else
-                            {
-                                <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:16px;">
-                                    @foreach (var lec in lectures)
-                                    {
-                                        var firstVid = lec.Videos?.Where(v => !v.IsDeleted).OrderBy(v => v.DisplayOrder).FirstOrDefault();
-                                        var thumb = firstVid?.ThumbnailUrl
-                                                 ?? (firstVid?.YouTubeVideoId != null
-                                                     ? $"https://img.youtube.com/vi/{firstVid.YouTubeVideoId}/mqdefault.jpg"
-                                                     : null);
-                                        // fallback: old VideoUrl field (stored as YouTube ID)
-                                        if (thumb == null && !string.IsNullOrEmpty(lec.VideoUrl))
-                                        {
-                                            var ytId = lec.VideoUrl.Contains("v=")
-                                                ? System.Web.HttpUtility.ParseQueryString(new Uri(lec.VideoUrl).Query)["v"]
-                                                : lec.VideoUrl.Contains("youtu.be/")
-                                                    ? lec.VideoUrl.Split('/').Last()
-                                                    : lec.VideoUrl;
-                                            thumb = $"https://img.youtube.com/vi/{ytId}/mqdefault.jpg";
-                                        }
-                                        var vidCount = lec.Videos?.Count(v => !v.IsDeleted) ?? 0;
-                                        var resCount = lec.Resources?.Count(r => !r.IsDeleted) ?? 0;
-                                        var hasLegacyVideo = vidCount == 0 && !string.IsNullOrEmpty(lec.VideoUrl);
-
-                                        <div class="lec-card" data-title="@lec.Title.ToLower()" style="background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 6px rgba(0,0,0,.07);display:flex;flex-direction:column;transition:.2s;">
-
-                                            <!-- Thumbnail -->
-                                            <div class="thumb-wrap" style="position:relative;aspect-ratio:16/9;background:#e2e8f0;overflow:hidden;flex-shrink:0;">
-                                                @if (thumb != null)
-                                                {
-                                                    <img src="@thumb" alt="@lec.Title"
-                                                         style="width:100%;height:100%;object-fit:cover;" loading="lazy" />
-                                                }
-                                                else
-                                                {
-                                                    <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#e0e7ff,#c7d2fe);">
-                                                        <i class="fas fa-chalkboard-teacher" style="font-size:2.5rem;color:#6366f1;"></i>
-                                                    </div>
-                                                }
-                                                <a asp-action="ViewLecture" asp-controller="Lectures" asp-route-id="@lec.LectureId"
-                                                   class="thumb-overlay"
-                                                   style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.45);opacity:0;transition:.2s;text-decoration:none;">
-                                                    <span style="width:50px;height:50px;background:rgba(255,255,255,.9);border-radius:50%;display:flex;align-items:center;justify-content:center;margin-right:2px;">
-                                                        <i class="fas fa-play" style="color:#4f46e5;font-size:1.1rem;"></i>
-                                                    </span>
-                                                </a>
-                                                @if (vidCount > 0 || hasLegacyVideo)
-                                                {
-                                                    <span style="position:absolute;bottom:8px;right:8px;background:rgba(0,0,0,.65);color:#fff;font-size:.7rem;padding:2px 8px;border-radius:4px;display:flex;align-items:center;gap:4px;">
-                                                        <i class="fas fa-video"></i> @(vidCount > 0 ? vidCount.ToString() : "رابط")
-                                                    </span>
-                                                }
-                                            </div>
-
-                                            <!-- Body -->
-                                            <div style="padding:14px;flex:1;display:flex;flex-direction:column;gap:6px;">
-                                                <h3 style="font-size:.92rem;font-weight:700;color:#0f172a;margin:0;line-height:1.4;">@lec.Title</h3>
-                                                @if (!string.IsNullOrEmpty(lec.Description))
-                                                {
-                                                    <p style="font-size:.8rem;color:#64748b;margin:0;line-height:1.5;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;">@lec.Description</p>
-                                                }
-                                                <div style="display:flex;align-items:center;gap:12px;font-size:.75rem;color:#94a3b8;margin-top:auto;padding-top:6px;flex-wrap:wrap;">
-                                                    <span><i class="fas fa-calendar-alt"></i> @lec.LectureDate.ToString("dd/MM/yyyy")</span>
-                                                    @if (resCount > 0)
-                                                    {
-                                                        <span><i class="fas fa-paperclip"></i> @resCount ملف</span>
-                                                    }
-                                                </div>
-                                            </div>
-
-                                            <!-- Actions -->
-                                            @if (isAdmin || isTrainer)
-                                            {
-                                                <div style="padding:10px 14px;border-top:1px solid #f1f5f9;display:flex;gap:6px;flex-wrap:wrap;">
-                                                    <a asp-action="ViewLecture" asp-controller="Lectures" asp-route-id="@lec.LectureId"
-                                                       style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:7px 10px;background:#eff6ff;color:#2563eb;border-radius:6px;text-decoration:none;font-size:.78rem;font-weight:600;" title="عرض المحاضرة">
-                                                        <i class="fas fa-eye"></i> عرض
-                                                    </a>
-                                                    <a asp-action="Edit" asp-controller="Lectures" asp-route-id="@lec.LectureId"
-                                                       style="display:flex;align-items:center;justify-content:center;width:34px;height:34px;background:#fefce8;color:#d97706;border-radius:6px;text-decoration:none;font-size:.8rem;" title="تعديل">
-                                                        <i class="fas fa-edit"></i>
-                                                    </a>
-                                                    <a asp-action="Manage" asp-controller="LectureVideos" asp-route-lectureId="@lec.LectureId"
-                                                       style="display:flex;align-items:center;justify-content:center;width:34px;height:34px;background:#f0fdf4;color:#16a34a;border-radius:6px;text-decoration:none;font-size:.8rem;" title="الفيديوهات">
-                                                        <i class="fas fa-video"></i>
-                                                    </a>
-                                                    <a asp-action="Manage" asp-controller="LectureResources" asp-route-lectureId="@lec.LectureId"
-                                                       style="display:flex;align-items:center;justify-content:center;width:34px;height:34px;background:#faf5ff;color:#7c3aed;border-radius:6px;text-decoration:none;font-size:.8rem;" title="الموارد">
-                                                        <i class="fas fa-folder-open"></i>
-                                                    </a>
-                                                    <a asp-action="Delete" asp-controller="Lectures" asp-route-id="@lec.LectureId"
-                                                       style="display:flex;align-items:center;justify-content:center;width:34px;height:34px;background:#fef2f2;color:#dc2626;border-radius:6px;text-decoration:none;font-size:.8rem;"
-                                                       title="حذف"
-                                                       onclick="return confirm('هل أنت متأكد من حذف محاضرة: @lec.Title ؟')">
-                                                        <i class="fas fa-trash"></i>
-                                                    </a>
-                                                </div>
-                                            }
-                                        </div>
-                                    }
-                                </div>
-                            }
-                        </div>
-                    }
+                    @await Html.PartialAsync("_LecturesPanelPartial", Model.Lectures)
                 </div>
+
             </div>
         }
     </div>
 </div>
 
-<style>
-    .thumb-wrap:hover .thumb-overlay { opacity: 1 !important; }
-    .lec-card:hover { box-shadow: 0 4px 18px rgba(0,0,0,.12) !important; transform: translateY(-2px); }
-    .course-item:hover { background: #f8fafc !important; }
-    @@media (max-width: 900px) {
-        .dashboard-main > div:last-child > div[style*="grid-template-columns:260px"] {
-            grid-template-columns: 1fr !important;
-        }
-    }
-</style>
-
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script>
-    function selectCourse(courseId) {
-        document.querySelectorAll('.course-item').forEach(function(el) {
-            el.style.background = '';
-            el.style.borderRight = '';
-            var spans = el.querySelectorAll('span');
-            if (spans[0]) { spans[0].style.color = '#374151'; spans[0].style.fontWeight = '500'; }
-            if (spans[1]) { spans[1].style.background = '#f1f5f9'; spans[1].style.color = '#6b7280'; }
-        });
-        var item = document.getElementById('ci-' + courseId);
-        if (item) {
-            item.style.background = '#eff6ff';
-            item.style.borderRight = '3px solid #4f46e5';
-            var spans = item.querySelectorAll('span');
-            if (spans[0]) { spans[0].style.color = '#4338ca'; spans[0].style.fontWeight = '600'; }
-            if (spans[1]) { spans[1].style.background = '#e0e7ff'; spans[1].style.color = '#4338ca'; }
-        }
-        document.querySelectorAll('.course-section').forEach(function(el) { el.style.display = 'none'; });
-        var section = document.getElementById('cs-' + courseId);
-        if (section) section.style.display = 'block';
-    }
+    let lcCourseId = '@selectedCourseId';
 
-    function filterLectures(courseId, query) {
-        var q = query.trim().toLowerCase();
-        var section = document.getElementById('cs-' + courseId);
-        if (!section) return;
-        var cards = section.querySelectorAll('.lec-card');
-        var visible = 0;
-        cards.forEach(function(card) {
-            var title = (card.getAttribute('data-title') || '');
-            var show = !q || title.includes(q);
-            card.style.display = show ? '' : 'none';
-            if (show) visible++;
+    // ── Core loader (exposed globally so the partial's pagination/search can call it) ──
+    window.loadLectures = function (lcPage, newCourseId) {
+        const courseId = newCourseId || lcCourseId;
+        const search   = document.getElementById('lcSearch')?.value?.trim() || '';
+
+        $('#lectures-panel').html(
+            '<div class="lc-loader"><div class="lc-spinner"></div><span>جارٍ التحميل…</span></div>'
+        );
+
+        $.ajax({
+            url: '/Lectures/Index',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            data: { courseId: courseId, page: lcPage || 1, search: search },
+            success: function (html) {
+                $('#lectures-panel').html(html);
+            },
+            error: function () {
+                $('#lectures-panel').html(
+                    '<div class="lc-empty"><i class="fas fa-exclamation-circle"></i><p>حدث خطأ أثناء التحميل</p></div>'
+                );
+            }
         });
-        var countEl = document.getElementById('count-' + courseId);
-        if (countEl) countEl.textContent = visible + ' محاضرة';
-    }
+    };
+
+    // ── Course selection ─────────────────────────────────────────────
+    $(document).on('click', '.course-item', function () {
+        const courseId = $(this).data('course-id');
+        lcCourseId = courseId;
+
+        $('.course-item').removeClass('active');
+        $(this).addClass('active');
+
+        window.loadLectures(1, courseId);
+    });
 </script>

@@ -1,25 +1,200 @@
 @model IEnumerable<TrainingCenterManagement_MVC.Models.Exam>
 @{
-    ViewData["Title"] = "امتحاناتي";
+    ViewData["Title"] = "الامتحانات";
+    bool   isAdmin     = ViewBag.IsAdmin == true;
+    int    totalAll    = ViewBag.TotalAll    ?? 0;
+    int    totalActive = ViewBag.TotalActive ?? 0;
+    int    totalPending= ViewBag.TotalPending?? 0;
+    int    totalDrafts = ViewBag.TotalDrafts ?? 0;
+    int    totalEnded  = ViewBag.TotalEnded  ?? 0;
+    string search      = ViewBag.Search      ?? "";
+    string filter      = ViewBag.Filter      ?? "all";
+    int    pageSize    = ViewBag.PageSize    ?? 9;
 }
 
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
 <style>
-    .exam-card { border-radius: 14px; border: 1px solid #e8ecef; transition: all .25s ease; background: #fff; }
-    .exam-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,.1); }
-    .status-badge { font-size: .75rem; font-weight: 600; padding: 4px 10px; border-radius: 20px; }
-    .badge-active  { background: #d1fae5; color: #065f46; }
-    .badge-pending { background: #fef3c7; color: #92400e; }
-    .badge-ended   { background: #f3f4f6; color: #6b7280; }
-    .badge-draft   { background: #ede9fe; color: #5b21b6; }
-    .stat-mini { font-size:.8rem; color:#6b7280; }
-    .action-btn { border-radius: 8px; font-size: .82rem; padding: 5px 12px; font-weight: 500; }
-    .filter-tabs .nav-link { color: #6b7280; border-radius: 10px; padding: 6px 16px; font-size: .88rem; }
-    .filter-tabs .nav-link.active { background: #4f46e5; color: #fff; }
-    .empty-state { text-align:center; padding: 60px 20px; color: #9ca3af; }
+    :root {
+        --primary:       #1d4ed8;
+        --primary-light: #3b82f6;
+        --primary-pale:  #eff6ff;
+        --primary-dark:  #1e3a8a;
+        --success:       #10b981;
+        --warning:       #f59e0b;
+        --danger:        #ef4444;
+        --purple:        #8b5cf6;
+        --body-bg:       #f1f5f9;
+        --card-bg:       #ffffff;
+        --text-1:        #0f172a;
+        --text-2:        #475569;
+        --text-3:        #94a3b8;
+        --border:        #e2e8f0;
+        --shadow-sm:     0 1px 6px rgba(0,0,0,.07);
+        --shadow-md:     0 4px 16px rgba(0,0,0,.10);
+        --radius:        14px;
+        --radius-sm:     10px;
+        --tr:            .2s ease;
+    }
+
+    .ex-page { background:var(--body-bg); direction:rtl; font-family:'Segoe UI','Cairo',sans-serif; padding:28px 32px; min-height:100vh; overflow-y:auto; }
+
+    /* ── Page header ── */
+    .ex-page-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:24px; flex-wrap:wrap; gap:12px; }
+    .ex-page-header h2 { font-size:1.5rem; font-weight:800; color:var(--text-1); margin:0 0 3px; }
+    .ex-page-header h2 i { color:var(--primary); margin-left:8px; }
+    .ex-page-header p  { font-size:.88rem; color:var(--text-2); margin:0; }
+
+    /* ── Prominent header buttons ── */
+    .ex-header-btns { display:flex; gap:10px; flex-wrap:wrap; }
+    .ex-hbtn {
+        display: inline-flex; align-items: center; gap: 8px;
+        padding: 11px 22px; border-radius: var(--radius-sm);
+        font-size: .9rem; font-weight: 700;
+        text-decoration: none; border: none; cursor: pointer;
+        font-family: inherit; transition: var(--tr);
+        white-space: nowrap;
+    }
+    .ex-hbtn-primary {
+        background: linear-gradient(135deg, var(--primary), var(--primary-light));
+        color: #fff;
+        box-shadow: 0 4px 14px rgba(29,78,216,.32);
+    }
+    .ex-hbtn-primary:hover {
+        background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+        color: #fff; transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(29,78,216,.40);
+    }
+    .ex-hbtn-outline {
+        background: var(--card-bg); color: var(--primary);
+        border: 2px solid var(--primary);
+        box-shadow: 0 2px 8px rgba(29,78,216,.12);
+    }
+    .ex-hbtn-outline:hover {
+        background: var(--primary); color: #fff;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 14px rgba(29,78,216,.28);
+    }
+
+    /* ── KPI Stats ── */
+    .ex-stats { display:grid; grid-template-columns:repeat(5,1fr); gap:14px; margin-bottom:24px; }
+    @@media(max-width:1000px){ .ex-stats{ grid-template-columns:repeat(3,1fr); } }
+    @@media(max-width:600px) { .ex-stats{ grid-template-columns:repeat(2,1fr); } }
+    .ex-stat {
+        background:var(--card-bg); border-radius:var(--radius-sm);
+        border:1px solid var(--border); padding:16px;
+        display:flex; align-items:center; gap:12px;
+        box-shadow:var(--shadow-sm); transition:var(--tr);
+    }
+    .ex-stat:hover { box-shadow:var(--shadow-md); transform:translateY(-2px); }
+    .ex-stat-icon { width:42px; height:42px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1rem; flex-shrink:0; }
+    .ex-stat-val  { font-size:1.4rem; font-weight:800; color:var(--text-1); line-height:1; }
+    .ex-stat-lbl  { font-size:.73rem; color:var(--text-3); margin-top:2px; }
+
+    /* ── Toolbar ── */
+    .ex-toolbar {
+        background:var(--card-bg); border-radius:var(--radius-sm);
+        border:1px solid var(--border); padding:14px 18px;
+        display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+        margin-bottom:20px; box-shadow:var(--shadow-sm);
+    }
+    .ex-search { flex:1; min-width:200px; position:relative; }
+    .ex-search .si { position:absolute; right:11px; top:50%; transform:translateY(-50%); color:var(--text-3); font-size:.85rem; pointer-events:none; }
+    .ex-search-clear { position:absolute; left:10px; top:50%; transform:translateY(-50%); background:none; border:none; color:var(--text-3); cursor:pointer; font-size:.8rem; display:none; padding:2px; }
+    .ex-search input { width:100%; padding:9px 34px 9px 34px; border:1.5px solid var(--border); border-radius:8px; font-size:.85rem; font-family:inherit; outline:none; background:#fafcff; transition:border-color var(--tr),box-shadow var(--tr); }
+    .ex-search input:focus { border-color:var(--primary); box-shadow:0 0 0 3px rgba(29,78,216,.10); background:#fff; }
+
+    /* Filter tabs */
+    .ex-filters { display:flex; gap:6px; flex-wrap:wrap; }
+    .ex-ftab {
+        padding:6px 14px; border-radius:20px; border:1.5px solid var(--border);
+        background:var(--card-bg); font-size:.78rem; font-weight:600; color:var(--text-2);
+        cursor:pointer; font-family:inherit; transition:var(--tr);
+    }
+    .ex-ftab:hover { border-color:var(--primary); color:var(--primary); }
+    .ex-ftab.active { background:var(--primary); color:#fff; border-color:var(--primary); }
+
+    /* Page size */
+    .ex-psize { display:flex; align-items:center; gap:6px; font-size:.82rem; color:var(--text-2); }
+    .ex-psize select { padding:6px 9px; border:1.5px solid var(--border); border-radius:8px; font-size:.82rem; outline:none; }
+
+    /* ── Results bar — بارزة ── */
+    .ex-results-bar { display:flex; align-items:center; margin-bottom:14px; padding:10px 14px; background:var(--primary-pale); border:1.5px solid #bfdbfe; border-radius:var(--radius-sm); }
+    .ex-results-text { font-size:.88rem; color:var(--text-2); font-weight:500; }
+    .ex-results-hl { font-size:1rem; font-weight:800; color:var(--primary); background:#fff; border:1.5px solid #bfdbfe; border-radius:6px; padding:1px 7px; margin:0 3px; }
+
+    /* ── Exam cards grid ── */
+    .ex-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:18px; }
+
+    .ex-card { background:var(--card-bg); border-radius:var(--radius); border:1px solid var(--border); box-shadow:var(--shadow-sm); display:flex; flex-direction:column; overflow:hidden; transition:var(--tr); position:relative; }
+    .ex-card:hover { transform:translateY(-3px); box-shadow:var(--shadow-md); border-color:#bfdbfe; }
+
+    /* Top accent stripe per status */
+    .ex-card-accent { height:4px; }
+    .ex-accent-active   { background:linear-gradient(90deg,#10b981,#34d399); }
+    .ex-accent-upcoming { background:linear-gradient(90deg,#f59e0b,#fbbf24); }
+    .ex-accent-draft    { background:linear-gradient(90deg,#8b5cf6,#a78bfa); }
+    .ex-accent-ended    { background:linear-gradient(90deg,#94a3b8,#cbd5e1); }
+
+    .ex-card-head { padding:16px 18px 10px; display:flex; align-items:flex-start; gap:10px; justify-content:space-between; }
+    .ex-card-title-wrap { flex:1; min-width:0; }
+    .ex-card-title { font-size:.97rem; font-weight:700; color:var(--text-1); margin:0 0 4px; }
+    .ex-card-course { font-size:.78rem; color:var(--text-3); display:flex; align-items:center; gap:5px; }
+    .ex-card-course i { color:var(--primary); font-size:.72rem; }
+
+    .ex-status-badge { flex-shrink:0; font-size:.73rem; font-weight:700; padding:4px 10px; border-radius:20px; white-space:nowrap; }
+    .ex-status-active   { background:#d1fae5; color:#065f46; }
+    .ex-status-upcoming { background:#fef3c7; color:#92400e; }
+    .ex-status-draft    { background:#ede9fe; color:#5b21b6; }
+    .ex-status-ended    { background:#f3f4f6; color:#6b7280; }
+
+    .ex-meta-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; padding:0 18px 14px; }
+    .ex-meta-cell { background:#f8fafc; border-radius:var(--radius-sm); padding:10px 12px; }
+    .ex-meta-label { font-size:.72rem; color:var(--text-3); margin-bottom:3px; display:flex; align-items:center; gap:4px; }
+    .ex-meta-label i { color:var(--primary); font-size:.68rem; }
+    .ex-meta-val   { font-size:.88rem; font-weight:700; color:var(--text-1); }
+    .ex-meta-sub   { font-size:.72rem; color:var(--text-3); margin-top:1px; }
+
+    .ex-card-actions { padding:12px 18px; border-top:1px solid #f1f5f9; display:flex; flex-wrap:wrap; gap:7px; margin-top:auto; }
+    .ex-btn { display:inline-flex; align-items:center; justify-content:center; gap:5px; padding:7px 12px; border-radius:7px; font-size:.78rem; font-weight:600; text-decoration:none; border:none; cursor:pointer; transition:var(--tr); font-family:inherit; flex:1; min-width:80px; }
+    .ex-btn-view    { background:var(--primary-pale); color:var(--primary-dark); }
+    .ex-btn-view:hover    { background:var(--primary); color:#fff; }
+    .ex-btn-edit    { background:#fefce8; color:#92400e; }
+    .ex-btn-edit:hover    { background:var(--warning); color:#fff; }
+    .ex-btn-q       { background:#ede9fe; color:#5b21b6; }
+    .ex-btn-q:hover       { background:var(--purple); color:#fff; }
+    .ex-btn-results { background:#d1fae5; color:#065f46; }
+    .ex-btn-results:hover { background:var(--success); color:#fff; }
+    .ex-btn-publish { background:linear-gradient(135deg,var(--primary),var(--primary-light)); color:#fff; box-shadow:0 2px 8px rgba(29,78,216,.20); }
+    .ex-btn-publish:hover { background:linear-gradient(135deg,var(--primary-dark),var(--primary)); }
+
+    /* ── Empty ── */
+    .ex-empty { text-align:center; padding:70px 20px; color:var(--text-3); }
+    .ex-empty i { font-size:3rem; color:#bfdbfe; margin-bottom:16px; display:block; }
+    .ex-empty h5 { font-size:1.05rem; font-weight:700; color:var(--text-1); margin:0 0 6px; }
+    .ex-empty p  { margin:0 0 18px; font-size:.88rem; }
+    .ex-empty-btn { display:inline-flex; align-items:center; gap:7px; padding:10px 22px; border-radius:var(--radius-sm); background:linear-gradient(135deg,var(--primary),var(--primary-light)); color:#fff; text-decoration:none; font-weight:700; font-size:.875rem; transition:var(--tr); box-shadow:0 4px 12px rgba(29,78,216,.28); }
+    .ex-empty-btn:hover { background:linear-gradient(135deg,var(--primary-dark),var(--primary)); color:#fff; }
+
+    /* ── Loader ── */
+    .ex-loader { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:60px; gap:14px; color:var(--text-3); }
+    .ex-spinner { width:38px; height:38px; border:3px solid var(--border); border-top-color:var(--primary); border-radius:50%; animation:ex-spin .7s linear infinite; }
+    @@keyframes ex-spin { to { transform:rotate(360deg); } }
+
+    /* ── Pagination ── */
+    .ex-pag-wrap { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; padding-top:24px; }
+    .ex-pag-info { font-size:.82rem; color:var(--text-3); }
+    .ex-pag-info strong { color:var(--text-2); }
+    .ex-pag { list-style:none; display:flex; gap:5px; margin:0; padding:0; flex-wrap:wrap; }
+    .ex-pag li a, .ex-pag li span { display:inline-flex; align-items:center; justify-content:center; min-width:38px; height:38px; padding:0 6px; border-radius:9px; font-size:.88rem; border:1.5px solid var(--border); color:var(--text-1); text-decoration:none; background:var(--card-bg); transition:var(--tr); font-weight:500; }
+    .ex-pag li a:hover { background:var(--primary); color:#fff; border-color:var(--primary); transform:translateY(-1px); box-shadow:0 3px 8px rgba(29,78,216,.25); }
+    .ex-pag li.active a { background:var(--primary); color:#fff; border-color:var(--primary); font-weight:700; pointer-events:none; box-shadow:0 3px 10px rgba(29,78,216,.30); }
+    .ex-pag li.disabled a { opacity:.4; pointer-events:none; }
+    .ex-pag li.ellipsis span { border:none; background:none; color:var(--text-3); min-width:24px; }
 </style>
 
 <div class="dashboard-wrapper">
-    @if (User.IsInRole("Admin"))
+    @if (isAdmin)
     {
         @await Html.PartialAsync("_AdminSidebar")
     }
@@ -27,191 +202,191 @@
     {
         @await Html.PartialAsync("_TrainerSidebar")
     }
-    <main class="dashboard-main">
-        <div class="container-fluid px-4 py-4">
 
-            <!-- Header -->
-            <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
-                <div>
-                    <h2 class="fw-bold mb-0" style="color:#1e293b">
-                        <i class="fas fa-file-alt me-2" style="color:#4f46e5"></i>@(User.IsInRole("Admin") ? "إدارة جميع الامتحانات" : "امتحاناتي")
-                    </h2>
-                    <p class="text-muted mb-0 mt-1" style="font-size:.9rem">إدارة وإنشاء جميع الامتحانات</p>
-                </div>
-                <div class="d-flex gap-2">
-                    <a asp-action="QuestionBank" class="btn btn-outline-primary action-btn">
-                        <i class="fas fa-database me-1"></i>بنك الأسئلة
-                    </a>
-                    <a asp-action="Create" class="btn action-btn text-white" style="background:#4f46e5">
-                        <i class="fas fa-plus me-1"></i>امتحان جديد
-                    </a>
-                </div>
+    <main class="dashboard-main ex-page">
+
+        <!-- Alerts -->
+        @if (TempData["Success"] != null)
+        {
+            <div style="background:#dcfce7;color:#166534;border:1.5px solid #86efac;border-radius:10px;padding:12px 18px;margin-bottom:20px;font-size:.88rem;font-weight:600;display:flex;align-items:center;gap:10px;">
+                <i class="fas fa-check-circle"></i> @TempData["Success"]
+            </div>
+        }
+        @if (TempData["Error"] != null)
+        {
+            <div style="background:#fee2e2;color:#991b1b;border:1.5px solid #fca5a5;border-radius:10px;padding:12px 18px;margin-bottom:20px;font-size:.88rem;font-weight:600;display:flex;align-items:center;gap:10px;">
+                <i class="fas fa-exclamation-circle"></i> @TempData["Error"]
+            </div>
+        }
+
+        <!-- Page Header -->
+        <div class="ex-page-header">
+            <div>
+                <h2>
+                    <i class="fas fa-file-alt"></i>
+                    @(isAdmin ? "إدارة جميع الامتحانات" : "امتحاناتي")
+                </h2>
+                <p>إدارة وإنشاء جميع الامتحانات</p>
             </div>
 
-            <!-- KPIs -->
-            @{
-                var total   = Model.Count();
-                var active  = Model.Count(e => e.IsActive);
-                var pending = Model.Count(e => !e.HasStarted && e.IsPublished);
-                var drafts  = Model.Count(e => !e.IsPublished);
-            }
-            <div class="row g-3 mb-4">
-                @foreach (var (label, val, icon, color) in new[]{ ("إجمالي الامتحانات", total,"fa-list-ul","#4f46e5"),("جارٍ الآن",active,"fa-circle-notch","#10b981"),("قادم",pending,"fa-clock","#f59e0b"),("مسودة",drafts,"fa-edit","#8b5cf6")})
-                {
-                <div class="col-6 col-md-3">
-                    <div class="exam-card p-3 d-flex align-items-center gap-3">
-                        <div style="width:44px;height:44px;border-radius:12px;background:@(color)22;display:flex;align-items:center;justify-content:center">
-                            <i class="fas @icon" style="color:@color;font-size:1.1rem"></i>
-                        </div>
-                        <div>
-                            <div class="fw-bold" style="font-size:1.4rem;color:#1e293b">@val</div>
-                            <div class="stat-mini">@label</div>
-                        </div>
-                    </div>
-                </div>
-                }
+            <!-- Prominent action buttons -->
+            <div class="ex-header-btns">
+                <a asp-action="QuestionBank" class="ex-hbtn ex-hbtn-outline">
+                    <i class="fas fa-database"></i> بنك الأسئلة
+                </a>
+                <a asp-action="Create" class="ex-hbtn ex-hbtn-primary">
+                    <i class="fas fa-plus"></i> امتحان جديد
+                </a>
             </div>
-
-            <!-- Alerts -->
-            @if (TempData["Success"] != null)
-            {
-                <div class="alert alert-success alert-dismissible fade show" role="alert">
-                    <i class="fas fa-check-circle me-2"></i>@TempData["Success"]
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            }
-            @if (TempData["Error"] != null)
-            {
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    <i class="fas fa-exclamation-circle me-2"></i>@TempData["Error"]
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            }
-
-            <!-- Filter Tabs -->
-            <ul class="nav filter-tabs mb-3 gap-1">
-                <li class="nav-item"><a class="nav-link active" data-filter="all" href="#">الكل (@total)</a></li>
-                <li class="nav-item"><a class="nav-link" data-filter="active" href="#">جارٍ الآن (@active)</a></li>
-                <li class="nav-item"><a class="nav-link" data-filter="upcoming" href="#">قادم (@pending)</a></li>
-                <li class="nav-item"><a class="nav-link" data-filter="draft" href="#">مسودة (@drafts)</a></li>
-                <li class="nav-item"><a class="nav-link" data-filter="ended" href="#">منتهي</a></li>
-            </ul>
-
-            <!-- Exam Cards -->
-            @if (Model.Any())
-            {
-                <div class="row g-3" id="examGrid">
-                    @foreach (var exam in Model.OrderByDescending(e => e.StartDateTime))
-                    {
-                        string filterClass = exam.IsActive ? "active" :
-                                             (!exam.HasStarted && exam.IsPublished) ? "upcoming" :
-                                             !exam.IsPublished ? "draft" : "ended";
-                        <div class="col-12 col-md-6 col-xl-4 exam-item" data-status="@filterClass">
-                            <div class="exam-card p-4 h-100 d-flex flex-column">
-                                <!-- Header -->
-                                <div class="d-flex justify-content-between align-items-start mb-3">
-                                    <div class="flex-grow-1 me-2">
-                                        <h6 class="fw-bold mb-1" style="color:#1e293b">@exam.ExamName</h6>
-                                        <small class="text-muted">
-                                            <i class="fas fa-book-open me-1" style="color:#4f46e5"></i>@exam.Course?.CourseName
-                                        </small>
-                                    </div>
-                                    <span class="status-badge @(filterClass == "active" ? "badge-active" : filterClass == "upcoming" ? "badge-pending" : filterClass == "draft" ? "badge-draft" : "badge-ended")">
-                                        @(filterClass == "active" ? "جارٍ" : filterClass == "upcoming" ? "قادم" : filterClass == "draft" ? "مسودة" : "منتهي")
-                                    </span>
-                                </div>
-
-                                <!-- Meta -->
-                                <div class="row g-2 mb-3">
-                                    <div class="col-6">
-                                        <div class="p-2 rounded" style="background:#f8fafc">
-                                            <div class="stat-mini"><i class="fas fa-calendar-alt me-1"></i>تاريخ البدء</div>
-                                            <div style="font-size:.82rem;color:#1e293b;font-weight:600">@exam.StartDateTime.ToString("dd/MM/yyyy")</div>
-                                            <div class="stat-mini">@exam.StartDateTime.ToString("HH:mm") UTC</div>
-                                        </div>
-                                    </div>
-                                    <div class="col-6">
-                                        <div class="p-2 rounded" style="background:#f8fafc">
-                                            <div class="stat-mini"><i class="fas fa-clock me-1"></i>المدة</div>
-                                            <div style="font-size:.82rem;color:#1e293b;font-weight:600">@exam.DurationMinutes دقيقة</div>
-                                            <div class="stat-mini">نسبة النجاح: @exam.PassingScore%</div>
-                                        </div>
-                                    </div>
-                                    <div class="col-6">
-                                        <div class="p-2 rounded" style="background:#f8fafc">
-                                            <div class="stat-mini"><i class="fas fa-question-circle me-1"></i>الأسئلة</div>
-                                            <div style="font-size:.82rem;color:#1e293b;font-weight:600">@exam.ExamQuestions.Count سؤال</div>
-                                        </div>
-                                    </div>
-                                    <div class="col-6">
-                                        <div class="p-2 rounded" style="background:#f8fafc">
-                                            <div class="stat-mini"><i class="fas fa-users me-1"></i>المحاولات</div>
-                                            <div style="font-size:.82rem;color:#1e293b;font-weight:600">@exam.ExamAttempts.Count محاولة</div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Actions -->
-                                <div class="d-flex flex-wrap gap-2 mt-auto">
-                                    <a asp-action="Details" asp-route-id="@exam.ExamId" class="btn btn-sm btn-outline-secondary action-btn flex-grow-1">
-                                        <i class="fas fa-eye me-1"></i>تفاصيل
-                                    </a>
-                                    @if (!exam.HasStarted)
-                                    {
-                                        <a asp-action="Edit" asp-route-id="@exam.ExamId" class="btn btn-sm btn-outline-warning action-btn flex-grow-1">
-                                            <i class="fas fa-edit me-1"></i>تعديل
-                                        </a>
-                                        <a asp-action="ManageQuestions" asp-route-id="@exam.ExamId" class="btn btn-sm btn-outline-primary action-btn flex-grow-1">
-                                            <i class="fas fa-list-check me-1"></i>الأسئلة
-                                        </a>
-                                    }
-                                    @if (exam.ExamAttempts.Any())
-                                    {
-                                        <a asp-action="Results" asp-route-id="@exam.ExamId" class="btn btn-sm action-btn flex-grow-1 text-white" style="background:#10b981">
-                                            <i class="fas fa-chart-bar me-1"></i>النتائج
-                                        </a>
-                                    }
-                                    @if (!exam.IsPublished && exam.ExamQuestions.Any())
-                                    {
-                                        <form asp-action="Publish" method="post" class="flex-grow-1">
-                                            @Html.AntiForgeryToken()
-                                            <input type="hidden" name="id" value="@exam.ExamId" />
-                                            <button type="submit" class="btn btn-sm action-btn w-100 text-white" style="background:#4f46e5">
-                                                <i class="fas fa-paper-plane me-1"></i>نشر
-                                            </button>
-                                        </form>
-                                    }
-                                </div>
-                            </div>
-                        </div>
-                    }
-                </div>
-            }
-            else
-            {
-                <div class="empty-state">
-                    <i class="fas fa-file-alt" style="font-size:3rem;color:#d1d5db;margin-bottom:16px;display:block"></i>
-                    <h5 style="color:#6b7280">لا يوجد امتحانات بعد</h5>
-                    <p>ابدأ بإنشاء أول امتحان لطلابك</p>
-                    <a asp-action="Create" class="btn text-white mt-2" style="background:#4f46e5;border-radius:10px">
-                        <i class="fas fa-plus me-2"></i>إنشاء امتحان جديد
-                    </a>
-                </div>
-            }
         </div>
+
+        <!-- KPI Stats -->
+        <div class="ex-stats">
+            <div class="ex-stat">
+                <div class="ex-stat-icon" style="background:var(--primary-pale);color:var(--primary);">
+                    <i class="fas fa-list-ul"></i>
+                </div>
+                <div>
+                    <div class="ex-stat-val">@totalAll</div>
+                    <div class="ex-stat-lbl">إجمالي الامتحانات</div>
+                </div>
+            </div>
+            <div class="ex-stat">
+                <div class="ex-stat-icon" style="background:#d1fae5;color:#059669;">
+                    <i class="fas fa-circle-notch"></i>
+                </div>
+                <div>
+                    <div class="ex-stat-val">@totalActive</div>
+                    <div class="ex-stat-lbl">جارٍ الآن</div>
+                </div>
+            </div>
+            <div class="ex-stat">
+                <div class="ex-stat-icon" style="background:#fef3c7;color:#d97706;">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div>
+                    <div class="ex-stat-val">@totalPending</div>
+                    <div class="ex-stat-lbl">قادم</div>
+                </div>
+            </div>
+            <div class="ex-stat">
+                <div class="ex-stat-icon" style="background:#ede9fe;color:#7c3aed;">
+                    <i class="fas fa-edit"></i>
+                </div>
+                <div>
+                    <div class="ex-stat-val">@totalDrafts</div>
+                    <div class="ex-stat-lbl">مسودة</div>
+                </div>
+            </div>
+            <div class="ex-stat">
+                <div class="ex-stat-icon" style="background:#f3f4f6;color:#6b7280;">
+                    <i class="fas fa-flag-checkered"></i>
+                </div>
+                <div>
+                    <div class="ex-stat-val">@totalEnded</div>
+                    <div class="ex-stat-lbl">منتهي</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toolbar -->
+        <div class="ex-toolbar">
+            <div class="ex-search">
+                <i class="fas fa-search si"></i>
+                <input type="text" id="ex-q"
+                       placeholder="ابحث باسم الامتحان أو الدورة..."
+                       value="@search"
+                       autocomplete="off" />
+                <button class="ex-search-clear" id="exSearchClear">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="ex-filters">
+                <button class="ex-ftab @(filter=="all"     ? "active" : "")" data-filter="all">الكل (@totalAll)</button>
+                <button class="ex-ftab @(filter=="active"  ? "active" : "")" data-filter="active">جارٍ (@totalActive)</button>
+                <button class="ex-ftab @(filter=="upcoming"? "active" : "")" data-filter="upcoming">قادم (@totalPending)</button>
+                <button class="ex-ftab @(filter=="draft"   ? "active" : "")" data-filter="draft">مسودة (@totalDrafts)</button>
+                <button class="ex-ftab @(filter=="ended"   ? "active" : "")" data-filter="ended">منتهي (@totalEnded)</button>
+            </div>
+            <div class="ex-psize">
+                <span>عرض</span>
+                <select id="exPageSize">
+                    @foreach (var s in new[] { 6, 9, 12, 24 })
+                    {
+                        if (pageSize == s)
+                        {
+                            <option value="@s" selected="selected">@s</option>
+                        }
+                        else
+                        {
+                            <option value="@s">@s</option>
+                        }
+                    }
+                </select>
+            </div>
+        </div>
+
+        <!-- Ajax container -->
+        <div id="ex-container">
+            @await Html.PartialAsync("_ExamsGridPartial", Model)
+        </div>
+
     </main>
 </div>
 
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script>
-document.querySelectorAll('[data-filter]').forEach(tab => {
-    tab.addEventListener('click', e => {
-        e.preventDefault();
-        document.querySelectorAll('[data-filter]').forEach(t => t.classList.remove('active'));
-        tab.classList.add('active');
-        const filter = tab.dataset.filter;
-        document.querySelectorAll('.exam-item').forEach(item => {
-            item.style.display = (filter === 'all' || item.dataset.status === filter) ? '' : 'none';
+    let exFilter = '@filter';
+    let exTimer  = null;
+
+    function loadExams(exPage = 1) {
+        const search   = $('#ex-q').val().trim();
+        const pageSize = $('#exPageSize').val();
+
+        $('#ex-container').html(
+            '<div class="ex-loader"><div class="ex-spinner"></div><span>جارٍ التحميل…</span></div>'
+        );
+
+        $.ajax({
+            url: '/Exams/Index',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            data: { page: exPage, pageSize, search, filter: exFilter },
+            success: html  => $('#ex-container').html(html),
+            error:   ()    => $('#ex-container').html(
+                '<div class="ex-empty"><i class="fas fa-exclamation-circle"></i><h5>حدث خطأ</h5><p>يرجى تحديث الصفحة</p></div>'
+            )
         });
+    }
+
+    // Pagination
+    $(document).on('click', '.ex-pag-link', function (e) {
+        e.preventDefault();
+        const p = parseInt($(this).data('page'));
+        if (!isNaN(p) && p >= 1) loadExams(p);
     });
-});
+
+    // Filter tabs
+    $(document).on('click', '.ex-ftab', function () {
+        exFilter = $(this).data('filter');
+        $('.ex-ftab').removeClass('active');
+        $(this).addClass('active');
+        loadExams(1);
+    });
+
+    // Search
+    $('#ex-q').on('input', function () {
+        clearTimeout(exTimer);
+        $('#exSearchClear').css('display', this.value ? 'block' : 'none');
+        exTimer = setTimeout(() => loadExams(1), 300);
+    });
+
+    $('#exSearchClear').on('click', function () {
+        $('#ex-q').val('').trigger('input');
+    });
+
+    // Page size
+    $('#exPageSize').on('change', () => loadExams(1));
+
+    // Init
+    if ('@search'.length) $('#exSearchClear').show();
 </script>

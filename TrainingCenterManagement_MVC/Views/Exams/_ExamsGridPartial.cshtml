@@ -1,0 +1,175 @@
+﻿@model IEnumerable<TrainingCenterManagement_MVC.Models.Exam>
+
+@{
+    int currentPage = ViewBag.CurrentPage ?? 1;
+    int totalPages = ViewBag.TotalPages ?? 1;
+    int totalCount = ViewBag.TotalCount ?? 0;
+    int pageSize = ViewBag.PageSize ?? 9;
+    var list = Model.ToList();
+}
+
+@if (!list.Any())
+{
+    <div class="ex-empty">
+        <i class="fas fa-file-alt"></i>
+        <h5>لا يوجد امتحانات مطابقة</h5>
+        <p>جرّب تغيير كلمة البحث أو الفلتر</p>
+        <a asp-action="Create" class="ex-empty-btn">
+            <i class="fas fa-plus"></i> إنشاء امتحان جديد
+        </a>
+    </div>
+}
+else
+{
+    <!-- Results bar — بارزة -->
+    <div class="ex-results-bar">
+        <span class="ex-results-text">
+            عرض
+            <strong class="ex-results-hl">@(((currentPage - 1) * pageSize) + 1)</strong>
+            —
+            <strong class="ex-results-hl">@(Math.Min(currentPage * pageSize, totalCount))</strong>
+            من
+            <strong class="ex-results-hl">@totalCount</strong>
+            امتحان
+        </span>
+    </div>
+
+    <div class="ex-grid">
+        @foreach (var exam in list)
+        {
+            string status = exam.IsActive ? "active"
+                          : (!exam.HasStarted && exam.IsPublished) ? "upcoming"
+                          : !exam.IsPublished ? "draft"
+                          : "ended";
+
+            string statusLabel = status == "active" ? "جارٍ الآن"
+                               : status == "upcoming" ? "قادم"
+                               : status == "draft" ? "مسودة"
+                               : "منتهي";
+
+            <div class="ex-card" data-status="@status">
+
+                <!-- Card top accent -->
+                <div class="ex-card-accent ex-accent-@status"></div>
+
+                <!-- Header -->
+                <div class="ex-card-head">
+                    <div class="ex-card-title-wrap">
+                        <h6 class="ex-card-title">@exam.ExamName</h6>
+                        <small class="ex-card-course">
+                            <i class="fas fa-book-open"></i> @exam.Course?.CourseName
+                        </small>
+                    </div>
+                    <span class="ex-status-badge ex-status-@status">@statusLabel</span>
+                </div>
+
+                <!-- Meta grid -->
+                <div class="ex-meta-grid">
+                    <div class="ex-meta-cell">
+                        <div class="ex-meta-label"><i class="fas fa-calendar-alt"></i> تاريخ البدء</div>
+                        <div class="ex-meta-val">@exam.StartDateTime.ToString("dd/MM/yyyy")</div>
+                        <div class="ex-meta-sub">@exam.StartDateTime.ToString("HH:mm") UTC</div>
+                    </div>
+                    <div class="ex-meta-cell">
+                        <div class="ex-meta-label"><i class="fas fa-clock"></i> المدة</div>
+                        <div class="ex-meta-val">@exam.DurationMinutes دقيقة</div>
+                        <div class="ex-meta-sub">نسبة النجاح: @exam.PassingScore%</div>
+                    </div>
+                    <div class="ex-meta-cell">
+                        <div class="ex-meta-label"><i class="fas fa-question-circle"></i> الأسئلة</div>
+                        <div class="ex-meta-val">@exam.ExamQuestions.Count سؤال</div>
+                    </div>
+                    <div class="ex-meta-cell">
+                        <div class="ex-meta-label"><i class="fas fa-users"></i> المحاولات</div>
+                        <div class="ex-meta-val">@exam.ExamAttempts.Count محاولة</div>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="ex-card-actions">
+                    <a asp-action="Details" asp-route-id="@exam.ExamId" class="ex-btn ex-btn-view">
+                        <i class="fas fa-eye"></i> تفاصيل
+                    </a>
+                    @if (!exam.HasStarted)
+                    {
+                        <a asp-action="Edit" asp-route-id="@exam.ExamId" class="ex-btn ex-btn-edit">
+                            <i class="fas fa-edit"></i> تعديل
+                        </a>
+                        <a asp-action="ManageQuestions" asp-route-id="@exam.ExamId" class="ex-btn ex-btn-q">
+                            <i class="fas fa-list-check"></i> الأسئلة
+                        </a>
+                    }
+                    @if (exam.ExamAttempts.Any())
+                    {
+                        <a asp-action="Results" asp-route-id="@exam.ExamId" class="ex-btn ex-btn-results">
+                            <i class="fas fa-chart-bar"></i> النتائج
+                        </a>
+                    }
+                    @if (!exam.IsPublished && exam.ExamQuestions.Any())
+                    {
+                        <form asp-action="Publish" method="post" style="flex:1;min-width:90px;">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@exam.ExamId" />
+                            <button type="submit" class="ex-btn ex-btn-publish w-100">
+                                <i class="fas fa-paper-plane"></i> نشر
+                            </button>
+                        </form>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- Pagination -->
+    @if (totalPages > 1)
+    {
+        <div class="ex-pag-wrap">
+            <div class="ex-pag-info">
+                صفحة <strong>@currentPage</strong> من <strong>@totalPages</strong>
+            </div>
+            <ul class="ex-pag">
+
+                <li class="@(currentPage <= 1 ? "disabled" : "")">
+                    <a href="#" class="ex-pag-link" data-page="@(currentPage - 1)">
+                        <i class="fas fa-chevron-right"></i>
+                    </a>
+                </li>
+
+                @{
+                    int startP = Math.Max(1, currentPage - 3);
+                    int endP = Math.Min(totalPages, startP + 6);
+                    if (endP - startP < 6) startP = Math.Max(1, endP - 6);
+                }
+                @if (startP > 1)
+                {
+                    <li><a href="#" class="ex-pag-link" data-page="1">1</a></li>
+                    if (startP > 2)
+                    {
+                        <li class="ellipsis"><span>…</span></li>
+                    }
+                }
+                @for (int pi = startP; pi <= endP; pi++)
+                {
+                    <li class="@(pi == currentPage ? "active" : "")">
+                        <a href="#" class="ex-pag-link" data-page="@pi">@pi</a>
+                    </li>
+                }
+                @if (endP < totalPages)
+                {
+                    if (endP < totalPages - 1)
+                    {
+                        <li class="ellipsis"><span>…</span></li>
+                    }
+                    <li><a href="#" class="ex-pag-link" data-page="@totalPages">@totalPages</a></li>
+                }
+
+                <li class="@(currentPage >= totalPages ? "disabled" : "")">
+                    <a href="#" class="ex-pag-link" data-page="@(currentPage + 1)">
+                        <i class="fas fa-chevron-left"></i>
+                    </a>
+                </li>
+
+            </ul>
+        </div>
+    }
+}

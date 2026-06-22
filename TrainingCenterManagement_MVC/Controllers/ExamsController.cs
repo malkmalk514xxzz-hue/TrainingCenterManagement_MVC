@@ -36,31 +36,111 @@ namespace TrainingCenterManagement_MVC.Controllers
         // ══════════════════════════════════════════════════════════
 
         [Authorize(Roles = "Trainer,Admin")]
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(
+                      int page = 1,
+                      int pageSize = 9,
+                      string search = "",
+                      string filter = "all")   // all | active | upcoming | draft | ended
         {
+            pageSize = Math.Clamp(pageSize, 6, 30);
+
+            IQueryable<Exam> query;
+
             if (User.IsInRole("Admin"))
             {
-                var allExams = await _context.Exams
+                query = _context.Exams
                     .Include(e => e.Course)
                     .Include(e => e.Trainer).ThenInclude(t => t.User)
                     .Include(e => e.ExamQuestions)
                     .Include(e => e.ExamAttempts)
-                    .OrderByDescending(e => e.StartDateTime)
-                    .ToListAsync();
+                    .AsQueryable();
                 ViewBag.IsAdmin = true;
-                return View(allExams);
+            }
+            else
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var trainer = await _context.Trainers.FirstOrDefaultAsync(t => t.UserId == userId);
+                if (trainer == null) return Unauthorized();
+
+                query = _context.Exams
+                    .Include(e => e.Course)
+                    .Include(e => e.ExamQuestions)
+                    .Include(e => e.ExamAttempts)
+                    .Where(e => e.TrainerId == trainer.TrainerId)
+                    .AsQueryable();
+                ViewBag.IsAdmin = false;
             }
 
-            var trainerId = await GetCurrentTrainerIdAsync();
-            if (trainerId == null) return Forbid();
+            // ── Search ─────────────────────────────────────────────────────
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var term = search.Trim().ToLower();
+                query = query.Where(e =>
+                    e.ExamName.ToLower().Contains(term) ||
+                    (e.Course.CourseName != null && e.Course.CourseName.ToLower().Contains(term)));
+            }
 
-            var exams = await _context.Exams
-                .Include(e => e.Course)
-                .Include(e => e.ExamQuestions)
-                .Include(e => e.ExamAttempts)
-                .Where(e => e.TrainerId == trainerId)
+            // ── Filter ─────────────────────────────────────────────────────
+            query = filter switch
+            {
+                "active" => query.Where(e => e.IsActive),
+                "upcoming" => query.Where(e => !e.HasStarted && e.IsPublished),
+                "draft" => query.Where(e => !e.IsPublished),
+                "ended" => query.Where(e => e.HasStarted && !e.IsActive && e.IsPublished),
+                _ => query
+            };
+
+            // ── Stats from full unfiltered list ─────────────────────────────
+            // FIX: await cannot be used inside a ternary — resolved separately
+            List<Exam> allExams;
+            if (User.IsInRole("Admin"))
+            {
+                allExams = await _context.Exams
+                    .Include(e => e.ExamQuestions)
+                    .Include(e => e.ExamAttempts)
+                    .ToListAsync();
+            }
+            else
+            {
+                var statsUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var statsTrainer = await _context.Trainers
+                    .FirstOrDefaultAsync(t => t.UserId == statsUserId);
+
+                allExams = statsTrainer == null
+                    ? new List<Exam>()
+                    : await _context.Exams
+                        .Include(e => e.ExamQuestions)
+                        .Include(e => e.ExamAttempts)
+                        .Where(e => e.TrainerId == statsTrainer.TrainerId)
+                        .ToListAsync();
+            }
+
+            ViewBag.TotalAll = allExams.Count;
+            ViewBag.TotalActive = allExams.Count(e => e.IsActive);
+            ViewBag.TotalPending = allExams.Count(e => !e.HasStarted && e.IsPublished);
+            ViewBag.TotalDrafts = allExams.Count(e => !e.IsPublished);
+            ViewBag.TotalEnded = allExams.Count(e => e.HasStarted && !e.IsActive && e.IsPublished);
+
+            // ── Paging ─────────────────────────────────────────────────────
+            var totalCount = await query.CountAsync();
+            var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+            page = Math.Max(1, Math.Min(page, Math.Max(1, totalPages)));
+
+            var exams = await query
                 .OrderByDescending(e => e.StartDateTime)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .ToListAsync();
+
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.TotalCount = totalCount;
+            ViewBag.PageSize = pageSize;
+            ViewBag.Search = search;
+            ViewBag.Filter = filter;
+
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                return PartialView("_ExamsGridPartial", exams);
 
             return View(exams);
         }
