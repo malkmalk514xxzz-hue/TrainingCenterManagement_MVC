@@ -34,13 +34,9 @@
             <i class="fas fa-credit-card" style="color:#7c3aed;margin-left:8px;"></i> طلبات الدفع الإلكتروني
         </h2>
         <div style="display:flex;gap:10px;">
-            <a href="@Url.Action("Submit","PaymentRequests", new { method = "ShamCash" })"
+            <a asp-controller="Trainees" asp-action="Deposit"
                style="padding:8px 16px;border-radius:9px;background:#7c3aed;color:#fff;text-decoration:none;font-size:.84rem;font-weight:600;">
-                <i class="fas fa-mobile-alt" style="margin-left:5px;"></i> دفع شام كاش
-            </a>
-            <a href="@Url.Action("Submit","PaymentRequests", new { method = "Binance" })"
-               style="padding:8px 16px;border-radius:9px;background:#f59e0b;color:#fff;text-decoration:none;font-size:.84rem;font-weight:600;">
-                <i class="fab fa-bitcoin" style="margin-left:5px;"></i> دفع Binance
+                <i class="fas fa-mobile-alt" style="margin-left:5px;"></i> إيداع عبر شام كاش
             </a>
         </div>
     </div>
@@ -122,12 +118,11 @@
 
     <!-- How it works box -->
     <div style="background:#f0f4ff;border:1.5px solid #c7d2fe;border-radius:12px;padding:18px 20px;direction:rtl;">
-        <div style="font-weight:700;color:#3730a3;margin-bottom:10px;font-size:.9rem;"><i class="fas fa-question-circle" style="margin-left:5px;"></i> كيف يعمل نظام الدفع الإلكتروني؟</div>
+        <div style="font-weight:700;color:#3730a3;margin-bottom:10px;font-size:.9rem;"><i class="fas fa-question-circle" style="margin-left:5px;"></i> كيف يعمل الإيداع عبر شام كاش؟</div>
         <div style="font-size:.82rem;color:#374151;display:flex;flex-direction:column;gap:7px;">
-            <div><span style="background:#4f46e5;color:#fff;border-radius:50%;width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;margin-left:6px;">1</span>اختر كورساً وانتقل إلى تبويب "مدفوعاتي" أو اضغط "دفع شام كاش / Binance" أعلاه</div>
-            <div><span style="background:#4f46e5;color:#fff;border-radius:50%;width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;margin-left:6px;">2</span>حوّل المبلغ إلى حساب المركز ثم ارفع إيصال الدفع</div>
-            <div><span style="background:#4f46e5;color:#fff;border-radius:50%;width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;margin-left:6px;">3</span>تراجع الإدارة الإيصال وتوافق خلال وقت قصير</div>
-            <div><span style="background:#10b981;color:#fff;border-radius:50%;width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;margin-left:6px;">✓</span>يُضاف المبلغ لحسابك فور الموافقة وتصلك إشعار فوري</div>
+            <div><span style="background:#4f46e5;color:#fff;border-radius:50%;width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;margin-left:6px;">1</span>اضغط "إيداع عبر شام كاش" وانتقل لصفحة الإيداع</div>
+            <div><span style="background:#4f46e5;color:#fff;border-radius:50%;width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;margin-left:6px;">2</span>حوّل المبلغ وضع رمز التحويل الخاص بك في خانة الملاحظات</div>
+            <div><span style="background:#10b981;color:#fff;border-radius:50%;width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;margin-left:6px;">✓</span>يُضاف الرصيد لحسابك تلقائياً فور التحقق من التحويل</div>
         </div>
     </div>
 </div>

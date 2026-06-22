@@ -191,76 +191,117 @@
     }
 </style>
 
-<div class="ci-page">
-    @Html.Partial("_LandingHeader")
-
-    <!-- Hero -->
-    <div class="ci-hero">
-        <div class="ci-hero-inner">
-            <h1><i class="fas fa-graduation-cap" style="color:var(--gold);margin-left:10px;"></i> الكورسات التدريبية</h1>
-            <p>استكشف مجموعتنا الشاملة من الدورات التدريبية المهنية وطوّر مهاراتك مع أفضل المدربين</p>
-            <div class="ci-hero-stats">
-                <div class="ci-hs"><i class="fas fa-book-open"></i><div><strong>@totalCourses</strong><div>كورس متاح</div></div></div>
-                <div class="ci-hs"><i class="fas fa-users"></i><div><strong>@totalTrainees</strong><div>متدرب</div></div></div>
-                <div class="ci-hs"><i class="fas fa-chalkboard-teacher"></i><div><strong>@totalTrainers</strong><div>مدرب</div></div></div>
-                <div class="ci-hs"><i class="fas fa-video"></i><div><strong>@totalLectures</strong><div>محاضرة</div></div></div>
+@{
+    // محتوى الدورات المشترك بين المدير والمستخدمين الآخرين
+}
+@if (isAdmin)
+{
+    <div class="dashboard-wrapper" style="display:flex;direction:rtl;min-height:100vh">
+        @await Html.PartialAsync("_AdminSidebar")
+        <div class="ci-page" style="flex:1;order:2;overflow-x:hidden">
+            <div class="ci-hero">
+                <div class="ci-hero-inner">
+                    <h1><i class="fas fa-graduation-cap" style="color:var(--gold);margin-left:10px;"></i> الكورسات التدريبية</h1>
+                    <p>استكشف مجموعتنا الشاملة من الدورات التدريبية المهنية وطوّر مهاراتك مع أفضل المدربين</p>
+                    <div class="ci-hero-stats">
+                        <div class="ci-hs"><i class="fas fa-book-open"></i><div><strong>@totalCourses</strong><div>كورس متاح</div></div></div>
+                        <div class="ci-hs"><i class="fas fa-users"></i><div><strong>@totalTrainees</strong><div>متدرب</div></div></div>
+                        <div class="ci-hs"><i class="fas fa-chalkboard-teacher"></i><div><strong>@totalTrainers</strong><div>مدرب</div></div></div>
+                        <div class="ci-hs"><i class="fas fa-video"></i><div><strong>@totalLectures</strong><div>محاضرة</div></div></div>
+                    </div>
+                </div>
+            </div>
+            <div class="ci-toolbar">
+                <div class="ci-search">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" id="course-search" placeholder="ابحث عن كورس..." value="@search" autocomplete="off" />
+                    <button class="ci-search-clear" id="searchClear"><i class="fas fa-times"></i></button>
+                </div>
+                <div class="ci-filter-btns">
+                    <button class="ci-fb @(filter == "all"     ? "active" : "")" data-filter="all">الكل</button>
+                    <button class="ci-fb @(filter == "active"  ? "active" : "")" data-filter="active">نشط</button>
+                    @if (canManage)
+                    {
+                        <button class="ci-fb @(filter == "deleted"  ? "active" : "")" data-filter="deleted">محذوف</button>
+                        <button class="ci-fb @(filter == "featured" ? "active" : "")" data-filter="featured">مميز</button>
+                    }
+                </div>
+                <div class="ci-psize">
+                    <span>عرض</span>
+                    <select id="ciPageSize">
+                        @foreach (var s in new[] { 10, 20, 30, 50 })
+                        {
+                            if (pageSize == s) { <option value="@s" selected="selected">@s</option> }
+                            else               { <option value="@s">@s</option> }
+                        }
+                    </select>
+                </div>
+                @if (canManage)
+                {
+                    <a asp-action="Create" class="ci-add-btn"><i class="fas fa-plus"></i> إضافة كورس</a>
+                }
+            </div>
+            <div class="ci-body">
+                <div id="courses-container">
+                    @await Html.PartialAsync("_CoursesGridPartial", Model)
+                </div>
             </div>
         </div>
     </div>
-
-    <!-- Toolbar -->
-    <div class="ci-toolbar">
-        <div class="ci-search">
-            <i class="fas fa-search search-icon"></i>
-            <input type="text" id="course-search"
-                   placeholder="ابحث عن كورس..."
-                   value="@search"
-                   autocomplete="off" />
-            <button class="ci-search-clear" id="searchClear"><i class="fas fa-times"></i></button>
+}
+else
+{
+    <div class="ci-page">
+        @Html.Partial("_LandingHeader")
+        <div class="ci-hero">
+            <div class="ci-hero-inner">
+                <h1><i class="fas fa-graduation-cap" style="color:var(--gold);margin-left:10px;"></i> الكورسات التدريبية</h1>
+                <p>استكشف مجموعتنا الشاملة من الدورات التدريبية المهنية وطوّر مهاراتك مع أفضل المدربين</p>
+                <div class="ci-hero-stats">
+                    <div class="ci-hs"><i class="fas fa-book-open"></i><div><strong>@totalCourses</strong><div>كورس متاح</div></div></div>
+                    <div class="ci-hs"><i class="fas fa-users"></i><div><strong>@totalTrainees</strong><div>متدرب</div></div></div>
+                    <div class="ci-hs"><i class="fas fa-chalkboard-teacher"></i><div><strong>@totalTrainers</strong><div>مدرب</div></div></div>
+                    <div class="ci-hs"><i class="fas fa-video"></i><div><strong>@totalLectures</strong><div>محاضرة</div></div></div>
+                </div>
+            </div>
         </div>
-
-        <div class="ci-filter-btns">
-            <button class="ci-fb @(filter == "all"     ? "active" : "")" data-filter="all">الكل</button>
-            <button class="ci-fb @(filter == "active"  ? "active" : "")" data-filter="active">نشط</button>
+        <div class="ci-toolbar">
+            <div class="ci-search">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" id="course-search" placeholder="ابحث عن كورس..." value="@search" autocomplete="off" />
+                <button class="ci-search-clear" id="searchClear"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="ci-filter-btns">
+                <button class="ci-fb @(filter == "all"     ? "active" : "")" data-filter="all">الكل</button>
+                <button class="ci-fb @(filter == "active"  ? "active" : "")" data-filter="active">نشط</button>
+                @if (canManage)
+                {
+                    <button class="ci-fb @(filter == "deleted"  ? "active" : "")" data-filter="deleted">محذوف</button>
+                    <button class="ci-fb @(filter == "featured" ? "active" : "")" data-filter="featured">مميز</button>
+                }
+            </div>
+            <div class="ci-psize">
+                <span>عرض</span>
+                <select id="ciPageSize">
+                    @foreach (var s in new[] { 10, 20, 30, 50 })
+                    {
+                        if (pageSize == s) { <option value="@s" selected="selected">@s</option> }
+                        else               { <option value="@s">@s</option> }
+                    }
+                </select>
+            </div>
             @if (canManage)
             {
-                <button class="ci-fb @(filter == "deleted"  ? "active" : "")" data-filter="deleted">محذوف</button>
-                <button class="ci-fb @(filter == "featured" ? "active" : "")" data-filter="featured">مميز</button>
+                <a asp-action="Create" class="ci-add-btn"><i class="fas fa-plus"></i> إضافة كورس</a>
             }
         </div>
-
-        <div class="ci-psize">
-            <span>عرض</span>
-            <select id="ciPageSize">
-                @foreach (var s in new[] { 10, 20, 30, 50 })
-                {
-                    if (pageSize == s)
-                    {
-                        <option value="@s" selected="selected">@s</option>
-                    }
-                    else
-                    {
-                        <option value="@s">@s</option>
-                    }
-                }
-            </select>
-        </div>
-
-        @if (canManage)
-        {
-            <a asp-action="Create" class="ci-add-btn">
-                <i class="fas fa-plus"></i> إضافة كورس
-            </a>
-        }
-    </div>
-
-    <!-- Body -->
-    <div class="ci-body">
-        <div id="courses-container">
-            @await Html.PartialAsync("_CoursesGridPartial", Model)
+        <div class="ci-body">
+            <div id="courses-container">
+                @await Html.PartialAsync("_CoursesGridPartial", Model)
+            </div>
         </div>
     </div>
-</div>
+}
 
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script>

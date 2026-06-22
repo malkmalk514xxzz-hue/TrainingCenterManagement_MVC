@@ -1,13 +1,15 @@
-using System.Text.Json;
+using DocumentFormat.OpenXml.Vml;
+using Messaging_Chat_Application_MahmoudHakim.Hubs;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Configuration;
 using PuppeteerSharp;
+using System.Text.Json;
 using TrainingCenterManagement_MVC.Data;
-using Messaging_Chat_Application_MahmoudHakim.Hubs;
+using TrainingCenterManagement_MVC.Helpers;
 using TrainingCenterManagement_MVC.Models;
 
 namespace TrainingCenterManagement_MVC.Services
@@ -19,6 +21,10 @@ namespace TrainingCenterManagement_MVC.Services
         private readonly IConfiguration _configuration;
         private readonly IHubContext<ChatHub> _hubContext;
         private string _lastProcessedTransactionId = null;
+
+        // 🟢 الإبقاء على المتصفح والصفحة كحقول دائمة على مستوى الكلاس لكي لا تنطفئ
+        private IBrowser? _globalBrowser = null;
+        private IPage? _globalPage = null;
 
         public ShamCashMonitorService(
             ILogger<ShamCashMonitorService> logger,
@@ -94,6 +100,9 @@ namespace TrainingCenterManagement_MVC.Services
 
                 await Task.Delay(TimeSpan.FromSeconds(30), stoppingToken);
             }
+
+            // ❌ عند إغلاق المشروع نهائياً، يتم إبادة المتصفح وتحرير الذاكرة
+            await CloseGlobalBrowserAsync();
         }
 
         private async Task ProcessTransactionFiltersAsync(shamCashTranslation tx)
@@ -116,7 +125,66 @@ namespace TrainingCenterManagement_MVC.Services
             }
         }
 
-        #region الدوال الثلاث
+        //private async Task CloseGlobalBrowserAsync()
+        //{
+        //    try
+        //    {
+        //        if (_globalBrowser != null)
+        //        {
+        //            _logger.LogInformation("يتم الآن إغلاق المتصفح العالمي لتحرير الذاكرة بسبب إيقاف السيرفس...");
+        //            await _globalBrowser.CloseAsync();
+        //            _globalBrowser.Dispose();
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logger.LogError($"خطأ أثناء محاولة إغلاق المتصفح الخارجي: {ex.Message}");
+        //    }
+        //}
+
+        // 🟢 هذه الدالة يتم استدعاؤها إجبارياً من نظام .NET بمجرد إطفاء السيرفس أو المشروع
+        public override async Task StopAsync(CancellationToken cancellationToken)
+        {
+            _logger.LogInformation("تم استدعاء أمر إيقاف الخدمة، جاري تدمير المتصفح أولاً...");
+
+            // استدعاء دالة إغلاق المتصفح المضمونة
+            await CloseGlobalBrowserAsync();
+
+            // استدعاء الدالة الأصلية للسيرفس لإكمال الإطفاء بأمان
+            await base.StopAsync(cancellationToken);
+        }
+
+        private async Task CloseGlobalBrowserAsync()
+        {
+            try
+            {
+                if (_globalPage != null)
+                {
+                    _logger.LogInformation("جاري إغلاق التاب الحالي...");
+                    await _globalPage.CloseAsync();
+                    _globalPage = null;
+                }
+
+                if (_globalBrowser != null)
+                {
+                    _logger.LogInformation("جاري إغلاق المتصفح العالمي نهائياً وتقييد العمليات المرتبطة به...");
+
+                    // إغلاق المتصفح
+                    await _globalBrowser.CloseAsync();
+
+                    // تدمير الكائن وتحرير الذاكرة تماماً من حزمة الـ Processes في الويندوز
+                    _globalBrowser.Dispose();
+                    _globalBrowser = null;
+
+                    _logger.LogInformation("تم إغلاق متصفح الكروم بنجاح وتحرير الذاكرة.");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"خطأ أثناء محاولة إغلاق المتصفح الخارجي: {ex.Message}");
+            }
+        }
+        #region الدوال الثلاث المتوافقة مع جداول الداتابيز الحقيقية
 
         private async Task OnNegativeAmountDetectedAsync(shamCashTranslation transaction)
         {
@@ -124,68 +192,56 @@ namespace TrainingCenterManagement_MVC.Services
             var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
             string currency = transaction.currencyType == CurrencyType.USD ? "USD" : "SYP";
+            string code = transaction.notes?.Trim() ?? "";
 
-            // Check if the notes match a trainee's transfer code → this is an admin refund payment
-            string notes = transaction.notes?.Trim() ?? "";
-            var trainee = string.IsNullOrEmpty(notes) ? null
-                : await db.Trainees.Include(t => t.User)
-                    .FirstOrDefaultAsync(t => t.TransferCode == notes);
+            // البحث عن المتدرب الذي تطابق ملاحظات الحوالة رمز التحويل الخاص به
+            var trainee = string.IsNullOrEmpty(code) || code == "No notes" || code == "لا يوجد ملاحظات"
+                ? null
+                : await db.Trainees.Include(t => t.User).FirstOrDefaultAsync(t => t.TransferCode == code);
 
             if (trainee != null)
             {
-                // Match pending withdraw request for this trainee
-                var pendingRequest = await db.WithdrawRequests
-                    .Where(w => w.TraineeId == trainee.TraineeId && w.Status != WithdrawStatus.FullyApproved)
-                    .OrderBy(w => w.CreatedAt)
-                    .FirstOrDefaultAsync();
-
-                if (pendingRequest != null)
+                // 🟢 بما أنه سحب (Withdraw)، نقوم بخصم المبلغ من رصيد المتدرب الحالي مباشرة
+                if (transaction.currencyType == CurrencyType.USD)
                 {
-                    if (transaction.currencyType == CurrencyType.USD)
-                    {
-                        pendingRequest.PaidAmountUSD += transaction.amountValue;
-                        if (pendingRequest.PaidAmountUSD >= pendingRequest.AmountUSD &&
-                            pendingRequest.PaidAmountSYP >= pendingRequest.AmountSYP)
-                            pendingRequest.Status = WithdrawStatus.FullyApproved;
-                        else
-                            pendingRequest.Status = WithdrawStatus.PartiallyApproved;
-                    }
-                    else
-                    {
-                        pendingRequest.PaidAmountSYP += transaction.amountValue;
-                        if (pendingRequest.PaidAmountUSD >= pendingRequest.AmountUSD &&
-                            pendingRequest.PaidAmountSYP >= pendingRequest.AmountSYP)
-                            pendingRequest.Status = WithdrawStatus.FullyApproved;
-                        else
-                            pendingRequest.Status = WithdrawStatus.PartiallyApproved;
-                    }
-                    await db.SaveChangesAsync();
-
-                    string approvedStr = transaction.currencyType == CurrencyType.USD
-                        ? $"{transaction.amountValue:N2} USD"
-                        : $"{transaction.amountValue:N0} ل.س";
-
-                    await SendNotificationsToUsersAsync(db,
-                        [trainee.UserId],
-                        "تمت الموافقة على طلب استردادك",
-                        $"تمت الموافقة على مبلغ {approvedStr} من طلب الاسترداد الخاص بك.\n" +
-                        $"🔢 رقم العملية: #{transaction.transactionId}\n" +
-                        $"📅 التاريخ: {transaction.registrationDate}");
+                    trainee.BalanceUSD -= transaction.amountValue;
+                    if (trainee.BalanceUSD < 0) trainee.BalanceUSD = 0; // حماية لكي لا يصبح الرصيد بالسالب
                 }
+                else
+                {
+                    trainee.BalanceSYP -= transaction.amountValue;
+                    if (trainee.BalanceSYP < 0) trainee.BalanceSYP = 0; // حماية لكي لا يصبح الرصيد بالسالب
+                }
+
+                await db.SaveChangesAsync();
+
+                string amountStr = transaction.currencyType == CurrencyType.USD
+                    ? $"{transaction.amountValue:N2} USD"
+                    : $"{transaction.amountValue:N0} ل.س";
+
+                // إرسال إشعار للمتدرب يفيد بخصم أو صرف المبلغ من حسابه
+                await SendNotificationsToUsersAsync(db,
+                    new List<string> { trainee.UserId },
+                    "تحديث الرصيد: تم صرف مبلغ من حسابك",
+                    $"مرحباً {trainee.User?.FullName}، تم تسجيل عملية سحب/صرف من رصيدك بمبلغ {amountStr}.\n" +
+                    $"🔢 رقم العملية: #{transaction.transactionId}\n" +
+                    $"💵 رصيدك الحالي (USD): {trainee.BalanceUSD}\n" +
+                    $"💱 رصيدك الحالي (SYP): {trainee.BalanceSYP}\n" +
+                    $"📅 التاريخ: {transaction.registrationDate}");
             }
 
-            // Notify admins regardless
+            // إرسال تنبيه عام للمشرفين الإداريين بوجود حركة سحب من حساب شام كاش
             var adminUserIds = await db.Admins.Select(a => a.UserId).ToListAsync();
             string title = "تنبيه: تم صرف مبلغ من حساب الموقع";
             string message =
                 $"تم صرف مبلغ من حساب الموقع على شام كاش.\n" +
                 $"━━━━━━━━━━━━━━━━━━━\n" +
                 $"👤 الاسم على شام كاش: {transaction.userName}\n" +
-                (trainee != null ? $"🧑‍🎓 اسم المتدرب على الموقع: {trainee.User?.FullName}\n" : "") +
+                (trainee != null ? $"🧑‍🎓 اسم المتدرب على الموقع: {trainee.User?.FullName}\n" : "⚠️ الحوالة بدون ملاحظات واضحة لمتدرب معين.\n") +
                 $"🔢 رقم العملية: #{transaction.transactionId}\n" +
-                $"💸 المبلغ: {transaction.amountValue} {currency}\n" +
+                $"💸 المبلغ المصروف: {transaction.amountValue} {currency}\n" +
                 $"📅 التاريخ: {transaction.registrationDate}\n" +
-                $"📝 الملاحظات: {transaction.notes}\n" +
+                $"📝 الملاحظات الواردة: {transaction.notes}\n" +
                 $"━━━━━━━━━━━━━━━━━━━";
 
             await SendNotificationsToUsersAsync(db, adminUserIds, title, message);
@@ -201,18 +257,16 @@ namespace TrainingCenterManagement_MVC.Services
             var targetUserIds = adminUserIds.Union(receptionistUserIds).Distinct().ToList();
 
             string currency = transaction.currencyType == CurrencyType.USD ? "USD" : "SYP";
-            string title = "تنبيه: تحويلة بدون رمز تحويل";
+            string title = "تنبيه: تحويلة واردة بدون رمز تحويل";
             string message =
-                $"قام أحد الأشخاص بإرسال تحويلة بدون رمز التحويل الخاص به.\n" +
-                $"يرجى مراجعة التفاصيل وإعادة المبلغ للمُحوِّل.\n" +
+                $"قام أحد الأشخاص بإرسال تحويلة (إيداع) بدون ذكر رمز التحويل الخاص به في الملاحظات.\n" +
+                $"يرجى مراجعة تفاصيل الحوالة يدوياً لربطها بالمتدرب المناسب.\n" +
                 $"━━━━━━━━━━━━━━━━━━━\n" +
-                $"👤 الاسم: {transaction.userName}\n" +
+                $"👤 الاسم على شام كاش: {transaction.userName}\n" +
                 $"🔢 رقم العملية: #{transaction.transactionId}\n" +
                 $"💸 المبلغ: {transaction.amountValue} {currency}\n" +
                 $"📅 التاريخ: {transaction.registrationDate}\n" +
-                $"📝 الملاحظات: {(string.IsNullOrWhiteSpace(transaction.notes) ? "لا توجد ملاحظات" : transaction.notes)}\n" +
-                $"━━━━━━━━━━━━━━━━━━━\n" +
-                $"⚠️ يرجى قم برد المبلغ للمُرسِل.";
+                $"━━━━━━━━━━━━━━━━━━━";
 
             await SendNotificationsToUsersAsync(db, targetUserIds, title, message);
         }
@@ -224,17 +278,19 @@ namespace TrainingCenterManagement_MVC.Services
 
             string code = transaction.notes?.Trim() ?? "";
 
+            // البحث عن المتدرب المطابق لرمز التحويل المكتوب في الملاحظات
             var trainee = await db.Trainees
                 .Include(t => t.User)
                 .FirstOrDefaultAsync(t => t.TransferCode == code);
 
             if (trainee == null)
             {
-                _logger.LogWarning($"لم يتم العثور على متدرب برمز التحويل: {code}");
+                _logger.LogWarning($"لم يتم العثور على متدرب برمز التحويل الوارد: {code}. سيتم تحويلها كحوالة بدون ملاحظات.");
                 await OnNoNotesDetectedAsync(transaction);
                 return;
             }
 
+            // 🟢 بما أنه إيداع/شحن (Deposit)، نقوم بإضافة المبلغ إلى رصيد المتدرب الحالي
             if (transaction.currencyType == CurrencyType.USD)
                 trainee.BalanceUSD += transaction.amountValue;
             else
@@ -242,14 +298,19 @@ namespace TrainingCenterManagement_MVC.Services
 
             await db.SaveChangesAsync();
 
+            // إنشاء سجلات دفع تلقائية لدورات المتدرب التي لديها رصيد متبقي
+            await CreatePaymentRecordsFromShamCashAsync(db, trainee, transaction);
+
             var adminUserIds = await db.Admins.Select(a => a.UserId).ToListAsync();
 
             string currency = transaction.currencyType == CurrencyType.USD ? "USD" : "SYP";
             string traineeName = trainee.User?.FullName ?? trainee.UserId;
-            string traineeTitle = "تم شحن رصيدك بنجاح";
-            string adminTitle = $"تم شحن رصيد متدرب {traineeName}";
+
+            string traineeTitle = "تم شحن رصيدك بنجاح 🎉";
+            string adminTitle = $"تم شحن رصيد متدرب: {traineeName}";
+
             string traineeMessage =
-                $"تم إضافة {transaction.amountValue} {currency} إلى رصيدك.\n" +
+                $"تم إضافة {transaction.amountValue} {currency} إلى رصيدك بنجاح.\n" +
                 $"━━━━━━━━━━━━━━━━━━━\n" +
                 $"🔢 رقم العملية: #{transaction.transactionId}\n" +
                 $"💸 المبلغ المضاف: {transaction.amountValue} {currency}\n" +
@@ -258,20 +319,19 @@ namespace TrainingCenterManagement_MVC.Services
                 $"📅 التاريخ: {transaction.registrationDate}";
 
             string adminMessage =
-                $"تم شحن رصيد متدرب عبر شام كاش.\n" +
+                $"تم شحن رصيد متدرب آلياً عبر نظام المراقبة.\n" +
                 $"━━━━━━━━━━━━━━━━━━━\n" +
                 $"🧑‍🎓 المتدرب على الموقع: {traineeName}\n" +
                 $"👤 مُرسِل الحوالة على شام كاش: {transaction.userName}\n" +
                 $"🔢 رقم العملية: #{transaction.transactionId}\n" +
-                $"💸 المبلغ: {transaction.amountValue} {currency}\n" +
+                $"💸 المبلغ المشحون: {transaction.amountValue} {currency}\n" +
                 $"📅 التاريخ: {transaction.registrationDate}";
 
-            await SendNotificationsToUsersAsync(db, [trainee.UserId], traineeTitle, traineeMessage);
+            await SendNotificationsToUsersAsync(db, new List<string> { trainee.UserId }, traineeTitle, traineeMessage);
             await SendNotificationsToUsersAsync(db, adminUserIds, adminTitle, adminMessage);
         }
 
         #endregion
-
         #region مساعد الإشعارات
 
         private async Task SendNotificationsToUsersAsync(ApplicationDbContext db, List<string> userIds, string title, string message)
@@ -307,100 +367,157 @@ namespace TrainingCenterManagement_MVC.Services
 
         #endregion
 
-        #region مستخرج البيانات (Web Scraper)
+        #region مستخرج البيانات المستمر الذكي (Persistent Web Scraper)
         private async Task<List<shamCashTranslation>> FetchTransactionsFromWebAsync()
         {
             var list = new List<shamCashTranslation>();
-            IBrowser? browser = null;
 
             try
             {
                 string lastSavedId = await GetLastTransactionIdFromDatabaseAsync() ?? "229246375";
 
-                string targetUrl      = _configuration["ShamCashConfig:TargetUrl"] ?? "";
-                string authToken      = _configuration["ShamCashConfig:Cookies:AuthToken"] ?? "";
-                string accessToken    = _configuration["ShamCashConfig:Cookies:AccessToken"] ?? "";
-                string cw_conversation= _configuration["ShamCashConfig:Cookies:cw_conversation"] ?? "";
-                string forge          = _configuration["ShamCashConfig:Cookies:forge"] ?? "";
-                string nextLocale     = _configuration["ShamCashConfig:Cookies:NextLocale"] ?? "";
+                string targetUrl = _configuration["ShamCashConfig:TargetUrl"] ?? "";
+                string authToken = _configuration["ShamCashConfig:Cookies:AuthToken"] ?? "";
+                string accessToken = _configuration["ShamCashConfig:Cookies:AccessToken"] ?? "";
+                string cw_conversation = _configuration["ShamCashConfig:Cookies:cw_conversation"] ?? "";
+                string forge = _configuration["ShamCashConfig:Cookies:forge"] ?? "";
+                string nextLocale = _configuration["ShamCashConfig:Cookies:NextLocale"] ?? "";
 
-                var launchOptions = new LaunchOptions
+                string lKey1 = _configuration["ShamCashConfig:LocalStorageKey1"] ?? "";
+                string lVal1 = _configuration["ShamCashConfig:LocalStorageValue1"] ?? "";
+                string lKey2 = _configuration["ShamCashConfig:LocalStorageKey2"] ?? "";
+                string lVal2 = _configuration["ShamCashConfig:LocalStorageValue2"] ?? "";
+                string lKey3 = _configuration["ShamCashConfig:LocalStorageKey3"] ?? "";
+                string lVal3 = _configuration["ShamCashConfig:LocalStorageValue3"] ?? "";
+
+                string sKey = _configuration["ShamCashConfig:SessionStorageKey"] ?? "";
+                string sVal = _configuration["ShamCashConfig:SessionStorageValue"] ?? "";
+
+                bool isScrapingDone = false;
+
+                try
                 {
-                    Headless = true,
-                    ExecutablePath = @"C:\Program Files\Google\Chrome\Application\chrome.exe",
-                    Args = new[]
+                    // 🟢 1. إذا كان المتصفح والصفحة منشأين مسبقاً، نحاول عمل تحديث (Reload) فوراً
+                    if (_globalBrowser != null && _globalPage != null)
                     {
-                        "--no-sandbox",
-                        "--disable-setuid-sandbox",
-                        "--disable-dev-shm-usage",
-                        "--disable-extensions",
-                        "--disable-gpu",
-                        "--blink-settings=imagesEnabled=false",
-                        "--no-zygote",
-                        "--single-process"
+                        _logger.LogInformation("المتصفح جاهز، جاري تحديث الصفحة الحالية...");
+
+                        // تمرير null للـ timeout والمصفوفة كمعامل ثانٍ لمنع أي خطأ أحمر في بناء المشروع
+                        await _globalPage.ReloadAsync(null, new[] { WaitUntilNavigation.Networkidle2 });
+                        await Task.Delay(2000);
+
+                        isScrapingDone = true;
                     }
-                };
-
-                browser = await Puppeteer.LaunchAsync(launchOptions);
-                using var page = await browser.NewPageAsync();
-
-                await page.SetRequestInterceptionAsync(true);
-                page.Request += (sender, e) =>
-                {
-                    if (e.Request.ResourceType == PuppeteerSharp.ResourceType.Image ||
-                        e.Request.ResourceType == PuppeteerSharp.ResourceType.Media ||
-                        e.Request.ResourceType == PuppeteerSharp.ResourceType.Font)
-                        e.Request.AbortAsync();
-                    else
-                        e.Request.ContinueAsync();
-                };
-
-                await page.SetViewportAsync(new ViewPortOptions { Width = 1280, Height = 800 });
-
-                await page.SetCookieAsync(new CookieParam
-                {
-                    Name = "authToken", Value = authToken, Domain = "shamcash.sy", Path = "/"
-                }, new CookieParam
-                {
-                    Name = "accessToken", Value = accessToken, Domain = "shamcash.sy", Path = "/"
-                }, new CookieParam
-                {
-                    Name = "forge", Value = forge, Domain = "shamcash.sy", Path = "/"
-                }, new CookieParam
-                {
-                    Name = "cw_conversation", Value = cw_conversation, Domain = "shamcash.sy", Path = "/"
-                }, new CookieParam
-                {
-                    Name = "NEXT_LOCALE", Value = nextLocale, Domain = "shamcash.sy", Path = "/"
-                });
-
-                await page.GoToAsync(targetUrl, WaitUntilNavigation.Networkidle2);
-                await Task.Delay(3000);
-
-                string rawJson = await page.EvaluateFunctionAsync<string>(@" (lastSavedId) => {
-            const rows = document.querySelectorAll('table tbody tr');
-            const data = [];
-
-            for (let i = 0; i < rows.length; i++) {
-                const cells = rows[i].querySelectorAll('td');
-                if (cells.length >= 5) {
-                    const currentId = cells[1] ? cells[1].innerText.trim().replace('#', '') : '';
-
-                    if (currentId === lastSavedId) {
-                        break;
-                    }
-
-                    data.push({
-                        userName: cells[0] ? cells[0].innerText.trim().replace(/\n/g, ' ') : '',
-                        transactionId: currentId,
-                        registrationDate: cells[2] ? cells[2].innerText.trim() : '',
-                        rawAmount: cells[3] ? cells[3].innerText.trim() : '',
-                        notes: cells[4] ? cells[4].innerText.trim() : ''
-                    });
                 }
-            }
-            return JSON.stringify(data);
-        }", lastSavedId);
+                catch (Exception reloadEx)
+                {
+                    _logger.LogWarning($"فشل تحديث الصفحة (ربما أُغلق المتصفح): {reloadEx.Message}. سيتم إعادة تشغيل متصفح جديد...");
+                    _globalPage = null;
+                    _globalBrowser = null;
+                }
+
+                // 🟢 2. إذا كان المتصفح غير موجود، أو أُغلق وانهار؛ نقوم بإنشاء متصفح جديد وحقن الكوكيز
+                if (!isScrapingDone)
+                {
+                    _logger.LogInformation("جاري إعداد وتشغيل جلسة متصفح جديدة...");
+
+                    var launchOptions = new LaunchOptions
+                    {
+                        Headless = true,
+                        ExecutablePath = @"C:\Program Files\Google\Chrome\Application\chrome.exe",
+                        Args = new[]
+                        {
+                            "--no-sandbox",
+                            "--disable-setuid-sandbox",
+                            "--disable-dev-shm-usage"
+                        }
+                    };
+
+                    _globalBrowser = await Puppeteer.LaunchAsync(launchOptions);
+                    _globalPage = await _globalBrowser.NewPageAsync();
+
+                    await _globalPage.SetRequestInterceptionAsync(true);
+                    _globalPage.Request += (sender, e) =>
+                    {
+                        if (e.Request.ResourceType == PuppeteerSharp.ResourceType.Image ||
+                            e.Request.ResourceType == PuppeteerSharp.ResourceType.Media ||
+                            e.Request.ResourceType == PuppeteerSharp.ResourceType.Font)
+                            e.Request.AbortAsync();
+                        else
+                            e.Request.ContinueAsync();
+                    };
+
+                    await _globalPage.SetViewportAsync(new ViewPortOptions { Width = 1280, Height = 800 });
+
+                    await _globalPage.SetCookieAsync(new CookieParam
+                    {
+                        Name = "authToken",
+                        Value = authToken,
+                        Domain = "shamcash.sy",
+                        Path = "/"
+                    }, new CookieParam
+                    {
+                        Name = "accessToken",
+                        Value = accessToken,
+                        Domain = "shamcash.sy",
+                        Path = "/"
+                    }, new CookieParam
+                    {
+                        Name = "forge",
+                        Value = forge,
+                        Domain = "shamcash.sy",
+                        Path = "/"
+                    }, new CookieParam
+                    {
+                        Name = "cw_conversation",
+                        Value = cw_conversation,
+                        Domain = "shamcash.sy",
+                        Path = "/"
+                    }, new CookieParam
+                    {
+                        Name = "NEXT_LOCALE",
+                        Value = nextLocale,
+                        Domain = "shamcash.sy",
+                        Path = "/"
+                    });
+
+                    await _globalPage.GoToAsync(targetUrl, WaitUntilNavigation.Networkidle2);
+
+                    await _globalPage.EvaluateFunctionAsync(@"(lk1, lv1, lk2, lv2, lk3, lv3, sk, sv) => {
+                        if (lk1 && lv1) localStorage.setItem(lk1, lv1);
+                        if (lk2 && lv2) localStorage.setItem(lk2, lv2);
+                        if (lk3 && lv3) localStorage.setItem(lk3, lv3);
+                        if (sk && sv) sessionStorage.setItem(sk, sv);
+                    }", lKey1, lVal1, lKey2, lVal2, lKey3, lVal3, sKey, sVal);
+
+                    await Task.Delay(3000);
+                }
+
+                // استخراج الجدول البرمجي باستخدام الصفحة الحية المستقرة
+                string rawJson = await _globalPage!.EvaluateFunctionAsync<string>(@" (lastSavedId) => {
+                        const rows = document.querySelectorAll('table tbody tr');
+                        const data = [];
+
+                        for (let i = 0; i < rows.length; i++) {
+                            const cells = rows[i].querySelectorAll('td');
+                            if (cells.length >= 5) {
+                                const currentId = cells[1] ? cells[1].innerText.trim().replace('#', '') : '';
+
+                                if (currentId === lastSavedId) {
+                                    break;
+                                }
+
+                                data.push({
+                                    userName: cells[0] ? cells[0].innerText.trim().replace(/\n/g, ' ') : '',
+                                    transactionId: currentId,
+                                    registrationDate: cells[2] ? cells[2].innerText.trim() : '',
+                                    rawAmount: cells[3] ? cells[3].innerText.trim() : '',
+                                    notes: cells[4] ? cells[4].innerText.trim() : ''
+                                });
+                            }
+                        }
+                        return JSON.stringify(data);
+                    }", lastSavedId);
 
                 if (!string.IsNullOrEmpty(rawJson))
                 {
@@ -442,17 +559,10 @@ namespace TrainingCenterManagement_MVC.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError($"خطأ أثناء استخراج جدول المتصفح: {ex.Message}");
-            }
-            finally
-            {
-                if (browser != null)
-                {
-                    await browser.CloseAsync();
-                    browser.Dispose();
-                }
+                _logger.LogError($"خطأ أثناء استخراج البيانات من المتصفح المستمر: {ex.Message}");
             }
 
+            // تم إزالة حزمة الـ finally بالكامل لضمان استمرار عمل الكروم وعدم إغلاقه بعد القراءة
             return list;
         }
         #endregion
@@ -486,6 +596,88 @@ namespace TrainingCenterManagement_MVC.Services
                 return current > last;
 
             return currentId != lastProcessedId;
+        }
+
+        #endregion
+
+        #region إنشاء سجلات الدفع التلقائية من شام كاش
+
+        private async Task CreatePaymentRecordsFromShamCashAsync(
+            ApplicationDbContext db,
+            Trainee trainee,
+            shamCashTranslation transaction)
+        {
+            try
+            {
+                string txNote = $"[شام كاش] #{transaction.transactionId}";
+
+                // منع التكرار: إذا كان هذا الرقم موجوداً في سجلات الدفع مسبقاً، لا نضيف مجدداً
+                bool alreadyRecorded = await db.Payments
+                    .AnyAsync(p => p.TraineeId == trainee.TraineeId &&
+                                   p.Notes != null &&
+                                   p.Notes.Contains($"#{transaction.transactionId}"));
+                if (alreadyRecorded) return;
+
+                // تحميل أسعار الصرف
+                var dbRates = await db.ExchangeRates.ToListAsync();
+                var rates = new Dictionary<PaymentCurrency, decimal>(CurrencyHelper.DefaultRates);
+                foreach (var r in dbRates) rates[r.Currency] = r.RateToSYP;
+
+                // تحويل مبلغ الإيداع إلى ليرة سورية
+                decimal depositSYP = transaction.currencyType == CurrencyType.USD
+                    ? transaction.amountValue * rates[PaymentCurrency.USD]
+                    : transaction.amountValue;
+
+                // جلب الدورات المسجل بها المتدرب مرتبةً حسب تاريخ التسجيل
+                var enrollments = await db.CourseTrainees
+                    .Where(ct => ct.TraineeId == trainee.TraineeId)
+                    .Include(ct => ct.Course)
+                    .Where(ct => ct.Course != null && !ct.Course.IsDeleted)
+                    .OrderBy(ct => ct.EnrolledAt)
+                    .ToListAsync();
+
+                decimal remainingToApply = depositSYP;
+
+                foreach (var enrollment in enrollments)
+                {
+                    if (remainingToApply <= 0) break;
+
+                    var existingPayments = await db.Payments
+                        .Where(p => p.TraineeId == trainee.TraineeId &&
+                                    p.CourseId == enrollment.CourseId &&
+                                    !p.IsDeleted)
+                        .ToListAsync();
+
+                    decimal paidSYP = existingPayments.Sum(p =>
+                        CurrencyHelper.ToSYP(p.TotalAmount, p.Currency, rates));
+                    decimal courseRemaining = enrollment.Course.Price - paidSYP;
+
+                    if (courseRemaining <= 0) continue;
+
+                    decimal payThisCourse = Math.Min(remainingToApply, courseRemaining);
+
+                    db.Payments.Add(new Payment
+                    {
+                        PaymentId   = Guid.NewGuid(),
+                        TraineeId   = trainee.TraineeId,
+                        CourseId    = enrollment.CourseId,
+                        TotalAmount = payThisCourse,
+                        Currency    = PaymentCurrency.SYP,
+                        Notes       = $"{txNote} | {transaction.userName}",
+                        CreatedDate = DateTime.UtcNow,
+                        IsDeleted   = false
+                    });
+
+                    remainingToApply -= payThisCourse;
+                }
+
+                if (depositSYP > remainingToApply)
+                    await db.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"خطأ أثناء إنشاء سجلات الدفع التلقائية من شام كاش: {ex.Message}");
+            }
         }
 
         #endregion

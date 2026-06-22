@@ -32,6 +32,10 @@
     }
     .language-dropdown li a { display: block; padding: 8px 12px; color: #333; text-decoration: none; }
     .language-dropdown li a:hover { background: #f5f5f5; }
+    /* Force blue theme regardless of page CSS variables */
+    .logo-text { color: #1d4ed8 !important; }
+    .sidebar-nav li.active a { background-color: #1d4ed8 !important; color: #ffffff !important; }
+    .sidebar-nav a:hover { background-color: #eff6ff !important; color: #1d4ed8 !important; }
 </style>
 
 <aside class="sidebar">
@@ -90,11 +94,6 @@
                     <i class="fas fa-file-alt"></i><span>الامتحانات</span>
                 </a>
             </li>
-            <li class="@(IsActive("Exams", "QuestionBank") ? "active" : "")">
-                <a asp-action="QuestionBank" asp-controller="Exams">
-                    <i class="fas fa-question-circle"></i><span>بنك الأسئلة</span>
-                </a>
-            </li>
             <li class="@(IsActive("LiveSessions") ? "active" : "")">
                 <a asp-action="Index" asp-controller="LiveSessions">
                     <i class="fas fa-broadcast-tower"></i><span>الجلسات المباشرة</span>
@@ -110,16 +109,7 @@
                     <i class="fas fa-wallet"></i><span>الذمم المالية</span>
                 </a>
             </li>
-            <li class="@(IsActive("PaymentRequests") ? "active" : "")">
-                <a asp-action="Manage" asp-controller="PaymentRequests">
-                    <i class="fas fa-file-invoice-dollar"></i><span>طلبات الدفع الإلكتروني</span>
-                </a>
-            </li>
-            <li class="@(IsActive("Settings") ? "active" : "")">
-                <a asp-action="Edit" asp-controller="Settings">
-                    <i class="fas fa-sliders-h"></i><span>إعدادات الدفع</span>
-                </a>
-            </li>
+
             <li class="@(IsActive("ExchangeRates") ? "active" : "")">
                 <a asp-action="Index" asp-controller="ExchangeRates">
                     <i class="fas fa-exchange-alt"></i><span>أسعار الصرف</span>

@@ -19,7 +19,7 @@ namespace TrainingCenterManagement_MVC.Helpers
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
             if (trainee == null) throw new Exception("Trainee not found");
 
-            return new TraineeDashboardViewModel
+            var model = new TraineeDashboardViewModel
             {
                 FullName = user.FullName,
                 Email = user.Email ?? string.Empty,
@@ -39,8 +39,17 @@ namespace TrainingCenterManagement_MVC.Helpers
                 BalanceUSD = trainee.BalanceUSD,
                 BalanceSYP = trainee.BalanceSYP,
                 TotalEquivalentUSD = trainee.BalanceUSD + (trainee.BalanceSYP / 130m),
-                TransferCode = trainee.TransferCode
+                TransferCode = trainee.TransferCode,
             };
+
+            var shamCashPayments = await GetShamCashPaymentsAsync(traineeId);
+            var adminPayments    = await GetAdminPaymentsAsync(traineeId);
+            model.ShamCashPayments = shamCashPayments;
+            model.AdminPayments    = adminPayments;
+            model.TotalShamCashSYP = shamCashPayments.Sum(p => p.Amount);
+            model.TotalAdminSYP    = adminPayments.Sum(p => p.Amount);
+
+            return model;
         }
 
         private async Task<int> CalculateOverallProgressAsync(Guid traineeId)
@@ -227,6 +236,40 @@ namespace TrainingCenterManagement_MVC.Helpers
             return await _context.Messages
                 .Where(m => m.ReceiverId == receiver.UserId && receptIds.Contains(m.SenderId))
                 .Select(m => new Notification { Message = m.Content, Time = m.Timestamp })
+                .ToListAsync();
+        }
+
+        private async Task<List<PaymentHistoryItem>> GetShamCashPaymentsAsync(Guid traineeId)
+        {
+            return await _context.Payments
+                .Where(p => p.TraineeId == traineeId && !p.IsDeleted && p.Notes != null && p.Notes.Contains("[شام كاش]"))
+                .Include(p => p.Course)
+                .OrderByDescending(p => p.CreatedDate)
+                .Select(p => new PaymentHistoryItem
+                {
+                    Amount     = p.TotalAmount,
+                    Currency   = p.Currency.ToString(),
+                    CourseName = p.Course != null ? p.Course.CourseName : "—",
+                    Notes      = p.Notes ?? "",
+                    Date       = p.CreatedDate
+                })
+                .ToListAsync();
+        }
+
+        private async Task<List<PaymentHistoryItem>> GetAdminPaymentsAsync(Guid traineeId)
+        {
+            return await _context.Payments
+                .Where(p => p.TraineeId == traineeId && !p.IsDeleted && (p.Notes == null || !p.Notes.Contains("[شام كاش]")))
+                .Include(p => p.Course)
+                .OrderByDescending(p => p.CreatedDate)
+                .Select(p => new PaymentHistoryItem
+                {
+                    Amount     = p.TotalAmount,
+                    Currency   = p.Currency.ToString(),
+                    CourseName = p.Course != null ? p.Course.CourseName : "—",
+                    Notes      = p.Notes ?? "",
+                    Date       = p.CreatedDate
+                })
                 .ToListAsync();
         }
     }

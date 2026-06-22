@@ -26,6 +26,12 @@ namespace TrainingCenterManagement_MVC.ViewModels
         public decimal BalanceSYP { get; set; }
         public decimal TotalEquivalentUSD { get; set; }
         public string TransferCode { get; set; } = string.Empty;
+
+        // Payment history split by source
+        public List<PaymentHistoryItem> ShamCashPayments { get; set; } = new();
+        public List<PaymentHistoryItem> AdminPayments { get; set; } = new();
+        public decimal TotalShamCashSYP { get; set; }
+        public decimal TotalAdminSYP { get; set; }
     }
 
     public class DashboardStats
@@ -83,5 +89,14 @@ namespace TrainingCenterManagement_MVC.ViewModels
         public string CourseName { get; set; } = string.Empty;
         public DateTime ScheduledAt { get; set; }
         public bool IsLiveNow { get; set; }
+    }
+
+    public class PaymentHistoryItem
+    {
+        public decimal Amount { get; set; }
+        public string Currency { get; set; } = "SYP";
+        public string CourseName { get; set; } = "";
+        public string Notes { get; set; } = "";
+        public DateTime Date { get; set; }
     }
 }

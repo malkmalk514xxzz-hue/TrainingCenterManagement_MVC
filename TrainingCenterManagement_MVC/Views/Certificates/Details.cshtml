@@ -1,53 +1,183 @@
-﻿@model TrainingCenterManagement_MVC.Models.Certificate
-
+@model TrainingCenterManagement_MVC.Models.Certificate
 @{
-    ViewData["Title"] = "Certificate Details";
+    ViewData["Title"] = "تفاصيل الشهادة";
+    var avg = (double)(Model.Average);
+    string gradeLabel, gradeColor, gradeBg;
+    if      (avg >= 90) { gradeLabel = "ممتاز";    gradeColor = "#16a34a"; gradeBg = "#dcfce7"; }
+    else if (avg >= 80) { gradeLabel = "جيد جداً"; gradeColor = "#2563eb"; gradeBg = "#dbeafe"; }
+    else if (avg >= 70) { gradeLabel = "جيد";      gradeColor = "#0891b2"; gradeBg = "#cffafe"; }
+    else if (avg >= 60) { gradeLabel = "مقبول";    gradeColor = "#d97706"; gradeBg = "#fef3c7"; }
+    else                { gradeLabel = "غير ناجح"; gradeColor = "#dc2626"; gradeBg = "#fee2e2"; }
 }
 
-<div class="container-xl mt-5">
-    <div class="row justify-content-center">
-        <div class="col-lg-10 col-xl-9">
-            <div class="card border-0 shadow-sm rounded-4">
-                <div class="card-header bg-primary text-white rounded-top text-center">
-                    <h2 class="mb-0">
-                        <i class="bi bi-file-earmark-text-fill me-2"></i>Certificate Details
-                    </h2>
+<style>
+    .cd-page { background:#f0f9ff; padding:28px 32px; direction:rtl; font-family:'Segoe UI','Tajawal',sans-serif; min-height:100vh; }
+    .cd-banner { background:linear-gradient(135deg,#0d2347 0%,#1d4ed8 55%,#3b82f6 100%); border-radius:16px; padding:26px 32px; color:#fff; margin-bottom:24px; display:flex; align-items:center; gap:18px; flex-wrap:wrap; }
+    .cd-banner-icon { width:56px; height:56px; border-radius:14px; background:rgba(255,255,255,.15); display:flex; align-items:center; justify-content:center; font-size:1.5rem; flex-shrink:0; }
+    .cd-banner h1 { margin:0; font-size:1.4rem; font-weight:800; }
+    .cd-banner p { margin:4px 0 0; opacity:.8; font-size:.88rem; }
+    .cd-banner-actions { margin-right:auto; display:flex; gap:10px; flex-wrap:wrap; }
+
+    .cd-score { display:flex; align-items:center; gap:20px; background:linear-gradient(135deg,#0d2347,#1a3a6e); border-radius:14px; padding:20px 24px; margin-bottom:20px; flex-wrap:wrap; }
+    .cd-score-circle { width:68px; height:68px; border-radius:50%; background:rgba(255,255,255,.08); border:3px solid #d4a015; display:flex; flex-direction:column; align-items:center; justify-content:center; flex-shrink:0; }
+    .cd-score-num { font-size:1.15rem; font-weight:900; color:#fcd34d; line-height:1; }
+    .cd-score-pct { font-size:.6rem; color:#94a3b8; }
+    .cd-score-lbl { font-size:.75rem; color:#94a3b8; margin-bottom:4px; }
+    .cd-grade-badge { display:inline-block; padding:4px 14px; border-radius:20px; font-size:.82rem; font-weight:700; background:@gradeBg; color:@gradeColor; }
+    .cd-score-bar-wrap { height:5px; background:rgba(255,255,255,.1); border-radius:4px; overflow:hidden; margin-top:8px; min-width:160px; }
+    .cd-score-bar { height:100%; border-radius:4px; background:linear-gradient(90deg,#d4a015,#fbbf24); width:@(Math.Min(avg,100))%; }
+    .cd-status-badge { display:inline-flex; align-items:center; gap:6px; padding:6px 16px; border-radius:20px; font-size:.82rem; font-weight:700; }
+    .cd-active { background:rgba(22,163,74,.18); color:#4ade80; border:1px solid rgba(74,222,128,.3); }
+    .cd-deleted { background:rgba(220,38,38,.18); color:#f87171; border:1px solid rgba(248,113,113,.3); }
+
+    .cd-card { background:#fff; border-radius:14px; box-shadow:0 4px 24px rgba(0,0,0,.07); border:1px solid #e2e8f0; overflow:hidden; margin-bottom:20px; }
+    .cd-card-head { padding:14px 22px; background:linear-gradient(135deg,#f8fafc,#eff6ff); border-bottom:1px solid #e2e8f0; display:flex; align-items:center; gap:10px; }
+    .cd-card-head h3 { margin:0; font-size:.93rem; font-weight:700; color:#0f172a; }
+    .cd-card-body { padding:22px; }
+
+    .cd-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+    .cd-info-item { background:#f8fafc; border:1.5px solid #e2e8f0; border-radius:10px; padding:14px 16px; display:flex; align-items:flex-start; gap:12px; }
+    .cd-info-icon { width:36px; height:36px; border-radius:9px; display:flex; align-items:center; justify-content:center; color:#fff; font-size:.82rem; flex-shrink:0; }
+    .cd-info-label { font-size:.68rem; color:#94a3b8; margin-bottom:3px; font-weight:600; text-transform:uppercase; letter-spacing:.04em; }
+    .cd-info-value { font-size:.9rem; font-weight:700; color:#0f172a; }
+    .cd-info-value.mono { font-size:.68rem; font-family:monospace; word-break:break-all; line-height:1.5; }
+
+    .cd-url-row { background:#eff6ff; border:1.5px solid #bfdbfe; border-radius:10px; padding:12px 16px; display:flex; align-items:center; gap:10px; margin-top:14px; }
+    .cd-url-row a { color:#1d4ed8; font-size:.8rem; word-break:break-all; font-weight:600; }
+
+    .cd-actions { display:flex; justify-content:space-between; align-items:center; padding:14px 22px; background:#f8fafc; border-top:1px solid #e2e8f0; flex-wrap:wrap; gap:10px; }
+    .btn-cd { display:inline-flex; align-items:center; gap:7px; padding:9px 18px; border-radius:9px; font-size:.84rem; font-weight:700; text-decoration:none; transition:all .18s; cursor:pointer; border:none; }
+    .btn-cd-back { background:#fff; color:#475569; border:1.5px solid #e2e8f0 !important; }
+    .btn-cd-back:hover { background:#f1f5f9; color:#0f172a; }
+    .btn-cd-edit { background:linear-gradient(135deg,#1d4ed8,#3b82f6); color:#fff; }
+    .btn-cd-edit:hover { opacity:.88; color:#fff; }
+    .btn-cd-verify { background:linear-gradient(135deg,#d4a015,#f59e0b); color:#fff; }
+    .btn-cd-verify:hover { opacity:.88; color:#fff; }
+    .btn-cd-pdf { background:#fff; color:#475569; border:1.5px solid #e2e8f0 !important; }
+    .btn-cd-pdf:hover { background:#f1f5f9; }
+    @@media (max-width:640px) { .cd-grid { grid-template-columns:1fr; } .cd-banner-actions { margin-right:0; } }
+</style>
+
+<div class="dashboard-wrapper" style="display:flex;direction:rtl;min-height:100vh">
+@await Html.PartialAsync("_AdminSidebar")
+<main style="flex:1;order:2;overflow-x:hidden">
+<div class="cd-page">
+
+    <!-- Banner -->
+    <div class="cd-banner">
+        <div class="cd-banner-icon"><i class="fas fa-certificate"></i></div>
+        <div>
+            <h1>تفاصيل الشهادة</h1>
+            <p>@(Model.Trainee?.User?.FullName ?? "—") &mdash; @(Model.Course?.CourseName ?? "—")</p>
+        </div>
+        <div class="cd-banner-actions">
+            <a href="/Certificates/Verify/@Model.CertificateId" target="_blank" class="btn-cd btn-cd-verify">
+                <i class="fas fa-shield-alt"></i> صفحة التوثيق
+            </a>
+            <a asp-action="Edit" asp-route-id="@Model.CertificateId" class="btn-cd btn-cd-edit">
+                <i class="fas fa-edit"></i> تعديل
+            </a>
+        </div>
+    </div>
+
+    <!-- Score -->
+    <div class="cd-score">
+        <div class="cd-score-circle">
+            <span class="cd-score-num">@avg.ToString("F0")</span>
+            <span class="cd-score-pct">%</span>
+        </div>
+        <div style="flex:1">
+            <div class="cd-score-lbl">المعدل النهائي</div>
+            <span class="cd-grade-badge">@gradeLabel</span>
+            <div class="cd-score-bar-wrap"><div class="cd-score-bar"></div></div>
+            <div style="font-size:.76rem;color:#d4a015;margin-top:4px;font-weight:700;">@avg.ToString("F2") / 100</div>
+        </div>
+        <span class="cd-status-badge @(Model.IsDeleted ? "cd-deleted" : "cd-active")">
+            <i class="fas @(Model.IsDeleted ? "fa-trash-alt" : "fa-check-circle")"></i>
+            @(Model.IsDeleted ? "محذوفة" : "نشطة")
+        </span>
+    </div>
+
+    <!-- Info card -->
+    <div class="cd-card">
+        <div class="cd-card-head">
+            <i class="fas fa-info-circle" style="color:#1d4ed8;"></i>
+            <h3>معلومات الشهادة</h3>
+        </div>
+        <div class="cd-card-body">
+            <div class="cd-grid">
+                <div class="cd-info-item">
+                    <div class="cd-info-icon" style="background:linear-gradient(135deg,#1d4ed8,#3b82f6)"><i class="fas fa-user-graduate"></i></div>
+                    <div>
+                        <div class="cd-info-label">المتدرب</div>
+                        <div class="cd-info-value">@(Model.Trainee?.User?.FullName ?? "—")</div>
+                    </div>
                 </div>
-
-                <div class="card-body px-5 py-4">
-                    <dl class="row mb-0">
-                        <dt class="col-sm-3 text-end fw-semibold text-secondary">Average</dt>
-                        <dd class="col-sm-9">@Html.DisplayFor(model => model.Average)</dd>
-
-                        <dt class="col-sm-3 text-end fw-semibold text-secondary">Certificate URL</dt>
-                        <dd class="col-sm-9">@Html.DisplayFor(model => model.Url)</dd>
-
-                        <dt class="col-sm-3 text-end fw-semibold text-secondary">Is Deleted</dt>
-                        <dd class="col-sm-9">@Html.DisplayFor(model => model.IsDeleted)</dd>
-
-                        <dt class="col-sm-3 text-end fw-semibold text-secondary">Trainee ID</dt>
-                        <dd class="col-sm-9">@Html.DisplayFor(model => model.Trainee.User.FullName)</dd>
-
-                        <dt class="col-sm-3 text-end fw-semibold text-secondary">Trainer Specialty</dt>
-                        <dd class="col-sm-9">@Html.DisplayFor(model => model.Trainer.Specialty)</dd>
-
-                        <dt class="col-sm-3 text-end fw-semibold text-secondary">Course Name</dt>
-                        <dd class="col-sm-9">@Html.DisplayFor(model => model.Course.CourseName)</dd>
-
-                        <dt class="col-sm-3 text-end fw-semibold text-secondary">Exam Name</dt>
-                        <dd class="col-sm-9">@Html.DisplayFor(model => model.Exam.ExamName)</dd>
-                    </dl>
+                <div class="cd-info-item">
+                    <div class="cd-info-icon" style="background:linear-gradient(135deg,#d97706,#f59e0b)"><i class="fas fa-chalkboard-teacher"></i></div>
+                    <div>
+                        <div class="cd-info-label">المدرب</div>
+                        <div class="cd-info-value">@(Model.Trainer?.User?.FullName ?? "—")</div>
+                    </div>
                 </div>
-
-                <div class="card-footer bg-light d-flex justify-content-between px-5 py-3">
-                    <a asp-action="Index" class="btn btn-outline-secondary btn-lg">
-                        <i class="bi bi-arrow-left-circle me-1"></i> Back to List
-                    </a>
-                    <a asp-action="Edit" asp-route-id="@Model?.CertificateId" class="btn btn-primary btn-lg shadow-sm">
-                        <i class="bi bi-pencil-square me-1"></i> Edit Certificate
-                    </a>
+                <div class="cd-info-item">
+                    <div class="cd-info-icon" style="background:linear-gradient(135deg,#7c3aed,#a78bfa)"><i class="fas fa-book-open"></i></div>
+                    <div>
+                        <div class="cd-info-label">الدورة</div>
+                        <div class="cd-info-value">@(Model.Course?.CourseName ?? "—")</div>
+                    </div>
                 </div>
+                <div class="cd-info-item">
+                    <div class="cd-info-icon" style="background:linear-gradient(135deg,#0891b2,#22d3ee)"><i class="fas fa-clipboard-list"></i></div>
+                    <div>
+                        <div class="cd-info-label">الاختبار</div>
+                        <div class="cd-info-value">@(Model.Exam?.ExamName ?? "—")</div>
+                    </div>
+                </div>
+                <div class="cd-info-item">
+                    <div class="cd-info-icon" style="background:linear-gradient(135deg,#059669,#10b981)"><i class="fas fa-star"></i></div>
+                    <div>
+                        <div class="cd-info-label">تخصص المدرب</div>
+                        <div class="cd-info-value">@(Model.Trainer?.Specialty ?? "—")</div>
+                    </div>
+                </div>
+                <div class="cd-info-item">
+                    <div class="cd-info-icon" style="background:linear-gradient(135deg,#64748b,#94a3b8)"><i class="fas fa-fingerprint"></i></div>
+                    <div>
+                        <div class="cd-info-label">معرّف الشهادة</div>
+                        <div class="cd-info-value mono">@Model.CertificateId</div>
+                    </div>
+                </div>
+            </div>
+
+            @if (!string.IsNullOrEmpty(Model.Url))
+            {
+                <div class="cd-url-row">
+                    <i class="fas fa-link" style="color:#1d4ed8;flex-shrink:0;"></i>
+                    <div style="flex:1">
+                        <div style="font-size:.7rem;color:#64748b;font-weight:600;margin-bottom:2px;">رابط التحقق</div>
+                        <a href="@Model.Url" target="_blank">@Model.Url</a>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <div class="cd-actions">
+            <a asp-action="Index" class="btn-cd btn-cd-back"><i class="fas fa-arrow-right"></i> رجوع للقائمة</a>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <a href="/Certificates/CertificatePdf/@Model.CertificateId" target="_blank" class="btn-cd btn-cd-pdf">
+                    <i class="fas fa-file-pdf" style="color:#ef4444;"></i> PDF
+                </a>
+                <a href="/Certificates/Verify/@Model.CertificateId" target="_blank" class="btn-cd btn-cd-verify">
+                    <i class="fas fa-eye"></i> عرض التوثيق
+                </a>
+                <a asp-action="Edit" asp-route-id="@Model.CertificateId" class="btn-cd btn-cd-edit">
+                    <i class="fas fa-edit"></i> تعديل الشهادة
+                </a>
             </div>
         </div>
     </div>
+
+</div>
+</main>
 </div>
